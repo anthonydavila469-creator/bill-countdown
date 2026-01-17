@@ -12,7 +12,6 @@ import {
   Settings,
   LogOut,
   Mail,
-  Bell,
   Shield,
   User,
   Check,
@@ -20,14 +19,15 @@ import {
   ChevronDown,
   Sparkles,
   Loader2,
-  Clock,
-  Smartphone,
   Trash2,
   ExternalLink,
+  Lightbulb,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BillImportModal } from '@/components/bill-import-modal';
 import { CustomizationSection } from '@/components/settings/customization-section';
+import { PaycheckSection } from '@/components/settings/paycheck-section';
+import { NotificationSection } from '@/components/settings/notification-section';
 import { ParsedBill } from '@/types';
 
 // Premium section header component - matches CustomizationSection
@@ -237,9 +237,6 @@ export default function SettingsPage() {
   // Settings state
   const [isGmailConnected, setIsGmailConnected] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [browserNotifications, setBrowserNotifications] = useState(false);
-  const [reminderTiming, setReminderTiming] = useState('3');
 
   // Check authentication
   useEffect(() => {
@@ -334,6 +331,15 @@ export default function SettingsPage() {
             </li>
             <li>
               <Link
+                href="/dashboard/suggestions"
+                className="flex items-center gap-3 px-3 py-2 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+              >
+                <Mail className="w-5 h-5" />
+                Suggestions
+              </Link>
+            </li>
+            <li>
+              <Link
                 href="/dashboard/calendar"
                 className="flex items-center gap-3 px-3 py-2 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
               >
@@ -348,6 +354,15 @@ export default function SettingsPage() {
               >
                 <History className="w-5 h-5" />
                 History
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/dashboard/insights"
+                className="flex items-center gap-3 px-3 py-2 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+              >
+                <Lightbulb className="w-5 h-5" />
+                Insights
               </Link>
             </li>
             <li>
@@ -574,47 +589,12 @@ export default function SettingsPage() {
 
           {/* Notification Preferences */}
           <section>
-            <SectionHeader
-              icon={Bell}
-              iconGradient="from-amber-500/80 to-yellow-500/80"
-              title="Notifications"
-              description="Configure how you receive bill reminders"
-              index={1}
-            />
+            <NotificationSection />
+          </section>
 
-            <div className="space-y-3">
-              <ToggleRow
-                icon={Mail}
-                label="Email notifications"
-                description="Receive bill reminders via email"
-                enabled={emailNotifications}
-                onChange={setEmailNotifications}
-                index={0}
-              />
-
-              <ToggleRow
-                icon={Smartphone}
-                label="Browser notifications"
-                description="Get push notifications in your browser"
-                enabled={browserNotifications}
-                onChange={setBrowserNotifications}
-                index={1}
-              />
-
-              <SelectRow
-                icon={Clock}
-                label="Reminder timing"
-                description="When to send bill due reminders"
-                value={reminderTiming}
-                onChange={setReminderTiming}
-                options={[
-                  { value: '1', label: '1 day before' },
-                  { value: '3', label: '3 days before' },
-                  { value: '7', label: '7 days before' },
-                ]}
-                index={2}
-              />
-            </div>
+          {/* Paycheck Mode */}
+          <section>
+            <PaycheckSection />
           </section>
 
           {/* Customization Section */}

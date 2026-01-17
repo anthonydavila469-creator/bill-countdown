@@ -4,6 +4,8 @@ import {
   DEFAULT_URGENCY_COLORS,
   DEFAULT_ACCENT_COLOR,
   DEFAULT_DASHBOARD_LAYOUT,
+  DEFAULT_PAYCHECK_SETTINGS,
+  DEFAULT_NOTIFICATION_SETTINGS,
 } from '@/types';
 
 // GET /api/preferences - Get user preferences (or defaults)
@@ -44,6 +46,8 @@ export async function GET() {
         accent_color: DEFAULT_ACCENT_COLOR,
         custom_urgency_colors: DEFAULT_URGENCY_COLORS,
         dashboard_layout: DEFAULT_DASHBOARD_LAYOUT,
+        paycheck_settings: DEFAULT_PAYCHECK_SETTINGS,
+        notification_settings: DEFAULT_NOTIFICATION_SETTINGS,
       });
     }
 
@@ -103,6 +107,16 @@ export async function PUT(request: Request) {
     // Dashboard layout can be updated by anyone for now
     if (body.dashboard_layout !== undefined) {
       updateData.dashboard_layout = body.dashboard_layout;
+    }
+
+    // Paycheck settings can be updated by anyone
+    if (body.paycheck_settings !== undefined) {
+      updateData.paycheck_settings = body.paycheck_settings;
+    }
+
+    // Notification settings can be updated by anyone
+    if (body.notification_settings !== undefined) {
+      updateData.notification_settings = body.notification_settings;
     }
 
     // Upsert preferences

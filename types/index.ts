@@ -4,18 +4,43 @@ export type BillCategory =
   | 'utilities'
   | 'subscription'
   | 'rent'
+  | 'housing'
   | 'insurance'
   | 'phone'
   | 'internet'
   | 'credit_card'
   | 'loan'
+  | 'health'
   | 'other';
+
+// Icon keys for bill categories
+export type BillIconKey =
+  | 'home'
+  | 'bolt'
+  | 'wifi'
+  | 'tv'
+  | 'phone'
+  | 'creditcard'
+  | 'shield'
+  | 'car'
+  | 'heart'
+  | 'dumbbell'
+  | 'water'
+  | 'flame'
+  | 'trash'
+  | 'building'
+  | 'music'
+  | 'film'
+  | 'dollar'
+  | 'file';
 
 export type BillUrgency = 'overdue' | 'urgent' | 'soon' | 'safe' | 'distant';
 
-export type RecurrenceInterval = 'weekly' | 'monthly' | 'yearly';
+export type RecurrenceInterval = 'weekly' | 'biweekly' | 'monthly' | 'yearly';
 
 export type BillSource = 'manual' | 'gmail';
+
+export type PaidMethod = 'manual' | 'autopay';
 
 export interface Bill {
   id: string;
@@ -27,14 +52,25 @@ export interface Bill {
   category: BillCategory | null;
   is_paid: boolean;
   paid_at: string | null;
+  paid_method: PaidMethod | null; // How the bill was paid
+  last_paid_amount: number | null; // Amount that was paid
   is_recurring: boolean;
   recurrence_interval: RecurrenceInterval | null;
+  recurrence_day_of_month: number | null; // 1-31 for monthly bills
+  recurrence_weekday: number | null; // 0-6 (Sunday-Saturday) for weekly/biweekly
+  next_due_date: string | null; // Pre-computed next due date
+  parent_bill_id: string | null; // Reference to original recurring bill
+  generated_next: boolean; // Flag to prevent duplicate generation
   source: BillSource;
   gmail_message_id: string | null;
   notes: string | null;
   payment_url: string | null;
   is_autopay: boolean; // Whether bill is on automatic payment
   previous_amount: number | null; // Previous amount for price change detection
+  is_variable: boolean; // Whether bill amount changes each month
+  typical_min: number | null; // Minimum typical amount for variable bills
+  typical_max: number | null; // Maximum typical amount for variable bills
+  icon_key: BillIconKey | null; // Icon identifier for display
   created_at: string;
   updated_at: string;
 }
@@ -47,9 +83,14 @@ export interface BillFormData {
   category: BillCategory | null;
   is_recurring: boolean;
   recurrence_interval: RecurrenceInterval | null;
+  recurrence_day_of_month: number | null;
+  recurrence_weekday: number | null;
   notes: string | null;
   payment_url: string | null;
   is_autopay: boolean;
+  is_variable: boolean;
+  typical_min: number | null;
+  typical_max: number | null;
 }
 
 // Price change detection result
@@ -64,12 +105,44 @@ export const categoryEmojis: Record<BillCategory, string> = {
   utilities: '💡',
   subscription: '📺',
   rent: '🏠',
+  housing: '🏡',
   insurance: '🛡️',
   phone: '📱',
   internet: '📡',
   credit_card: '💳',
   loan: '🏦',
+  health: '💪',
   other: '📄',
+};
+
+// Category to icon key mapping
+export const categoryIconKeys: Record<BillCategory, BillIconKey> = {
+  utilities: 'bolt',
+  subscription: 'tv',
+  rent: 'home',
+  housing: 'building',
+  insurance: 'shield',
+  phone: 'phone',
+  internet: 'wifi',
+  credit_card: 'creditcard',
+  loan: 'dollar',
+  health: 'heart',
+  other: 'file',
+};
+
+// Category display labels
+export const categoryLabels: Record<BillCategory, string> = {
+  utilities: 'Utilities',
+  subscription: 'Subscriptions',
+  rent: 'Rent',
+  housing: 'Housing',
+  insurance: 'Insurance',
+  phone: 'Phone',
+  internet: 'Internet',
+  credit_card: 'Credit Card',
+  loan: 'Loan',
+  health: 'Health',
+  other: 'Other',
 };
 
 // Urgency gradient mapping
@@ -118,6 +191,24 @@ export interface ParsedBill {
   recurrence_interval: RecurrenceInterval | null;
   confidence: number; // 0-1 confidence score
   source_email_id: string;
+}
+
+// Rule-based bill suggestion from email scanning
+export interface BillSuggestion {
+  gmail_message_id: string;
+  email_subject: string;
+  email_from: string;
+  email_date: string;
+  email_snippet: string;
+  name_guess: string;
+  amount_guess: number | null;
+  due_date_guess: string | null;
+  category_guess: BillCategory | null;
+  confidence: number; // 0-1 based on keyword matches
+  matched_keywords: string[];
+  is_possible_duplicate: boolean;
+  duplicate_bill_id?: string;
+  duplicate_reason?: string;
 }
 
 // Bill anomaly detection
@@ -182,4 +273,76 @@ export const DEFAULT_DASHBOARD_LAYOUT: DashboardLayout = {
   cardsPerRow: 3,
   showStatsBar: true,
   sortBy: 'due_date',
+};
+
+// Paycheck Mode Types
+export type PaySchedule = 'weekly' | 'biweekly' | 'monthly';
+
+export interface PaycheckSettings {
+  enabled: boolean;
+  schedule: PaySchedule;
+  next_payday: string; // YYYY-MM-DD format
+  amount: number | null; // In dollars, or null if not set
+}
+
+export type PaycheckRiskLevel = 'safe' | 'tight' | 'short';
+
+export interface PaycheckSummary {
+  nextPayday: string;
+  billsBeforePayday: number;
+  billsAfterPayday: number;
+  totalBeforePayday: number; // In dollars
+  totalAfterPayday: number; // In dollars
+  moneyLeft: number | null; // In dollars, null if no paycheck amount set
+  riskLevel: PaycheckRiskLevel | null;
+}
+
+export const DEFAULT_PAYCHECK_SETTINGS: PaycheckSettings = {
+  enabled: false,
+  schedule: 'biweekly',
+  next_payday: '',
+  amount: null,
+};
+
+// Notification Types
+export type NotificationChannel = 'email' | 'push';
+export type NotificationStatus = 'pending' | 'sent' | 'failed' | 'skipped';
+
+export interface NotificationSettings {
+  email_enabled: boolean;
+  push_enabled: boolean;
+  lead_days: number; // Days before due date to send reminder
+  quiet_start: string | null; // HH:MM format
+  quiet_end: string | null; // HH:MM format
+  timezone: string; // IANA timezone
+}
+
+export interface PushSubscription {
+  id: string;
+  user_id: string;
+  endpoint: string;
+  p256dh_key: string;
+  auth_key: string;
+  created_at: string;
+}
+
+export interface BillNotification {
+  id: string;
+  user_id: string;
+  bill_id: string;
+  scheduled_for: string;
+  channel: NotificationChannel;
+  status: NotificationStatus;
+  sent_at: string | null;
+  error_message: string | null;
+  created_at: string;
+}
+
+export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
+  email_enabled: true,
+  push_enabled: false,
+  lead_days: 3,
+  quiet_start: null,
+  quiet_end: null,
+  timezone: 'America/New_York',
 };

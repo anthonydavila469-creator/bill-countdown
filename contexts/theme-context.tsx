@@ -11,9 +11,11 @@ import {
 import {
   UrgencyColors,
   DashboardLayout,
+  PaycheckSettings,
   DEFAULT_URGENCY_COLORS,
   DEFAULT_ACCENT_COLOR,
   DEFAULT_DASHBOARD_LAYOUT,
+  DEFAULT_PAYCHECK_SETTINGS,
 } from '@/types';
 
 interface ThemeContextValue {
@@ -22,12 +24,14 @@ interface ThemeContextValue {
   accentColor: string;
   urgencyColors: UrgencyColors;
   dashboardLayout: DashboardLayout;
+  paycheckSettings: PaycheckSettings;
   isLoading: boolean;
 
   // Actions
   updateAccentColor: (color: string) => Promise<void>;
   updateUrgencyColors: (colors: UrgencyColors) => Promise<void>;
   updateDashboardLayout: (layout: Partial<DashboardLayout>) => Promise<void>;
+  updatePaycheckSettings: (settings: PaycheckSettings) => Promise<void>;
   refreshPreferences: () => Promise<void>;
 }
 
@@ -51,11 +55,11 @@ interface ThemeProviderProps {
 }
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
-  // TODO: Set back to false after testing - temporarily enabled for color palette testing
-  const [isPro, setIsPro] = useState(true);
+  const [isPro, setIsPro] = useState(false);
   const [accentColor, setAccentColor] = useState(DEFAULT_ACCENT_COLOR);
   const [urgencyColors, setUrgencyColors] = useState<UrgencyColors>(DEFAULT_URGENCY_COLORS);
   const [dashboardLayout, setDashboardLayout] = useState<DashboardLayout>(DEFAULT_DASHBOARD_LAYOUT);
+  const [paycheckSettings, setPaycheckSettings] = useState<PaycheckSettings>(DEFAULT_PAYCHECK_SETTINGS);
   const [isLoading, setIsLoading] = useState(true);
 
   // Fetch preferences on mount
@@ -68,11 +72,11 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
       }
 
       const data = await response.json();
-      // TODO: Revert to `data.is_pro ?? false` after testing
-      setIsPro(true);
+      setIsPro(data.is_pro ?? false);
       setAccentColor(data.accent_color ?? DEFAULT_ACCENT_COLOR);
       setUrgencyColors(data.custom_urgency_colors ?? DEFAULT_URGENCY_COLORS);
       setDashboardLayout(data.dashboard_layout ?? DEFAULT_DASHBOARD_LAYOUT);
+      setPaycheckSettings(data.paycheck_settings ?? DEFAULT_PAYCHECK_SETTINGS);
 
       // Apply CSS variables
       applyCSSVariables(
@@ -147,6 +151,21 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     }
   }, [dashboardLayout]);
 
+  // Update paycheck settings
+  const updatePaycheckSettings = useCallback(async (settings: PaycheckSettings) => {
+    setPaycheckSettings(settings);
+
+    try {
+      await fetch('/api/preferences', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paycheck_settings: settings }),
+      });
+    } catch (error) {
+      console.error('Failed to save paycheck settings:', error);
+    }
+  }, []);
+
   return (
     <ThemeContext.Provider
       value={{
@@ -154,10 +173,12 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
         accentColor,
         urgencyColors,
         dashboardLayout,
+        paycheckSettings,
         isLoading,
         updateAccentColor,
         updateUrgencyColors,
         updateDashboardLayout,
+        updatePaycheckSettings,
         refreshPreferences,
       }}
     >

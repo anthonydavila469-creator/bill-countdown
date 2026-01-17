@@ -74,7 +74,7 @@ export function SpendingChart({ bills, periodDays }: SpendingChartProps) {
               borderRadius: '8px',
               color: '#fff',
             }}
-            formatter={(value: number) => [`$${value.toFixed(2)}`, 'Spent']}
+            formatter={(value) => [`$${(value as number).toFixed(2)}`, 'Spent']}
           />
           <Line
             type="monotone"

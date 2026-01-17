@@ -77,17 +77,16 @@ function ColorSwatch({
     lg: 'w-16 h-16',
   };
 
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        'relative rounded-xl transition-all duration-300',
-        sizeClasses[size],
-        'group',
-        onClick && 'cursor-pointer hover:scale-110',
-        isActive && 'ring-2 ring-white/50 ring-offset-2 ring-offset-[#0a0a0f]'
-      )}
-    >
+  const className = cn(
+    'relative rounded-xl transition-all duration-300',
+    sizeClasses[size],
+    'group',
+    onClick && 'cursor-pointer hover:scale-110',
+    isActive && 'ring-2 ring-white/50 ring-offset-2 ring-offset-[#0a0a0f]'
+  );
+
+  const content = (
+    <>
       {/* Outer glow */}
       <div
         className="absolute inset-0 rounded-xl blur-md opacity-50 group-hover:opacity-75 transition-opacity"
@@ -102,8 +101,19 @@ function ColorSwatch({
       <div className="absolute inset-0 rounded-xl bg-gradient-to-b from-white/30 via-transparent to-black/20" />
       {/* Inner shine */}
       <div className="absolute inset-[3px] rounded-lg bg-gradient-to-br from-white/20 to-transparent" />
-    </button>
+    </>
   );
+
+  // Use div when no onClick (to avoid nested button issues), button when interactive
+  if (onClick) {
+    return (
+      <button onClick={onClick} className={className}>
+        {content}
+      </button>
+    );
+  }
+
+  return <div className={className}>{content}</div>;
 }
 
 // Premium color picker with popover

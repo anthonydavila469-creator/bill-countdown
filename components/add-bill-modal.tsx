@@ -12,6 +12,8 @@ interface AddBillModalProps {
   onSuccess: (bill: Bill) => void;
   editBill?: Bill | null;
   initialDate?: string;
+  initialData?: Partial<BillFormData>; // For pre-filling from suggestions
+  gmailMessageId?: string; // Track source for Gmail-imported bills
 }
 
 export function AddBillModal({
@@ -20,6 +22,8 @@ export function AddBillModal({
   onSuccess,
   editBill,
   initialDate,
+  initialData,
+  gmailMessageId,
 }: AddBillModalProps) {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -53,12 +57,17 @@ export function AddBillModal({
       const url = editBill ? `/api/bills/${editBill.id}` : '/api/bills';
       const method = editBill ? 'PUT' : 'POST';
 
+      // Include gmail_message_id if creating from a suggestion
+      const payload = gmailMessageId && !editBill
+        ? { ...data, gmail_message_id: gmailMessageId, source: 'gmail' }
+        : data;
+
       const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
@@ -122,8 +131,17 @@ export function AddBillModal({
                         category: editBill.category,
                         is_recurring: editBill.is_recurring,
                         recurrence_interval: editBill.recurrence_interval,
+                        recurrence_day_of_month: editBill.recurrence_day_of_month,
+                        recurrence_weekday: editBill.recurrence_weekday,
                         notes: editBill.notes,
+                        payment_url: editBill.payment_url,
+                        is_autopay: editBill.is_autopay,
+                        is_variable: editBill.is_variable,
+                        typical_min: editBill.typical_min,
+                        typical_max: editBill.typical_max,
                       }
+                    : initialData
+                    ? initialData
                     : initialDate
                     ? { due_date: initialDate }
                     : undefined

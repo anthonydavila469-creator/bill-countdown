@@ -19,6 +19,7 @@ import {
   Mail,
   History,
   Loader2,
+  Lightbulb,
 } from 'lucide-react';
 
 export default function CalendarPage() {
@@ -205,6 +206,15 @@ export default function CalendarPage() {
             </li>
             <li>
               <Link
+                href="/dashboard/suggestions"
+                className="flex items-center gap-3 px-3 py-2 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+              >
+                <Mail className="w-5 h-5" />
+                Suggestions
+              </Link>
+            </li>
+            <li>
+              <Link
                 href="/dashboard/calendar"
                 className="flex items-center gap-3 px-3 py-2 text-white bg-white/5 rounded-lg"
               >
@@ -219,6 +229,15 @@ export default function CalendarPage() {
               >
                 <History className="w-5 h-5" />
                 History
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/dashboard/insights"
+                className="flex items-center gap-3 px-3 py-2 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+              >
+                <Lightbulb className="w-5 h-5" />
+                Insights
               </Link>
             </li>
             <li>

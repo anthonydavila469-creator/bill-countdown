@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import { scheduleNotificationsForBillWithSettings, cancelNotificationsForBill } from '@/lib/notifications/scheduler';
+import type { Bill } from '@/types';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -84,9 +86,15 @@ export async function PUT(request: Request, { params }: RouteParams) {
         paid_at: body.is_paid ? new Date().toISOString() : null,
         is_recurring: body.is_recurring,
         recurrence_interval: body.recurrence_interval,
+        recurrence_day_of_month: body.recurrence_day_of_month,
+        recurrence_weekday: body.recurrence_weekday,
         notes: body.notes,
         payment_url: body.payment_url,
         is_autopay: body.is_autopay,
+        is_variable: body.is_variable,
+        typical_min: body.typical_min,
+        typical_max: body.typical_max,
+        icon_key: body.icon_key,
       })
       .eq('id', id)
       .select()
@@ -104,6 +112,22 @@ export async function PUT(request: Request, { params }: RouteParams) {
         { error: 'Failed to update bill' },
         { status: 500 }
       );
+    }
+
+    // Re-schedule notifications if bill is updated (fire and forget)
+    // This handles due_date changes and paid status changes
+    if (bill) {
+      if ((bill as Bill).is_paid) {
+        // Bill is paid, cancel any pending notifications
+        cancelNotificationsForBill(id).catch(err => {
+          console.error('Failed to cancel notifications:', err);
+        });
+      } else {
+        // Bill is not paid, re-schedule notifications
+        scheduleNotificationsForBillWithSettings(bill as Bill).catch(err => {
+          console.error('Failed to schedule notifications:', err);
+        });
+      }
     }
 
     return NextResponse.json(bill);

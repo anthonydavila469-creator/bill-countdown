@@ -1,6 +1,6 @@
 'use client';
 
-import { Bill } from '@/types';
+import { Bill, BillIconKey } from '@/types';
 import {
   cn,
   getDaysUntilDue,
@@ -9,53 +9,220 @@ import {
   formatCurrency,
   getPriceChange,
 } from '@/lib/utils';
+import { RiskType, hasLatePaymentRisk } from '@/lib/risk-utils';
 import { GradientCard } from './ui/gradient-card';
 import { CountdownDisplay } from './countdown-display';
-import { RefreshCw, Calendar, DollarSign, ExternalLink, CreditCard, TrendingUp, TrendingDown } from 'lucide-react';
+import {
+  RefreshCw, Calendar, DollarSign, ExternalLink, CreditCard, TrendingUp, TrendingDown, Check, Zap,
+  Home, Zap as Bolt, Wifi, Tv, Phone, Shield, Car, Heart, Dumbbell, Droplet, Flame, Trash2, Building, Music, Film, FileText, LucideIcon,
+  AlertTriangle, Clock, History, AlertCircle
+} from 'lucide-react';
+
+// Icon mapping for bill categories
+const iconMap: Record<BillIconKey, LucideIcon> = {
+  home: Home,
+  bolt: Bolt,
+  wifi: Wifi,
+  tv: Tv,
+  phone: Phone,
+  creditcard: CreditCard,
+  shield: Shield,
+  car: Car,
+  heart: Heart,
+  dumbbell: Dumbbell,
+  water: Droplet,
+  flame: Flame,
+  trash: Trash2,
+  building: Building,
+  music: Music,
+  film: Film,
+  dollar: DollarSign,
+  file: FileText,
+};
 
 interface BillCardProps {
   bill: Bill;
   onClick?: () => void;
+  onMarkPaid?: (bill: Bill) => void;
+  onPayNow?: (bill: Bill) => void;
   variant?: 'default' | 'compact';
   className?: string;
+  showMarkPaid?: boolean;
+  riskType?: RiskType | null;
 }
+
+// Risk badge configuration
+const riskBadgeConfig: Record<RiskType, { icon: LucideIcon; label: string; bgColor: string; textColor: string }> = {
+  overdue: {
+    icon: AlertTriangle,
+    label: 'Overdue',
+    bgColor: 'bg-rose-500/40',
+    textColor: 'text-rose-100',
+  },
+  urgent: {
+    icon: Clock,
+    label: 'Urgent',
+    bgColor: 'bg-orange-500/40',
+    textColor: 'text-orange-100',
+  },
+  forgot_last_month: {
+    icon: History,
+    label: 'Forgot last month',
+    bgColor: 'bg-violet-500/40',
+    textColor: 'text-violet-100',
+  },
+};
 
 export function BillCard({
   bill,
   onClick,
+  onMarkPaid,
+  onPayNow,
   variant = 'default',
   className,
+  showMarkPaid = true,
+  riskType,
 }: BillCardProps) {
   const daysLeft = getDaysUntilDue(bill.due_date);
   const urgency = getUrgency(daysLeft);
   const priceChange = getPriceChange(bill.amount, bill.previous_amount);
+  const isPaid = bill.is_paid;
+  const hasPaymentLink = !!bill.payment_url;
+  const IconComponent = bill.icon_key ? iconMap[bill.icon_key] : null;
+  const showLatePaymentRisk = hasLatePaymentRisk(bill);
+  const riskConfig = riskType ? riskBadgeConfig[riskType] : null;
+
+  const handleMarkPaid = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onMarkPaid && !isPaid) {
+      onMarkPaid(bill);
+    }
+  };
+
+  const handlePayNow = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onPayNow && !isPaid) {
+      onPayNow(bill);
+    }
+  };
+
+  // Format variable bill amount display
+  const formatVariableAmount = () => {
+    if (bill.is_variable && bill.typical_min !== null && bill.typical_max !== null) {
+      return `${formatCurrency(bill.typical_min)} - ${formatCurrency(bill.typical_max)}`;
+    }
+    return bill.amount ? formatCurrency(bill.amount).replace('$', '') : null;
+  };
 
   if (variant === 'compact') {
     return (
       <GradientCard
         urgency={urgency}
         onClick={onClick}
-        className={cn('p-4', className)}
+        className={cn('p-4 group/compact', className)}
       >
         <div className="flex items-center justify-between gap-4">
-          {/* Left side: emoji + name */}
+          {/* Left side: icon/emoji + name */}
           <div className="flex items-center gap-3 min-w-0">
-            <span className="text-2xl flex-shrink-0">{bill.emoji}</span>
+            <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+              {IconComponent ? (
+                <IconComponent className="w-5 h-5 text-white" />
+              ) : (
+                <span className="text-2xl">{bill.emoji}</span>
+              )}
+            </div>
             <div className="min-w-0">
-              <h3 className="font-semibold text-white truncate">{bill.name}</h3>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <h3 className="font-semibold text-white truncate">{bill.name}</h3>
+                {bill.is_variable && (
+                  <TrendingUp className="w-3 h-3 text-amber-300 flex-shrink-0" />
+                )}
+                {/* Compact risk badge */}
+                {riskConfig && !isPaid && (
+                  <span className={cn(
+                    "flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold",
+                    riskConfig.bgColor,
+                    riskConfig.textColor
+                  )}>
+                    <riskConfig.icon className="w-2.5 h-2.5" />
+                    {riskType === 'forgot_last_month' ? 'Forgot' : riskConfig.label}
+                  </span>
+                )}
+              </div>
               <p className="text-xs text-white/70 flex items-center gap-1">
                 <Calendar className="w-3 h-3" />
                 {formatDate(bill.due_date)}
+                {showLatePaymentRisk && (
+                  <span className="inline-flex items-center gap-1 ml-1 px-1.5 py-0.5 rounded bg-rose-500/30 border border-rose-400/30">
+                    <AlertCircle className="w-2.5 h-2.5 text-rose-300 animate-pulse" />
+                    <span className="text-[9px] font-bold text-rose-200 uppercase">Late Risk</span>
+                  </span>
+                )}
               </p>
             </div>
           </div>
 
-          {/* Right side: countdown */}
-          <CountdownDisplay
-            daysLeft={daysLeft}
-            urgency={urgency}
-            size="sm"
-          />
+          {/* Right side: countdown + hover actions */}
+          <div className="flex items-center gap-3">
+            {/* Hover-reveal action buttons */}
+            {showMarkPaid && !isPaid && (
+              <div className="flex items-center gap-1.5 opacity-0 translate-x-2 group-hover/compact:opacity-100 group-hover/compact:translate-x-0 transition-all duration-200">
+                {/* Pay Now button */}
+                {hasPaymentLink ? (
+                  <button
+                    onClick={handlePayNow}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200",
+                      "bg-gradient-to-r from-blue-500 to-violet-500 hover:from-blue-400 hover:to-violet-400",
+                      "text-white shadow-lg shadow-blue-500/30",
+                      "active:scale-95"
+                    )}
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    Pay
+                  </button>
+                ) : (
+                  <button
+                    disabled
+                    className={cn(
+                      "flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium",
+                      "bg-black/30 backdrop-blur-sm",
+                      "text-white/40 border border-white/10 cursor-not-allowed"
+                    )}
+                    title="Add payment link in Edit Bill"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    Pay
+                  </button>
+                )}
+
+                {/* Mark Paid button */}
+                <button
+                  onClick={handleMarkPaid}
+                  className={cn(
+                    "flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200",
+                    "bg-white/20 hover:bg-emerald-500/40 backdrop-blur-sm",
+                    "text-white hover:text-emerald-100 border border-white/20 hover:border-emerald-400/50",
+                    "active:scale-95 shadow-lg"
+                  )}
+                  title={bill.is_autopay ? "Confirm Auto-Paid" : "Mark as Paid"}
+                >
+                  {bill.is_autopay ? (
+                    <Zap className="w-4 h-4" />
+                  ) : (
+                    <Check className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+            )}
+
+            {/* Countdown */}
+            <CountdownDisplay
+              daysLeft={daysLeft}
+              urgency={urgency}
+              size="sm"
+            />
+          </div>
         </div>
       </GradientCard>
     );
@@ -65,27 +232,50 @@ export function BillCard({
     <GradientCard
       urgency={urgency}
       onClick={onClick}
-      className={cn('p-6', className)}
+      className={cn(
+        'p-6 relative overflow-hidden',
+        isPaid && 'opacity-60',
+        className
+      )}
     >
+      {/* Paid overlay shimmer */}
+      {isPaid && (
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-emerald-500/5 pointer-events-none" />
+      )}
+
       <div className="flex flex-col h-full min-h-[180px]">
         {/* Top section: emoji + name */}
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <span
-              className="text-3xl p-2 rounded-2xl bg-white/20 backdrop-blur-sm"
+            <div
+              className={cn(
+                "relative p-2 rounded-2xl bg-white/20 backdrop-blur-sm",
+                isPaid && "grayscale-[30%]"
+              )}
               role="img"
               aria-label={bill.category || 'bill'}
             >
-              {bill.emoji}
-            </span>
+              {IconComponent ? (
+                <IconComponent className="w-7 h-7 text-white" />
+              ) : (
+                <span className="text-3xl">{bill.emoji}</span>
+              )}
+            </div>
             <div>
               <h3 className="font-bold text-lg text-white leading-tight">
                 {bill.name}
               </h3>
-              {bill.amount && (
+              {(bill.amount || bill.is_variable) && (
                 <p className="text-white/80 text-sm font-medium flex items-center gap-1">
                   <DollarSign className="w-3.5 h-3.5" />
-                  {formatCurrency(bill.amount).replace('$', '')}
+                  {bill.is_variable ? (
+                    <span className="flex items-center gap-1">
+                      {formatVariableAmount()}
+                      <TrendingUp className="w-3 h-3 text-amber-300" />
+                    </span>
+                  ) : (
+                    formatCurrency(bill.amount!).replace('$', '')
+                  )}
                 </p>
               )}
             </div>
@@ -93,8 +283,31 @@ export function BillCard({
 
           {/* Badges */}
           <div className="flex flex-col gap-1.5 items-end">
+            {/* Risk badge - shows for overdue, urgent, or forgot last month */}
+            {riskConfig && !isPaid && (
+              <div className={cn(
+                "flex items-center gap-1.5 px-2.5 py-1 rounded-full backdrop-blur-sm border border-white/20",
+                riskConfig.bgColor
+              )}>
+                <riskConfig.icon className={cn("w-3.5 h-3.5", riskConfig.textColor)} />
+                <span className={cn("text-xs font-semibold", riskConfig.textColor)}>
+                  {riskConfig.label}
+                </span>
+              </div>
+            )}
+
+            {/* Paid badge - shows when bill is paid */}
+            {isPaid && (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/40 backdrop-blur-sm border border-emerald-400/30">
+                <Check className="w-4 h-4 text-emerald-200" />
+                <span className="text-sm font-semibold text-emerald-100">
+                  Paid
+                </span>
+              </div>
+            )}
+
             {/* Autopay badge */}
-            {bill.is_autopay && (
+            {bill.is_autopay && !isPaid && (
               <div
                 className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/30 backdrop-blur-sm"
                 title="Autopay enabled"
@@ -107,7 +320,7 @@ export function BillCard({
             )}
 
             {/* Recurring badge */}
-            {bill.is_recurring && (
+            {bill.is_recurring && !isPaid && (
               <div
                 className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-sm"
                 title={`Repeats ${bill.recurrence_interval}`}
@@ -119,8 +332,21 @@ export function BillCard({
               </div>
             )}
 
+            {/* Variable bill badge */}
+            {bill.is_variable && !isPaid && (
+              <div
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/30 backdrop-blur-sm"
+                title="Variable amount"
+              >
+                <TrendingUp className="w-3.5 h-3.5 text-amber-200" />
+                <span className="text-xs font-medium text-amber-100">
+                  Variable
+                </span>
+              </div>
+            )}
+
             {/* Price change badge */}
-            {priceChange && (
+            {priceChange && !isPaid && (
               <div
                 className={cn(
                   'flex items-center gap-1 px-2 py-0.5 rounded-full backdrop-blur-sm',
@@ -150,7 +376,10 @@ export function BillCard({
         </div>
 
         {/* Center section: countdown (hero element) */}
-        <div className="flex-1 flex items-center justify-center py-4">
+        <div className={cn(
+          "flex-1 flex items-center justify-center py-4",
+          isPaid && "opacity-50"
+        )}>
           <CountdownDisplay
             daysLeft={daysLeft}
             urgency={urgency}
@@ -158,31 +387,100 @@ export function BillCard({
           />
         </div>
 
-        {/* Bottom section: due date */}
-        <div className="flex items-center justify-between pt-2 border-t border-white/20">
-          <div className="flex items-center gap-2 text-white/80">
-            <Calendar className="w-4 h-4" />
-            <span className="text-sm font-medium">
-              {formatDate(bill.due_date)}
-            </span>
+        {/* Bottom section: due date + Mark as Paid button */}
+        <div className="space-y-3 pt-2 border-t border-white/20">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-white/80">
+              <Calendar className="w-4 h-4" />
+              <span className="text-sm font-medium">
+                {formatDate(bill.due_date)}
+              </span>
+              {/* Late fee risk warning - enhanced visibility */}
+              {showLatePaymentRisk && (
+                <span className="inline-flex items-center gap-1.5 ml-2 px-2 py-0.5 rounded-md bg-rose-500/30 border border-rose-400/40 animate-pulse">
+                  <AlertCircle className="w-3 h-3 text-rose-300" />
+                  <span className="text-[10px] font-bold text-rose-200 uppercase tracking-wide">Late Fee Risk</span>
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              {/* Payment link indicator */}
+              {bill.payment_url && (
+                <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-white/20 text-white/80">
+                  <ExternalLink className="w-3 h-3" />
+                  Pay
+                </span>
+              )}
+
+              {/* Source indicator */}
+              {bill.source === 'gmail' && (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-white/20 text-white/80">
+                  from email
+                </span>
+              )}
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            {/* Payment link indicator */}
-            {bill.payment_url && (
-              <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-white/20 text-white/80">
-                <ExternalLink className="w-3 h-3" />
-                Pay
-              </span>
-            )}
+          {/* Action Buttons */}
+          {showMarkPaid && !isPaid && (
+            <div className="flex gap-2">
+              {/* Pay Now Button - Primary action if payment link exists */}
+              {hasPaymentLink ? (
+                <button
+                  onClick={handlePayNow}
+                  className={cn(
+                    "group relative flex-1 py-2.5 rounded-xl font-medium text-sm transition-all duration-200",
+                    "bg-gradient-to-r from-blue-500 to-violet-500 hover:from-blue-400 hover:to-violet-400",
+                    "active:scale-[0.98]",
+                    "flex items-center justify-center gap-2",
+                    "shadow-lg shadow-blue-500/20"
+                  )}
+                >
+                  <ExternalLink className="w-4 h-4 text-white" />
+                  <span className="text-white font-semibold">Pay Now</span>
+                </button>
+              ) : (
+                <div className="flex-1 relative">
+                  <button
+                    disabled
+                    className={cn(
+                      "w-full py-2.5 rounded-xl font-medium text-sm",
+                      "bg-white/5 border border-white/10",
+                      "flex items-center justify-center gap-2",
+                      "text-zinc-500 cursor-not-allowed"
+                    )}
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    <span>Pay Now</span>
+                  </button>
+                  <p className="absolute -bottom-5 left-0 right-0 text-[10px] text-zinc-500 text-center">
+                    Add payment link in Edit
+                  </p>
+                </div>
+              )}
 
-            {/* Source indicator */}
-            {bill.source === 'gmail' && (
-              <span className="text-xs px-2 py-0.5 rounded-full bg-white/20 text-white/80">
-                from email
-              </span>
-            )}
-          </div>
+              {/* Mark as Paid Button - Secondary */}
+              <button
+                onClick={handleMarkPaid}
+                className={cn(
+                  "group relative py-2.5 px-4 rounded-xl font-medium text-sm transition-all duration-200",
+                  "bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30",
+                  "active:scale-[0.98] active:bg-white/25",
+                  "flex items-center justify-center gap-2",
+                  "shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]",
+                  "hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_0_20px_rgba(255,255,255,0.1)]"
+                )}
+                title={bill.is_autopay ? "Confirm Auto-Paid" : "Mark as Paid"}
+              >
+                {bill.is_autopay ? (
+                  <Zap className="w-4 h-4 text-emerald-300 group-hover:text-emerald-200 transition-colors" />
+                ) : (
+                  <Check className="w-4 h-4 text-white/70 group-hover:text-emerald-300 transition-colors" />
+                )}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </GradientCard>
@@ -202,11 +500,65 @@ const urgencyVarMap = {
 export function BillListItem({
   bill,
   onClick,
+  onMarkPaid,
+  onPayNow,
   className,
+  showMarkPaid = true,
+  riskType,
 }: BillCardProps) {
   const daysLeft = getDaysUntilDue(bill.due_date);
   const urgency = getUrgency(daysLeft);
   const priceChange = getPriceChange(bill.amount, bill.previous_amount);
+  const isPaid = bill.is_paid;
+  const hasPaymentLink = !!bill.payment_url;
+  const IconComponent = bill.icon_key ? iconMap[bill.icon_key] : null;
+  const showLatePaymentRisk = hasLatePaymentRisk(bill);
+  const riskConfig = riskType ? riskBadgeConfig[riskType] : null;
+
+  // List-specific risk badge colors (for light/dark mode)
+  const listRiskBadgeConfig: Record<RiskType, { bgLight: string; bgDark: string; textLight: string; textDark: string }> = {
+    overdue: {
+      bgLight: 'bg-rose-100',
+      bgDark: 'dark:bg-rose-900/40',
+      textLight: 'text-rose-600',
+      textDark: 'dark:text-rose-400',
+    },
+    urgent: {
+      bgLight: 'bg-orange-100',
+      bgDark: 'dark:bg-orange-900/40',
+      textLight: 'text-orange-600',
+      textDark: 'dark:text-orange-400',
+    },
+    forgot_last_month: {
+      bgLight: 'bg-violet-100',
+      bgDark: 'dark:bg-violet-900/40',
+      textLight: 'text-violet-600',
+      textDark: 'dark:text-violet-400',
+    },
+  };
+  const listRiskConfig = riskType ? listRiskBadgeConfig[riskType] : null;
+
+  const handleMarkPaid = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onMarkPaid && !isPaid) {
+      onMarkPaid(bill);
+    }
+  };
+
+  const handlePayNow = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onPayNow && !isPaid) {
+      onPayNow(bill);
+    }
+  };
+
+  // Format amount display
+  const formatAmount = () => {
+    if (bill.is_variable && bill.typical_min !== null && bill.typical_max !== null) {
+      return `${formatCurrency(bill.typical_min)} - ${formatCurrency(bill.typical_max)}`;
+    }
+    return bill.amount ? formatCurrency(bill.amount) : null;
+  };
 
   return (
     <div
@@ -216,17 +568,29 @@ export function BillListItem({
         'border border-zinc-200 dark:border-zinc-800',
         'shadow-sm hover:shadow-md transition-all duration-200',
         'hover:-translate-y-0.5 cursor-pointer',
+        isPaid && 'opacity-60 bg-emerald-50/50 dark:bg-emerald-900/10',
         className
       )}
     >
       {/* Urgency color bar */}
       <div
-        className="absolute left-0 top-3 bottom-3 w-1 rounded-full"
-        style={{ backgroundColor: `var(${urgencyVarMap[urgency]})` }}
+        className={cn(
+          "absolute left-0 top-3 bottom-3 w-1 rounded-full",
+          isPaid && "bg-emerald-500"
+        )}
+        style={!isPaid ? { backgroundColor: `var(${urgencyVarMap[urgency]})` } : undefined}
       />
 
-      {/* Emoji */}
-      <span className="text-2xl pl-2">{bill.emoji}</span>
+      {/* Icon or Emoji */}
+      <div className={cn("pl-2 flex-shrink-0", isPaid && "grayscale-[30%]")}>
+        {IconComponent ? (
+          <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-white/10 flex items-center justify-center">
+            <IconComponent className="w-5 h-5 text-zinc-600 dark:text-white" />
+          </div>
+        ) : (
+          <span className="text-2xl">{bill.emoji}</span>
+        )}
+      </div>
 
       {/* Bill info */}
       <div className="flex-1 min-w-0">
@@ -234,19 +598,46 @@ export function BillListItem({
           <h3 className="font-semibold text-zinc-900 dark:text-white truncate">
             {bill.name}
           </h3>
-          {bill.is_autopay && (
+          {/* Risk badge */}
+          {riskConfig && listRiskConfig && !isPaid && (
+            <span className={cn(
+              "flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border",
+              listRiskConfig.bgLight, listRiskConfig.bgDark,
+              listRiskConfig.textLight, listRiskConfig.textDark,
+              riskType === 'overdue' && 'border-rose-200 dark:border-rose-700/50',
+              riskType === 'urgent' && 'border-orange-200 dark:border-orange-700/50',
+              riskType === 'forgot_last_month' && 'border-violet-200 dark:border-violet-700/50'
+            )}>
+              <riskConfig.icon className="w-3 h-3" />
+              {riskType === 'forgot_last_month' ? 'Forgot' : riskConfig.label}
+            </span>
+          )}
+          {/* Paid badge */}
+          {isPaid && (
+            <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-700/50">
+              <Check className="w-3 h-3" />
+              <span className="text-[10px] font-semibold">Paid</span>
+            </span>
+          )}
+          {bill.is_autopay && !isPaid && (
             <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
               <CreditCard className="w-3 h-3" />
               <span className="text-[10px] font-medium">Auto</span>
             </span>
           )}
-          {bill.is_recurring && (
+          {bill.is_recurring && !isPaid && (
             <RefreshCw className="w-3.5 h-3.5 text-zinc-400 flex-shrink-0" />
           )}
-          {bill.payment_url && (
+          {bill.is_variable && !isPaid && (
+            <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
+              <TrendingUp className="w-3 h-3" />
+              Varies
+            </span>
+          )}
+          {bill.payment_url && !isPaid && (
             <ExternalLink className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
           )}
-          {priceChange && (
+          {priceChange && !isPaid && (
             <span
               className={cn(
                 'flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium',
@@ -266,30 +657,90 @@ export function BillListItem({
         </div>
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
           {formatDate(bill.due_date)}
-          {bill.amount && ` • ${formatCurrency(bill.amount)}`}
+          {formatAmount() && ` • ${formatAmount()}`}
+          {showLatePaymentRisk && (
+            <span className="inline-flex items-center gap-1 ml-2 px-1.5 py-0.5 rounded bg-rose-100 dark:bg-rose-500/20 border border-rose-200 dark:border-rose-500/30">
+              <AlertCircle className="w-2.5 h-2.5 text-rose-500 dark:text-rose-400 animate-pulse" />
+              <span className="text-[9px] font-bold text-rose-600 dark:text-rose-300 uppercase tracking-wide">Late Risk</span>
+            </span>
+          )}
         </p>
       </div>
 
-      {/* Countdown */}
-      <div
-        className="text-right px-3 py-1.5 rounded-xl"
-        style={{
-          backgroundColor: `color-mix(in srgb, var(${urgencyVarMap[urgency]}) 15%, transparent)`,
-        }}
-      >
-        <span
-          className="text-2xl font-bold"
-          style={{ color: `var(${urgencyVarMap[urgency]})` }}
+      {/* Action buttons or Countdown */}
+      {showMarkPaid && !isPaid ? (
+        <div className="flex items-center gap-2">
+          {/* Pay Now button */}
+          {hasPaymentLink ? (
+            <button
+              onClick={handlePayNow}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200",
+                "bg-gradient-to-r from-blue-500 to-violet-500 text-white",
+                "hover:from-blue-400 hover:to-violet-400",
+                "active:scale-95"
+              )}
+            >
+              <ExternalLink className="w-4 h-4" />
+              Pay
+            </button>
+          ) : (
+            <button
+              disabled
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium",
+                "bg-zinc-100 dark:bg-white/5 text-zinc-400 dark:text-zinc-600",
+                "border border-zinc-200 dark:border-white/5 cursor-not-allowed"
+              )}
+              title="Add payment link in Edit Bill"
+            >
+              <ExternalLink className="w-4 h-4" />
+              Pay
+            </button>
+          )}
+          {/* Mark Paid button */}
+          <button
+            onClick={handleMarkPaid}
+            className={cn(
+              "flex items-center gap-1.5 px-2 py-2 rounded-xl text-sm font-medium transition-all duration-200",
+              "bg-zinc-100 dark:bg-white/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20",
+              "text-zinc-600 dark:text-white/80 hover:text-emerald-600 dark:hover:text-emerald-300",
+              "border border-zinc-200 dark:border-white/10 hover:border-emerald-300 dark:hover:border-emerald-500/30",
+              "active:scale-95"
+            )}
+            title={bill.is_autopay ? 'Confirm Auto-Paid' : 'Mark as Paid'}
+          >
+            {bill.is_autopay ? (
+              <Zap className="w-4 h-4" />
+            ) : (
+              <Check className="w-4 h-4" />
+            )}
+          </button>
+        </div>
+      ) : (
+        <div
+          className={cn(
+            "text-right px-3 py-1.5 rounded-xl",
+            isPaid && "bg-emerald-100/50 dark:bg-emerald-900/20"
+          )}
+          style={!isPaid ? {
+            backgroundColor: `color-mix(in srgb, var(${urgencyVarMap[urgency]}) 15%, transparent)`,
+          } : undefined}
         >
-          {Math.abs(daysLeft)}
-        </span>
-        <p
-          className="text-xs font-medium"
-          style={{ color: `var(${urgencyVarMap[urgency]})` }}
-        >
-          {daysLeft < 0 ? 'days ago' : daysLeft === 0 ? 'today' : 'days left'}
-        </p>
-      </div>
+          <span
+            className={cn("text-2xl font-bold", isPaid && "text-emerald-500")}
+            style={!isPaid ? { color: `var(${urgencyVarMap[urgency]})` } : undefined}
+          >
+            {isPaid ? '✓' : Math.abs(daysLeft)}
+          </span>
+          <p
+            className={cn("text-xs font-medium", isPaid && "text-emerald-500/70")}
+            style={!isPaid ? { color: `var(${urgencyVarMap[urgency]})` } : undefined}
+          >
+            {isPaid ? 'paid' : daysLeft < 0 ? 'days ago' : daysLeft === 0 ? 'today' : 'days left'}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

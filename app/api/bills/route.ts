@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import { scheduleNotificationsForBillWithSettings } from '@/lib/notifications/scheduler';
+import type { Bill } from '@/types';
 
 // GET /api/bills - Get all bills for the current user
 export async function GET(request: Request) {
@@ -96,10 +98,17 @@ export async function POST(request: Request) {
         category: body.category || null,
         is_recurring: body.is_recurring || false,
         recurrence_interval: body.recurrence_interval || null,
+        recurrence_day_of_month: body.recurrence_day_of_month || null,
+        recurrence_weekday: body.recurrence_weekday || null,
         notes: body.notes || null,
         payment_url: body.payment_url || null,
         is_autopay: body.is_autopay || false,
-        source: 'manual',
+        source: body.source || 'manual',
+        gmail_message_id: body.gmail_message_id || null,
+        is_variable: body.is_variable || false,
+        typical_min: body.typical_min || null,
+        typical_max: body.typical_max || null,
+        icon_key: body.icon_key || null,
       })
       .select()
       .single();
@@ -110,6 +119,13 @@ export async function POST(request: Request) {
         { error: 'Failed to create bill' },
         { status: 500 }
       );
+    }
+
+    // Schedule notifications for the new bill (fire and forget)
+    if (bill) {
+      scheduleNotificationsForBillWithSettings(bill as Bill).catch(err => {
+        console.error('Failed to schedule notifications for new bill:', err);
+      });
     }
 
     return NextResponse.json(bill, { status: 201 });

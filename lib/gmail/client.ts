@@ -12,6 +12,14 @@ export interface GmailTokens {
   email: string;
 }
 
+interface GmailPart {
+  mimeType: string;
+  body?: {
+    data?: string;
+  };
+  parts?: GmailPart[];
+}
+
 export interface GmailMessage {
   id: string;
   threadId: string;
@@ -21,12 +29,7 @@ export interface GmailMessage {
     body?: {
       data?: string;
     };
-    parts?: Array<{
-      mimeType: string;
-      body?: {
-        data?: string;
-      };
-    }>;
+    parts?: GmailPart[];
   };
   internalDate: string;
 }
@@ -131,19 +134,53 @@ export async function refreshAccessToken(
  * Search queries for finding bill-related emails
  */
 export const BILL_SEARCH_QUERIES = [
-  'subject:(bill OR invoice OR statement OR payment due OR amount due)',
-  'from:(billing OR invoices OR payments OR noreply)',
-  'subject:(your bill is ready OR payment reminder OR due date)',
+  // Subject-based queries
+  'subject:(bill OR invoice OR statement OR "payment due" OR "amount due")',
+  'subject:("your bill" OR "payment reminder" OR "due date" OR "balance due")',
+  'subject:(autopay OR "auto pay" OR "automatic payment" OR "scheduled payment")',
+  'subject:("account balance" OR "monthly statement" OR "your statement")',
+  'subject:("new statement" OR "statement ready" OR "bill ready" OR "payment confirmation")',
+  'subject:(receipt OR charged OR renewal OR subscription)',
+  // Sender-based queries
+  'from:(billing OR invoices OR payments OR statements OR accounts)',
+  'from:(noreply OR no-reply OR alerts OR notifications OR service)',
+  'from:(customerservice OR "customer service" OR support)',
+  // Credit cards
+  'from:(chase OR capitalone OR "capital one" OR amex OR citi OR discover)',
+  'from:(barclays OR synchrony OR wellsfargo OR "bank of america")',
+  // Phone/Internet
+  'from:(verizon OR att OR tmobile OR xfinity OR spectrum OR comcast)',
+  'from:(cox OR frontier OR cricket OR boost OR visible)',
+  // Streaming/Subscriptions
+  'from:(netflix OR spotify OR hulu OR disney OR hbo OR apple OR amazon)',
+  'from:(youtube OR paramount OR peacock OR audible OR adobe OR microsoft)',
+  // Insurance
+  'from:(geico OR progressive OR allstate OR "state farm" OR usaa OR liberty)',
+  // Utilities
+  'from:(electric OR power OR energy OR water OR gas OR utility OR municipal)',
+  'from:(txu OR oncor OR pge OR sce OR duke OR entergy)',
+  // Loans
+  'from:(loan OR mortgage OR navient OR nelnet OR sofi OR sallie)',
 ];
 
 /**
  * Fetch emails matching bill-related queries
+ * @param accessToken - Gmail access token
+ * @param maxResults - Maximum number of emails to fetch (default 100)
+ * @param daysBack - Only fetch emails from the last N days (default 30)
  */
 export async function fetchBillEmails(
   accessToken: string,
-  maxResults: number = 20
+  maxResults: number = 100,
+  daysBack: number = 30
 ): Promise<GmailMessage[]> {
-  const query = BILL_SEARCH_QUERIES.join(' OR ');
+  // Calculate the date filter (Gmail uses YYYY/MM/DD format)
+  const afterDate = new Date();
+  afterDate.setDate(afterDate.getDate() - daysBack);
+  const afterDateStr = `${afterDate.getFullYear()}/${String(afterDate.getMonth() + 1).padStart(2, '0')}/${String(afterDate.getDate()).padStart(2, '0')}`;
+
+  const baseQuery = BILL_SEARCH_QUERIES.join(' OR ');
+  const query = `(${baseQuery}) after:${afterDateStr}`;
   const encodedQuery = encodeURIComponent(query);
 
   // First, get the list of message IDs
@@ -220,6 +257,39 @@ export function extractEmailBody(message: GmailMessage): string {
 
   // Fallback to snippet
   return message.snippet || '';
+}
+
+/**
+ * Extract raw HTML body from a Gmail message
+ */
+export function extractEmailHtml(message: GmailMessage): string | undefined {
+  // Try to get HTML from parts first (multipart email)
+  if (message.payload.parts) {
+    for (const part of message.payload.parts) {
+      if (part.mimeType === 'text/html' && part.body?.data) {
+        return Buffer.from(part.body.data, 'base64').toString('utf-8');
+      }
+      // Check nested parts (e.g., multipart/alternative inside multipart/mixed)
+      if (part.parts) {
+        for (const nestedPart of part.parts) {
+          if (nestedPart.mimeType === 'text/html' && nestedPart.body?.data) {
+            return Buffer.from(nestedPart.body.data, 'base64').toString('utf-8');
+          }
+        }
+      }
+    }
+  }
+
+  // Direct body (simple email) - check if it's HTML
+  if (message.payload.body?.data) {
+    const content = Buffer.from(message.payload.body.data, 'base64').toString('utf-8');
+    // Simple check if it looks like HTML
+    if (content.includes('<html') || content.includes('<body') || content.includes('<table')) {
+      return content;
+    }
+  }
+
+  return undefined;
 }
 
 /**
