@@ -31,8 +31,41 @@ export async function POST(request: Request) {
       );
     }
 
+    // Get existing gmail_message_ids to prevent duplicates
+    const gmailMessageIds = parsedBills
+      .map((b) => b.source_email_id)
+      .filter((id): id is string => !!id);
+
+    let existingMessageIds = new Set<string>();
+    if (gmailMessageIds.length > 0) {
+      const { data: existingBills } = await supabase
+        .from('bills')
+        .select('gmail_message_id')
+        .eq('user_id', user.id)
+        .in('gmail_message_id', gmailMessageIds);
+
+      existingMessageIds = new Set(
+        (existingBills || []).map((b) => b.gmail_message_id).filter(Boolean)
+      );
+    }
+
+    // Filter out bills that already exist (by gmail_message_id)
+    const newBills = parsedBills.filter(
+      (bill) => !bill.source_email_id || !existingMessageIds.has(bill.source_email_id)
+    );
+
+    if (newBills.length === 0) {
+      return NextResponse.json({
+        imported: 0,
+        bills: [],
+        message: 'All bills already exist',
+      });
+    }
+
+    console.log(`Importing ${newBills.length} new bills (filtered out ${parsedBills.length - newBills.length} duplicates)`);
+
     // Transform parsed bills to database format
-    const billsToInsert = parsedBills.map((bill) => ({
+    const billsToInsert = newBills.map((bill) => ({
       user_id: user.id,
       name: bill.name,
       amount: bill.amount,

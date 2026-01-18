@@ -30,6 +30,7 @@ import { PaycheckSection } from '@/components/settings/paycheck-section';
 import { NotificationSection } from '@/components/settings/notification-section';
 import { DeleteAccountModal } from '@/components/settings/delete-account-modal';
 import { ParsedBill } from '@/types';
+import { useBillsContext } from '@/contexts/bills-context';
 
 // Premium section header component - matches CustomizationSection
 function SectionHeader({
@@ -230,6 +231,7 @@ function GoogleIcon({ className }: { className?: string }) {
 export default function SettingsPage() {
   const router = useRouter();
   const supabase = createClient();
+  const { refetch } = useBillsContext();
 
   // Auth state
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
@@ -315,6 +317,10 @@ export default function SettingsPage() {
       }
 
       console.log(`Successfully imported ${result.imported} bills:`, result.bills);
+
+      // Refetch bills to update the context before navigating
+      await refetch();
+
       router.push('/dashboard');
     } catch (error) {
       console.error('Failed to import bills:', error);
