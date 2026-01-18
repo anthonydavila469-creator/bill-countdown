@@ -96,7 +96,7 @@ export default function SuggestionsPage() {
       const response = await fetch('/api/suggestions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ maxResults: 100, daysBack: 30 }),
+        body: JSON.stringify({ maxResults: 200, daysBack: 90 }),
       });
 
       if (!response.ok) {
@@ -194,7 +194,7 @@ export default function SuggestionsPage() {
       recurrence_day_of_month: null,
       recurrence_weekday: null,
       notes: null,
-      payment_url: null,
+      payment_url: selectedSuggestion.payment_url || null,
       is_autopay: false,
       is_variable: false,
       typical_min: null,

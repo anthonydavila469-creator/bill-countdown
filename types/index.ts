@@ -209,6 +209,10 @@ export interface BillSuggestion {
   is_possible_duplicate: boolean;
   duplicate_bill_id?: string;
   duplicate_reason?: string;
+  // Payment link info
+  payment_url?: string | null;
+  payment_confidence?: number | null;
+  is_view_online_bill?: boolean; // True if bill has payment link but missing amount/date
 }
 
 // Bill anomaly detection

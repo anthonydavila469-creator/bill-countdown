@@ -25,9 +25,20 @@ IMPORTANT DISTINCTIONS:
 - A PAYMENT CONFIRMATION is NOT a bill (it confirms payment was already made)
 - A PROMOTIONAL EMAIL is NOT a bill (offers, discounts, marketing)
 - A SHIPPING/ORDER notification is NOT a bill (unless it includes payment due)
+- STATEMENT NOTIFICATIONS ARE BILLS: "Your statement is ready", "statement available", "Credit Card Statement" = isBill: true
+- PAYMENT REMINDERS may be duplicates - only mark isBill: false if:
+  - Subject says "reminder" AND contains NO amount/balance information in the body
+  - If the email contains a statement balance or amount due, it IS a bill
+
+CRITICAL AMOUNT RULES:
+- NEVER extract the minimum payment amount. ONLY extract the TOTAL/FULL statement balance.
+- If you see both "Minimum Payment Due: $25" and "New Balance: $354.04", ALWAYS use $354.04
+- If the ONLY amount mentioned is a minimum payment, set amount to null
+- Common patterns to AVOID: "minimum payment", "min due", "minimum due", "min payment due"
+- Common patterns to USE: "total due", "new balance", "statement balance", "amount due", "balance due"
 
 EXTRACTION GUIDELINES:
-- For AMOUNT: Always extract the TOTAL/FULL amount due, NOT the minimum payment
+- For AMOUNT: Extract ONLY the total/full balance. If unsure, use the LARGER amount.
 - For DUE DATE: Extract the actual payment due date, NOT the statement date or closing date
 - For NAME: Be specific about the product (e.g., "Chase Sapphire" not just "Chase")
 - For CATEGORY: Choose the most appropriate category
@@ -219,6 +230,16 @@ export async function extractWithClaude(
 ): Promise<AIExtractionResult> {
   const client = getAnthropicClient();
 
+  // Debug: Log what we're sending to AI
+  console.log('[AI Input]', JSON.stringify({
+    subject: request.subject.substring(0, 80),
+    bodyLen: request.cleanedBody.length,
+    bodyPreview: request.cleanedBody.substring(0, 300),
+    amounts: request.candidateAmounts.slice(0, 3).map(a => ({ value: a.value, context: a.context.substring(0, 40) })),
+    dates: request.candidateDates.slice(0, 3).map(d => ({ value: d.value, context: d.context.substring(0, 40) })),
+    names: request.candidateNames.slice(0, 2).map(n => n.value),
+  }));
+
   try {
     const userPrompt = buildExtractionPrompt(request);
 
@@ -242,10 +263,18 @@ export async function extractWithClaude(
 
     const tokensUsed = (message.usage?.input_tokens || 0) + (message.usage?.output_tokens || 0);
 
+    // Debug: Log AI response (more detail for debugging)
+    console.log('[AI Response]', JSON.stringify({
+      subject: request.subject.substring(0, 80),
+      responseLen: responseText.length,
+      responsePreview: responseText.substring(0, 800),
+    }));
+
     // Parse the response
     const parsed = parseAIResponse(responseText);
 
     if (!parsed) {
+      console.log('[AI Parse Failed]', responseText.substring(0, 300));
       return {
         isBill: false,
         name: null,
@@ -288,7 +317,11 @@ export async function extractWithClaude(
       tokensUsed,
     };
   } catch (error) {
-    console.error('Claude extraction error:', error);
+    console.error('[AI Error]', {
+      subject: request.subject.substring(0, 50),
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack?.substring(0, 200) : undefined,
+    });
     return {
       isBill: false,
       name: null,

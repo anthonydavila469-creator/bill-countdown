@@ -125,7 +125,7 @@ export function RiskAlerts({
   className,
 }: RiskAlertsProps) {
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true); // Collapsed by default for cleaner dashboard
 
   const riskBills = useMemo(() => {
     const allRisk = getRiskBills(bills, 5);
@@ -142,6 +142,59 @@ export function RiskAlerts({
   // Count by type for header
   const overdueCount = riskBills.filter(rb => rb.riskType === 'overdue').length;
   const urgentCount = riskBills.filter(rb => rb.riskType === 'urgent').length;
+
+  // Compact banner when collapsed, full panel when expanded
+  if (isCollapsed) {
+    return (
+      <button
+        onClick={() => setIsCollapsed(false)}
+        className={cn(
+          'group w-full flex items-center justify-between gap-4 px-4 py-3 rounded-xl',
+          'bg-gradient-to-r from-rose-500/[0.08] via-orange-500/[0.05] to-violet-500/[0.08]',
+          'border border-rose-500/20 hover:border-rose-500/40',
+          'transition-all duration-300 hover:shadow-[0_0_20px_rgba(244,63,94,0.1)]',
+          'animate-in fade-in slide-in-from-top-2 duration-300',
+          className
+        )}
+      >
+        <div className="flex items-center gap-3">
+          {/* Compact pulsing indicator */}
+          <div className="relative flex items-center justify-center">
+            <div className="absolute w-2 h-2 rounded-full bg-rose-500 animate-ping opacity-75" />
+            <div className="relative w-2 h-2 rounded-full bg-rose-500" />
+          </div>
+
+          {/* Inline alert info */}
+          <div className="flex items-center gap-2 text-sm">
+            <AlertTriangle className="w-4 h-4 text-rose-400" />
+            <span className="font-semibold text-white">Risk Alerts</span>
+            <span className="px-1.5 py-0.5 rounded-md bg-rose-500/20 text-rose-400 text-xs font-bold">
+              {riskBills.length}
+            </span>
+          </div>
+
+          {/* Quick summary pills */}
+          <div className="hidden sm:flex items-center gap-2">
+            {overdueCount > 0 && (
+              <span className="px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-300 text-xs font-medium">
+                {overdueCount} overdue
+              </span>
+            )}
+            {urgentCount > 0 && (
+              <span className="px-2 py-0.5 rounded-md bg-orange-500/20 text-orange-300 text-xs font-medium">
+                {urgentCount} due soon
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 text-zinc-500 group-hover:text-zinc-300 transition-colors">
+          <span className="text-xs hidden sm:inline">View details</span>
+          <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+        </div>
+      </button>
+    );
+  }
 
   return (
     <div
@@ -162,7 +215,7 @@ export function RiskAlerts({
 
       {/* Header */}
       <button
-        onClick={() => setIsCollapsed(!isCollapsed)}
+        onClick={() => setIsCollapsed(true)}
         className="w-full px-5 py-4 flex items-center justify-between border-b border-white/[0.06] hover:bg-white/[0.02] transition-colors"
       >
         <div className="flex items-center gap-4">
@@ -193,29 +246,24 @@ export function RiskAlerts({
         <ChevronRight
           className={cn(
             "w-5 h-5 text-zinc-500 transition-transform duration-200",
-            !isCollapsed && "rotate-90"
+            "rotate-90"
           )}
         />
       </button>
 
       {/* Risk items */}
-      <div className={cn(
-        "overflow-hidden transition-all duration-300",
-        isCollapsed ? "max-h-0" : "max-h-[600px]"
-      )}>
-        <div className="p-3 space-y-2">
-          {riskBills.map((riskBill, index) => (
-            <RiskAlertItem
-              key={riskBill.bill.id}
-              riskBill={riskBill}
-              onPayNow={onPayNow}
-              onMarkPaid={onMarkPaid}
-              onEditBill={onEditBill}
-              onDismiss={handleDismiss}
-              animationDelay={index * 50}
-            />
-          ))}
-        </div>
+      <div className="p-3 space-y-2">
+        {riskBills.map((riskBill, index) => (
+          <RiskAlertItem
+            key={riskBill.bill.id}
+            riskBill={riskBill}
+            onPayNow={onPayNow}
+            onMarkPaid={onMarkPaid}
+            onEditBill={onEditBill}
+            onDismiss={handleDismiss}
+            animationDelay={index * 50}
+          />
+        ))}
       </div>
     </div>
   );

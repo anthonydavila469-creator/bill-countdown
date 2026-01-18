@@ -4,16 +4,63 @@
  * Removes signatures, footers, and legal disclaimers
  */
 
+import { convert as htmlToTextLib } from 'html-to-text';
+
 // ============================================================================
 // HTML to Text Conversion
 // ============================================================================
 
 /**
- * Convert HTML email to readable text while preserving table structure
+ * Convert HTML email to readable text using html-to-text library
+ * Preserves important content like amounts, dates, and table data
  */
 export function htmlToText(html: string): string {
   if (!html) return '';
 
+  try {
+    // Use html-to-text library for proper conversion
+    const text = htmlToTextLib(html, {
+      wordwrap: false,
+      preserveNewlines: true,
+      selectors: [
+        { selector: 'img', format: 'skip' },
+        { selector: 'a', options: { ignoreHref: true } },
+        { selector: 'table', format: 'dataTable' },
+        { selector: 'style', format: 'skip' },
+        { selector: 'script', format: 'skip' },
+      ],
+    });
+
+    // Post-process to join table cells that got separated
+    // This helps with formats like "STATEMENT BALANCE" | "$97.41" becoming "STATEMENT BALANCE: $97.41"
+    let processed = text
+      .replace(/\t+/g, '  ')
+      .replace(/ +/g, ' ')
+      .replace(/\n{3,}/g, '\n\n');
+
+    // Join lines where a label (all caps or ending with :) is followed by a dollar amount
+    processed = processed.replace(
+      /([A-Z\s]+(?:BALANCE|DUE|AMOUNT|PAYMENT|DATE)[:\s]*)\n\s*(\$[\d,]+\.?\d*)/gi,
+      '$1 $2'
+    );
+
+    // Also join lines where due date label is followed by a date
+    processed = processed.replace(
+      /([A-Z\s]*(?:DUE|PAYMENT)\s*DATE[:\s]*)\n\s*(\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4})/gi,
+      '$1 $2'
+    );
+
+    return processed.trim();
+  } catch (e) {
+    console.error('html-to-text conversion failed, using fallback:', e);
+    return htmlToTextFallback(html);
+  }
+}
+
+/**
+ * Fallback HTML to text conversion (used if library fails)
+ */
+function htmlToTextFallback(html: string): string {
   let text = html;
 
   // Remove script and style tags with content
@@ -42,9 +89,9 @@ export function htmlToText(html: string): string {
 
   // Clean up whitespace
   text = text
-    .replace(/\t+/g, '  ')      // Replace tabs with spaces
-    .replace(/ +/g, ' ')         // Collapse multiple spaces
-    .replace(/\n\s*\n/g, '\n\n') // Collapse multiple newlines
+    .replace(/\t+/g, '  ')
+    .replace(/ +/g, ' ')
+    .replace(/\n\s*\n/g, '\n\n')
     .trim();
 
   return text;

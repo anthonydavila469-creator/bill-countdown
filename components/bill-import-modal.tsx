@@ -162,56 +162,68 @@ export function BillImportModal({
       setStep('syncing');
       setError(null);
 
-      // Animate progress
+      // Animate progress for syncing
       const syncInterval = setInterval(() => {
-        setSyncProgress((prev) => Math.min(prev + 10, 90));
+        setSyncProgress((prev) => Math.min(prev + 5, 45));
       }, 200);
 
-      const syncResponse = await fetch('/api/gmail/sync', { method: 'POST' });
+      // Step 2: Parse with AI - use the same suggestions endpoint as Suggestions page
+      // This ensures we get the same filtered and processed bills
+      setStep('parsing');
+
       clearInterval(syncInterval);
       setSyncProgress(100);
 
-      if (!syncResponse.ok) {
-        const data = await syncResponse.json();
-        throw new Error(data.error || 'Failed to sync emails');
-      }
-
-      const { emails } = await syncResponse.json();
-
-      if (!emails || emails.length === 0) {
-        setBills([]);
-        setStep('review');
-        return;
-      }
-
-      // Step 2: Parse with AI
-      setStep('parsing');
-
       const parseInterval = setInterval(() => {
-        setParseProgress((prev) => Math.min(prev + 5, 90));
-      }, 300);
+        setParseProgress((prev) => Math.min(prev + 3, 90));
+      }, 200);
 
-      const parseResponse = await fetch('/api/ai/parse-bills', {
+      const response = await fetch('/api/suggestions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ emails }),
+        body: JSON.stringify({ maxResults: 200, daysBack: 90 }),
       });
 
       clearInterval(parseInterval);
       setParseProgress(100);
 
-      if (!parseResponse.ok) {
-        const data = await parseResponse.json();
-        throw new Error(data.error || 'Failed to parse emails');
+      if (!response.ok) {
+        const data = await response.json();
+        if (data.code === 'GMAIL_NOT_CONNECTED') {
+          throw new Error('Gmail is not connected. Please connect Gmail in Settings.');
+        } else if (data.code === 'TOKEN_REFRESH_FAILED') {
+          throw new Error('Gmail access expired. Please reconnect Gmail in Settings.');
+        }
+        throw new Error(data.error || 'Failed to scan emails');
       }
 
-      const { bills: parsedBills } = await parseResponse.json();
+      const { suggestions } = await response.json();
 
-      // Convert to editable bills
-      const editableBills: EditableBill[] = parsedBills.map(
-        (bill: ParsedBill) => ({
-          ...bill,
-          selected: bill.confidence >= 0.5,
+      if (!suggestions || suggestions.length === 0) {
+        setBills([]);
+        setStep('review');
+        return;
+      }
+
+      // Convert suggestions to the ParsedBill format
+      const editableBills: EditableBill[] = suggestions.map(
+        (suggestion: {
+          gmail_message_id: string;
+          name_guess: string;
+          amount_guess: number | null;
+          due_date_guess: string | null;
+          category_guess: BillCategory | null;
+          confidence: number;
+        }) => ({
+          name: suggestion.name_guess,
+          amount: suggestion.amount_guess,
+          due_date: suggestion.due_date_guess,
+          category: suggestion.category_guess,
+          confidence: suggestion.confidence || 0.5,
+          source_email_id: suggestion.gmail_message_id, // Map to expected field name
+          is_recurring: false,
+          recurrence_interval: null,
+          selected: (suggestion.confidence || 0.5) >= 0.5,
           editingAmount: false,
           editingDate: false,
         })

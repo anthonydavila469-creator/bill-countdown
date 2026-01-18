@@ -10,6 +10,7 @@ import { DeleteBillModal } from '@/components/delete-bill-modal';
 import { Bill } from '@/types';
 import { createClient } from '@/lib/supabase/client';
 import { formatDateString } from '@/lib/calendar-utils';
+import { useBillMutations } from '@/hooks/use-bill-mutations';
 import {
   Zap,
   LayoutGrid,
@@ -28,10 +29,17 @@ export default function CalendarPage() {
 
   // Auth state
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [isGmailConnected, setIsGmailConnected] = useState(false);
 
-  // Bills state
-  const [bills, setBills] = useState<Bill[]>([]);
+  // Use shared bills context
+  const {
+    bills,
+    loading: billsLoading,
+    markPaid,
+    deleteBill,
+    refetch,
+  } = useBillMutations();
 
   // Modal state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -40,7 +48,7 @@ export default function CalendarPage() {
   const [deletingBill, setDeletingBill] = useState<Bill | null>(null);
   const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
 
-  // Check authentication and fetch bills
+  // Check authentication and Gmail connection
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -52,24 +60,19 @@ export default function CalendarPage() {
 
       setUser(user);
 
-      // Fetch bills from API
-      try {
-        const response = await fetch('/api/bills');
-        if (response.ok) {
-          const data = await response.json();
-          setBills(data.sort((a: Bill, b: Bill) =>
-            new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
-          ));
-        }
-      } catch (error) {
-        console.error('Failed to fetch bills:', error);
-      }
+      // Check if Gmail is connected
+      const { data: gmailToken } = await supabase
+        .from('gmail_tokens')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
 
-      setIsLoading(false);
+      setIsGmailConnected(!!gmailToken);
+      setIsAuthLoading(false);
     };
 
     checkAuth();
-  }, [router, supabase.auth]);
+  }, [router, supabase.auth, supabase]);
 
   // Handle sign out
   const handleSignOut = async () => {
@@ -77,20 +80,8 @@ export default function CalendarPage() {
     router.push('/');
   };
 
-  // Refresh bills
-  const refreshBills = async () => {
-    try {
-      const response = await fetch('/api/bills');
-      if (response.ok) {
-        const data = await response.json();
-        setBills(data.sort((a: Bill, b: Bill) =>
-          new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
-        ));
-      }
-    } catch (error) {
-      console.error('Failed to refresh bills:', error);
-    }
-  };
+  // Combined loading state
+  const isLoading = isAuthLoading || billsLoading;
 
   // Handle bill click from calendar
   const handleBillClick = (bill: Bill) => {
@@ -110,7 +101,7 @@ export default function CalendarPage() {
 
   // Handle bill success (add/edit)
   const handleBillSuccess = async () => {
-    await refreshBills();
+    await refetch();
     setEditingBill(null);
     setAddBillDate(null);
   };
@@ -128,39 +119,16 @@ export default function CalendarPage() {
     setDeletingBill(bill);
   };
 
-  // Handle mark as paid
+  // Handle mark as paid (uses optimistic update)
   const handleMarkAsPaid = async (bill: Bill) => {
-    try {
-      const response = await fetch(`/api/bills/${bill.id}/pay`, {
-        method: 'POST',
-      });
-
-      if (response.ok) {
-        await refreshBills();
-      }
-    } catch (error) {
-      console.error('Failed to mark bill as paid:', error);
-    }
-
+    await markPaid(bill);
     setSelectedBill(null);
   };
 
-  // Handle delete confirm
+  // Handle delete confirm (uses optimistic update)
   const handleDeleteConfirm = async () => {
     if (!deletingBill) return;
-
-    try {
-      const response = await fetch(`/api/bills/${deletingBill.id}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        await refreshBills();
-      }
-    } catch (error) {
-      console.error('Failed to delete bill:', error);
-    }
-
+    await deleteBill(deletingBill.id);
     setDeletingBill(null);
   };
 
@@ -252,24 +220,26 @@ export default function CalendarPage() {
           </ul>
         </nav>
 
-        {/* Gmail sync status */}
-        <div className="p-4 border-t border-white/5">
-          <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500/10 to-violet-500/10 border border-white/5">
-            <div className="flex items-center gap-3 mb-3">
-              <Mail className="w-5 h-5 text-blue-400" />
-              <span className="text-sm font-medium text-white">Gmail Sync</span>
+        {/* Gmail sync status - only show if not connected */}
+        {!isGmailConnected && (
+          <div className="p-4 border-t border-white/5">
+            <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500/10 to-violet-500/10 border border-white/5">
+              <div className="flex items-center gap-3 mb-3">
+                <Mail className="w-5 h-5 text-blue-400" />
+                <span className="text-sm font-medium text-white">Gmail Sync</span>
+              </div>
+              <p className="text-xs text-zinc-400 mb-3">
+                Connect Gmail to automatically detect bills from your inbox.
+              </p>
+              <Link
+                href="/dashboard/settings"
+                className="block w-full px-3 py-2 text-sm font-medium bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-white text-center"
+              >
+                Connect Gmail
+              </Link>
             </div>
-            <p className="text-xs text-zinc-400 mb-3">
-              Connect Gmail to automatically detect bills from your inbox.
-            </p>
-            <Link
-              href="/dashboard/settings"
-              className="block w-full px-3 py-2 text-sm font-medium bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-white text-center"
-            >
-              Connect Gmail
-            </Link>
           </div>
-        </div>
+        )}
 
         {/* User */}
         <div className="p-4 border-t border-white/5">

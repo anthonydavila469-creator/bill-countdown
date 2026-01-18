@@ -28,6 +28,7 @@ import { BillImportModal } from '@/components/bill-import-modal';
 import { CustomizationSection } from '@/components/settings/customization-section';
 import { PaycheckSection } from '@/components/settings/paycheck-section';
 import { NotificationSection } from '@/components/settings/notification-section';
+import { DeleteAccountModal } from '@/components/settings/delete-account-modal';
 import { ParsedBill } from '@/types';
 
 // Premium section header component - matches CustomizationSection
@@ -237,10 +238,20 @@ export default function SettingsPage() {
   // Settings state
   const [isGmailConnected, setIsGmailConnected] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-  // Check authentication
+  // Check authentication and Gmail connection status
   useEffect(() => {
     const checkAuth = async () => {
+      // Check URL param for gmail=connected (set by OAuth callback)
+      const urlParams = new URLSearchParams(window.location.search);
+      const gmailJustConnected = urlParams.get('gmail') === 'connected';
+
+      // If URL says we just connected, set state immediately for instant UI feedback
+      if (gmailJustConnected) {
+        setIsGmailConnected(true);
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
@@ -249,11 +260,21 @@ export default function SettingsPage() {
       }
 
       setUser(user);
+
+      // Check if Gmail is connected from database
+      const { data: gmailToken } = await supabase
+        .from('gmail_tokens')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      // Set connected if we have a token OR if URL param says connected
+      setIsGmailConnected(!!gmailToken || gmailJustConnected);
       setIsLoading(false);
     };
 
     checkAuth();
-  }, [router, supabase.auth]);
+  }, [router, supabase.auth, supabase]);
 
   // Handle sign out
   const handleSignOut = async () => {
@@ -278,15 +299,43 @@ export default function SettingsPage() {
 
   const handleImportBills = async (bills: ParsedBill[]) => {
     try {
-      await fetch('/api/bills/import', {
+      console.log('Importing bills:', bills);
+
+      const response = await fetch('/api/bills/import', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ bills }),
       });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.error('Import failed:', result);
+        throw new Error(result.error || 'Failed to import bills');
+      }
+
+      console.log(`Successfully imported ${result.imported} bills:`, result.bills);
       router.push('/dashboard');
     } catch (error) {
       console.error('Failed to import bills:', error);
+      throw error; // Re-throw so the modal can show the error
     }
+  };
+
+  // Handle delete account
+  const handleDeleteAccount = async () => {
+    const response = await fetch('/api/account/delete', {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.error || 'Failed to delete account');
+    }
+
+    // Sign out and redirect to home
+    await supabase.auth.signOut();
+    router.push('/');
   };
 
   // Loading state
@@ -377,34 +426,26 @@ export default function SettingsPage() {
           </ul>
         </nav>
 
-        {/* Gmail sync status */}
-        <div className="p-4 border-t border-white/5">
-          <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500/10 to-violet-500/10 border border-white/5">
-            <div className="flex items-center gap-3 mb-3">
-              <Mail className="w-5 h-5 text-blue-400" />
-              <span className="text-sm font-medium text-white">Gmail Sync</span>
-            </div>
-            <p className="text-xs text-zinc-400 mb-3">
-              {isGmailConnected
-                ? 'Connected and syncing bills from your inbox.'
-                : 'Connect Gmail to automatically detect bills.'}
-            </p>
-            <div
-              className={cn(
-                'flex items-center gap-2 text-xs',
-                isGmailConnected ? 'text-emerald-400' : 'text-zinc-500'
-              )}
-            >
-              <div
-                className={cn(
-                  'w-2 h-2 rounded-full',
-                  isGmailConnected ? 'bg-emerald-400' : 'bg-zinc-500'
-                )}
-              />
-              {isGmailConnected ? 'Connected' : 'Not connected'}
+        {/* Gmail sync status - only show if not connected */}
+        {!isGmailConnected && (
+          <div className="p-4 border-t border-white/5">
+            <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500/10 to-violet-500/10 border border-white/5">
+              <div className="flex items-center gap-3 mb-3">
+                <Mail className="w-5 h-5 text-blue-400" />
+                <span className="text-sm font-medium text-white">Gmail Sync</span>
+              </div>
+              <p className="text-xs text-zinc-400 mb-3">
+                Connect Gmail to automatically detect bills from your inbox.
+              </p>
+              <Link
+                href="/dashboard/settings"
+                className="block w-full px-3 py-2 text-sm font-medium bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-white text-center"
+              >
+                Connect Gmail
+              </Link>
             </div>
           </div>
-        </div>
+        )}
 
         {/* User */}
         <div className="p-4 border-t border-white/5">
@@ -710,7 +751,10 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                <button className="group relative px-5 py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/30 rounded-xl transition-all duration-300">
+                <button
+                  onClick={() => setIsDeleteModalOpen(true)}
+                  className="group relative px-5 py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/30 rounded-xl transition-all duration-300"
+                >
                   <span className="font-medium text-red-400 group-hover:text-red-300 tracking-wide transition-colors">
                     Delete Account
                   </span>
@@ -753,6 +797,14 @@ export default function SettingsPage() {
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
         onImport={handleImportBills}
+      />
+
+      {/* Delete Account Modal */}
+      <DeleteAccountModal
+        isOpen={isDeleteModalOpen}
+        userEmail={user?.email || ''}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteAccount}
       />
     </div>
   );

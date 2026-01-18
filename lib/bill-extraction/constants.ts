@@ -284,6 +284,7 @@ export const SENDER_PATTERNS: Array<{
   { pattern: /wells fargo/i, category: 'credit_card', name: 'Wells Fargo' },
   { pattern: /synchrony/i, category: 'credit_card', name: 'Synchrony' },
   { pattern: /barclays/i, category: 'credit_card', name: 'Barclays' },
+  { pattern: /best\s*buy.*credit|my\s*best\s*buy/i, category: 'credit_card', name: 'Best Buy Credit Card' },
 
   // Loans
   { pattern: /student loan|navient|nelnet|mohela|aidvantage|fedloan/i, category: 'loan', name: 'Student Loan' },
@@ -369,6 +370,10 @@ export const TOTAL_AMOUNT_PATTERNS = [
   /\$\s*([\d,]+\.?\d{0,2})\s*(?:total|due|owed|balance)/gi,
   /payment\s*(?:amount)?[:\s]*\$?\s*([\d,]+\.?\d{0,2})/gi,
   /current\s*account\s*balance[:\s]*\$?\s*([\d,]+\.?\d{0,2})/gi,
+  // Best Buy / Synchrony format: "STATEMENT BALANCE" on one line, amount nearby
+  /statement\s+balance\s*[:\s]*\$?\s*([\d,]+\.?\d{0,2})/gi,
+  // Handle cases where label and amount might be separated by whitespace/newlines
+  /(?:your|account|new|total|full)\s+balance\s*[:\s]*\$?\s*([\d,]+\.?\d{0,2})/gi,
 ];
 
 // Patterns for MINIMUM amounts (to be avoided/deprioritized)
@@ -377,11 +382,15 @@ export const MINIMUM_AMOUNT_PATTERNS = [
   /\$\s*([\d,]+\.?\d{0,2})\s*(?:minimum|min)/gi,
 ];
 
-// General amount patterns (fallback)
+// General amount patterns (fallback) - SIMPLIFIED for better matching
 export const GENERAL_AMOUNT_PATTERNS = [
-  /\$\s*([\d,]+\.?\d{0,2})/g,
-  /(?:amount|total|due|balance|payment)[:\s]*\$?\s*([\d,]+\.?\d{0,2})/gi,
-  /(?:USD|US\$)\s*([\d,]+\.?\d{0,2})/gi,
+  // Simple $XX.XX or $X,XXX.XX patterns
+  /\$\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{2})?)/g,
+  /\$\s*([0-9]+(?:\.[0-9]{2})?)/g,
+  // USD prefix
+  /(?:USD|US\$)\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{2})?)/gi,
+  // Amount with keywords
+  /(?:amount|total|due|balance|payment)[:\s]*\$?\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{2})?)/gi,
 ];
 
 // ============================================================================
@@ -391,6 +400,8 @@ export const GENERAL_AMOUNT_PATTERNS = [
 const MONTH_NAMES = '(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)';
 
 export const DATE_PATTERNS = [
+  // HIGH PRIORITY: Explicit "payment due date" pattern (Best Buy/Synchrony format)
+  new RegExp(`payment\\s+due\\s+date[:\\s]*(\\d{1,2}[\\/\\-]\\d{1,2}[\\/\\-]\\d{2,4}|${MONTH_NAMES}\\s+\\d{1,2},?\\s*\\d{4}?)`, 'gi'),
   // HIGH PRIORITY: Explicit "due" patterns
   new RegExp(`(?:due|payment)\\s*(?:date|on)?[:\\s]*?(${MONTH_NAMES}\\s+\\d{1,2},?\\s*\\d{4}|\\d{1,2}[\\/\\-]\\d{1,2}[\\/\\-]\\d{2,4})`, 'gi'),
   new RegExp(`due\\s+on[:\\s]*?(${MONTH_NAMES}\\s+\\d{1,2}(?:,?\\s*\\d{4})?|\\d{1,2}[\\/\\-]\\d{1,2}(?:[\\/\\-]\\d{2,4})?)`, 'gi'),
@@ -430,7 +441,7 @@ export const VALIDATION = {
   confidence: {
     autoAcceptThreshold: 0.85,
     needsReviewThreshold: 0.60,
-    minKeywordScore: 0.15,
+    minKeywordScore: 0.05, // Lowered from 0.15 - let AI do the real filtering
   },
 };
 

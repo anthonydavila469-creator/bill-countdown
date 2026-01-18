@@ -165,6 +165,8 @@ export async function POST(request: Request) {
         status,
         created_at,
         email_raw_id,
+        payment_url,
+        payment_confidence,
         emails_raw (
           gmail_message_id,
           subject,
@@ -181,6 +183,11 @@ export async function POST(request: Request) {
     const suggestions = (extractions || []).map((ext) => {
       // emails_raw is returned as an array from Supabase nested select
       const emailRaw = Array.isArray(ext.emails_raw) ? ext.emails_raw[0] : ext.emails_raw;
+
+      // Check if this is a "view online" bill (has payment link but missing amount/date)
+      const isViewOnlineBill = ext.payment_url && ext.payment_confidence >= 0.8 &&
+        (ext.extracted_amount === null || ext.extracted_due_date === null);
+
       return {
         id: ext.id,
         gmail_message_id: emailRaw?.gmail_message_id || ext.id,
@@ -199,6 +206,10 @@ export async function POST(request: Request) {
         email_date: emailRaw?.date_received || ext.created_at,
         email_snippet: '',
         status: ext.status,
+        // Payment link info
+        payment_url: ext.payment_url,
+        payment_confidence: ext.payment_confidence,
+        is_view_online_bill: isViewOnlineBill,
       };
     });
 

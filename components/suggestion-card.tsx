@@ -11,6 +11,8 @@ import {
   X,
   Edit3,
   Sparkles,
+  ExternalLink,
+  Eye,
 } from 'lucide-react';
 
 interface SuggestionCardProps {
@@ -119,23 +121,57 @@ export function SuggestionCard({
         {/* Extracted details */}
         <div className="flex flex-wrap gap-3 mb-4">
           {/* Amount */}
-          {suggestion.amount_guess !== null && (
+          {suggestion.amount_guess !== null ? (
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 text-white/80">
               <DollarSign className="w-4 h-4 text-emerald-400" />
               <span className="font-medium">
                 {formatCurrency(suggestion.amount_guess)}
               </span>
             </div>
-          )}
+          ) : suggestion.is_view_online_bill ? (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
+              <DollarSign className="w-4 h-4" />
+              <span className="text-sm">Enter amount</span>
+            </div>
+          ) : null}
 
           {/* Due date */}
-          {suggestion.due_date_guess && (
+          {suggestion.due_date_guess ? (
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 text-white/80">
               <Calendar className="w-4 h-4 text-blue-400" />
               <span>{formatDate(suggestion.due_date_guess)}</span>
             </div>
-          )}
+          ) : suggestion.is_view_online_bill ? (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
+              <Calendar className="w-4 h-4" />
+              <span className="text-sm">Enter due date</span>
+            </div>
+          ) : null}
         </div>
+
+        {/* View online notice */}
+        {suggestion.is_view_online_bill && suggestion.payment_url && (
+          <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 mb-4">
+            <Eye className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-blue-400">
+                View statement online
+              </p>
+              <p className="text-xs text-blue-400/70 mb-2">
+                Click below to view amount and due date, then add the bill
+              </p>
+              <a
+                href={suggestion.payment_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 text-sm font-medium transition-colors"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                View Statement
+              </a>
+            </div>
+          </div>
+        )}
 
         {/* Email subject snippet */}
         <div className="mb-4 p-3 rounded-lg bg-black/20 border border-white/5">
@@ -163,7 +199,7 @@ export function SuggestionCard({
         )}
 
         {/* Matched keywords (collapsed) */}
-        {suggestion.matched_keywords.length > 0 && (
+        {suggestion.matched_keywords && suggestion.matched_keywords.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mb-4">
             {suggestion.matched_keywords.slice(0, 3).map((keyword, i) => (
               <span

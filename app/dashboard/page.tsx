@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { BillCard } from '@/components/bill-card';
 import { AddBillModal } from '@/components/add-bill-modal';
+import { OnboardingScreen } from '@/components/onboarding/onboarding-screen';
 import { DeleteBillModal } from '@/components/delete-bill-modal';
 import { BillDetailModal } from '@/components/bill-detail-modal';
 import { PayNowModal } from '@/components/pay-now-modal';
@@ -18,7 +19,8 @@ import { getBillRiskType } from '@/lib/risk-utils';
 import { RiskAlerts } from '@/components/risk-alerts';
 import { createClient } from '@/lib/supabase/client';
 import { useTheme } from '@/contexts/theme-context';
-import { useToast } from '@/components/ui/toast';
+import { useBillMutations } from '@/hooks/use-bill-mutations';
+import { Spinner } from '@/components/ui/animated-list';
 import {
   Zap,
   Plus,
@@ -43,17 +45,30 @@ export default function DashboardPage() {
   const router = useRouter();
   const supabase = createClient();
   const { dashboardLayout, paycheckSettings } = useTheme();
-  const { showPaidToast } = useToast();
+
+  // Use optimistic mutations hook
+  const {
+    bills,
+    loading: billsLoading,
+    markPaid,
+    deleteBill,
+    updateBill,
+    snoozeBill,
+    getMutationState,
+    refetch,
+  } = useBillMutations();
 
   // Auth state
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-
-  // Bills state
-  const [bills, setBills] = useState<Bill[]>([]);
+  const [isGmailConnected, setIsGmailConnected] = useState(false);
   const [view, setView] = useState<DashboardView>(dashboardLayout.defaultView);
   const [searchQuery, setSearchQuery] = useState('');
   const [showPaidBills, setShowPaidBills] = useState(false);
+
+  // Onboarding state
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [hasCheckedOnboarding, setHasCheckedOnboarding] = useState(false);
 
   // List view state
   const [selectedBillIds, setSelectedBillIds] = useState<Set<string>>(new Set());
@@ -92,7 +107,7 @@ export default function DashboardPage() {
     };
   }, [isNotificationsOpen]);
 
-  // Check authentication and fetch bills
+  // Check authentication and Gmail connection
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -105,29 +120,48 @@ export default function DashboardPage() {
 
       setUser(user);
 
-      // Fetch bills from API
-      try {
-        const response = await fetch('/api/bills');
-        if (response.ok) {
-          const data = await response.json();
-          setBills(data.sort((a: Bill, b: Bill) =>
-            new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
-          ));
-        }
-      } catch (error) {
-        console.error('Failed to fetch bills:', error);
-      }
+      // Check if Gmail is connected
+      const { data: gmailToken } = await supabase
+        .from('gmail_tokens')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
 
+      setIsGmailConnected(!!gmailToken);
       setIsLoading(false);
     };
 
     checkAuth();
-  }, [router, supabase.auth]);
+  }, [router, supabase.auth, supabase]);
+
+  // Check for onboarding when bills load
+  useEffect(() => {
+    if (!billsLoading && !hasCheckedOnboarding) {
+      if (bills.length === 0) {
+        setShowOnboarding(true);
+      }
+      setHasCheckedOnboarding(true);
+    }
+  }, [bills, billsLoading, hasCheckedOnboarding]);
 
   // Handle sign out
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     router.push('/');
+  };
+
+  // Handle onboarding completion
+  const handleOnboardingComplete = async () => {
+    setShowOnboarding(false);
+    // Refresh bills to show newly created ones
+    await refetch();
+  };
+
+  // Handle "Add Manually" from onboarding
+  const handleAddManuallyFromOnboarding = () => {
+    setShowOnboarding(false);
+    setEditingBill(null);
+    setIsAddModalOpen(true);
   };
 
   // Filter and sort bills based on search, filters, and layout preferences
@@ -197,37 +231,15 @@ export default function DashboardPage() {
 
   // Handle adding/updating a bill
   const handleBillSuccess = async (bill: Bill) => {
-    // Refresh bills from API
-    try {
-      const response = await fetch('/api/bills');
-      if (response.ok) {
-        const data = await response.json();
-        setBills(data.sort((a: Bill, b: Bill) =>
-          new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
-        ));
-      }
-    } catch (error) {
-      console.error('Failed to refresh bills:', error);
-    }
+    // Refresh bills from context
+    await refetch();
     setEditingBill(null);
   };
 
   // Handle deleting a bill
   const handleDeleteConfirm = async () => {
     if (!deletingBill) return;
-
-    try {
-      const response = await fetch(`/api/bills/${deletingBill.id}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        setBills((prev) => prev.filter((b) => b.id !== deletingBill.id));
-      }
-    } catch (error) {
-      console.error('Failed to delete bill:', error);
-    }
-
+    await deleteBill(deletingBill.id);
     setDeletingBill(null);
   };
 
@@ -257,50 +269,7 @@ export default function DashboardPage() {
 
   // Handle marking a bill as paid with undo support
   const handleMarkAsPaid = async (bill: Bill) => {
-    try {
-      const response = await fetch(`/api/bills/${bill.id}/pay`, {
-        method: 'POST',
-      });
-
-      if (response.ok) {
-        const { paidBill, nextBill } = await response.json();
-
-        // Store original state for undo
-        const originalBills = [...bills];
-        const createdNextBillId = nextBill?.id;
-
-        // Update bills list - keep the paid bill but mark it as paid
-        setBills((prev) => {
-          let updated = prev.map((b) => (b.id === bill.id ? paidBill : b));
-          if (nextBill) {
-            updated = [...updated, nextBill];
-          }
-          return updated.sort((a, b) =>
-            new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
-          );
-        });
-
-        // Show toast with undo option
-        showPaidToast(bill.name, bill.amount, async () => {
-          // Undo the payment
-          try {
-            const undoResponse = await fetch(`/api/bills/${bill.id}/pay`, {
-              method: 'DELETE',
-            });
-
-            if (undoResponse.ok) {
-              // Restore original state
-              setBills(originalBills);
-            }
-          } catch (error) {
-            console.error('Failed to undo payment:', error);
-          }
-        });
-      }
-    } catch (error) {
-      console.error('Failed to mark bill as paid:', error);
-    }
-
+    await markPaid(bill);
     setSelectedBill(null);
   };
 
@@ -326,53 +295,7 @@ export default function DashboardPage() {
 
   // Handle marking paid from Pay Now modal (with custom amount)
   const handleMarkPaidFromPayNow = async (bill: Bill, amount: number | null) => {
-    try {
-      const response = await fetch(`/api/bills/${bill.id}/pay`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount }),
-      });
-
-      if (response.ok) {
-        const { paidBill, nextBill } = await response.json();
-
-        // Update bills list
-        setBills((prev) => {
-          let updated = prev.map((b) => (b.id === bill.id ? paidBill : b));
-          if (nextBill) {
-            updated = [...updated, nextBill];
-          }
-          return updated.sort((a, b) =>
-            new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
-          );
-        });
-
-        // Show toast
-        showPaidToast(bill.name, amount || bill.amount, async () => {
-          // Undo the payment
-          try {
-            const undoResponse = await fetch(`/api/bills/${bill.id}/pay`, {
-              method: 'DELETE',
-            });
-
-            if (undoResponse.ok) {
-              // Refresh bills
-              const refreshResponse = await fetch('/api/bills');
-              if (refreshResponse.ok) {
-                const data = await refreshResponse.json();
-                setBills(data.sort((a: Bill, b: Bill) =>
-                  new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
-                ));
-              }
-            }
-          } catch (error) {
-            console.error('Failed to undo payment:', error);
-          }
-        });
-      }
-    } catch (error) {
-      console.error('Failed to mark bill as paid:', error);
-    }
+    await markPaid(bill, amount);
   };
 
   // Batch action: Mark all selected as paid
@@ -382,35 +305,14 @@ export default function DashboardPage() {
     setIsBatchProcessing(true);
     const selectedBills = bills.filter((b) => selectedBillIds.has(b.id) && !b.is_paid);
 
-    try {
-      // Process bills sequentially to avoid race conditions with recurring bills
-      for (const bill of selectedBills) {
-        const response = await fetch(`/api/bills/${bill.id}/pay`, {
-          method: 'POST',
-        });
-
-        if (response.ok) {
-          const { paidBill, nextBill } = await response.json();
-
-          setBills((prev) => {
-            let updated = prev.map((b) => (b.id === bill.id ? paidBill : b));
-            if (nextBill) {
-              updated = [...updated, nextBill];
-            }
-            return updated.sort((a, b) =>
-              new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
-            );
-          });
-        }
-      }
-
-      // Clear selection after batch action
-      setSelectedBillIds(new Set());
-    } catch (error) {
-      console.error('Failed to batch mark as paid:', error);
-    } finally {
-      setIsBatchProcessing(false);
+    // Process bills sequentially to avoid race conditions with recurring bills
+    for (const bill of selectedBills) {
+      await markPaid(bill);
     }
+
+    // Clear selection after batch action
+    setSelectedBillIds(new Set());
+    setIsBatchProcessing(false);
   };
 
   // Batch action: Snooze selected bills
@@ -420,36 +322,29 @@ export default function DashboardPage() {
     setIsBatchProcessing(true);
     const daysToAdd = option === '1_day' ? 1 : option === '3_days' ? 3 : 7;
 
-    try {
-      const selectedBills = bills.filter((b) => selectedBillIds.has(b.id) && !b.is_paid);
+    const selectedBills = bills.filter((b) => selectedBillIds.has(b.id) && !b.is_paid);
 
-      for (const bill of selectedBills) {
-        const currentDate = new Date(bill.due_date);
-        currentDate.setDate(currentDate.getDate() + daysToAdd);
-        const newDueDate = currentDate.toISOString().split('T')[0];
-
-        const response = await fetch(`/api/bills/${bill.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...bill, due_date: newDueDate }),
-        });
-
-        if (response.ok) {
-          const updatedBill = await response.json();
-          setBills((prev) =>
-            prev
-              .map((b) => (b.id === bill.id ? updatedBill : b))
-              .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())
-          );
-        }
-      }
-
-      setSelectedBillIds(new Set());
-    } catch (error) {
-      console.error('Failed to batch snooze:', error);
-    } finally {
-      setIsBatchProcessing(false);
+    for (const bill of selectedBills) {
+      await snoozeBill(bill.id, daysToAdd);
     }
+
+    setSelectedBillIds(new Set());
+    setIsBatchProcessing(false);
+  };
+
+  // Batch action: Delete selected bills
+  const handleBatchDelete = async () => {
+    if (selectedBillIds.size === 0) return;
+
+    setIsBatchProcessing(true);
+    const selectedBillsList = bills.filter((b) => selectedBillIds.has(b.id));
+
+    for (const bill of selectedBillsList) {
+      await deleteBill(bill.id);
+    }
+
+    setSelectedBillIds(new Set());
+    setIsBatchProcessing(false);
   };
 
   // Clear batch selection
@@ -458,14 +353,24 @@ export default function DashboardPage() {
   };
 
   // Loading state
-  if (isLoading) {
+  if (isLoading || billsLoading) {
     return (
       <div className="min-h-screen bg-[#08080c] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+          <Spinner size="lg" variant="accent" />
           <p className="text-zinc-400">Loading...</p>
         </div>
       </div>
+    );
+  }
+
+  // Show onboarding for new users with no bills
+  if (showOnboarding && hasCheckedOnboarding) {
+    return (
+      <OnboardingScreen
+        onComplete={handleOnboardingComplete}
+        onAddManually={handleAddManuallyFromOnboarding}
+      />
     );
   }
 
@@ -545,24 +450,26 @@ export default function DashboardPage() {
           </ul>
         </nav>
 
-        {/* Gmail sync status */}
-        <div className="p-4 border-t border-white/5">
-          <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500/10 to-violet-500/10 border border-white/5">
-            <div className="flex items-center gap-3 mb-3">
-              <Mail className="w-5 h-5 text-blue-400" />
-              <span className="text-sm font-medium text-white">Gmail Sync</span>
+        {/* Gmail sync status - only show if not connected */}
+        {!isGmailConnected && (
+          <div className="p-4 border-t border-white/5">
+            <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500/10 to-violet-500/10 border border-white/5">
+              <div className="flex items-center gap-3 mb-3">
+                <Mail className="w-5 h-5 text-blue-400" />
+                <span className="text-sm font-medium text-white">Gmail Sync</span>
+              </div>
+              <p className="text-xs text-zinc-400 mb-3">
+                Connect Gmail to automatically detect bills from your inbox.
+              </p>
+              <Link
+                href="/dashboard/settings"
+                className="block w-full px-3 py-2 text-sm font-medium bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-white text-center"
+              >
+                Connect Gmail
+              </Link>
             </div>
-            <p className="text-xs text-zinc-400 mb-3">
-              Connect Gmail to automatically detect bills from your inbox.
-            </p>
-            <Link
-              href="/dashboard/settings"
-              className="block w-full px-3 py-2 text-sm font-medium bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-white text-center"
-            >
-              Connect Gmail
-            </Link>
           </div>
-        </div>
+        )}
 
         {/* User */}
         <div className="p-4 border-t border-white/5">
@@ -833,8 +740,8 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* Stats - conditionally rendered based on layout preferences */}
-          {dashboardLayout.showStatsBar && (
+          {/* Stats - conditionally rendered based on layout preferences, hidden when Paycheck Mode is active */}
+          {dashboardLayout.showStatsBar && !paycheckSettings?.enabled && (
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
               <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5">
                 <p className="text-sm text-zinc-400 mb-1">Total Due</p>
@@ -1046,6 +953,7 @@ export default function DashboardPage() {
         selectedCount={selectedBillIds.size}
         onMarkAllPaid={handleBatchMarkPaid}
         onSnooze={handleBatchSnooze}
+        onDelete={handleBatchDelete}
         onClearSelection={handleClearSelection}
         isProcessing={isBatchProcessing}
       />

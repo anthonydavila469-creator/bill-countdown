@@ -510,54 +510,115 @@ export function calculateKeywordScore(
 }
 
 // ============================================================================
+// Bill Signal Detection
+// ============================================================================
+
+const BILL_SIGNALS = [
+  'amount due',
+  'minimum payment',
+  'payment due',
+  'due date',
+  'statement',
+  'invoice',
+  'billing',
+  'past due',
+  'balance due',
+  'total due',
+  'autopay',
+  'auto pay',
+  'automatic payment',
+  'scheduled payment',
+  'new balance',
+  'current balance',
+];
+
+/**
+ * Check if text contains strong bill signals
+ */
+function hasBillSignals(subject: string, body: string): boolean {
+  const subjectLower = subject.toLowerCase();
+  const bodyLower = body.toLowerCase();
+
+  return BILL_SIGNALS.some(signal =>
+    subjectLower.includes(signal) || bodyLower.includes(signal)
+  );
+}
+
+// ============================================================================
 // Promotional/Skip Detection
 // ============================================================================
 
 /**
  * Check if an email is promotional or should be skipped
+ * Now with HIGH RECALL - only skip if clearly not a bill
  */
 export function checkIfShouldSkip(
   subject: string,
   body: string
-): { shouldSkip: boolean; reason: string | null } {
-  const text = `${subject} ${body}`.toLowerCase();
-  const subjectLower = subject.toLowerCase();
+): { shouldSkip: boolean; reason: string | null; debugInfo?: object } {
+  const subjectLower = subject.toLowerCase().replace(/\s+/g, ' ').trim();
+  const bodyLower = body.toLowerCase().replace(/\s+/g, ' ').trim();
 
-  // Check skip keywords (payment confirmations, cancellations)
+  // Check for bill signals - if present, we almost never skip
+  const hasBillSignal = hasBillSignals(subject, body);
+
+  // Check skip keywords in SUBJECT ONLY (not body)
+  let skipHit: string | null = null;
   for (const keyword of SKIP_KEYWORDS) {
-    if (text.includes(keyword.toLowerCase())) {
-      return { shouldSkip: true, reason: `Contains skip keyword: "${keyword}"` };
+    if (subjectLower.includes(keyword.toLowerCase())) {
+      skipHit = keyword;
+      break;
     }
+  }
+
+  // Only skip if we have a skip keyword AND no bill signals
+  if (skipHit && !hasBillSignal) {
+    return {
+      shouldSkip: true,
+      reason: `Contains skip keyword in SUBJECT: "${skipHit}"`,
+      debugInfo: { skipHit, hasBillSignal }
+    };
   }
 
   // Count promotional keywords
   let promoCount = 0;
-  let foundPromo: string | null = null;
   for (const keyword of PROMOTIONAL_KEYWORDS) {
-    if (text.includes(keyword.toLowerCase())) {
-      foundPromo = keyword;
+    const keywordLower = keyword.toLowerCase();
+    if (subjectLower.includes(keywordLower) || bodyLower.includes(keywordLower)) {
       promoCount++;
-      if (promoCount >= 2) {
-        return { shouldSkip: true, reason: `Promotional email (found ${promoCount}+ promo keywords)` };
-      }
     }
   }
 
-  // Strong promotional indicators in subject
+  // Only skip promotional if 2+ promo keywords AND no bill signals
+  if (promoCount >= 2 && !hasBillSignal) {
+    return {
+      shouldSkip: true,
+      reason: `Promotional-heavy (${promoCount} keywords) and no bill signals`,
+      debugInfo: { promoCount, hasBillSignal }
+    };
+  }
+
+  // Strong promotional indicators in subject - but only if no bill signals
   const strongPromoIndicators = [
-    'offer', '% off', 'discount', 'coupon', 'deal', 'sale',
-    'free', 'promo', 'save', 'earn', 'reward', 'bonus',
+    '% off', 'discount', 'coupon', 'deal', 'sale',
+    'free gift', 'promo code',
     "don't miss", 'limited time', 'act now', 'hurry',
     'left in cart', 'still thinking', 'come back', 'we miss you',
   ];
 
-  for (const indicator of strongPromoIndicators) {
-    if (subjectLower.includes(indicator)) {
-      return { shouldSkip: true, reason: `Promotional subject line contains: "${indicator}"` };
+  if (!hasBillSignal) {
+    for (const indicator of strongPromoIndicators) {
+      if (subjectLower.includes(indicator)) {
+        return {
+          shouldSkip: true,
+          reason: `Promotional subject contains: "${indicator}"`,
+          debugInfo: { indicator, hasBillSignal }
+        };
+      }
     }
   }
 
-  return { shouldSkip: false, reason: null };
+  return { shouldSkip: false, reason: null, debugInfo: { skipHit, promoCount, hasBillSignal } };
 }
 
 // ============================================================================
@@ -580,8 +641,19 @@ export function extractCandidates(
   // Calculate keyword score
   const { score: keywordScore, matchedKeywords } = calculateKeywordScore(subject, cleanedBody);
 
-  // If should skip or keyword score too low, return early
+  // Check for bill signals (for logging)
+  const hasBillSignal = hasBillSignals(subject, cleanedBody);
+
+  // If should skip, return early with debug logging
   if (skipCheck.shouldSkip) {
+    console.log('[Pipeline] REJECT', JSON.stringify({
+      subject: subject.substring(0, 60),
+      reason: skipCheck.reason,
+      keywordScore: keywordScore.toFixed(3),
+      hasBillSignal,
+      ...skipCheck.debugInfo,
+    }));
+
     return {
       amounts: [],
       dates: [],
@@ -593,7 +665,16 @@ export function extractCandidates(
     };
   }
 
+  // If keyword score too low, return early with debug logging
   if (keywordScore < VALIDATION.confidence.minKeywordScore) {
+    console.log('[Pipeline] REJECT', JSON.stringify({
+      subject: subject.substring(0, 60),
+      reason: `Keyword score ${keywordScore.toFixed(3)} below threshold ${VALIDATION.confidence.minKeywordScore}`,
+      keywordScore: keywordScore.toFixed(3),
+      matchedKeywords,
+      hasBillSignal,
+    }));
+
     return {
       amounts: [],
       dates: [],
@@ -609,6 +690,16 @@ export function extractCandidates(
   const amounts = extractAmountCandidates(fullText);
   const dates = extractDateCandidates(fullText);
   const names = extractNameCandidates(from, subject, cleanedBody);
+
+  console.log('[Pipeline] PASS', JSON.stringify({
+    subject: subject.substring(0, 60),
+    keywordScore: keywordScore.toFixed(3),
+    matchedKeywords,
+    hasBillSignal,
+    amountsFound: amounts.length,
+    datesFound: dates.length,
+    namesFound: names.length,
+  }));
 
   return {
     amounts,

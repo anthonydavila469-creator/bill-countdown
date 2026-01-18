@@ -347,10 +347,14 @@ export function validateExtraction(
 
 /**
  * Determine the routing destination based on confidence
+ * @param confidence - Overall extraction confidence
+ * @param isDuplicate - Whether this is a duplicate of existing bill
+ * @param paymentLinkConfidence - Optional payment link confidence (0-1)
  */
 export function determineRoute(
   confidence: number,
-  isDuplicate: boolean
+  isDuplicate: boolean,
+  paymentLinkConfidence?: number
 ): 'auto_accept' | 'needs_review' | 'rejected' {
   // Duplicates always need review
   if (isDuplicate) {
@@ -362,6 +366,12 @@ export function determineRoute(
   }
 
   if (confidence >= VALIDATION.confidence.needsReviewThreshold) {
+    return 'needs_review';
+  }
+
+  // If we have a high-confidence payment link, route to needs_review
+  // even if overall confidence is low (for "view online" statement emails)
+  if (paymentLinkConfidence && paymentLinkConfidence >= 0.80) {
     return 'needs_review';
   }
 

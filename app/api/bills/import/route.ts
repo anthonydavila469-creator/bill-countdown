@@ -21,7 +21,10 @@ export async function POST(request: Request) {
     const body = await request.json();
     const parsedBills: ParsedBill[] = body.bills;
 
+    console.log('Received bills to import:', JSON.stringify(parsedBills, null, 2));
+
     if (!parsedBills || !Array.isArray(parsedBills) || parsedBills.length === 0) {
+      console.error('No bills provided or invalid format');
       return NextResponse.json(
         { error: 'No bills provided' },
         { status: 400 }
@@ -37,12 +40,14 @@ export async function POST(request: Request) {
       emoji: bill.category ? categoryEmojis[bill.category as BillCategory] || '📄' : '📄',
       category: bill.category,
       is_paid: false,
-      is_recurring: bill.is_recurring,
-      recurrence_interval: bill.recurrence_interval,
+      is_recurring: bill.is_recurring ?? false,
+      recurrence_interval: bill.recurrence_interval || null,
       source: 'gmail',
       gmail_message_id: bill.source_email_id || null,
       notes: null,
     }));
+
+    console.log('Bills to insert:', JSON.stringify(billsToInsert, null, 2));
 
     // Insert bills into database
     const { data: insertedBills, error: insertError } = await supabase

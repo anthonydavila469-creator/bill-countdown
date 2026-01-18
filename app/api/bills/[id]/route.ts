@@ -156,6 +156,11 @@ export async function DELETE(request: Request, { params }: RouteParams) {
       );
     }
 
+    // Cancel any pending notifications for this bill (fire and forget)
+    cancelNotificationsForBill(id).catch(err => {
+      console.error('Failed to cancel notifications for deleted bill:', err);
+    });
+
     // Delete bill (RLS ensures user can only delete their own)
     const { error } = await supabase
       .from('bills')

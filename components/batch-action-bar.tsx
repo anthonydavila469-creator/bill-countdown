@@ -8,6 +8,7 @@ import {
   Clock,
   ChevronDown,
   Loader2,
+  Trash2,
 } from 'lucide-react';
 
 export type SnoozeOption = '1_day' | '3_days' | '1_week';
@@ -16,6 +17,7 @@ interface BatchActionBarProps {
   selectedCount: number;
   onMarkAllPaid: () => Promise<void>;
   onSnooze: (option: SnoozeOption) => Promise<void>;
+  onDelete: () => Promise<void>;
   onClearSelection: () => void;
   isProcessing?: boolean;
 }
@@ -30,18 +32,24 @@ export function BatchActionBar({
   selectedCount,
   onMarkAllPaid,
   onSnooze,
+  onDelete,
   onClearSelection,
   isProcessing = false,
 }: BatchActionBarProps) {
   const [isSnoozeOpen, setIsSnoozeOpen] = useState(false);
+  const [isDeleteConfirming, setIsDeleteConfirming] = useState(false);
   const [processingAction, setProcessingAction] = useState<string | null>(null);
   const snoozeRef = useRef<HTMLDivElement>(null);
+  const deleteRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown on click outside
+  // Close dropdowns on click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (snoozeRef.current && !snoozeRef.current.contains(event.target as Node)) {
         setIsSnoozeOpen(false);
+      }
+      if (deleteRef.current && !deleteRef.current.contains(event.target as Node)) {
+        setIsDeleteConfirming(false);
       }
     };
 
@@ -68,6 +76,16 @@ export function BatchActionBar({
     }
   };
 
+  const handleDelete = async () => {
+    setProcessingAction('delete');
+    setIsDeleteConfirming(false);
+    try {
+      await onDelete();
+    } finally {
+      setProcessingAction(null);
+    }
+  };
+
   if (selectedCount === 0) return null;
 
   return (
@@ -77,6 +95,51 @@ export function BatchActionBar({
 
       {/* Main bar */}
       <div className="relative flex items-center gap-3 px-4 py-3 bg-[#0c0c10]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl shadow-black/50">
+        {/* Delete button with confirmation */}
+        <div className="relative" ref={deleteRef}>
+          {!isDeleteConfirming ? (
+            <button
+              onClick={() => setIsDeleteConfirming(true)}
+              disabled={isProcessing}
+              className={cn(
+                'flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-200',
+                'bg-white/[0.03] border border-white/10 text-zinc-500',
+                'hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400',
+                'active:scale-[0.98]',
+                'disabled:opacity-50 disabled:cursor-not-allowed'
+              )}
+              title="Delete selected bills"
+            >
+              {processingAction === 'delete' ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Trash2 className="w-4 h-4" />
+              )}
+            </button>
+          ) : (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-red-500/10 border border-red-500/30 animate-in fade-in zoom-in-95 duration-150">
+              <span className="text-xs text-red-400 font-medium whitespace-nowrap">Delete {selectedCount}?</span>
+              <button
+                onClick={handleDelete}
+                disabled={isProcessing}
+                className="px-2 py-1 text-xs font-medium text-white bg-red-500 hover:bg-red-400 rounded-md transition-colors disabled:opacity-50"
+              >
+                Yes
+              </button>
+              <button
+                onClick={() => setIsDeleteConfirming(false)}
+                disabled={isProcessing}
+                className="px-2 py-1 text-xs font-medium text-zinc-400 hover:text-white transition-colors disabled:opacity-50"
+              >
+                No
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Separator */}
+        <div className="w-px h-6 bg-white/10" />
+
         {/* Selection count */}
         <div className="flex items-center gap-2 pr-3 border-r border-white/10">
           <div className="w-8 h-8 rounded-lg bg-blue-500/20 border border-blue-500/30 flex items-center justify-center">

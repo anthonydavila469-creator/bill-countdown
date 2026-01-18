@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Bill, BillIconKey } from '@/types';
 import { cn, formatDate, formatCurrency, getDaysUntilDue } from '@/lib/utils';
 import { getMissedBills } from '@/lib/risk-utils';
 import { createClient } from '@/lib/supabase/client';
+import { useBillsContext } from '@/contexts/bills-context';
 import {
   Zap,
   LayoutGrid,
@@ -221,15 +222,26 @@ export default function HistoryPage() {
 
   // Auth state
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [isGmailConnected, setIsGmailConnected] = useState(false);
 
-  // Bills state
+  // Use shared bills context
+  const { bills: allBills, paidBills: contextPaidBills, loading: billsLoading } = useBillsContext();
+
+  // Local UI state
   const [searchQuery, setSearchQuery] = useState('');
-  const [paidBills, setPaidBills] = useState<Bill[]>([]);
-  const [allBills, setAllBills] = useState<Bill[]>([]);
   const [showMissedSection, setShowMissedSection] = useState(true);
 
-  // Check authentication and fetch paid bills
+  // Sort paid bills by paid date (most recent first)
+  const paidBills = useMemo(() => {
+    return [...contextPaidBills].sort((a, b) => {
+      const dateA = a.paid_at ? new Date(a.paid_at).getTime() : 0;
+      const dateB = b.paid_at ? new Date(b.paid_at).getTime() : 0;
+      return dateB - dateA;
+    });
+  }, [contextPaidBills]);
+
+  // Check authentication and Gmail connection
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -241,31 +253,22 @@ export default function HistoryPage() {
 
       setUser(user);
 
-      // Fetch all bills from API (including unpaid for missed detection)
-      try {
-        const response = await fetch('/api/bills?showPaid=true');
-        if (response.ok) {
-          const data = await response.json();
-          setAllBills(data);
-          // Filter for only paid bills and sort by paid date
-          const paid = data
-            .filter((b: Bill) => b.is_paid)
-            .sort((a: Bill, b: Bill) => {
-              const dateA = a.paid_at ? new Date(a.paid_at).getTime() : 0;
-              const dateB = b.paid_at ? new Date(b.paid_at).getTime() : 0;
-              return dateB - dateA; // Most recent first
-            });
-          setPaidBills(paid);
-        }
-      } catch (error) {
-        console.error('Failed to fetch paid bills:', error);
-      }
+      // Check if Gmail is connected
+      const { data: gmailToken } = await supabase
+        .from('gmail_tokens')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
 
-      setIsLoading(false);
+      setIsGmailConnected(!!gmailToken);
+      setIsAuthLoading(false);
     };
 
     checkAuth();
-  }, [router, supabase.auth]);
+  }, [router, supabase.auth, supabase]);
+
+  // Combined loading state
+  const isLoading = isAuthLoading || billsLoading;
 
   // Handle sign out
   const handleSignOut = async () => {
@@ -388,24 +391,26 @@ export default function HistoryPage() {
           </ul>
         </nav>
 
-        {/* Gmail sync status */}
-        <div className="p-4 border-t border-white/5">
-          <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500/10 to-violet-500/10 border border-white/5">
-            <div className="flex items-center gap-3 mb-3">
-              <Mail className="w-5 h-5 text-blue-400" />
-              <span className="text-sm font-medium text-white">Gmail Sync</span>
+        {/* Gmail sync status - only show if not connected */}
+        {!isGmailConnected && (
+          <div className="p-4 border-t border-white/5">
+            <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500/10 to-violet-500/10 border border-white/5">
+              <div className="flex items-center gap-3 mb-3">
+                <Mail className="w-5 h-5 text-blue-400" />
+                <span className="text-sm font-medium text-white">Gmail Sync</span>
+              </div>
+              <p className="text-xs text-zinc-400 mb-3">
+                Connect Gmail to automatically detect bills from your inbox.
+              </p>
+              <Link
+                href="/dashboard/settings"
+                className="block w-full px-3 py-2 text-sm font-medium bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-white text-center"
+              >
+                Connect Gmail
+              </Link>
             </div>
-            <p className="text-xs text-zinc-400 mb-3">
-              Connect Gmail to automatically detect bills from your inbox.
-            </p>
-            <Link
-              href="/dashboard/settings"
-              className="block w-full px-3 py-2 text-sm font-medium bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-white text-center"
-            >
-              Connect Gmail
-            </Link>
           </div>
-        </div>
+        )}
 
         {/* User */}
         <div className="p-4 border-t border-white/5">

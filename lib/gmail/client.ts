@@ -16,6 +16,7 @@ interface GmailPart {
   mimeType: string;
   body?: {
     data?: string;
+    size?: number;
   };
   parts?: GmailPart[];
 }
@@ -25,13 +26,94 @@ export interface GmailMessage {
   threadId: string;
   snippet: string;
   payload: {
+    mimeType?: string;
     headers: Array<{ name: string; value: string }>;
     body?: {
       data?: string;
+      size?: number;
     };
     parts?: GmailPart[];
   };
   internalDate: string;
+}
+
+/**
+ * Decode Gmail's base64url encoding (differs from standard base64)
+ */
+function decodeBase64Url(data: string): string {
+  // Gmail uses URL-safe base64: replace - with + and _ with /
+  const base64 = data.replace(/-/g, '+').replace(/_/g, '/');
+  return Buffer.from(base64, 'base64').toString('utf-8');
+}
+
+/**
+ * Recursively find all parts of a specific MIME type
+ */
+function findParts(payload: GmailPart | undefined, mimeType: string, acc: GmailPart[] = []): GmailPart[] {
+  if (!payload) return acc;
+
+  if (payload.mimeType === mimeType && payload.body?.data) {
+    acc.push(payload);
+  }
+
+  if (payload.parts) {
+    for (const part of payload.parts) {
+      findParts(part, mimeType, acc);
+    }
+  }
+
+  return acc;
+}
+
+/**
+ * Extract both plain and HTML bodies from a Gmail message
+ */
+export function extractBodiesFromMessage(message: GmailMessage): { body_plain: string; body_html: string } {
+  const payload = message.payload;
+
+  // Find all text/plain and text/html parts recursively
+  const plainParts = findParts(payload as GmailPart, 'text/plain');
+  const htmlParts = findParts(payload as GmailPart, 'text/html');
+
+  // Sort by size (largest first) and pick the best
+  const bestPlain = plainParts.sort((a, b) => (b.body?.size ?? b.body?.data?.length ?? 0) - (a.body?.size ?? a.body?.data?.length ?? 0))[0];
+  const bestHtml = htmlParts.sort((a, b) => (b.body?.size ?? b.body?.data?.length ?? 0) - (a.body?.size ?? a.body?.data?.length ?? 0))[0];
+
+  let body_plain = '';
+  let body_html = '';
+
+  if (bestPlain?.body?.data) {
+    try {
+      body_plain = decodeBase64Url(bestPlain.body.data);
+    } catch (e) {
+      console.error('Failed to decode plain body:', e);
+    }
+  }
+
+  if (bestHtml?.body?.data) {
+    try {
+      body_html = decodeBase64Url(bestHtml.body.data);
+    } catch (e) {
+      console.error('Failed to decode HTML body:', e);
+    }
+  }
+
+  // If no parts found, check direct body
+  if (!body_plain && !body_html && payload.body?.data) {
+    try {
+      const content = decodeBase64Url(payload.body.data);
+      // Check if it's HTML or plain
+      if (content.includes('<html') || content.includes('<body') || content.includes('<table') || content.includes('<div')) {
+        body_html = content;
+      } else {
+        body_plain = content;
+      }
+    } catch (e) {
+      console.error('Failed to decode direct body:', e);
+    }
+  }
+
+  return { body_plain, body_html };
 }
 
 /**
@@ -228,31 +310,30 @@ export async function fetchBillEmails(
 
 /**
  * Extract email body text from a Gmail message
+ * Uses new extractBodiesFromMessage for proper MIME handling
  */
 export function extractEmailBody(message: GmailMessage): string {
-  // Try to get body from parts first (multipart email)
-  if (message.payload.parts) {
-    for (const part of message.payload.parts) {
-      if (part.mimeType === 'text/plain' && part.body?.data) {
-        return Buffer.from(part.body.data, 'base64').toString('utf-8');
-      }
-    }
-    // Try HTML if no plain text
-    for (const part of message.payload.parts) {
-      if (part.mimeType === 'text/html' && part.body?.data) {
-        const html = Buffer.from(part.body.data, 'base64').toString('utf-8');
-        // Basic HTML to text conversion
-        return html
-          .replace(/<[^>]*>/g, ' ')
-          .replace(/\s+/g, ' ')
-          .trim();
-      }
-    }
+  const { body_plain, body_html } = extractBodiesFromMessage(message);
+
+  // Prefer plain text
+  if (body_plain && body_plain.length > 0) {
+    return body_plain;
   }
 
-  // Direct body (simple email)
-  if (message.payload.body?.data) {
-    return Buffer.from(message.payload.body.data, 'base64').toString('utf-8');
+  // If only HTML, do basic conversion (caller should use extractEmailHtml for full HTML)
+  if (body_html && body_html.length > 0) {
+    return body_html
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/\s+/g, ' ')
+      .trim();
   }
 
   // Fallback to snippet
@@ -261,35 +342,11 @@ export function extractEmailBody(message: GmailMessage): string {
 
 /**
  * Extract raw HTML body from a Gmail message
+ * Uses new extractBodiesFromMessage for proper MIME handling
  */
 export function extractEmailHtml(message: GmailMessage): string | undefined {
-  // Try to get HTML from parts first (multipart email)
-  if (message.payload.parts) {
-    for (const part of message.payload.parts) {
-      if (part.mimeType === 'text/html' && part.body?.data) {
-        return Buffer.from(part.body.data, 'base64').toString('utf-8');
-      }
-      // Check nested parts (e.g., multipart/alternative inside multipart/mixed)
-      if (part.parts) {
-        for (const nestedPart of part.parts) {
-          if (nestedPart.mimeType === 'text/html' && nestedPart.body?.data) {
-            return Buffer.from(nestedPart.body.data, 'base64').toString('utf-8');
-          }
-        }
-      }
-    }
-  }
-
-  // Direct body (simple email) - check if it's HTML
-  if (message.payload.body?.data) {
-    const content = Buffer.from(message.payload.body.data, 'base64').toString('utf-8');
-    // Simple check if it looks like HTML
-    if (content.includes('<html') || content.includes('<body') || content.includes('<table')) {
-      return content;
-    }
-  }
-
-  return undefined;
+  const { body_html } = extractBodiesFromMessage(message);
+  return body_html || undefined;
 }
 
 /**

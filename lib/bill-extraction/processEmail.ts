@@ -189,7 +189,8 @@ async function checkAlreadyProcessed(
     .eq('gmail_message_id', gmailMessageId)
     .single();
 
-  return data?.processed_at !== null;
+  // Only return true if the email exists AND has been processed
+  return data !== null && data.processed_at !== null;
 }
 
 // ============================================================================
@@ -303,10 +304,25 @@ export async function processEmail(
 
     // Stage 1: Preprocess and store raw email
     const rawEmail = await storeRawEmail(userId, email);
+
+    // Debug: Log body lengths
+    console.log('[Body Debug]', JSON.stringify({
+      subject: email.subject.substring(0, 50),
+      bodyPlainLen: (email.body_plain ?? '').length,
+      bodyHtmlLen: (email.body_html ?? '').length,
+    }));
+
     const cleanedBody = rawEmail?.body_cleaned || preprocessEmail(
       email.body_plain || null,
       email.body_html || null
     ).cleanedText;
+
+    // Debug: Log cleaned body preview
+    console.log('[Body Preview]', JSON.stringify({
+      subject: email.subject.substring(0, 50),
+      cleanedLen: cleanedBody.length,
+      preview: cleanedBody.substring(0, 300).replace(/\n/g, ' '),
+    }));
 
     // Stage 2: Extract candidates (deterministic)
     const candidates = extractCandidates(
@@ -317,6 +333,8 @@ export async function processEmail(
 
     // Early exit if promotional or low keyword score
     if (candidates.isPromotional || candidates.skipReason) {
+      console.log(`[Pipeline] Skipping email "${email.subject}" - Reason: ${candidates.skipReason || 'Promotional email'}`);
+
       // Mark as processed but rejected
       if (rawEmail) {
         const supabase = await createClient();
@@ -353,6 +371,8 @@ export async function processEmail(
 
     // Early exit if AI says not a bill
     if (!aiResult.isBill) {
+      console.log(`[Pipeline] AI rejected email "${email.subject}" - Not classified as a bill`);
+
       if (rawEmail) {
         const supabase = await createClient();
         await supabase
@@ -369,6 +389,33 @@ export async function processEmail(
         route: 'rejected',
         error: 'Not classified as a bill by AI',
       };
+    }
+
+    // Post-validation: Reject if extracted amount matches a minimum payment candidate
+    if (aiResult.amount !== null) {
+      const minimumCandidate = candidates.amounts.find(
+        a => a.isMinimum && Math.abs(a.value - aiResult.amount!) < 0.01
+      );
+      if (minimumCandidate) {
+        console.log(`[Pipeline] Rejecting "${email.subject}" - Extracted amount $${aiResult.amount} is a minimum payment`);
+
+        if (rawEmail) {
+          const supabase = await createClient();
+          await supabase
+            .from('emails_raw')
+            .update({ processed_at: new Date().toISOString() })
+            .eq('id', rawEmail.id);
+        }
+
+        return {
+          success: true,
+          emailId: rawEmail?.id || email.gmail_message_id,
+          gmailMessageId: email.gmail_message_id,
+          extraction: null,
+          route: 'rejected',
+          error: 'Extracted amount is a minimum payment, not total balance',
+        };
+      }
     }
 
     // Stage 5: Payment Link Extraction
@@ -389,11 +436,14 @@ export async function processEmail(
       existingBills
     );
 
-    // Determine route
+    // Determine route (include payment link confidence for "view online" bills)
     const route = determineRoute(
       validation.adjustedConfidence.overall,
-      validation.isDuplicate
+      validation.isDuplicate,
+      paymentLinkResult.confidence
     );
+
+    console.log(`[Pipeline] Creating extraction for "${email.subject}" - route: ${route}`);
 
     // Store extraction (including payment link data)
     const extraction = await storeExtraction(userId, rawEmail?.id || null, {
@@ -457,6 +507,68 @@ export async function processEmail(
 }
 
 /**
+ * Normalize vendor name for duplicate detection
+ */
+function normalizeVendorName(name: string | null): string {
+  if (!name) return '';
+  return name.toLowerCase()
+    .replace(/credit\s*card/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Check if two extractions are duplicates (same vendor, same due date)
+ */
+function isCrossExtractionDuplicate(
+  extraction: { name: string | null; dueDate: string | null; amount: number | null },
+  seenExtractions: Array<{ name: string; dueDate: string; amount: number | null }>
+): { isDuplicate: boolean; reason?: string } {
+  if (!extraction.name || !extraction.dueDate) {
+    return { isDuplicate: false };
+  }
+
+  const normalizedName = normalizeVendorName(extraction.name);
+
+  for (const seen of seenExtractions) {
+    const seenNormalizedName = normalizeVendorName(seen.name);
+
+    // Check if names are similar (contain each other or very close)
+    const namesSimilar =
+      normalizedName.includes(seenNormalizedName) ||
+      seenNormalizedName.includes(normalizedName) ||
+      normalizedName === seenNormalizedName;
+
+    if (!namesSimilar) continue;
+
+    // Same vendor + same due date = duplicate
+    if (extraction.dueDate === seen.dueDate) {
+      return {
+        isDuplicate: true,
+        reason: `Duplicate of "${seen.name}" with same due date (${seen.dueDate})`,
+      };
+    }
+
+    // Same vendor + same amount + within 7 days = likely duplicate
+    if (extraction.amount !== null && seen.amount !== null) {
+      if (Math.abs(extraction.amount - seen.amount) < 0.01) {
+        const date1 = new Date(extraction.dueDate);
+        const date2 = new Date(seen.dueDate);
+        const daysDiff = Math.abs((date1.getTime() - date2.getTime()) / (1000 * 60 * 60 * 24));
+        if (daysDiff <= 7) {
+          return {
+            isDuplicate: true,
+            reason: `Likely duplicate of "${seen.name}" - same amount ($${seen.amount}) within ${Math.round(daysDiff)} days`,
+          };
+        }
+      }
+    }
+  }
+
+  return { isDuplicate: false };
+}
+
+/**
  * Process multiple emails in batch
  */
 export async function processEmailBatch(
@@ -472,6 +584,9 @@ export async function processEmailBatch(
   let needsReview = 0;
   let rejected = 0;
 
+  // Track extractions for cross-extraction duplicate detection
+  const seenExtractions: Array<{ name: string; dueDate: string; amount: number | null }> = [];
+
   for (const email of emails) {
     const result = await processEmail({
       userId,
@@ -479,6 +594,45 @@ export async function processEmailBatch(
       skipAI: options.skipAI,
       forceReprocess: options.forceReprocess,
     });
+
+    // Check for cross-extraction duplicates
+    if (result.success && result.extraction) {
+      const crossDupeCheck = isCrossExtractionDuplicate(
+        {
+          name: result.extraction.extracted_name,
+          dueDate: result.extraction.extracted_due_date,
+          amount: result.extraction.extracted_amount,
+        },
+        seenExtractions
+      );
+
+      if (crossDupeCheck.isDuplicate) {
+        console.log(`[Pipeline] Cross-extraction duplicate detected: "${email.subject}" - ${crossDupeCheck.reason}`);
+
+        // Update the extraction status to rejected
+        const supabase = await createClient();
+        await supabase
+          .from('bill_extractions')
+          .update({
+            status: 'rejected',
+            is_duplicate: true,
+            duplicate_reason: crossDupeCheck.reason,
+          })
+          .eq('id', result.extraction.id);
+
+        result.route = 'rejected';
+        result.extraction.status = 'rejected';
+        result.extraction.is_duplicate = true;
+        result.extraction.duplicate_reason = crossDupeCheck.reason || null;
+      } else if (result.extraction.extracted_name && result.extraction.extracted_due_date) {
+        // Track this extraction for future duplicate checks
+        seenExtractions.push({
+          name: result.extraction.extracted_name,
+          dueDate: result.extraction.extracted_due_date,
+          amount: result.extraction.extracted_amount,
+        });
+      }
+    }
 
     results.push(result);
 
