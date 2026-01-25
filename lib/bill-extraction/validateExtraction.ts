@@ -195,7 +195,7 @@ function checkDuplicate(
       }
     }
 
-    // Just name match is also worth noting
+    // Just name match is also suspicious
     return {
       isDuplicate: true,
       billId: bill.id,

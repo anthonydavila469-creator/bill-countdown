@@ -76,12 +76,24 @@ export async function POST(request: Request) {
       }
     }
 
-    // Fetch bill-related emails
+    // Fetch bill-related emails from Gmail
     const messages = await fetchBillEmails(accessToken, maxResults, daysBack);
+    console.log(`[SCAN] Gmail returned ${messages.length} messages`);
+
+    // Also fetch unprocessed emails from emails_raw that may have been missed
+    const { data: unprocessedEmails } = await supabase
+      .from('emails_raw')
+      .select('*')
+      .eq('user_id', user.id)
+      .is('processed_at', null)
+      .limit(50);
+
+    console.log(`[SCAN] Found ${unprocessedEmails?.length || 0} unprocessed emails in emails_raw`);
 
     // Transform messages to extraction format
     const emails: ProcessEmailOptions['email'][] = [];
     const seenIds = new Set<string>();
+    let calendarSkipped = 0;
 
     for (const msg of messages) {
       if (seenIds.has(msg.id)) continue;
@@ -97,6 +109,7 @@ export async function POST(request: Request) {
         fromLower.includes('calendar@google.com') ||
         fromLower.includes('noreply@google.com/calendar')
       ) {
+        calendarSkipped++;
         continue;
       }
 
@@ -113,6 +126,38 @@ export async function POST(request: Request) {
       });
     }
 
+    // Add unprocessed emails from emails_raw that aren't already in the Gmail results
+    let unprocessedAdded = 0;
+    if (unprocessedEmails && unprocessedEmails.length > 0) {
+      for (const rawEmail of unprocessedEmails) {
+        if (seenIds.has(rawEmail.gmail_message_id)) continue;
+        seenIds.add(rawEmail.gmail_message_id);
+
+        // Skip Google Calendar notification emails
+        const fromLower = (rawEmail.from_address || '').toLowerCase();
+        if (
+          fromLower.includes('calendar-notification@google.com') ||
+          fromLower.includes('calendar@google.com') ||
+          fromLower.includes('noreply@google.com/calendar')
+        ) {
+          calendarSkipped++;
+          continue;
+        }
+
+        emails.push({
+          gmail_message_id: rawEmail.gmail_message_id,
+          subject: rawEmail.subject || '',
+          from: rawEmail.from_address || '',
+          date: rawEmail.date_received || new Date().toISOString(),
+          body_plain: rawEmail.body_plain || '',
+          body_html: rawEmail.body_html || '',
+        });
+        unprocessedAdded++;
+      }
+    }
+
+    console.log(`[SCAN] Calendar skipped: ${calendarSkipped}, Unprocessed added: ${unprocessedAdded}, Selected for processing: ${emails.length}`);
+
     // Process emails in batch
     const result = await processEmailBatch(user.id, emails, {
       skipAI,
@@ -120,6 +165,13 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({
+      summary: {
+        fetchedFromGmail: messages.length,
+        unprocessedFromDb: unprocessedEmails?.length || 0,
+        unprocessedAdded,
+        calendarSkipped,
+        selectedForProcessing: emails.length,
+      },
       ...result,
       scannedAt: new Date().toISOString(),
     });

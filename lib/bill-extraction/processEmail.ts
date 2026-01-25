@@ -3,7 +3,7 @@
  * Coordinates all stages of extraction from raw email to final result
  */
 
-import { Bill } from '@/types';
+import { Bill, BillCategory } from '@/types';
 import { createClient } from '@/lib/supabase/server';
 import {
   ProcessEmailOptions,
@@ -17,8 +17,107 @@ import {
 import { preprocessEmail } from './preprocessEmail';
 import { extractCandidates } from './extractCandidates';
 import { extractWithClaude, createMockExtraction } from './anthropicExtract';
+import { classifyBillEmail, BillAIResult } from './classifyBillEmail';
+import { BillPromptEmailInput } from './claudePrompts';
 import { validateExtraction, determineRoute } from './validateExtraction';
 import { AI_CONFIG, PAYMENT_LINK_VALIDATION } from './constants';
+
+/**
+ * Parse from address to extract name and email
+ */
+function parseFromAddress(from: string): { fromName: string; fromEmail: string } {
+  const match = from.match(/^(?:"?([^"<]*)"?\s*)?<?([^>]+)>?$/);
+  return {
+    fromName: match?.[1]?.trim() || '',
+    fromEmail: match?.[2]?.trim() || from,
+  };
+}
+
+/**
+ * Create a mock classification for testing without API calls
+ */
+function createMockClassification(email: { subject: string; from: string; body: string }): BillAIResult {
+  const combined = (email.subject + ' ' + email.body).toLowerCase();
+
+  const hasBillKeywords = /statement|bill|payment due|amount due|balance due|invoice|autopay/.test(combined);
+  const hasPaymentConfirmation = /payment received|thank you for your payment|payment confirmation/.test(combined);
+
+  if (hasPaymentConfirmation && !hasBillKeywords) {
+    return {
+      decision: 'NOT_BILL',
+      confidence: 0.8,
+      vendorName: null,
+      vendorKey: null,
+      billType: null,
+      amountDue: null,
+      dueDate: null,
+      currency: null,
+      accountHint: null,
+      paymentStatus: 'PAID',
+      paymentLink: null,
+      evidence: { billSignals: [], notBillSignals: ['Payment confirmation'] },
+      reason: 'Mock: Payment confirmation detected',
+    };
+  }
+
+  if (hasBillKeywords) {
+    return {
+      decision: 'BILL',
+      confidence: 0.7,
+      vendorName: null,
+      vendorKey: null,
+      billType: null,
+      amountDue: null,
+      dueDate: null,
+      currency: 'USD',
+      accountHint: null,
+      paymentStatus: 'DUE',
+      paymentLink: null,
+      evidence: { billSignals: ['Bill keywords'], notBillSignals: [] },
+      reason: 'Mock: Bill keywords detected',
+    };
+  }
+
+  return {
+    decision: 'UNCERTAIN',
+    confidence: 0.5,
+    vendorName: null,
+    vendorKey: null,
+    billType: null,
+    amountDue: null,
+    dueDate: null,
+    currency: null,
+    accountHint: null,
+    paymentStatus: 'UNKNOWN',
+    paymentLink: null,
+    evidence: { billSignals: [], notBillSignals: [] },
+    reason: 'Mock: No clear signals',
+  };
+}
+
+/**
+ * Map Claude's billType to BillCategory
+ * Claude returns: credit_card, utility, rent, insurance, loan, subscription, invoice, autopay, other
+ * BillCategory is: utilities, subscription, rent, housing, insurance, phone, internet, credit_card, loan, health, other
+ */
+function mapBillTypeToCategory(billType: string | null): BillCategory | null {
+  if (!billType) return null;
+
+  const mapping: Record<string, BillCategory> = {
+    'credit_card': 'credit_card',
+    'utility': 'utilities',      // singular -> plural
+    'rent': 'rent',
+    'insurance': 'insurance',
+    'loan': 'loan',
+    'subscription': 'subscription',
+    'invoice': 'other',          // no direct mapping
+    'autopay': 'other',          // no direct mapping
+    'other': 'other',
+  };
+
+  return mapping[billType] ?? 'other';
+}
+
 import { extractPaymentLinkCandidates, extractDomainFromEmail } from './extractPaymentLinkCandidates';
 import { pickPaymentLinkWithClaude, createMockPaymentLinkSelection } from './anthropicPickPaymentLink';
 import { validatePaymentLink } from './validatePaymentLink';
@@ -291,6 +390,7 @@ export async function processEmail(
     if (!forceReprocess) {
       const alreadyProcessed = await checkAlreadyProcessed(userId, email.gmail_message_id);
       if (alreadyProcessed) {
+        console.log(`[Stage] SKIP "${email.subject.substring(0, 40)}" - already processed`);
         return {
           success: true,
           emailId: email.gmail_message_id,
@@ -330,6 +430,7 @@ export async function processEmail(
       email.subject,
       cleanedBody
     );
+    console.log(`[Stage] CANDIDATES "${email.subject.substring(0, 40)}" - skip=${candidates.skipReason || 'none'}, promo=${candidates.isPromotional}`);
 
     // Early exit if promotional or low keyword score
     if (candidates.isPromotional || candidates.skipReason) {
@@ -354,6 +455,172 @@ export async function processEmail(
       };
     }
 
+    // Stage 2.5: Claude Classification (BILL / NOT_BILL / UNCERTAIN)
+    const { fromName, fromEmail } = parseFromAddress(email.from);
+    const classificationInput: BillPromptEmailInput = {
+      fromName,
+      fromEmail,
+      subject: email.subject,
+      receivedDate: email.date,
+      bodyTextTop: cleanedBody.substring(0, 6000),
+      amountCandidates: candidates.amounts.map(a => `$${a.value.toFixed(2)}`),
+      dateCandidates: candidates.dates.map(d => d.value),
+      linkCandidates: [], // Payment links are extracted in Stage 5
+    };
+
+    const classification = skipAI
+      ? createMockClassification({ subject: email.subject, from: email.from, body: cleanedBody })
+      : await classifyBillEmail(classificationInput);
+
+    // Log classification result
+    console.log('[Classification]', JSON.stringify({
+      subject: email.subject.substring(0, 50),
+      decision: classification.decision,
+      confidence: classification.confidence,
+      vendorName: classification.vendorName,
+      billType: classification.billType,
+      amountDue: classification.amountDue,
+      dueDate: classification.dueDate,
+      paymentStatus: classification.paymentStatus,
+    }));
+
+    // Get best fallback name from rule-based extraction
+    // This ensures we have a name even when Claude's vendorName is null
+    const fallbackName = candidates.names[0]?.value || null;
+
+    // Route based on classification decision
+    if (classification.decision === 'NOT_BILL') {
+      console.log(`[Pipeline] Classifier rejected "${email.subject}" - NOT_BILL`);
+
+      // Store rejection with FULL Claude JSON
+      const extraction = await storeExtraction(userId, rawEmail?.id || null, {
+        status: 'rejected',
+        extracted_name: classification.vendorName || fallbackName,
+        extracted_category: mapBillTypeToCategory(classification.billType),
+        ai_raw_response: JSON.stringify(classification), // Store FULL JSON
+        confidence_overall: classification.confidence,
+      });
+
+      // Mark email as processed
+      if (rawEmail) {
+        const supabase = await createClient();
+        await supabase
+          .from('emails_raw')
+          .update({ processed_at: new Date().toISOString() })
+          .eq('id', rawEmail.id);
+      }
+
+      return {
+        success: true,
+        emailId: rawEmail?.id || email.gmail_message_id,
+        gmailMessageId: email.gmail_message_id,
+        extraction,
+        route: 'rejected',
+        error: `Classified as NOT_BILL: ${classification.reason}`,
+      };
+    }
+
+    if (classification.decision === 'UNCERTAIN') {
+      console.log(`[Pipeline] Classifier uncertain about "${email.subject}" - running full extraction before storing`);
+
+      // Run full extraction to get amounts/dates (same as BILL path)
+      const aiRequest = {
+        emailId: rawEmail?.id || email.gmail_message_id,
+        subject: email.subject,
+        from: email.from,
+        cleanedBody: cleanedBody.substring(0, AI_CONFIG.maxBodyLength),
+        candidateAmounts: candidates.amounts,
+        candidateDates: candidates.dates,
+        candidateNames: candidates.names,
+      };
+
+      const aiResult = skipAI
+        ? createMockExtraction(aiRequest)
+        : await extractWithClaude(aiRequest);
+
+      console.log(`[Stage] AI Extract (UNCERTAIN) "${email.subject.substring(0, 40)}" - name=${aiResult.name}, amount=${aiResult.amount}, dueDate=${aiResult.dueDate}`);
+
+      // Use extracted data, falling back to classifier data, then rule-based
+      const extractedName = aiResult.name || classification.vendorName || fallbackName;
+      const extractedAmount = aiResult.amount ?? classification.amountDue;
+      const extractedDueDate = aiResult.dueDate || classification.dueDate;
+
+      // Validate extraction (same as BILL path) to apply confidence threshold
+      const augmentedAiResult = {
+        ...aiResult,
+        name: extractedName,
+        amount: extractedAmount,
+        dueDate: extractedDueDate,
+      };
+      const existingBills = await getExistingBills(userId);
+      const validation = validateExtraction(
+        augmentedAiResult,
+        { amounts: candidates.amounts, dates: candidates.dates },
+        existingBills
+      );
+
+      // Use determineRoute() to check against confidence threshold
+      const route = determineRoute(validation.adjustedConfidence.overall, validation.isDuplicate);
+
+      // Determine status based on route (respects needsReviewThreshold of 0.60)
+      type ExtractionStatus = 'pending' | 'needs_review' | 'confirmed' | 'rejected' | 'auto_accepted';
+      let finalStatus: ExtractionStatus;
+      if (validation.isDuplicate) {
+        finalStatus = 'rejected';
+      } else if (route === 'auto_accept') {
+        finalStatus = 'auto_accepted';
+      } else if (route === 'needs_review') {
+        finalStatus = 'needs_review';
+      } else {
+        finalStatus = 'rejected'; // Below 0.60 threshold
+      }
+
+      console.log(`[Pipeline] UNCERTAIN "${email.subject.substring(0, 40)}" - confidence=${validation.adjustedConfidence.overall.toFixed(2)}, route=${route}, status=${finalStatus}`);
+
+      // Store with validated confidence and proper status
+      const extraction = await storeExtraction(userId, rawEmail?.id || null, {
+        status: finalStatus,
+        extracted_name: extractedName,
+        extracted_amount: extractedAmount,
+        extracted_due_date: extractedDueDate,
+        extracted_category: aiResult.category || mapBillTypeToCategory(classification.billType),
+        confidence_overall: validation.adjustedConfidence.overall,
+        confidence_amount: validation.adjustedConfidence.amount,
+        confidence_due_date: validation.adjustedConfidence.dueDate,
+        confidence_name: validation.adjustedConfidence.name,
+        evidence_snippets: aiResult.evidence,
+        candidate_amounts: candidates.amounts,
+        candidate_dates: candidates.dates,
+        ai_model_used: skipAI ? 'mock' : AI_CONFIG.model,
+        ai_raw_response: JSON.stringify({ classification, extraction: aiResult }), // Store FULL JSON
+        ai_tokens_used: aiResult.tokensUsed || null,
+        is_duplicate: validation.isDuplicate,
+        payment_url: classification.paymentLink,
+        duplicate_of_bill_id: validation.duplicateBillId || null,
+        duplicate_reason: validation.duplicateReason || null,
+      });
+
+      // Mark email as processed
+      if (rawEmail) {
+        const supabase = await createClient();
+        await supabase
+          .from('emails_raw')
+          .update({ processed_at: new Date().toISOString() })
+          .eq('id', rawEmail.id);
+      }
+
+      return {
+        success: true,
+        emailId: rawEmail?.id || email.gmail_message_id,
+        gmailMessageId: email.gmail_message_id,
+        extraction,
+        route,
+      };
+    }
+
+    // decision === 'BILL' - continue with existing extraction pipeline
+    console.log(`[Pipeline] Classifier approved "${email.subject}" as BILL - continuing extraction`);
+
     // Stage 3+4: Claude AI extraction (or mock if skipAI)
     const aiRequest = {
       emailId: rawEmail?.id || email.gmail_message_id,
@@ -368,28 +635,14 @@ export async function processEmail(
     const aiResult = skipAI
       ? createMockExtraction(aiRequest)
       : await extractWithClaude(aiRequest);
+    console.log(`[Stage] AI Extract "${email.subject.substring(0, 40)}" - name=${aiResult.name}, amount=${aiResult.amount}, dueDate=${aiResult.dueDate}`);
 
-    // Early exit if AI says not a bill
-    if (!aiResult.isBill) {
-      console.log(`[Pipeline] AI rejected email "${email.subject}" - Not classified as a bill`);
-
-      if (rawEmail) {
-        const supabase = await createClient();
-        await supabase
-          .from('emails_raw')
-          .update({ processed_at: new Date().toISOString() })
-          .eq('id', rawEmail.id);
-      }
-
-      return {
-        success: true,
-        emailId: rawEmail?.id || email.gmail_message_id,
-        gmailMessageId: email.gmail_message_id,
-        extraction: null,
-        route: 'rejected',
-        error: 'Not classified as a bill by AI',
-      };
-    }
+    // Note: isBill check removed - classifier already approved this email as BILL
+    // Use classification data to augment extraction if AI extraction is missing data
+    // Fallback chain: AI extraction → Claude classification → rule-based extraction
+    const extractedName = aiResult.name || classification.vendorName || fallbackName;
+    const extractedAmount = aiResult.amount ?? classification.amountDue;
+    const extractedDueDate = aiResult.dueDate || classification.dueDate;
 
     // Post-validation: Reject if extracted amount matches a minimum payment candidate
     if (aiResult.amount !== null) {
@@ -422,16 +675,23 @@ export async function processEmail(
     const senderDomain = extractDomainFromEmail(email.from);
     const paymentLinkResult = await extractPaymentLinkFromEmail(
       email.body_html || null,
-      aiResult.name,
+      extractedName,
       senderDomain,
       email.subject,
       skipAI
     );
 
     // Stage 6: Validate and score
+    // Create augmented AI result for validation
+    const augmentedAiResult = {
+      ...aiResult,
+      name: extractedName,
+      amount: extractedAmount,
+      dueDate: extractedDueDate,
+    };
     const existingBills = await getExistingBills(userId);
     const validation = validateExtraction(
-      aiResult,
+      augmentedAiResult,
       { amounts: candidates.amounts, dates: candidates.dates },
       existingBills
     );
@@ -445,13 +705,31 @@ export async function processEmail(
 
     console.log(`[Pipeline] Creating extraction for "${email.subject}" - route: ${route}`);
 
+    // Determine clean status using ExtractionStatus type:
+    // - duplicate → 'rejected' with is_duplicate flag
+    // - auto_accept → 'auto_accepted'
+    // - needs_review → 'needs_review'
+    // - rejected → 'rejected'
+    type ExtractionStatus = 'pending' | 'needs_review' | 'confirmed' | 'rejected' | 'auto_accepted';
+    let finalStatus: ExtractionStatus;
+    if (validation.isDuplicate) {
+      finalStatus = 'rejected'; // Mark as rejected, is_duplicate flag distinguishes it
+    } else if (route === 'auto_accept') {
+      finalStatus = 'auto_accepted';
+    } else if (route === 'needs_review') {
+      finalStatus = 'needs_review';
+    } else {
+      finalStatus = 'rejected';
+    }
+
     // Store extraction (including payment link data)
+    // Use augmented values that combine classifier + extraction results
     const extraction = await storeExtraction(userId, rawEmail?.id || null, {
-      status: route === 'auto_accept' ? 'auto_accepted' : route,
-      extracted_name: aiResult.name,
-      extracted_amount: aiResult.amount,
-      extracted_due_date: aiResult.dueDate,
-      extracted_category: aiResult.category,
+      status: finalStatus,
+      extracted_name: extractedName,
+      extracted_amount: extractedAmount,
+      extracted_due_date: extractedDueDate,
+      extracted_category: aiResult.category || mapBillTypeToCategory(classification.billType),
       confidence_overall: validation.adjustedConfidence.overall,
       confidence_amount: validation.adjustedConfidence.amount,
       confidence_due_date: validation.adjustedConfidence.dueDate,
@@ -460,17 +738,18 @@ export async function processEmail(
       candidate_amounts: candidates.amounts,
       candidate_dates: candidates.dates,
       ai_model_used: skipAI ? 'mock' : AI_CONFIG.model,
-      ai_raw_response: aiResult.reasoning,
+      ai_raw_response: JSON.stringify({ classification, extraction: aiResult }), // Store FULL JSON
       ai_tokens_used: aiResult.tokensUsed || null,
       is_duplicate: validation.isDuplicate,
-      // Payment link fields
-      payment_url: paymentLinkResult.url,
+      // Payment link fields - prefer classifier's link if extraction didn't find one
+      payment_url: paymentLinkResult.url || classification.paymentLink,
       payment_confidence: paymentLinkResult.confidence,
       payment_evidence: paymentLinkResult.evidence,
       candidate_payment_links: paymentLinkResult.candidates,
       duplicate_of_bill_id: validation.duplicateBillId || null,
       duplicate_reason: validation.duplicateReason || null,
     });
+    console.log(`[Stage] INSERT "${email.subject.substring(0, 40)}" - ok=${!!extraction}`);
 
     // Auto-accept: create bill immediately
     if (route === 'auto_accept' && extraction) {
@@ -495,6 +774,32 @@ export async function processEmail(
     };
   } catch (error) {
     console.error('Pipeline error:', error);
+
+    // Mark email as processed even on error to prevent infinite retry loops
+    // First check if there's an existing emails_raw record for this email
+    try {
+      const supabase = await createClient();
+      const { data: existingRaw } = await supabase
+        .from('emails_raw')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('gmail_message_id', email.gmail_message_id)
+        .single();
+
+      if (existingRaw) {
+        await supabase
+          .from('emails_raw')
+          .update({
+            processed_at: new Date().toISOString(),
+            processing_error: error instanceof Error ? error.message : 'Unknown error',
+          })
+          .eq('id', existingRaw.id);
+        console.log(`[Pipeline] Marked email as processed with error: ${email.gmail_message_id}`);
+      }
+    } catch (updateError) {
+      console.error('Failed to mark email as processed after error:', updateError);
+    }
+
     return {
       success: false,
       emailId: email.gmail_message_id,
@@ -518,6 +823,26 @@ function normalizeVendorName(name: string | null): string {
 }
 
 /**
+ * Check if a vendor is a utility (electric, gas, water)
+ * Utilities are more aggressively deduplicated because bills are monthly
+ */
+function isUtilityVendor(name: string | null): boolean {
+  if (!name) return false;
+  const lowerName = name.toLowerCase();
+  const utilityPatterns = [
+    /electric/i,
+    /power/i,
+    /energy/i,
+    /gas(?:\s|$)/i,  // "gas" but not "vegas"
+    /water/i,
+    /utility/i,
+    /sewer/i,
+    /pge|sce|txu|duke|conedison|socalgas|national\s*grid/i,
+  ];
+  return utilityPatterns.some(p => p.test(lowerName));
+}
+
+/**
  * Check if two extractions are duplicates (same vendor, same due date)
  */
 function isCrossExtractionDuplicate(
@@ -529,6 +854,7 @@ function isCrossExtractionDuplicate(
   }
 
   const normalizedName = normalizeVendorName(extraction.name);
+  const isUtility = isUtilityVendor(extraction.name);
 
   for (const seen of seenExtractions) {
     const seenNormalizedName = normalizeVendorName(seen.name);
@@ -549,13 +875,24 @@ function isCrossExtractionDuplicate(
       };
     }
 
-    // Same vendor + same amount + within 7 days = likely duplicate
+    // Same vendor + same amount = likely duplicate
     if (extraction.amount !== null && seen.amount !== null) {
       if (Math.abs(extraction.amount - seen.amount) < 0.01) {
         const date1 = new Date(extraction.dueDate);
         const date2 = new Date(seen.dueDate);
         const daysDiff = Math.abs((date1.getTime() - date2.getTime()) / (1000 * 60 * 60 * 24));
-        if (daysDiff <= 7) {
+
+        // For utilities: same amount within 35 days = duplicate (monthly billing)
+        // This catches payment confirmations that slip through with different dates
+        if (isUtility && daysDiff <= 35) {
+          return {
+            isDuplicate: true,
+            reason: `Utility duplicate of "${seen.name}" - same amount ($${seen.amount}) within ${Math.round(daysDiff)} days`,
+          };
+        }
+
+        // For non-utilities: same amount within 7 days = likely duplicate
+        if (!isUtility && daysDiff <= 7) {
           return {
             isDuplicate: true,
             reason: `Likely duplicate of "${seen.name}" - same amount ($${seen.amount}) within ${Math.round(daysDiff)} days`,
@@ -583,6 +920,12 @@ export async function processEmailBatch(
   let autoAccepted = 0;
   let needsReview = 0;
   let rejected = 0;
+
+  // Debug counters for pipeline diagnostics
+  let alreadyProcessedSkipped = 0;
+  let passedCandidates = 0;
+  let aiClassifiedAsBill = 0;
+  let extractionsCreated = 0;
 
   // Track extractions for cross-extraction duplicate detection
   const seenExtractions: Array<{ name: string; dueDate: string; amount: number | null }> = [];
@@ -640,8 +983,22 @@ export async function processEmailBatch(
       errors++;
     } else if (result.error?.includes('already processed')) {
       skipped++;
+      alreadyProcessedSkipped++;
     } else {
       processed++;
+      // Track debug counters based on result
+      if (result.extraction) {
+        extractionsCreated++;
+        aiClassifiedAsBill++;
+        passedCandidates++;
+      } else if (result.error?.includes('Not classified as a bill')) {
+        // Passed candidates but AI rejected
+        passedCandidates++;
+      } else if (!result.error?.includes('Promotional') && !result.error?.includes('keyword score')) {
+        // Passed candidate extraction stage
+        passedCandidates++;
+      }
+
       switch (result.route) {
         case 'auto_accept':
           autoAccepted++;
@@ -656,6 +1013,8 @@ export async function processEmailBatch(
     }
   }
 
+  console.log(`[BATCH] Debug summary: alreadyProcessedSkipped=${alreadyProcessedSkipped}, passedCandidates=${passedCandidates}, aiClassifiedAsBill=${aiClassifiedAsBill}, extractionsCreated=${extractionsCreated}`);
+
   return {
     totalEmails: emails.length,
     processed,
@@ -665,6 +1024,12 @@ export async function processEmailBatch(
     needsReview,
     rejected,
     results,
+    debugSummary: {
+      alreadyProcessedSkipped,
+      passedCandidates,
+      aiClassifiedAsBill,
+      extractionsCreated,
+    },
   };
 }
 

@@ -22,6 +22,7 @@ import {
   Trash2,
   ExternalLink,
   Lightbulb,
+  RefreshCw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BillImportModal } from '@/components/bill-import-modal';
@@ -241,6 +242,8 @@ export default function SettingsPage() {
   const [isGmailConnected, setIsGmailConnected] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isForceRescanning, setIsForceRescanning] = useState(false);
+  const [showForceRescanConfirm, setShowForceRescanConfirm] = useState(false);
 
   // Check authentication and Gmail connection status
   useEffect(() => {
@@ -344,6 +347,36 @@ export default function SettingsPage() {
     router.push('/');
   };
 
+  // Handle force rescan
+  const handleForceRescan = async () => {
+    setIsForceRescanning(true);
+    setShowForceRescanConfirm(false);
+
+    try {
+      const response = await fetch('/api/suggestions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ forceRescan: true, skipAI: false }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to rescan emails');
+      }
+
+      const result = await response.json();
+      console.log('Force rescan result:', result);
+
+      // If we got suggestions, open the import modal
+      if (result.suggestions && result.suggestions.length > 0) {
+        setIsImportModalOpen(true);
+      }
+    } catch (error) {
+      console.error('Force rescan failed:', error);
+    } finally {
+      setIsForceRescanning(false);
+    }
+  };
+
   // Loading state
   if (isLoading) {
     return (
@@ -382,15 +415,6 @@ export default function SettingsPage() {
               >
                 <LayoutGrid className="w-5 h-5" />
                 Dashboard
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/dashboard/suggestions"
-                className="flex items-center gap-3 px-3 py-2 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-              >
-                <Mail className="w-5 h-5" />
-                Suggestions
               </Link>
             </li>
             <li>
@@ -627,6 +651,59 @@ export default function SettingsPage() {
                       >
                         Disconnect
                       </button>
+                    </div>
+
+                    {/* Force Rescan Section */}
+                    <div className="mt-4 pt-4 border-t border-white/[0.06]">
+                      {!showForceRescanConfirm ? (
+                        <button
+                          onClick={() => setShowForceRescanConfirm(true)}
+                          disabled={isForceRescanning}
+                          className="flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
+                        >
+                          <RefreshCw className={cn("w-4 h-4", isForceRescanning && "animate-spin")} />
+                          <span>No bills found? Force rescan all emails</span>
+                        </button>
+                      ) : (
+                        <div className="p-4 rounded-xl bg-amber-500/[0.05] border border-amber-500/20">
+                          <div className="flex items-start gap-3 mb-3">
+                            <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+                            <div>
+                              <p className="text-sm text-amber-200 font-medium">Force Rescan</p>
+                              <p className="text-xs text-zinc-400 mt-1">
+                                This will clear all previously processed emails (except accepted bills)
+                                and rescan everything. Use this if bills aren&apos;t appearing after the normal scan.
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={handleForceRescan}
+                              disabled={isForceRescanning}
+                              className="flex items-center gap-2 px-4 py-2 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/30 rounded-lg text-sm font-medium text-amber-200 transition-colors"
+                            >
+                              {isForceRescanning ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                  Rescanning...
+                                </>
+                              ) : (
+                                <>
+                                  <RefreshCw className="w-4 h-4" />
+                                  Rescan All
+                                </>
+                              )}
+                            </button>
+                            <button
+                              onClick={() => setShowForceRescanConfirm(false)}
+                              disabled={isForceRescanning}
+                              className="px-4 py-2 text-sm text-zinc-400 hover:text-white transition-colors"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </>
                 )}

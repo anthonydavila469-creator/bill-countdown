@@ -238,6 +238,12 @@ export interface BatchScanResult {
   needsReview: number;
   rejected: number;
   results: ExtractionPipelineResult[];
+  debugSummary?: {
+    alreadyProcessedSkipped: number;
+    passedCandidates: number;
+    aiClassifiedAsBill: number;
+    extractionsCreated: number;
+  };
 }
 
 // ============================================================================

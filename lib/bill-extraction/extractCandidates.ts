@@ -293,6 +293,26 @@ function scoreDateContext(context: string): number {
 }
 
 /**
+ * Check if a date at a given position is part of a billing period date range
+ * e.g., "Billing Period: 11/20/2025 - 12/19/2025" or "11/20 - 12/19"
+ * Only returns true if THIS specific date is one of the dates in a range pattern
+ */
+function isPartOfDateRange(text: string, matchIndex: number, dateStr: string): boolean {
+  // Check a small window around the date to see if it's part of a "date - date" pattern
+  // We only want to skip dates that are DIRECTLY part of a range, not all dates in an email
+  const windowStart = Math.max(0, matchIndex - 20);
+  const windowEnd = Math.min(text.length, matchIndex + dateStr.length + 20);
+  const immediateContext = text.substring(windowStart, windowEnd);
+
+  // Check if this date is immediately followed by " - date" or preceded by "date - "
+  // This ensures we only skip dates that are PART of the range, not nearby dates
+  const isStartOfRange = new RegExp(dateStr.replace(/[\/\-]/g, '[/\\-]') + '\\s*-\\s*\\d{1,2}[/\\-]\\d{1,2}').test(immediateContext);
+  const isEndOfRange = new RegExp('\\d{1,2}[/\\-]\\d{1,2}[/\\-]?\\d{0,4}\\s*-\\s*' + dateStr.replace(/[\/\-]/g, '[/\\-]')).test(immediateContext);
+
+  return isStartOfRange || isEndOfRange;
+}
+
+/**
  * Extract date candidates from text
  */
 export function extractDateCandidates(text: string): DateCandidate[] {
@@ -325,6 +345,11 @@ export function extractDateCandidates(text: string): DateCandidate[] {
             isRelative: true,
           });
         }
+        continue;
+      }
+
+      // Skip dates that are part of a billing period date range
+      if (isPartOfDateRange(text, match.index, dateStr)) {
         continue;
       }
 
@@ -572,6 +597,7 @@ export function checkIfShouldSkip(
   }
 
   // Only skip if we have a skip keyword AND no bill signals
+  // This allows bill emails that mention past payments to still be processed
   if (skipHit && !hasBillSignal) {
     return {
       shouldSkip: true,

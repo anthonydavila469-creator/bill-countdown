@@ -16,6 +16,7 @@ import { PaycheckSummaryCard } from '@/components/paycheck-summary-card';
 import { Bill, DashboardView } from '@/types';
 import { getDaysUntilDue } from '@/lib/utils';
 import { getBillRiskType } from '@/lib/risk-utils';
+import { getBillIcon } from '@/lib/get-bill-icon';
 import { RiskAlerts } from '@/components/risk-alerts';
 import { createClient } from '@/lib/supabase/client';
 import { useTheme } from '@/contexts/theme-context';
@@ -377,74 +378,80 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-[#08080c]">
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 bottom-0 w-64 bg-[#0c0c10] border-r border-white/5 hidden lg:flex flex-col">
+      <aside className="fixed left-0 top-0 bottom-0 w-64 bg-gradient-to-b from-[#0c0c10] to-[#09090d] border-r border-white/[0.06] hidden lg:flex flex-col">
         {/* Logo */}
-        <div className="p-6 border-b border-white/5">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center">
+        <div className="p-6 border-b border-white/[0.06]">
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center shadow-lg shadow-blue-500/25 group-hover:shadow-blue-500/40 transition-shadow duration-300">
               <Zap className="w-5 h-5 text-white" />
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </div>
             <span className="text-lg font-bold text-white tracking-tight">
-              Bill<span className="text-blue-400">Countdown</span>
+              Bill<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-violet-400">Countdown</span>
             </span>
           </Link>
         </div>
 
         {/* Nav */}
         <nav className="flex-1 p-4">
+          {/* Section label */}
+          <p className="px-3 mb-3 text-[10px] font-semibold text-zinc-600 uppercase tracking-wider">Menu</p>
           <ul className="space-y-1">
             <li>
               <Link
                 href="/dashboard"
-                className="flex items-center gap-3 px-3 py-2 text-white bg-white/5 rounded-lg"
+                className="group relative flex items-center gap-3 px-3 py-2.5 text-white rounded-xl bg-gradient-to-r from-white/[0.08] to-white/[0.03] border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-all duration-200"
               >
-                <LayoutGrid className="w-5 h-5" />
-                Dashboard
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/dashboard/suggestions"
-                className="flex items-center gap-3 px-3 py-2 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-              >
-                <Mail className="w-5 h-5" />
-                Suggestions
+                {/* Active indicator bar */}
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full bg-gradient-to-b from-blue-400 to-violet-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500/20 to-violet-500/20 border border-white/[0.08]">
+                  <LayoutGrid className="w-4 h-4 text-blue-400" />
+                </div>
+                <span className="font-medium">Dashboard</span>
               </Link>
             </li>
             <li>
               <Link
                 href="/dashboard/calendar"
-                className="flex items-center gap-3 px-3 py-2 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                className="group flex items-center gap-3 px-3 py-2.5 text-zinc-400 rounded-xl hover:bg-white/[0.04] hover:text-white transition-all duration-200"
               >
-                <Calendar className="w-5 h-5" />
-                Calendar
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.03] group-hover:bg-white/[0.06] border border-transparent group-hover:border-white/[0.06] transition-all duration-200">
+                  <Calendar className="w-4 h-4 group-hover:text-cyan-400 transition-colors duration-200" />
+                </div>
+                <span className="font-medium">Calendar</span>
               </Link>
             </li>
             <li>
               <Link
                 href="/dashboard/history"
-                className="flex items-center gap-3 px-3 py-2 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                className="group flex items-center gap-3 px-3 py-2.5 text-zinc-400 rounded-xl hover:bg-white/[0.04] hover:text-white transition-all duration-200"
               >
-                <History className="w-5 h-5" />
-                History
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.03] group-hover:bg-white/[0.06] border border-transparent group-hover:border-white/[0.06] transition-all duration-200">
+                  <History className="w-4 h-4 group-hover:text-violet-400 transition-colors duration-200" />
+                </div>
+                <span className="font-medium">History</span>
               </Link>
             </li>
             <li>
               <Link
                 href="/dashboard/insights"
-                className="flex items-center gap-3 px-3 py-2 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                className="group flex items-center gap-3 px-3 py-2.5 text-zinc-400 rounded-xl hover:bg-white/[0.04] hover:text-white transition-all duration-200"
               >
-                <Lightbulb className="w-5 h-5" />
-                Insights
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.03] group-hover:bg-white/[0.06] border border-transparent group-hover:border-white/[0.06] transition-all duration-200">
+                  <Lightbulb className="w-4 h-4 group-hover:text-amber-400 transition-colors duration-200" />
+                </div>
+                <span className="font-medium">Insights</span>
               </Link>
             </li>
             <li>
               <Link
                 href="/dashboard/settings"
-                className="flex items-center gap-3 px-3 py-2 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                className="group flex items-center gap-3 px-3 py-2.5 text-zinc-400 rounded-xl hover:bg-white/[0.04] hover:text-white transition-all duration-200"
               >
-                <Settings className="w-5 h-5" />
-                Settings
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.03] group-hover:bg-white/[0.06] border border-transparent group-hover:border-white/[0.06] transition-all duration-200">
+                  <Settings className="w-4 h-4 group-hover:text-zinc-300 transition-colors duration-200" />
+                </div>
+                <span className="font-medium">Settings</span>
               </Link>
             </li>
           </ul>
@@ -452,40 +459,47 @@ export default function DashboardPage() {
 
         {/* Gmail sync status - only show if not connected */}
         {!isGmailConnected && (
-          <div className="p-4 border-t border-white/5">
-            <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500/10 to-violet-500/10 border border-white/5">
-              <div className="flex items-center gap-3 mb-3">
-                <Mail className="w-5 h-5 text-blue-400" />
-                <span className="text-sm font-medium text-white">Gmail Sync</span>
+          <div className="p-4 border-t border-white/[0.06]">
+            <div className="relative p-4 rounded-xl overflow-hidden bg-gradient-to-br from-blue-500/10 via-violet-500/5 to-blue-500/10 border border-blue-500/20">
+              {/* Decorative glow */}
+              <div className="absolute -top-10 -right-10 w-24 h-24 bg-blue-500/20 rounded-full blur-2xl" />
+              <div className="relative">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-500/20 border border-blue-500/30">
+                    <Mail className="w-4 h-4 text-blue-400" />
+                  </div>
+                  <span className="text-sm font-semibold text-white">Gmail Sync</span>
+                </div>
+                <p className="text-xs text-zinc-400 mb-3 leading-relaxed">
+                  Connect Gmail to automatically detect bills from your inbox.
+                </p>
+                <Link
+                  href="/dashboard/settings"
+                  className="block w-full px-3 py-2 text-sm font-semibold bg-gradient-to-r from-blue-500/20 to-violet-500/20 hover:from-blue-500/30 hover:to-violet-500/30 border border-white/10 hover:border-white/20 rounded-lg transition-all duration-200 text-white text-center"
+                >
+                  Connect Gmail
+                </Link>
               </div>
-              <p className="text-xs text-zinc-400 mb-3">
-                Connect Gmail to automatically detect bills from your inbox.
-              </p>
-              <Link
-                href="/dashboard/settings"
-                className="block w-full px-3 py-2 text-sm font-medium bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-white text-center"
-              >
-                Connect Gmail
-              </Link>
             </div>
           </div>
         )}
 
         {/* User */}
-        <div className="p-4 border-t border-white/5">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white font-medium">
+        <div className="p-4 border-t border-white/[0.06]">
+          <div className="flex items-center gap-3 p-2 -m-2 rounded-xl hover:bg-white/[0.03] transition-colors duration-200">
+            <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white font-semibold shadow-lg shadow-orange-500/20">
               {user?.email?.[0]?.toUpperCase() || 'U'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">
+              <p className="text-sm font-semibold text-white truncate">
                 {user?.email?.split('@')[0] || 'User'}
               </p>
               <p className="text-xs text-zinc-500 truncate">{user?.email}</p>
             </div>
             <button
               onClick={handleSignOut}
-              className="p-2 text-zinc-400 hover:text-white transition-colors"
+              className="p-2 text-zinc-500 hover:text-white hover:bg-white/[0.06] rounded-lg transition-all duration-200"
+              title="Sign out"
             >
               <LogOut className="w-4 h-4" />
             </button>
@@ -611,6 +625,7 @@ export default function DashboardPage() {
                                 <div className="space-y-1">
                                   {overdueBills.slice(0, 3).map((bill) => {
                                     const daysOverdue = Math.abs(getDaysUntilDue(bill.due_date));
+                                    const { icon: BillIcon, colorClass } = getBillIcon(bill);
                                     return (
                                       <button
                                         key={bill.id}
@@ -628,8 +643,8 @@ export default function DashboardPage() {
                                             boxShadow: '0 0 8px var(--urgency-overdue)'
                                           }}
                                         />
-                                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-xl group-hover:scale-110 transition-transform duration-200">
-                                          {bill.emoji}
+                                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                                          <BillIcon className={cn("w-5 h-5", colorClass)} />
                                         </div>
                                         <div className="flex-1 min-w-0">
                                           <p className="text-sm font-medium text-white truncate group-hover:text-rose-200 transition-colors">{bill.name}</p>
@@ -662,6 +677,7 @@ export default function DashboardPage() {
                                 <div className="space-y-1">
                                   {billsDueSoon.slice(0, 3).map((bill) => {
                                     const daysUntil = getDaysUntilDue(bill.due_date);
+                                    const { icon: BillIcon, colorClass } = getBillIcon(bill);
                                     return (
                                       <button
                                         key={bill.id}
@@ -679,8 +695,8 @@ export default function DashboardPage() {
                                             boxShadow: `0 0 6px ${daysUntil <= 3 ? 'var(--urgency-urgent)' : 'var(--urgency-soon)'}`
                                           }}
                                         />
-                                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-xl group-hover:scale-110 transition-transform duration-200">
-                                          {bill.emoji}
+                                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                                          <BillIcon className={cn("w-5 h-5", colorClass)} />
                                         </div>
                                         <div className="flex-1 min-w-0">
                                           <p className="text-sm font-medium text-white truncate group-hover:text-orange-200 transition-colors">{bill.name}</p>
@@ -743,34 +759,38 @@ export default function DashboardPage() {
           {/* Stats - conditionally rendered based on layout preferences, hidden when Paycheck Mode is active */}
           {dashboardLayout.showStatsBar && !paycheckSettings?.enabled && (
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
-              <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5">
-                <p className="text-sm text-zinc-400 mb-1">Total Due</p>
+              <div className="relative p-6 rounded-2xl bg-gradient-to-br from-white/[0.03] to-white/[0.01] border border-white/[0.06] overflow-hidden group hover:border-white/[0.1] transition-all duration-300">
+                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                <p className="text-sm text-zinc-400 mb-1 font-medium">Total Due</p>
                 <p className="text-3xl font-bold text-white">
                   ${totalDue.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                 </p>
               </div>
-              <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5">
-                <p className="text-sm text-zinc-400 mb-1">Bills Due Soon</p>
+              <div className="relative p-6 rounded-2xl bg-gradient-to-br from-orange-500/[0.04] to-white/[0.01] border border-orange-500/10 overflow-hidden group hover:border-orange-500/20 transition-all duration-300">
+                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-orange-500/20 to-transparent" />
+                <p className="text-sm text-zinc-400 mb-1 font-medium">Bills Due Soon</p>
                 <p className="text-3xl font-bold text-orange-400">
                   {billsDueSoon.length}
                 </p>
               </div>
-              <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5">
-                <p className="text-sm text-zinc-400 mb-1">Active Bills</p>
+              <div className="relative p-6 rounded-2xl bg-gradient-to-br from-white/[0.03] to-white/[0.01] border border-white/[0.06] overflow-hidden group hover:border-white/[0.1] transition-all duration-300">
+                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                <p className="text-sm text-zinc-400 mb-1 font-medium">Active Bills</p>
                 <p className="text-3xl font-bold text-white">{unpaidBills.length}</p>
               </div>
-              <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5">
-                <p className="text-sm text-zinc-400 mb-1">Payment Status</p>
+              <div className="relative p-6 rounded-2xl bg-gradient-to-br from-white/[0.03] to-white/[0.01] border border-white/[0.06] overflow-hidden group hover:border-white/[0.1] transition-all duration-300">
+                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                <p className="text-sm text-zinc-400 mb-1 font-medium">Payment Status</p>
                 <div className="flex items-baseline gap-2">
                   <span className="text-2xl font-bold text-emerald-400">
                     {unpaidBills.filter(b => b.is_autopay).length}
                   </span>
-                  <span className="text-zinc-500">auto</span>
+                  <span className="text-zinc-500 text-sm">auto</span>
                   <span className="text-zinc-600">/</span>
                   <span className="text-2xl font-bold text-amber-400">
                     {unpaidBills.filter(b => !b.is_autopay).length}
                   </span>
-                  <span className="text-zinc-500">manual</span>
+                  <span className="text-zinc-500 text-sm">manual</span>
                 </div>
               </div>
             </div>
@@ -782,18 +802,30 @@ export default function DashboardPage() {
             onPayNow={handlePayNow}
             onMarkPaid={handleMarkAsPaidFromCard}
             onEditBill={handleEditFromRiskAlert}
-            className="mb-6"
+            className="mb-8"
           />
 
           {/* Bills section */}
           <div className="mb-6">
+            {/* Section separator */}
+            <div className="mb-6 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
+
             <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-xl font-bold text-white">Your Bills</h2>
-                <p className="text-sm text-zinc-400">
-                  {filteredBills.filter(b => !b.is_paid).length} unpaid
-                  {showPaidBills && ` • ${filteredBills.filter(b => b.is_paid).length} paid`}
-                </p>
+              <div className="flex items-center gap-4">
+                <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-400">
+                  Your Bills
+                </h2>
+                {/* Count badge styled like filter pills */}
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gradient-to-b from-cyan-500/20 to-cyan-600/10 border border-cyan-500/30 text-xs font-bold text-cyan-300 shadow-[0_0_12px_-3px_rgba(34,211,238,0.3)]">
+                    {filteredBills.filter(b => !b.is_paid).length} unpaid
+                  </span>
+                  {showPaidBills && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gradient-to-b from-emerald-500/15 to-emerald-600/10 border border-emerald-500/25 text-xs font-bold text-emerald-400">
+                      {filteredBills.filter(b => b.is_paid).length} paid
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* View toggle */}
@@ -802,10 +834,10 @@ export default function DashboardPage() {
                 <button
                   onClick={() => setShowPaidBills(!showPaidBills)}
                   className={cn(
-                    "flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-all duration-200",
+                    "flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-xl border transition-all duration-200",
                     showPaidBills
-                      ? "text-emerald-400 bg-emerald-500/10 border border-emerald-500/20"
-                      : "text-zinc-400 hover:text-white hover:bg-white/5"
+                      ? "text-emerald-400 bg-gradient-to-b from-emerald-500/15 to-emerald-600/10 border-emerald-500/30 shadow-[0_0_15px_-3px_rgba(52,211,153,0.3)]"
+                      : "text-zinc-400 bg-white/[0.03] border-white/[0.06] hover:text-white hover:bg-white/[0.06] hover:border-white/[0.1]"
                   )}
                 >
                   {showPaidBills ? (
@@ -815,17 +847,18 @@ export default function DashboardPage() {
                   )}
                   <span className="hidden sm:inline">{showPaidBills ? 'Showing Paid' : 'Show Paid'}</span>
                 </button>
-                <div className="flex items-center bg-white/5 rounded-lg p-1">
+                {/* View toggle buttons - larger and more prominent */}
+                <div className="flex items-center bg-gradient-to-b from-white/[0.05] to-white/[0.02] border border-white/[0.08] rounded-xl p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
                   <button
                     onClick={() => {
                       setView('grid');
-                      setSelectedBillIds(new Set()); // Clear selection when switching views
+                      setSelectedBillIds(new Set());
                     }}
                     className={cn(
-                      'p-2 rounded-md transition-colors',
+                      'flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-200',
                       view === 'grid'
-                        ? 'bg-white/10 text-white'
-                        : 'text-zinc-400 hover:text-white'
+                        ? 'bg-gradient-to-b from-white/15 to-white/10 text-white shadow-[0_2px_8px_-2px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.1)]'
+                        : 'text-zinc-500 hover:text-white hover:bg-white/[0.05]'
                     )}
                   >
                     <LayoutGrid className="w-4 h-4" />
@@ -833,13 +866,13 @@ export default function DashboardPage() {
                   <button
                     onClick={() => {
                       setView('list');
-                      setSelectedBillIds(new Set()); // Clear selection when switching views
+                      setSelectedBillIds(new Set());
                     }}
                     className={cn(
-                      'p-2 rounded-md transition-colors',
+                      'flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-200',
                       view === 'list'
-                        ? 'bg-white/10 text-white'
-                        : 'text-zinc-400 hover:text-white'
+                        ? 'bg-gradient-to-b from-white/15 to-white/10 text-white shadow-[0_2px_8px_-2px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.1)]'
+                        : 'text-zinc-500 hover:text-white hover:bg-white/[0.05]'
                     )}
                   >
                     <List className="w-4 h-4" />

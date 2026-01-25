@@ -81,6 +81,12 @@ export {
 // AI Extraction
 export { extractWithClaude, createMockExtraction } from './anthropicExtract';
 
+// Bill Classification
+export { classifyBillEmail } from './classifyBillEmail';
+export type { BillAIResult } from './classifyBillEmail';
+export { BILL_SYSTEM_PROMPT, buildBillUserPrompt } from './claudePrompts';
+export type { BillPromptEmailInput } from './claudePrompts';
+
 // Validation
 export { validateExtraction, determineRoute } from './validateExtraction';
 

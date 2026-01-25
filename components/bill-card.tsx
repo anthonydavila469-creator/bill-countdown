@@ -1,6 +1,6 @@
 'use client';
 
-import { Bill, BillIconKey } from '@/types';
+import { Bill } from '@/types';
 import {
   cn,
   getDaysUntilDue,
@@ -10,35 +10,13 @@ import {
   getPriceChange,
 } from '@/lib/utils';
 import { RiskType, hasLatePaymentRisk } from '@/lib/risk-utils';
+import { getBillIcon } from '@/lib/get-bill-icon';
 import { GradientCard } from './ui/gradient-card';
 import { CountdownDisplay } from './countdown-display';
 import {
   RefreshCw, Calendar, DollarSign, ExternalLink, CreditCard, TrendingUp, TrendingDown, Check, Zap,
-  Home, Zap as Bolt, Wifi, Tv, Phone, Shield, Car, Heart, Dumbbell, Droplet, Flame, Trash2, Building, Music, Film, FileText, LucideIcon,
-  AlertTriangle, Clock, History, AlertCircle
+  AlertTriangle, Clock, History, AlertCircle, LucideIcon
 } from 'lucide-react';
-
-// Icon mapping for bill categories
-const iconMap: Record<BillIconKey, LucideIcon> = {
-  home: Home,
-  bolt: Bolt,
-  wifi: Wifi,
-  tv: Tv,
-  phone: Phone,
-  creditcard: CreditCard,
-  shield: Shield,
-  car: Car,
-  heart: Heart,
-  dumbbell: Dumbbell,
-  water: Droplet,
-  flame: Flame,
-  trash: Trash2,
-  building: Building,
-  music: Music,
-  film: Film,
-  dollar: DollarSign,
-  file: FileText,
-};
 
 interface BillCardProps {
   bill: Bill;
@@ -88,7 +66,7 @@ export function BillCard({
   const priceChange = getPriceChange(bill.amount, bill.previous_amount);
   const isPaid = bill.is_paid;
   const hasPaymentLink = !!bill.payment_url;
-  const IconComponent = bill.icon_key ? iconMap[bill.icon_key] : null;
+  const { icon: IconComponent, colorClass: iconColorClass } = getBillIcon(bill);
   const showLatePaymentRisk = hasLatePaymentRisk(bill);
   const riskConfig = riskType ? riskBadgeConfig[riskType] : null;
 
@@ -122,14 +100,10 @@ export function BillCard({
         className={cn('p-4 group/compact', className)}
       >
         <div className="flex items-center justify-between gap-4">
-          {/* Left side: icon/emoji + name */}
+          {/* Left side: icon + name */}
           <div className="flex items-center gap-3 min-w-0">
             <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-              {IconComponent ? (
-                <IconComponent className="w-5 h-5 text-white" />
-              ) : (
-                <span className="text-2xl">{bill.emoji}</span>
-              )}
+              <IconComponent className="w-5 h-5 text-white" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
@@ -255,11 +229,7 @@ export function BillCard({
               role="img"
               aria-label={bill.category || 'bill'}
             >
-              {IconComponent ? (
-                <IconComponent className="w-7 h-7 text-white" />
-              ) : (
-                <span className="text-3xl">{bill.emoji}</span>
-              )}
+              <IconComponent className="w-7 h-7 text-white" />
             </div>
             <div>
               <h3 className="font-bold text-lg text-white leading-tight">
@@ -511,7 +481,7 @@ export function BillListItem({
   const priceChange = getPriceChange(bill.amount, bill.previous_amount);
   const isPaid = bill.is_paid;
   const hasPaymentLink = !!bill.payment_url;
-  const IconComponent = bill.icon_key ? iconMap[bill.icon_key] : null;
+  const { icon: IconComponent, colorClass: iconColorClass } = getBillIcon(bill);
   const showLatePaymentRisk = hasLatePaymentRisk(bill);
   const riskConfig = riskType ? riskBadgeConfig[riskType] : null;
 
@@ -581,15 +551,11 @@ export function BillListItem({
         style={!isPaid ? { backgroundColor: `var(${urgencyVarMap[urgency]})` } : undefined}
       />
 
-      {/* Icon or Emoji */}
+      {/* Icon */}
       <div className={cn("pl-2 flex-shrink-0", isPaid && "grayscale-[30%]")}>
-        {IconComponent ? (
-          <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-white/10 flex items-center justify-center">
-            <IconComponent className="w-5 h-5 text-zinc-600 dark:text-white" />
-          </div>
-        ) : (
-          <span className="text-2xl">{bill.emoji}</span>
-        )}
+        <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-white/10 flex items-center justify-center">
+          <IconComponent className={cn("w-5 h-5", iconColorClass)} />
+        </div>
       </div>
 
       {/* Bill info */}

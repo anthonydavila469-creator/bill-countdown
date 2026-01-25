@@ -3,6 +3,7 @@
 import { Bill } from '@/types';
 import { cn, formatCurrency, formatDate, getDaysUntilDue, getUrgency } from '@/lib/utils';
 import { getBillRiskType, hasLatePaymentRisk, RiskType } from '@/lib/risk-utils';
+import { getBillIcon } from '@/lib/get-bill-icon';
 import {
   Check,
   Zap,
@@ -142,20 +143,23 @@ export function BillListView({
   }
 
   return (
-    <div className="w-full overflow-hidden rounded-2xl border border-white/[0.06] bg-gradient-to-b from-white/[0.02] to-transparent">
-      {/* Table Header */}
-      <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-white/[0.03] via-white/[0.02] to-white/[0.03] border-b border-white/[0.06]">
+    <div className="w-full overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-b from-white/[0.03] to-white/[0.01] shadow-[0_4px_24px_rgba(0,0,0,0.2)]">
+      {/* Table Header - Enhanced with gradient and better styling */}
+      <div className="relative flex items-center gap-3 px-5 py-4 bg-gradient-to-r from-white/[0.04] via-white/[0.03] to-white/[0.04] border-b border-white/[0.08]">
+        {/* Top accent line */}
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
         {/* Select all checkbox */}
-        <div className="w-5 flex-shrink-0">
+        <div className="w-6 flex-shrink-0">
           <button
             onClick={handleSelectAll}
             className={cn(
               'w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-200',
               allSelected
-                ? 'bg-cyan-500 border-cyan-500 shadow-[0_0_10px_rgba(34,211,238,0.4)]'
+                ? 'bg-cyan-500 border-cyan-500 shadow-[0_0_12px_rgba(34,211,238,0.5)]'
                 : someSelected
                 ? 'bg-cyan-500/30 border-cyan-500'
-                : 'border-zinc-600 hover:border-zinc-500'
+                : 'border-zinc-600 hover:border-zinc-400'
             )}
           >
             {allSelected && <Check className="w-3 h-3 text-white" />}
@@ -163,26 +167,26 @@ export function BillListView({
           </button>
         </div>
 
-        {/* Column headers */}
+        {/* Column headers - Enhanced styling */}
         <div className="flex-1 min-w-0">
-          <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Bill</span>
+          <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">Bill</span>
         </div>
         <div className="hidden sm:block w-28 text-right">
-          <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Due</span>
-        </div>
-        <div className="hidden sm:block w-20 text-right">
-          <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Days</span>
+          <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">Due</span>
         </div>
         <div className="hidden sm:block w-24 text-right">
-          <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Amount</span>
+          <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">Days</span>
         </div>
-        <div className="w-24 text-right flex-shrink-0">
-          <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Actions</span>
+        <div className="hidden sm:block w-24 text-right">
+          <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">Amount</span>
+        </div>
+        <div className="w-28 text-right flex-shrink-0">
+          <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">Actions</span>
         </div>
       </div>
 
       {/* Bill rows */}
-      <div className="divide-y divide-white/[0.04]">
+      <div className="divide-y divide-white/[0.05]">
         {bills.map((bill, index) => {
           const isSelected = selectedIds.has(bill.id);
           const daysLeft = getDaysUntilDue(bill.due_date);
@@ -194,38 +198,51 @@ export function BillListView({
           const showLatePaymentRisk = hasLatePaymentRisk(bill);
           const riskStyle = riskType ? riskBadgeStyles[riskType] : null;
           const RiskIcon = riskType ? riskIcons[riskType] : null;
+          const isEven = index % 2 === 0;
+
+          const { icon: BillIcon, colorClass } = getBillIcon(bill);
 
           return (
             <div
               key={bill.id}
               onClick={() => onBillClick(bill)}
               className={cn(
-                'group flex items-center gap-3 px-4 py-3 cursor-pointer transition-all duration-200',
+                'group relative flex items-center gap-3 px-5 py-5 cursor-pointer transition-all duration-200',
                 isSelected
                   ? 'bg-cyan-500/10 hover:bg-cyan-500/15'
-                  : 'hover:bg-white/[0.03]',
-                isPaid && 'opacity-50'
+                  : isEven
+                    ? 'bg-white/[0.015] hover:bg-white/[0.04]'
+                    : 'hover:bg-white/[0.04]',
+                isPaid && 'opacity-50',
+                'animate-in fade-in slide-in-from-left-1'
               )}
               style={{
                 animationDelay: `${index * 30}ms`,
+                animationFillMode: 'backwards'
               }}
             >
+              {/* Hover accent line */}
+              <div className={cn(
+                'absolute left-0 top-0 bottom-0 w-1 rounded-r-full transition-all duration-200 opacity-0 group-hover:opacity-100',
+                styles.bg
+              )} />
+
               {/* Checkbox */}
-              <div className="w-5 flex-shrink-0">
+              <div className="w-6 flex-shrink-0">
                 {!isPaid ? (
                   <button
                     onClick={(e) => handleSelectBill(bill.id, e)}
                     className={cn(
                       'w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-200',
                       isSelected
-                        ? 'bg-cyan-500 border-cyan-500 shadow-[0_0_10px_rgba(34,211,238,0.4)]'
-                        : 'border-zinc-600 hover:border-zinc-500'
+                        ? 'bg-cyan-500 border-cyan-500 shadow-[0_0_12px_rgba(34,211,238,0.5)]'
+                        : 'border-zinc-600 hover:border-zinc-400 hover:bg-white/[0.03]'
                     )}
                   >
                     {isSelected && <Check className="w-3 h-3 text-white" />}
                   </button>
                 ) : (
-                  <div className="w-5 h-5 rounded-md bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
+                  <div className="w-5 h-5 rounded-md bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shadow-[0_0_8px_rgba(52,211,153,0.3)]">
                     <Check className="w-3 h-3 text-emerald-400" />
                   </div>
                 )}
@@ -233,65 +250,65 @@ export function BillListView({
 
               {/* Bill info */}
               <div className="flex-1 min-w-0 flex items-center gap-3">
-                {/* Urgency bar */}
+                {/* Urgency bar - wider with glow */}
                 <div
                   className={cn(
-                    'w-1 h-10 rounded-full flex-shrink-0 transition-all duration-300',
+                    'w-1.5 h-12 rounded-full flex-shrink-0 transition-all duration-300',
                     styles.bg,
                     !isPaid && styles.glow
                   )}
                 />
 
-                {/* Emoji */}
-                <div className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
-                  <span className="text-xl">{bill.emoji}</span>
+                {/* Icon container - larger */}
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-white/[0.06] to-white/[0.02] border border-white/[0.08] flex items-center justify-center flex-shrink-0 group-hover:scale-105 group-hover:border-white/[0.12] transition-all duration-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+                  <BillIcon className={cn("w-6 h-6", colorClass)} />
                 </div>
 
                 {/* Name + badges */}
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-semibold text-white truncate text-sm">{bill.name}</h3>
+                    <h3 className="font-semibold text-white truncate text-sm group-hover:text-white/90 transition-colors">{bill.name}</h3>
 
-                    {/* Risk badge - highest priority */}
+                    {/* Risk badge - highest priority with enhanced styling */}
                     {riskStyle && RiskIcon && !isPaid && (
                       <span className={cn(
-                        "flex items-center gap-1 px-1.5 py-0.5 rounded-md border",
+                        "flex items-center gap-1 px-2 py-0.5 rounded-lg border shadow-sm",
                         riskStyle.bg, riskStyle.border
                       )}>
                         <RiskIcon className={cn("w-3 h-3", riskStyle.text)} />
-                        <span className={cn("text-[10px] font-semibold", riskStyle.text)}>
+                        <span className={cn("text-[10px] font-bold", riskStyle.text)}>
                           {riskStyle.label}
                         </span>
                       </span>
                     )}
 
-                    {/* Badges - inline */}
+                    {/* Badges - inline with enhanced styling */}
                     {bill.is_autopay && !isPaid && (
-                      <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/25">
+                      <span className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-500/15 border border-emerald-500/25 shadow-sm">
                         <CreditCard className="w-3 h-3 text-emerald-400" />
-                        <span className="text-[10px] font-semibold text-emerald-400">Auto</span>
+                        <span className="text-[10px] font-bold text-emerald-400">Auto</span>
                       </span>
                     )}
 
                     {bill.is_recurring && !isPaid && (
-                      <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-violet-500/15 border border-violet-500/25">
+                      <span className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-violet-500/15 border border-violet-500/25 shadow-sm">
                         <RefreshCw className="w-3 h-3 text-violet-400" />
-                        <span className="text-[10px] font-semibold text-violet-400 hidden lg:inline">
+                        <span className="text-[10px] font-bold text-violet-400 hidden lg:inline">
                           {bill.recurrence_interval}
                         </span>
                       </span>
                     )}
 
                     {isPaid && (
-                      <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/25">
+                      <span className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-500/15 border border-emerald-500/25 shadow-sm">
                         <Check className="w-3 h-3 text-emerald-400" />
-                        <span className="text-[10px] font-semibold text-emerald-400">Paid</span>
+                        <span className="text-[10px] font-bold text-emerald-400">Paid</span>
                       </span>
                     )}
                   </div>
 
                   {/* Mobile: show due date + amount inline */}
-                  <p className="text-xs text-zinc-500 sm:hidden mt-0.5">
+                  <p className="text-xs text-zinc-500 sm:hidden mt-1">
                     {formatDate(bill.due_date)}
                     {bill.amount && ` • ${formatCurrency(bill.amount)}`}
                     {showLatePaymentRisk && (
@@ -306,19 +323,27 @@ export function BillListView({
 
               {/* Due date */}
               <div className="hidden sm:flex w-28 items-center justify-end gap-2">
-                <span className="text-sm text-zinc-400 font-medium">{formatDate(bill.due_date)}</span>
+                <span className="text-sm text-zinc-300 font-medium">{formatDate(bill.due_date)}</span>
                 {showLatePaymentRisk && (
                   <span className="text-rose-400" title="Late fee risk">
-                    <AlertCircle className="w-3.5 h-3.5" />
+                    <AlertCircle className="w-3.5 h-3.5 animate-pulse" />
                   </span>
                 )}
               </div>
 
-              {/* Countdown */}
-              <div className="hidden sm:flex w-20 items-center justify-end">
+              {/* Countdown - enhanced with pill styling */}
+              <div className="hidden sm:flex w-24 items-center justify-end">
                 <span className={cn(
-                  'text-sm font-bold tabular-nums',
-                  isPaid ? 'text-emerald-400' : styles.text
+                  'px-2.5 py-1 rounded-lg text-xs font-bold tabular-nums border',
+                  isPaid
+                    ? 'text-emerald-400 bg-emerald-500/15 border-emerald-500/20'
+                    : urgency === 'overdue'
+                      ? 'text-rose-300 bg-rose-500/15 border-rose-500/20'
+                      : urgency === 'urgent'
+                        ? 'text-orange-300 bg-orange-500/15 border-orange-500/20'
+                        : urgency === 'soon'
+                          ? 'text-amber-300 bg-amber-500/15 border-amber-500/20'
+                          : 'text-zinc-300 bg-white/[0.05] border-white/[0.08]'
                 )}>
                   {isPaid ? (
                     'Paid'
@@ -332,10 +357,10 @@ export function BillListView({
                 </span>
               </div>
 
-              {/* Amount */}
+              {/* Amount - enhanced */}
               <div className="hidden sm:flex w-24 items-center justify-end">
                 {bill.amount ? (
-                  <span className="text-sm font-semibold text-white tabular-nums">
+                  <span className="text-sm font-bold text-white tabular-nums">
                     {formatCurrency(bill.amount)}
                   </span>
                 ) : (
@@ -343,44 +368,46 @@ export function BillListView({
                 )}
               </div>
 
-              {/* Actions */}
-              <div className="w-24 flex items-center justify-end gap-1.5 flex-shrink-0">
+              {/* Actions - enhanced buttons */}
+              <div className="w-28 flex items-center justify-end gap-2 flex-shrink-0">
                 {!isPaid && (
                   <>
-                    {/* Pay Now button */}
+                    {/* Pay Now button - enhanced gradient */}
                     {hasPaymentLink ? (
                       <button
                         onClick={(e) => handlePayNow(bill, e)}
                         className={cn(
-                          'flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200',
-                          'bg-gradient-to-r from-blue-500 to-violet-500 text-white',
-                          'hover:from-blue-400 hover:to-violet-400',
+                          'flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-xs font-bold transition-all duration-200',
+                          'bg-gradient-to-r from-emerald-500 to-teal-500 text-white',
+                          'hover:from-emerald-400 hover:to-teal-400',
                           'active:scale-95',
-                          'shadow-lg shadow-blue-500/25'
+                          'shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40'
                         )}
                       >
-                        <ExternalLink className="w-3 h-3" />
+                        <ExternalLink className="w-3.5 h-3.5" />
                         <span className="hidden lg:inline">Pay</span>
                       </button>
                     ) : (
                       <button
                         disabled
-                        className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium bg-white/[0.03] text-zinc-600 cursor-not-allowed"
+                        className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-xs font-medium bg-white/[0.04] text-zinc-500 cursor-not-allowed border border-white/[0.06] border-dashed"
                         title="Add payment link in Edit Bill"
                       >
-                        <ExternalLink className="w-3 h-3" />
+                        <ExternalLink className="w-3.5 h-3.5" />
                         <span className="hidden lg:inline">Pay</span>
                       </button>
                     )}
 
-                    {/* Mark Paid button */}
+                    {/* Mark Paid button - enhanced */}
                     <button
                       onClick={(e) => handleMarkPaid(bill, e)}
                       className={cn(
-                        'flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200',
-                        'bg-white/[0.03] hover:bg-emerald-500/20 text-zinc-500 hover:text-emerald-400',
-                        'border border-white/[0.06] hover:border-emerald-500/30',
-                        'active:scale-95'
+                        'flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-200',
+                        'bg-gradient-to-b from-white/[0.04] to-white/[0.02] hover:from-emerald-500/20 hover:to-emerald-500/10',
+                        'text-zinc-500 hover:text-emerald-400',
+                        'border border-white/[0.08] hover:border-emerald-500/30',
+                        'active:scale-95',
+                        'shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]'
                       )}
                       title={bill.is_autopay ? 'Confirm Auto-Paid' : 'Mark as Paid'}
                     >
@@ -394,9 +421,9 @@ export function BillListView({
                 )}
 
                 {isPaid && (
-                  <div className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                  <div className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 shadow-[0_0_10px_rgba(52,211,153,0.15)]">
                     <Check className="w-3.5 h-3.5 text-emerald-400" />
-                    <span className="text-xs font-semibold text-emerald-400">Done</span>
+                    <span className="text-xs font-bold text-emerald-400">Done</span>
                   </div>
                 )}
               </div>

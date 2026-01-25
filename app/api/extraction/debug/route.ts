@@ -41,8 +41,19 @@ export async function GET() {
         payment_confidence,
         candidate_payment_links,
         created_at,
-        email_raw_id
+        email_raw_id,
+        is_duplicate,
+        duplicate_reason,
+        duplicate_of_bill_id
       `)
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    // Get existing bills (for duplicate detection diagnosis)
+    const { data: existingBills, error: billsError } = await supabase
+      .from('bills')
+      .select('id, name, amount, due_date, created_at')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(20);
@@ -67,9 +78,11 @@ export async function GET() {
       },
       recent_emails: rawEmails || [],
       recent_extractions: extractions || [],
+      existing_bills: existingBills || [],
       errors: {
         raw: rawError?.message,
         extract: extractError?.message,
+        bills: billsError?.message,
       },
     });
   } catch (error) {

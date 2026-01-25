@@ -16,7 +16,6 @@ import {
   Lightbulb,
   Settings,
   LogOut,
-  Mail,
   Loader2,
   Inbox,
   RefreshCw,
@@ -237,15 +236,6 @@ export default function ReviewQueuePage() {
             </li>
             <li>
               <Link
-                href="/dashboard/suggestions"
-                className="flex items-center gap-3 px-3 py-2 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-              >
-                <Mail className="w-5 h-5" />
-                Suggestions
-              </Link>
-            </li>
-            <li>
-              <Link
                 href="/review"
                 className="flex items-center gap-3 px-3 py-2 text-white bg-white/5 rounded-lg"
               >
@@ -391,17 +381,10 @@ export default function ReviewQueuePage() {
               <h2 className="text-xl font-bold text-white mb-2">
                 All Caught Up!
               </h2>
-              <p className="text-zinc-400 text-center max-w-md mb-6">
+              <p className="text-zinc-400 text-center max-w-md">
                 No extractions need review. High-confidence bills are automatically
                 added, and this queue shows items that need your verification.
               </p>
-              <Link
-                href="/dashboard/suggestions"
-                className="flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm bg-white/10 hover:bg-white/15 text-white transition-all"
-              >
-                <Mail className="w-4 h-4" />
-                Scan for More Bills
-              </Link>
             </div>
           )}
 

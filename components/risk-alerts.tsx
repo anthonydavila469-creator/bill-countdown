@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Bill, BillIconKey } from '@/types';
+import { Bill } from '@/types';
 import { getRiskBills, RiskBill, RiskType } from '@/lib/risk-utils';
 import { formatCurrency, getDaysUntilDue } from '@/lib/utils';
 import { cn } from '@/lib/utils';
+import { getBillIcon } from '@/lib/get-bill-icon';
 import {
   AlertTriangle,
   Clock,
@@ -15,49 +16,10 @@ import {
   X,
   Link2,
   ChevronRight,
-  Home,
-  Zap as Bolt,
-  Wifi,
-  Tv,
-  Phone,
   CreditCard,
-  Shield,
-  Car,
-  Heart,
-  Dumbbell,
-  Droplet,
-  Flame,
-  Trash2,
-  Building,
-  Music,
-  Film,
-  DollarSign,
-  FileText,
   LucideIcon,
   AlertCircle,
 } from 'lucide-react';
-
-// Icon mapping
-const iconMap: Record<BillIconKey, LucideIcon> = {
-  home: Home,
-  bolt: Bolt,
-  wifi: Wifi,
-  tv: Tv,
-  phone: Phone,
-  creditcard: CreditCard,
-  shield: Shield,
-  car: Car,
-  heart: Heart,
-  dumbbell: Dumbbell,
-  water: Droplet,
-  flame: Flame,
-  trash: Trash2,
-  building: Building,
-  music: Music,
-  film: Film,
-  dollar: DollarSign,
-  file: FileText,
-};
 
 // Risk type styling configuration with enhanced visual hierarchy
 const riskConfig: Record<
@@ -143,127 +105,167 @@ export function RiskAlerts({
   const overdueCount = riskBills.filter(rb => rb.riskType === 'overdue').length;
   const urgentCount = riskBills.filter(rb => rb.riskType === 'urgent').length;
 
+  // Calculate total amount at risk
+  const totalAtRisk = riskBills.reduce((sum, rb) => sum + (rb.bill.amount || 0), 0);
+
+  // Get the most urgent status message for the collapsed view
+  const getMostUrgentStatus = () => {
+    const overdueBills = riskBills.filter(rb => rb.riskType === 'overdue');
+    const urgentBillsList = riskBills.filter(rb => rb.riskType === 'urgent');
+
+    if (overdueBills.length > 0) {
+      // Find the most overdue bill
+      const mostOverdue = overdueBills.reduce((worst, current) =>
+        current.daysLeft < worst.daysLeft ? current : worst
+      );
+      const daysOverdue = Math.abs(mostOverdue.daysLeft);
+      return { text: `Oldest ${daysOverdue}d past due`, color: 'text-rose-400' };
+    }
+
+    if (urgentBillsList.length > 0) {
+      // Find the soonest due bill
+      const soonest = urgentBillsList.reduce((closest, current) =>
+        current.daysLeft < closest.daysLeft ? current : closest
+      );
+      if (soonest.daysLeft === 0) {
+        return { text: 'Due today', color: 'text-orange-400' };
+      }
+      return { text: `Due in ${soonest.daysLeft}d`, color: 'text-orange-400' };
+    }
+
+    return { text: 'Bills need attention', color: 'text-zinc-400' };
+  };
+
   // Compact banner when collapsed, full panel when expanded
   if (isCollapsed) {
     return (
-      <button
-        onClick={() => setIsCollapsed(false)}
-        className={cn(
-          'group w-full flex items-center justify-between gap-4 px-4 py-3 rounded-xl',
-          'bg-gradient-to-r from-rose-500/[0.08] via-orange-500/[0.05] to-violet-500/[0.08]',
-          'border border-rose-500/20 hover:border-rose-500/40',
-          'transition-all duration-300 hover:shadow-[0_0_20px_rgba(244,63,94,0.1)]',
-          'animate-in fade-in slide-in-from-top-2 duration-300',
-          className
-        )}
-      >
-        <div className="flex items-center gap-3">
-          {/* Compact pulsing indicator */}
-          <div className="relative flex items-center justify-center">
-            <div className="absolute w-2 h-2 rounded-full bg-rose-500 animate-ping opacity-75" />
-            <div className="relative w-2 h-2 rounded-full bg-rose-500" />
+      <div className={cn('relative', className)}>
+        {/* Subtle glow effect behind the banner */}
+        <div className="absolute inset-0 bg-gradient-to-r from-rose-500/10 via-orange-500/5 to-violet-500/10 rounded-2xl blur-xl opacity-60" />
+
+        <button
+          onClick={() => setIsCollapsed(false)}
+          className={cn(
+            'group relative w-full flex items-center justify-between gap-4 px-5 py-4 rounded-2xl',
+            'bg-gradient-to-r from-rose-500/[0.08] via-[#0c0c10] to-violet-500/[0.08]',
+            'border border-rose-500/20 hover:border-rose-400/40',
+            'transition-all duration-300',
+            'hover:shadow-[0_0_30px_rgba(244,63,94,0.15)]',
+            'animate-in fade-in slide-in-from-top-2 duration-300'
+          )}
+        >
+          {/* Left accent glow line */}
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full bg-gradient-to-b from-rose-500 via-orange-500 to-violet-500 shadow-[0_0_12px_rgba(244,63,94,0.5)]" />
+
+          <div className="flex items-center gap-4">
+            {/* Pulsing indicator with glow */}
+            <div className="relative flex items-center justify-center">
+              <div className="absolute w-3 h-3 rounded-full bg-rose-500/50 animate-ping" />
+              <div className="relative w-3 h-3 rounded-full bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.6)]" />
+            </div>
+
+            {/* Alert info with icon container */}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-rose-500/20 to-orange-500/10 border border-rose-500/30">
+                <AlertTriangle className="w-4 h-4 text-rose-400" />
+              </div>
+              <div>
+                <span className="font-semibold text-white">Risk Alerts</span>
+                {/* Amount at risk + urgency status on one line */}
+                <p className="text-xs text-zinc-400 mt-0.5">
+                  {formatCurrency(totalAtRisk)} <span className="text-zinc-500">at risk</span>
+                  <span className="hidden sm:inline">
+                    <span className="text-zinc-600 mx-1.5">·</span>
+                    <span className={getMostUrgentStatus().color}>{getMostUrgentStatus().text}</span>
+                  </span>
+                </p>
+              </div>
+            </div>
           </div>
 
-          {/* Inline alert info */}
-          <div className="flex items-center gap-2 text-sm">
-            <AlertTriangle className="w-4 h-4 text-rose-400" />
-            <span className="font-semibold text-white">Risk Alerts</span>
-            <span className="px-1.5 py-0.5 rounded-md bg-rose-500/20 text-rose-400 text-xs font-bold">
-              {riskBills.length}
-            </span>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-zinc-500 group-hover:text-white group-hover:bg-white/[0.06] group-hover:border-white/[0.1] transition-all duration-200">
+            <span className="text-xs font-medium">View {riskBills.length} alert{riskBills.length !== 1 ? 's' : ''}</span>
+            <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
           </div>
-
-          {/* Quick summary pills */}
-          <div className="hidden sm:flex items-center gap-2">
-            {overdueCount > 0 && (
-              <span className="px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-300 text-xs font-medium">
-                {overdueCount} overdue
-              </span>
-            )}
-            {urgentCount > 0 && (
-              <span className="px-2 py-0.5 rounded-md bg-orange-500/20 text-orange-300 text-xs font-medium">
-                {urgentCount} due soon
-              </span>
-            )}
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 text-zinc-500 group-hover:text-zinc-300 transition-colors">
-          <span className="text-xs hidden sm:inline">View details</span>
-          <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-        </div>
-      </button>
+        </button>
+      </div>
     );
   }
 
   return (
-    <div
-      className={cn(
-        'relative rounded-2xl overflow-hidden',
-        'bg-gradient-to-br from-[#0c0c12] via-[#0f0f18] to-[#0c0c12]',
-        'border border-white/[0.08]',
-        'shadow-[0_4px_24px_rgba(0,0,0,0.3)]',
-        'animate-in fade-in slide-in-from-top-2 duration-500',
-        className
-      )}
-    >
-      {/* Animated gradient border effect */}
-      <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-rose-500/20 via-orange-500/20 to-violet-500/20 opacity-50 blur-xl -z-10" />
+    <div className={cn('relative', className)}>
+      {/* Glow effect behind the panel */}
+      <div className="absolute inset-0 bg-gradient-to-r from-rose-500/10 via-orange-500/5 to-violet-500/10 rounded-2xl blur-2xl opacity-50" />
 
-      {/* Noise texture overlay */}
-      <div className="absolute inset-0 opacity-[0.015] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIi8+PC9maWx0ZXI+PHJlY3Qgd2lkdGg9IjMwMCIgaGVpZ2h0PSIzMDAiIGZpbHRlcj0idXJsKCNhKSIgb3BhY2l0eT0iMSIvPjwvc3ZnPg==')] pointer-events-none" />
-
-      {/* Header */}
-      <button
-        onClick={() => setIsCollapsed(true)}
-        className="w-full px-5 py-4 flex items-center justify-between border-b border-white/[0.06] hover:bg-white/[0.02] transition-colors"
+      <div
+        className={cn(
+          'relative rounded-2xl overflow-hidden',
+          'bg-gradient-to-br from-[#0c0c12] via-[#0f0f18] to-[#0c0c12]',
+          'border border-white/[0.08]',
+          'shadow-[0_8px_32px_rgba(0,0,0,0.4)]',
+          'animate-in fade-in slide-in-from-top-2 duration-500'
+        )}
       >
-        <div className="flex items-center gap-4">
-          {/* Pulsing alert icon */}
-          <div className="relative">
-            <div className="absolute inset-0 rounded-xl bg-rose-500/30 animate-ping opacity-75" style={{ animationDuration: '2s' }} />
-            <div className="relative w-11 h-11 rounded-xl bg-gradient-to-br from-rose-500/30 to-orange-500/20 border border-rose-500/30 flex items-center justify-center">
-              <AlertTriangle className="w-5 h-5 text-rose-400" />
+        {/* Top gradient accent line */}
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-rose-500/40 to-transparent" />
+
+        {/* Noise texture overlay */}
+        <div className="absolute inset-0 opacity-[0.015] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIi8+PC9maWx0ZXI+PHJlY3Qgd2lkdGg9IjMwMCIgaGVpZ2h0PSIzMDAiIGZpbHRlcj0idXJsKCNhKSIgb3BhY2l0eT0iMSIvPjwvc3ZnPg==')] pointer-events-none" />
+
+        {/* Header */}
+        <button
+          onClick={() => setIsCollapsed(true)}
+          className="w-full px-6 py-5 flex items-center justify-between border-b border-white/[0.06] hover:bg-white/[0.02] transition-colors"
+        >
+          <div className="flex items-center gap-4">
+            {/* Pulsing alert icon */}
+            <div className="relative">
+              <div className="absolute inset-0 rounded-xl bg-rose-500/30 animate-ping opacity-75" style={{ animationDuration: '2s' }} />
+              <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500/25 to-orange-500/15 border border-rose-500/30 flex items-center justify-center shadow-[0_0_20px_rgba(244,63,94,0.2)]">
+                <AlertTriangle className="w-5 h-5 text-rose-400" />
+              </div>
+            </div>
+
+            <div className="text-left">
+              <h2 className="font-semibold text-white">Risk Alerts</h2>
+              <p className="text-sm text-zinc-400 mt-1">
+                {formatCurrency(totalAtRisk)} <span className="text-zinc-500">at risk</span>
+                {(overdueCount > 0 || urgentCount > 0) && (
+                  <span className="text-zinc-500">
+                    {' · '}
+                    {overdueCount > 0 && (
+                      <span className="text-rose-400">{overdueCount} overdue</span>
+                    )}
+                    {overdueCount > 0 && urgentCount > 0 && ', '}
+                    {urgentCount > 0 && (
+                      <span className="text-orange-400">{urgentCount} due soon</span>
+                    )}
+                  </span>
+                )}
+              </p>
             </div>
           </div>
 
-          <div className="text-left">
-            <h2 className="font-semibold text-white flex items-center gap-2">
-              Risk Alerts
-              <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 text-xs font-bold">
-                {riskBills.length}
-              </span>
-            </h2>
-            <p className="text-xs text-zinc-500 mt-0.5">
-              {overdueCount > 0 && <span className="text-rose-400">{overdueCount} overdue</span>}
-              {overdueCount > 0 && urgentCount > 0 && <span className="text-zinc-600"> · </span>}
-              {urgentCount > 0 && <span className="text-orange-400">{urgentCount} due soon</span>}
-              {overdueCount === 0 && urgentCount === 0 && <span>Bills need attention</span>}
-            </p>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-zinc-500 hover:text-white hover:bg-white/[0.06] transition-all duration-200">
+            <span className="text-xs font-medium">Collapse</span>
+            <ChevronRight className="w-4 h-4 rotate-90" />
           </div>
+        </button>
+
+        {/* Risk items */}
+        <div className="p-4 space-y-3">
+          {riskBills.map((riskBill, index) => (
+            <RiskAlertItem
+              key={riskBill.bill.id}
+              riskBill={riskBill}
+              onPayNow={onPayNow}
+              onMarkPaid={onMarkPaid}
+              onEditBill={onEditBill}
+              onDismiss={handleDismiss}
+              animationDelay={index * 50}
+            />
+          ))}
         </div>
-
-        <ChevronRight
-          className={cn(
-            "w-5 h-5 text-zinc-500 transition-transform duration-200",
-            "rotate-90"
-          )}
-        />
-      </button>
-
-      {/* Risk items */}
-      <div className="p-3 space-y-2">
-        {riskBills.map((riskBill, index) => (
-          <RiskAlertItem
-            key={riskBill.bill.id}
-            riskBill={riskBill}
-            onPayNow={onPayNow}
-            onMarkPaid={onMarkPaid}
-            onEditBill={onEditBill}
-            onDismiss={handleDismiss}
-            animationDelay={index * 50}
-          />
-        ))}
       </div>
     </div>
   );
@@ -288,7 +290,7 @@ function RiskAlertItem({
 }: RiskAlertItemProps) {
   const { bill, riskType, message, daysLeft } = riskBill;
   const config = riskConfig[riskType];
-  const IconComponent = bill.icon_key ? iconMap[bill.icon_key] : null;
+  const { icon: BillIconComponent, colorClass } = getBillIcon(bill);
   const hasPaymentLink = !!bill.payment_url;
   const isManualPayment = !bill.is_autopay;
   const showLateRisk = (riskType === 'overdue' || riskType === 'urgent') && isManualPayment;
@@ -352,11 +354,7 @@ function RiskAlertItem({
             'group-hover:bg-white/[0.08] transition-colors'
           )}
         >
-          {IconComponent ? (
-            <IconComponent className="w-5 h-5 text-zinc-300" />
-          ) : (
-            <span className="text-xl">{bill.emoji}</span>
-          )}
+          <BillIconComponent className={cn("w-5 h-5", colorClass)} />
         </div>
 
         {/* Content */}

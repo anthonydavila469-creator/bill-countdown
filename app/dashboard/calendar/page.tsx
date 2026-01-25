@@ -11,6 +11,7 @@ import { Bill } from '@/types';
 import { createClient } from '@/lib/supabase/client';
 import { formatDateString } from '@/lib/calendar-utils';
 import { useBillMutations } from '@/hooks/use-bill-mutations';
+import { useToast } from '@/components/ui/toast';
 import {
   Zap,
   LayoutGrid,
@@ -38,7 +39,9 @@ export default function CalendarPage() {
     loading: billsLoading,
     markPaid,
     deleteBill,
+    updateBill,
     refetch,
+    getMutationState,
   } = useBillMutations();
 
   // Modal state
@@ -132,6 +135,37 @@ export default function CalendarPage() {
     setDeletingBill(null);
   };
 
+  // Toast for reschedule undo
+  const { addToast } = useToast();
+
+  // Handle bill reschedule (drag and drop)
+  const handleReschedule = async (billId: string, newDate: string, originalDate: string) => {
+    const bill = bills.find((b) => b.id === billId);
+    if (!bill) return;
+
+    // Optimistically update the bill's due date
+    const result = await updateBill(billId, { due_date: newDate });
+
+    if (result) {
+      // Show toast with undo option
+      const formattedDate = new Date(newDate).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+      });
+
+      addToast({
+        message: 'Due date updated',
+        description: `${bill.name} moved to ${formattedDate}`,
+        type: 'undo',
+        onUndo: async () => {
+          // Restore original date
+          await updateBill(billId, { due_date: originalDate });
+        },
+        undoTimeout: 10000,
+      });
+    }
+  };
+
   // Loading state
   if (isLoading) {
     return (
@@ -170,15 +204,6 @@ export default function CalendarPage() {
               >
                 <LayoutGrid className="w-5 h-5" />
                 Dashboard
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/dashboard/suggestions"
-                className="flex items-center gap-3 px-3 py-2 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-              >
-                <Mail className="w-5 h-5" />
-                Suggestions
               </Link>
             </li>
             <li>
@@ -294,6 +319,10 @@ export default function CalendarPage() {
             bills={bills}
             onBillClick={handleBillClick}
             onAddBill={handleAddBill}
+            onMarkPaid={handleMarkAsPaid}
+            onEdit={handleEditFromDetail}
+            onReschedule={handleReschedule}
+            getMutationState={getMutationState}
           />
         </div>
       </main>

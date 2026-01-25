@@ -69,6 +69,11 @@ export const SKIP_KEYWORDS = [
   'payment received',
   'payment successful',
   'thank you for your payment',
+  'thanks for your payment',
+  "your payment's complete",
+  'your payment is complete',
+  'payment has been received',
+  'payment was received',
   'payment confirmation',
   'payment processed',
   'we received your payment',
@@ -460,6 +465,26 @@ export function extractAmount(text: string): number | null {
 }
 
 /**
+ * Check if a date at a given position is part of a billing period date range
+ * e.g., "Billing Period: 11/20/2025 - 12/19/2025" or "11/20 - 12/19"
+ * Only returns true if THIS specific date is one of the dates in a range pattern
+ */
+function isPartOfDateRange(text: string, matchIndex: number, dateStr: string): boolean {
+  // Check a small window around the date to see if it's part of a "date - date" pattern
+  // We only want to skip dates that are DIRECTLY part of a range, not all dates in an email
+  const windowStart = Math.max(0, matchIndex - 20);
+  const windowEnd = Math.min(text.length, matchIndex + dateStr.length + 20);
+  const immediateContext = text.substring(windowStart, windowEnd);
+
+  // Check if this date is immediately followed by " - date" or preceded by "date - "
+  // This ensures we only skip dates that are PART of the range, not nearby dates
+  const isStartOfRange = new RegExp(dateStr.replace(/[\/\-]/g, '[/\\-]') + '\\s*-\\s*\\d{1,2}[/\\-]\\d{1,2}').test(immediateContext);
+  const isEndOfRange = new RegExp('\\d{1,2}[/\\-]\\d{1,2}[/\\-]?\\d{0,4}\\s*-\\s*' + dateStr.replace(/[\/\-]/g, '[/\\-]')).test(immediateContext);
+
+  return isStartOfRange || isEndOfRange;
+}
+
+/**
  * Extract due dates from text - tries all patterns and picks the best date
  */
 export function extractDueDate(text: string): string | null {
@@ -484,6 +509,11 @@ export function extractDueDate(text: string): string | null {
           date: dueDate.toISOString().split('T')[0],
           priority: i,
         });
+        continue;
+      }
+
+      // Skip dates that are part of a billing period date range
+      if (isPartOfDateRange(text, match.index, dateStr)) {
         continue;
       }
 
@@ -774,9 +804,10 @@ function isPromotionalEmail(subject: string, snippet: string, body: string): boo
   const subjectLower = subject.toLowerCase();
 
   // Check for skip keywords (cancellations, payment confirmations, etc.) - these are NOT bills
+  // Payment confirmations take precedence - they ARE about bills but represent completed payments
   for (const keyword of SKIP_KEYWORDS) {
     if (text.includes(keyword.toLowerCase())) {
-      return true; // Skip this email
+      return true; // Skip this email - it's a payment confirmation, not an upcoming bill
     }
   }
 

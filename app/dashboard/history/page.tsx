@@ -1,13 +1,14 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Bill, BillIconKey } from '@/types';
+import { Bill } from '@/types';
 import { cn, formatDate, formatCurrency, getDaysUntilDue } from '@/lib/utils';
 import { getMissedBills } from '@/lib/risk-utils';
 import { createClient } from '@/lib/supabase/client';
 import { useBillsContext } from '@/contexts/bills-context';
+import { iconMap, getIconFromName, getCategoryColors } from '@/lib/get-bill-icon';
 import {
   Zap,
   LayoutGrid,
@@ -30,52 +31,37 @@ import {
   TrendingUp,
   AlertTriangle,
   X,
-  Home,
-  Zap as Bolt,
-  Wifi,
-  Tv,
-  Phone,
-  Shield,
-  Car,
-  Heart,
-  Dumbbell,
-  Droplet,
-  Flame,
-  Trash2,
-  Building,
-  Music,
-  Film,
   FileText,
-  LucideIcon,
+  Download,
+  ChevronDown,
+  Receipt,
+  Clock,
+  Filter,
+  ChevronRight,
 } from 'lucide-react';
 
-// Icon mapping for bill categories
-const iconMap: Record<BillIconKey, LucideIcon> = {
-  home: Home,
-  bolt: Bolt,
-  wifi: Wifi,
-  tv: Tv,
-  phone: Phone,
-  creditcard: CreditCard,
-  shield: Shield,
-  car: Car,
-  heart: Heart,
-  dumbbell: Dumbbell,
-  water: Droplet,
-  flame: Flame,
-  trash: Trash2,
-  building: Building,
-  music: Music,
-  film: Film,
-  dollar: DollarSign,
-  file: FileText,
+// Period filter options
+type PeriodFilter = 'last30' | 'thisYear' | 'allTime';
+
+const periodFilterLabels: Record<PeriodFilter, string> = {
+  last30: 'Last 30 Days',
+  thisYear: 'This Year',
+  allTime: 'All Time',
 };
 
-function PaidBillCard({ bill }: { bill: Bill }) {
+function PaidBillCard({ bill, isRecent, isEven }: { bill: Bill; isRecent?: boolean; isEven?: boolean }) {
   const paidDate = bill.paid_at ? new Date(bill.paid_at) : new Date();
   const isAutoPay = bill.is_autopay || bill.paid_method === 'autopay';
   const isRecurring = bill.is_recurring && bill.next_due_date;
-  const IconComponent = bill.icon_key ? iconMap[bill.icon_key] : null;
+
+  // Get icon - prefer icon_key, then auto-detect from name
+  const explicitIcon = bill.icon_key ? iconMap[bill.icon_key] : null;
+  const autoDetected = getIconFromName(bill.name);
+  const IconComponent = explicitIcon || autoDetected.icon;
+  const iconColorClass = explicitIcon ? 'text-emerald-400' : autoDetected.colorClass;
+
+  // Get category colors
+  const colors = getCategoryColors(bill.category);
 
   // Format next due date
   const nextDueFormatted = isRecurring
@@ -90,108 +76,108 @@ function PaidBillCard({ bill }: { bill: Bill }) {
 
   return (
     <div className={cn(
-      "group relative p-4 bg-white/[0.02] border border-white/5 rounded-2xl transition-all duration-300",
-      "hover:bg-white/[0.04] hover:border-emerald-500/20",
-      isRecurring && "hover:border-teal-500/30"
+      "group relative p-4 rounded-2xl transition-all duration-300",
+      "border border-white/5",
+      "hover:bg-white/[0.06] hover:border-white/15 hover:shadow-lg hover:shadow-black/20",
+      isRecent && "ring-1 ring-emerald-500/20",
+      // Alternating backgrounds for visual separation
+      isEven ? "bg-white/[0.02]" : "bg-white/[0.035]"
     )}>
-      {/* Left accent - gradient for recurring, solid for one-time */}
+      {/* Left accent bar - colored by category */}
       <div className={cn(
-        "absolute left-0 top-4 bottom-4 w-1 rounded-full transition-all duration-300",
-        isRecurring
-          ? "bg-gradient-to-b from-emerald-500/70 via-teal-500/50 to-cyan-500/30"
-          : "bg-emerald-500/50"
+        "absolute left-0 top-3 bottom-3 w-1.5 rounded-full transition-all duration-300",
+        colors.accent
       )} />
 
-      <div className="flex items-center gap-4 pl-2">
-        {/* Icon/Emoji with recurring indicator */}
-        <div className="relative">
+      <div className="flex items-center gap-4 pl-3">
+        {/* Icon with paid status indicator */}
+        <div className="relative flex-shrink-0">
           <div className={cn(
-            "w-12 h-12 rounded-xl border flex items-center justify-center transition-all duration-200",
-            "group-hover:scale-105",
-            isRecurring
-              ? "bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border-teal-500/20"
-              : "bg-emerald-500/10 border-emerald-500/20"
+            "w-14 h-14 rounded-xl border-2 flex items-center justify-center transition-all duration-200",
+            "group-hover:scale-105 group-hover:shadow-lg",
+            `bg-gradient-to-br ${colors.bg}`,
+            colors.border
           )}>
-            {IconComponent ? (
-              <IconComponent className="w-6 h-6 text-emerald-400" />
-            ) : (
-              <span className="text-2xl">{bill.emoji}</span>
-            )}
+            <IconComponent className={cn("w-7 h-7", iconColorClass)} />
           </div>
-          {/* Recurring orbit indicator */}
+          {/* Paid checkmark badge */}
+          <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-500 border-2 border-[#0c0c10] flex items-center justify-center shadow-lg">
+            <CheckCircle2 className="w-4 h-4 text-white" />
+          </div>
+          {/* Recurring indicator */}
           {isRecurring && (
-            <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#0c0c10] border border-teal-500/30 flex items-center justify-center">
-              <RefreshCw className="w-3 h-3 text-teal-400 animate-[spin_4s_linear_infinite]" />
+            <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-teal-500/90 border border-[#0c0c10] flex items-center justify-center">
+              <RefreshCw className="w-3 h-3 text-white animate-[spin_4s_linear_infinite]" />
             </div>
           )}
         </div>
 
         {/* Bill info */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <h3 className="font-semibold text-white truncate">{bill.name}</h3>
-            <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+            <h3 className="font-semibold text-white text-base truncate">{bill.name}</h3>
             {/* Auto/Manual badge */}
             {isAutoPay ? (
-              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 text-[10px] font-medium">
-                <CreditCard className="w-3 h-3" />
+              <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 text-xs font-medium">
+                <CreditCard className="w-3.5 h-3.5" />
                 Auto
               </span>
             ) : (
-              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400 text-[10px] font-medium">
-                <HandMetal className="w-3 h-3" />
+              <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400 text-xs font-medium">
+                <HandMetal className="w-3.5 h-3.5" />
                 Manual
               </span>
             )}
             {/* Recurring badge */}
             {bill.is_recurring && bill.recurrence_interval && (
-              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-500/20 border border-violet-500/30 text-violet-400 text-[10px] font-medium capitalize">
+              <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-violet-500/20 border border-violet-500/30 text-violet-400 text-xs font-medium capitalize">
                 <RefreshCw className="w-3 h-3" />
                 {bill.recurrence_interval}
               </span>
             )}
             {/* Variable badge */}
             {bill.is_variable && (
-              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400 text-[10px] font-medium">
+              <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400 text-xs font-medium">
                 <TrendingUp className="w-3 h-3" />
                 Variable
               </span>
             )}
           </div>
-          <div className="flex items-center gap-3 text-sm text-zinc-500">
-            <span className="flex items-center gap-1">
-              <Calendar className="w-3.5 h-3.5" />
+          <div className="flex items-center gap-4 text-sm text-zinc-400">
+            <span className="flex items-center gap-1.5">
+              <Calendar className="w-4 h-4 text-zinc-500" />
               Due: {formatDate(bill.due_date)}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Clock className="w-4 h-4 text-emerald-500/70" />
+              Paid {paidDate.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+              })}
             </span>
           </div>
         </div>
 
-        {/* Amount, paid date, and next due */}
-        <div className="text-right space-y-1">
+        {/* Amount and actions */}
+        <div className="text-right space-y-2 flex-shrink-0">
           {displayAmount && (
-            <p className="text-lg font-bold text-emerald-400">
-              ${displayAmount.toFixed(2)}
+            <p className="text-xl font-bold text-emerald-400">
+              ${displayAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
             </p>
           )}
           {/* Show typical range for variable bills */}
           {bill.is_variable && bill.typical_min !== null && bill.typical_max !== null && (
-            <p className="text-[10px] text-amber-400/70 flex items-center justify-end gap-1">
-              <TrendingUp className="w-2.5 h-2.5" />
+            <p className="text-xs text-amber-400/70 flex items-center justify-end gap-1">
+              <TrendingUp className="w-3 h-3" />
               Range: ${bill.typical_min.toFixed(0)} - ${bill.typical_max.toFixed(0)}
             </p>
           )}
-          <p className="text-xs text-zinc-500">
-            Paid {paidDate.toLocaleDateString('en-US', {
-              month: 'short',
-              day: 'numeric',
-            })}
-          </p>
           {/* Next due date indicator */}
           {isRecurring && nextDueFormatted && (
-            <div className="flex items-center justify-end gap-1.5 mt-1.5">
-              <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-gradient-to-r from-teal-500/10 to-cyan-500/10 border border-teal-500/20">
-                <ArrowRight className="w-3 h-3 text-teal-400" />
-                <span className="text-[11px] font-medium text-teal-400">
+            <div className="flex items-center justify-end gap-1.5">
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-teal-500/15 to-cyan-500/10 border border-teal-500/25">
+                <ArrowRight className="w-3.5 h-3.5 text-teal-400" />
+                <span className="text-xs font-medium text-teal-400">
                   Next: {nextDueFormatted}
                 </span>
               </div>
@@ -204,14 +190,175 @@ function PaidBillCard({ bill }: { bill: Bill }) {
                 e.stopPropagation();
                 window.open(bill.payment_url!, '_blank');
               }}
-              className="flex items-center justify-end gap-1 mt-1.5 text-[11px] text-blue-400 hover:text-blue-300 transition-colors"
+              className="flex items-center justify-end gap-1.5 text-xs text-blue-400 hover:text-blue-300 transition-colors"
             >
-              <ExternalLink className="w-3 h-3" />
-              <span>View Payment Site</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+              <span>Payment Site</span>
             </button>
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+// Month section component with collapsible functionality
+function MonthSection({
+  monthKey,
+  label,
+  bills,
+  totalAmount,
+  isCollapsed,
+  onToggle,
+}: {
+  monthKey: string;
+  label: string;
+  bills: Bill[];
+  totalAmount: number;
+  isCollapsed: boolean;
+  onToggle: () => void;
+}) {
+  // Check if bill was paid in last 7 days
+  const isRecentPayment = (bill: Bill) => {
+    if (!bill.paid_at) return false;
+    const paidDate = new Date(bill.paid_at);
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    return paidDate >= sevenDaysAgo;
+  };
+
+  return (
+    <div className="mb-6">
+      {/* Month header - more prominent styling */}
+      <button
+        onClick={onToggle}
+        className="w-full flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-emerald-500/[0.08] via-white/[0.04] to-transparent border border-emerald-500/20 hover:border-emerald-500/30 hover:from-emerald-500/[0.12] transition-all duration-200 mb-4 group sticky top-16 z-10 backdrop-blur-xl shadow-lg shadow-black/10"
+      >
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/25 to-teal-500/15 border border-emerald-500/30 flex items-center justify-center shadow-inner">
+            <Calendar className="w-6 h-6 text-emerald-400" />
+          </div>
+          <div className="text-left">
+            <h2 className="text-lg font-bold text-white">{label}</h2>
+            <p className="text-sm text-zinc-400">
+              {bills.length} bill{bills.length !== 1 ? 's' : ''} paid
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-5">
+          <div className="text-right">
+            <p className="text-xl font-bold text-emerald-400">
+              ${totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+            </p>
+            <p className="text-xs text-zinc-500 font-medium">total paid</p>
+          </div>
+          <div className={cn(
+            "w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200",
+            "bg-white/5 group-hover:bg-white/10"
+          )}>
+            <ChevronRight
+              className={cn(
+                "w-5 h-5 text-zinc-400 transition-transform duration-200",
+                !isCollapsed && "rotate-90"
+              )}
+            />
+          </div>
+        </div>
+      </button>
+
+      {/* Bills list with alternating backgrounds */}
+      {!isCollapsed && (
+        <div className="space-y-2 pl-2">
+          {bills.map((bill, index) => (
+            <div
+              key={bill.id}
+              className="animate-in fade-in slide-in-from-bottom-2"
+              style={{
+                animationDelay: `${index * 30}ms`,
+                animationFillMode: 'backwards',
+              }}
+            >
+              <PaidBillCard
+                bill={bill}
+                isRecent={isRecentPayment(bill)}
+                isEven={index % 2 === 0}
+              />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Export dropdown component
+function ExportDropdown({ bills, periodFilter }: { bills: Bill[]; periodFilter: PeriodFilter }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const exportToCSV = useCallback(() => {
+    // Prepare CSV content
+    const headers = ['Bill Name', 'Amount', 'Due Date', 'Paid Date', 'Payment Method', 'Category', 'Recurring'];
+    const rows = bills.map(bill => {
+      const paidDate = bill.paid_at ? new Date(bill.paid_at).toLocaleDateString() : '';
+      const dueDate = new Date(bill.due_date).toLocaleDateString();
+      const amount = bill.last_paid_amount ?? bill.amount ?? 0;
+      const paymentMethod = bill.is_autopay || bill.paid_method === 'autopay' ? 'Auto-pay' : 'Manual';
+      const category = bill.category || 'Other';
+      const recurring = bill.is_recurring ? bill.recurrence_interval || 'Yes' : 'No';
+
+      return [
+        `"${bill.name.replace(/"/g, '""')}"`,
+        amount.toFixed(2),
+        dueDate,
+        paidDate,
+        paymentMethod,
+        category,
+        recurring,
+      ].join(',');
+    });
+
+    const csvContent = [headers.join(','), ...rows].join('\n');
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `payment-history-${periodFilterLabels[periodFilter].toLowerCase().replace(/\s+/g, '-')}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    setIsOpen(false);
+  }, [bills, periodFilter]);
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-colors text-sm font-medium"
+      >
+        <Download className="w-4 h-4" />
+        Export
+        <ChevronDown className={cn("w-4 h-4 transition-transform", isOpen && "rotate-180")} />
+      </button>
+
+      {isOpen && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
+          <div className="absolute right-0 mt-2 w-48 rounded-xl bg-[#16161a] border border-white/10 shadow-xl z-50 overflow-hidden">
+            <button
+              onClick={exportToCSV}
+              className="w-full flex items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors text-left"
+            >
+              <FileText className="w-4 h-4 text-emerald-400" />
+              Export as CSV
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -231,6 +378,37 @@ export default function HistoryPage() {
   // Local UI state
   const [searchQuery, setSearchQuery] = useState('');
   const [showMissedSection, setShowMissedSection] = useState(true);
+  const [periodFilter, setPeriodFilter] = useState<PeriodFilter>(() => {
+    // Restore last selection from localStorage
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('historyPeriodFilter');
+      if (saved && (saved === 'last30' || saved === 'thisYear' || saved === 'allTime')) {
+        return saved as PeriodFilter;
+      }
+    }
+    return 'thisYear';
+  });
+  const [collapsedMonths, setCollapsedMonths] = useState<Set<string>>(new Set());
+
+  // Save period filter to localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('historyPeriodFilter', periodFilter);
+    }
+  }, [periodFilter]);
+
+  // Toggle month collapse
+  const toggleMonthCollapse = useCallback((monthKey: string) => {
+    setCollapsedMonths(prev => {
+      const next = new Set(prev);
+      if (next.has(monthKey)) {
+        next.delete(monthKey);
+      } else {
+        next.add(monthKey);
+      }
+      return next;
+    });
+  }, []);
 
   // Sort paid bills by paid date (most recent first)
   const paidBills = useMemo(() => {
@@ -240,6 +418,70 @@ export default function HistoryPage() {
       return dateB - dateA;
     });
   }, [contextPaidBills]);
+
+  // Filter bills by period
+  const filteredByPeriod = useMemo(() => {
+    const now = new Date();
+    return paidBills.filter(bill => {
+      if (!bill.paid_at) return false;
+      const paidDate = new Date(bill.paid_at);
+
+      switch (periodFilter) {
+        case 'last30': {
+          const thirtyDaysAgo = new Date();
+          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+          return paidDate >= thirtyDaysAgo;
+        }
+        case 'thisYear': {
+          return paidDate.getFullYear() === now.getFullYear();
+        }
+        case 'allTime':
+        default:
+          return true;
+      }
+    });
+  }, [paidBills, periodFilter]);
+
+  // Calculate previous period stats for comparison
+  const previousPeriodStats = useMemo(() => {
+    const now = new Date();
+    let previousTotal = 0;
+
+    switch (periodFilter) {
+      case 'last30': {
+        // Compare to 30-60 days ago
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        const sixtyDaysAgo = new Date();
+        sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+
+        paidBills.forEach(bill => {
+          if (!bill.paid_at) return;
+          const paidDate = new Date(bill.paid_at);
+          if (paidDate >= sixtyDaysAgo && paidDate < thirtyDaysAgo) {
+            previousTotal += bill.last_paid_amount ?? bill.amount ?? 0;
+          }
+        });
+        break;
+      }
+      case 'thisYear': {
+        // Compare to last year
+        const lastYear = now.getFullYear() - 1;
+        paidBills.forEach(bill => {
+          if (!bill.paid_at) return;
+          const paidDate = new Date(bill.paid_at);
+          if (paidDate.getFullYear() === lastYear) {
+            previousTotal += bill.last_paid_amount ?? bill.amount ?? 0;
+          }
+        });
+        break;
+      }
+      default:
+        break;
+    }
+
+    return previousTotal;
+  }, [paidBills, periodFilter]);
 
   // Check authentication and Gmail connection
   useEffect(() => {
@@ -276,29 +518,38 @@ export default function HistoryPage() {
     router.push('/');
   };
 
-  // Filter bills based on search
-  const filteredBills = paidBills.filter((bill) =>
+  // Filter bills based on search (applied on top of period filter)
+  const filteredBills = filteredByPeriod.filter((bill) =>
     bill.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Calculate total paid
-  const totalPaid = paidBills.reduce((sum, bill) => sum + (bill.amount || 0), 0);
+  // Calculate total paid for current period
+  const totalPaid = filteredByPeriod.reduce((sum, bill) => sum + (bill.last_paid_amount ?? bill.amount ?? 0), 0);
 
-  // Group bills by month
-  const billsByMonth = filteredBills.reduce((groups, bill) => {
-    const paidDate = bill.paid_at ? new Date(bill.paid_at) : new Date();
-    const monthKey = `${paidDate.getFullYear()}-${paidDate.getMonth()}`;
-    const monthLabel = paidDate.toLocaleDateString('en-US', {
-      month: 'long',
-      year: 'numeric',
+  // Calculate comparison difference
+  const comparisonDiff = periodFilter !== 'allTime' ? totalPaid - previousPeriodStats : null;
+
+  // Group bills by month with totals
+  const billsByMonth = useMemo(() => {
+    const groups: Record<string, { label: string; bills: Bill[]; total: number }> = {};
+
+    filteredBills.forEach(bill => {
+      const paidDate = bill.paid_at ? new Date(bill.paid_at) : new Date();
+      const monthKey = `${paidDate.getFullYear()}-${String(paidDate.getMonth()).padStart(2, '0')}`;
+      const monthLabel = paidDate.toLocaleDateString('en-US', {
+        month: 'long',
+        year: 'numeric',
+      });
+
+      if (!groups[monthKey]) {
+        groups[monthKey] = { label: monthLabel, bills: [], total: 0 };
+      }
+      groups[monthKey].bills.push(bill);
+      groups[monthKey].total += bill.last_paid_amount ?? bill.amount ?? 0;
     });
 
-    if (!groups[monthKey]) {
-      groups[monthKey] = { label: monthLabel, bills: [] };
-    }
-    groups[monthKey].bills.push(bill);
     return groups;
-  }, {} as Record<string, { label: string; bills: Bill[] }>);
+  }, [filteredBills]);
 
   // Get missed bills (bills that were due but never marked paid)
   const missedBills = getMissedBills(allBills);
@@ -341,15 +592,6 @@ export default function HistoryPage() {
               >
                 <LayoutGrid className="w-5 h-5" />
                 Dashboard
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/dashboard/suggestions"
-                className="flex items-center gap-3 px-3 py-2 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-              >
-                <Mail className="w-5 h-5" />
-                Suggestions
               </Link>
             </li>
             <li>
@@ -466,24 +708,99 @@ export default function HistoryPage() {
               </div>
             </div>
 
-            <div className="w-10 lg:hidden" /> {/* Spacer for mobile */}
+            {/* Export button */}
+            <div className="hidden sm:block">
+              <ExportDropdown bills={filteredBills} periodFilter={periodFilter} />
+            </div>
+
+            <div className="w-10 lg:hidden sm:hidden" /> {/* Spacer for mobile */}
           </div>
         </header>
 
         {/* Content */}
         <div className="p-6">
-          {/* Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-            <div className="p-6 rounded-2xl bg-gradient-to-br from-emerald-500/10 to-green-500/10 border border-emerald-500/20">
-              <p className="text-sm text-emerald-400 mb-1">Total Paid (30 days)</p>
-              <p className="text-3xl font-bold text-white">
-                ${totalPaid.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-              </p>
+          {/* Period Filter Tabs */}
+          <div className="flex flex-wrap items-center gap-2 mb-6">
+            <Filter className="w-4 h-4 text-zinc-500" />
+            {(Object.keys(periodFilterLabels) as PeriodFilter[]).map((filter) => (
+              <button
+                key={filter}
+                onClick={() => setPeriodFilter(filter)}
+                className={cn(
+                  "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                  periodFilter === filter
+                    ? "bg-emerald-500/20 border border-emerald-500/40 text-emerald-400"
+                    : "bg-white/5 border border-white/10 text-zinc-400 hover:bg-white/10 hover:text-white"
+                )}
+              >
+                {periodFilterLabels[filter]}
+              </button>
+            ))}
+          </div>
+
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+            {/* Total Paid Card */}
+            <div className="relative p-6 rounded-2xl bg-gradient-to-br from-emerald-500/15 via-emerald-500/10 to-teal-500/5 border border-emerald-500/25 overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-emerald-500/10 to-transparent rounded-bl-full" />
+              <div className="relative">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
+                    <DollarSign className="w-5 h-5 text-emerald-400" />
+                  </div>
+                  <p className="text-sm text-emerald-400 font-medium">Total Paid</p>
+                </div>
+                <p className="text-3xl font-bold text-white mb-1">
+                  ${totalPaid.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                </p>
+                {comparisonDiff !== null && comparisonDiff !== 0 && (
+                  <p className={cn(
+                    "text-sm font-medium flex items-center gap-1",
+                    comparisonDiff > 0 ? "text-rose-400" : "text-emerald-400"
+                  )}>
+                    <TrendingUp className={cn("w-4 h-4", comparisonDiff < 0 && "rotate-180")} />
+                    {comparisonDiff > 0 ? '+' : ''}${Math.abs(comparisonDiff).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} vs {periodFilter === 'last30' ? 'prev. 30d' : 'last year'}
+                  </p>
+                )}
+              </div>
             </div>
-            <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5">
-              <p className="text-sm text-zinc-400 mb-1">Bills Paid</p>
-              <p className="text-3xl font-bold text-white">{paidBills.length}</p>
+
+            {/* Bills Paid Card */}
+            <div className="relative p-6 rounded-2xl bg-gradient-to-br from-blue-500/10 via-violet-500/5 to-transparent border border-blue-500/20 overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-blue-500/10 to-transparent rounded-bl-full" />
+              <div className="relative">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center">
+                    <Receipt className="w-5 h-5 text-blue-400" />
+                  </div>
+                  <p className="text-sm text-blue-400 font-medium">Bills Paid</p>
+                </div>
+                <p className="text-3xl font-bold text-white mb-1">{filteredByPeriod.length}</p>
+                <p className="text-sm text-zinc-500">{periodFilterLabels[periodFilter].toLowerCase()}</p>
+              </div>
             </div>
+
+            {/* Average Per Bill Card */}
+            <div className="relative p-6 rounded-2xl bg-gradient-to-br from-violet-500/10 via-purple-500/5 to-transparent border border-violet-500/20 overflow-hidden sm:col-span-2 lg:col-span-1">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-violet-500/10 to-transparent rounded-bl-full" />
+              <div className="relative">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-violet-500/20 border border-violet-500/30 flex items-center justify-center">
+                    <TrendingUp className="w-5 h-5 text-violet-400" />
+                  </div>
+                  <p className="text-sm text-violet-400 font-medium">Average Per Bill</p>
+                </div>
+                <p className="text-3xl font-bold text-white mb-1">
+                  ${filteredByPeriod.length > 0 ? (totalPaid / filteredByPeriod.length).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
+                </p>
+                <p className="text-sm text-zinc-500">{periodFilterLabels[periodFilter].toLowerCase()}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile Export Button */}
+          <div className="sm:hidden mb-6">
+            <ExportDropdown bills={filteredBills} periodFilter={periodFilter} />
           </div>
 
           {/* Missed Bills Section */}
@@ -511,7 +828,7 @@ export default function HistoryPage() {
               <div className="p-3 space-y-2">
                 {missedBills.slice(0, 5).map((bill) => {
                   const daysOverdue = Math.abs(getDaysUntilDue(bill.due_date));
-                  const IconComponent = bill.icon_key ? iconMap[bill.icon_key] : null;
+                  const { icon: IconComponent, colorClass } = getIconFromName(bill.name);
                   return (
                     <div
                       key={bill.id}
@@ -519,11 +836,7 @@ export default function HistoryPage() {
                     >
                       <div className="w-1 self-stretch rounded-full bg-rose-500/50" />
                       <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
-                        {IconComponent ? (
-                          <IconComponent className="w-5 h-5 text-zinc-400" />
-                        ) : (
-                          <span className="text-xl">{bill.emoji}</span>
-                        )}
+                        <IconComponent className={cn("w-5 h-5", colorClass)} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="font-medium text-white text-sm truncate">{bill.name}</h4>
@@ -573,28 +886,20 @@ export default function HistoryPage() {
 
           {/* Bills grouped by month */}
           {Object.entries(billsByMonth).length > 0 && (
-            <div className="space-y-8">
-              {Object.entries(billsByMonth).map(([key, { label, bills }]) => (
-                <div key={key}>
-                  <h2 className="text-sm font-medium text-zinc-500 uppercase tracking-wider mb-4">
-                    {label}
-                  </h2>
-                  <div className="space-y-3">
-                    {bills.map((bill, index) => (
-                      <div
-                        key={bill.id}
-                        className="animate-in fade-in slide-in-from-bottom-2"
-                        style={{
-                          animationDelay: `${index * 50}ms`,
-                          animationFillMode: 'backwards',
-                        }}
-                      >
-                        <PaidBillCard bill={bill} />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
+            <div className="space-y-2">
+              {Object.entries(billsByMonth)
+                .sort(([a], [b]) => b.localeCompare(a)) // Sort by date descending
+                .map(([key, { label, bills, total }]) => (
+                  <MonthSection
+                    key={key}
+                    monthKey={key}
+                    label={label}
+                    bills={bills}
+                    totalAmount={total}
+                    isCollapsed={collapsedMonths.has(key)}
+                    onToggle={() => toggleMonthCollapse(key)}
+                  />
+                ))}
             </div>
           )}
         </div>

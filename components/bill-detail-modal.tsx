@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { X, Check, Pencil, Trash2, Calendar, DollarSign, RefreshCw, FileText, ExternalLink, Link, CreditCard, TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react';
 import { Bill } from '@/types';
 import { cn, formatDate, formatCurrency, getDaysUntilDue, getUrgency, formatCountdown, getPriceChange } from '@/lib/utils';
+import { getBillIcon } from '@/lib/get-bill-icon';
 import { GradientCard } from './ui/gradient-card';
 import { CountdownDisplay } from './countdown-display';
 
@@ -61,6 +62,7 @@ export function BillDetailModal({
   const daysLeft = getDaysUntilDue(bill.due_date);
   const urgency = getUrgency(daysLeft);
   const priceChange = getPriceChange(bill.amount, bill.previous_amount);
+  const { icon: BillIcon, colorClass } = getBillIcon(bill);
 
   return (
     <div className="fixed inset-0 z-50">
@@ -83,7 +85,9 @@ export function BillDetailModal({
             <GradientCard urgency={urgency} className="rounded-none rounded-t-2xl">
               <div className="p-6 pb-8">
                 <div className="flex items-start justify-between mb-4">
-                  <span className="text-4xl">{bill.emoji}</span>
+                  <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                    <BillIcon className={cn("w-8 h-8", colorClass)} />
+                  </div>
                   <button
                     onClick={onClose}
                     disabled={isMarkingPaid}

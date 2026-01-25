@@ -1,9 +1,12 @@
 'use client';
 
+import { useState, DragEvent } from 'react';
 import { Bill, BillUrgency } from '@/types';
-import { ProjectedBill } from '@/lib/calendar-utils';
-import { cn, getDaysUntilDue, getUrgency } from '@/lib/utils';
+import { ProjectedBill, formatDateString } from '@/lib/calendar-utils';
+import { cn, getDaysUntilDue, getUrgency, formatCurrency } from '@/lib/utils';
 import { isToday, isInMonth } from '@/lib/calendar-utils';
+import { getBillIcon } from '@/lib/get-bill-icon';
+import { RefreshCw } from 'lucide-react';
 
 interface CalendarDayProps {
   date: Date;
@@ -13,6 +16,7 @@ interface CalendarDayProps {
   isSelected: boolean;
   onClick: () => void;
   animationDelay?: number;
+  onBillDrop?: (billId: string, newDate: string) => void;
 }
 
 // Map urgency to CSS variable name
@@ -32,134 +36,221 @@ export function CalendarDay({
   isSelected,
   onClick,
   animationDelay = 0,
+  onBillDrop,
 }: CalendarDayProps) {
+  const [isDragOver, setIsDragOver] = useState(false);
   const inCurrentMonth = isInMonth(date, currentYear, currentMonth);
   const today = isToday(date);
   const dayNumber = date.getDate();
   const hasBills = bills.length > 0;
+  const dateString = formatDateString(date);
 
-  // Sort bills by urgency (most urgent first)
+  // Drag handlers for the day cell (drop target)
+  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragOver(false);
+
+    const billId = e.dataTransfer.getData('text/plain');
+    const originalDate = e.dataTransfer.getData('original-date');
+
+    if (billId && originalDate !== dateString && onBillDrop) {
+      onBillDrop(billId, dateString);
+    }
+  };
+
+  // Drag handlers for bill chips
+  const handleDragStart = (e: DragEvent<HTMLDivElement>, bill: Bill | ProjectedBill) => {
+    const isProjected = 'isProjected' in bill && bill.isProjected;
+    if (bill.is_paid || isProjected) {
+      e.preventDefault();
+      return;
+    }
+
+    e.dataTransfer.setData('text/plain', bill.id);
+    e.dataTransfer.setData('original-date', bill.due_date);
+    e.dataTransfer.effectAllowed = 'move';
+
+    // Create a custom drag image
+    const dragElement = e.currentTarget.cloneNode(true) as HTMLElement;
+    dragElement.style.position = 'absolute';
+    dragElement.style.top = '-1000px';
+    dragElement.style.opacity = '0.9';
+    document.body.appendChild(dragElement);
+    e.dataTransfer.setDragImage(dragElement, 10, 10);
+    setTimeout(() => document.body.removeChild(dragElement), 0);
+  };
+
+  // Sort bills by urgency (most urgent first), unpaid before paid
   const sortedBills = [...bills].sort((a, b) => {
+    // Unpaid first
+    if (a.is_paid !== b.is_paid) return a.is_paid ? 1 : -1;
+    // Then by urgency
     const daysA = getDaysUntilDue(a.due_date);
     const daysB = getDaysUntilDue(b.due_date);
     return daysA - daysB;
   });
 
-  // Get the most urgent bill for the primary indicator
-  const mostUrgentBill = sortedBills[0];
-  const mostUrgentUrgency = mostUrgentBill ? getUrgency(getDaysUntilDue(mostUrgentBill.due_date)) : null;
+  // Show up to 2 bill chips, then "+N more"
+  const visibleBills = sortedBills.slice(0, 2);
+  const extraCount = Math.max(0, sortedBills.length - 2);
 
-  // Show up to 4 bills, then "+N"
-  const visibleBills = sortedBills.slice(0, 4);
-  const extraCount = Math.max(0, sortedBills.length - 4);
+  // Calculate total for the day
+  const dayTotal = bills.reduce((sum, bill) => {
+    const isProjected = 'isProjected' in bill && bill.isProjected;
+    if (!isProjected && !bill.is_paid) {
+      return sum + (bill.amount || 0);
+    }
+    return sum;
+  }, 0);
 
   return (
-    <button
+    <div
       onClick={onClick}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
       className={cn(
-        'group relative flex flex-col items-center justify-center p-2 sm:p-2.5 min-h-[68px] sm:min-h-[88px] transition-all duration-300',
-        'border-r border-b border-white/[0.03] last:border-r-0',
-        'hover:bg-white/[0.04]',
+        'group relative flex flex-col p-1.5 sm:p-2 min-h-[90px] sm:min-h-[110px] transition-all duration-300 cursor-pointer',
+        'border-r border-b border-white/[0.04]',
+        'hover:bg-white/[0.03]',
         'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-inset',
         // Fade out non-current month days
-        !inCurrentMonth && 'opacity-25 hover:opacity-40',
-        // Selected state - strong highlight with fill
-        isSelected && 'bg-violet-500/20 border-violet-500/30',
-        // Today - subtle background
-        today && !isSelected && 'bg-blue-500/10'
+        !inCurrentMonth && 'opacity-30 hover:opacity-50',
+        // Selected state
+        isSelected && 'bg-violet-500/15',
+        // Today
+        today && !isSelected && 'bg-blue-500/[0.08]',
+        // Drag over state
+        isDragOver && 'bg-emerald-500/20 ring-2 ring-emerald-400/50 ring-inset'
       )}
       style={{
         animationDelay: `${animationDelay}ms`,
       }}
     >
-      {/* Today indicator ring */}
+      {/* Today indicator */}
       {today && (
-        <div className="absolute inset-1 rounded-xl border-2 border-blue-500/40 pointer-events-none" />
+        <div className="absolute inset-1 rounded-lg border-2 border-blue-500/30 pointer-events-none" />
       )}
 
-      {/* Selected indicator - stronger border */}
+      {/* Selected indicator */}
       {isSelected && (
-        <div className="absolute inset-0.5 rounded-xl border-2 border-violet-400/70 pointer-events-none animate-in fade-in zoom-in-95 duration-200" />
+        <div className="absolute inset-0.5 rounded-lg border-2 border-violet-400/60 pointer-events-none" />
       )}
 
-      {/* Day number */}
-      <span
-        className={cn(
-          'relative text-sm sm:text-base font-medium transition-colors duration-200',
-          today
-            ? 'text-blue-400 font-semibold'
-            : isSelected
-            ? 'text-white font-semibold'
-            : inCurrentMonth
-            ? 'text-zinc-300 group-hover:text-white'
-            : 'text-zinc-600'
-        )}
-      >
-        {dayNumber}
-        {/* Subtle today dot */}
-        {today && (
-          <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-blue-400" />
-        )}
-      </span>
-
-      {/* Bill indicators */}
-      {hasBills && (
-        <div className="flex flex-col items-center gap-1.5 mt-2">
-          {/* Primary urgency indicator bar - larger and more prominent */}
-          {mostUrgentUrgency && (
-            <div
-              className={cn(
-                'w-10 sm:w-12 h-1.5 rounded-full transition-all duration-300 shadow-md',
-                // Pulse animation for overdue
-                mostUrgentUrgency === 'overdue' && 'animate-pulse'
-              )}
-              style={{
-                backgroundColor: `var(${urgencyVarMap[mostUrgentUrgency]})`,
-                boxShadow: `0 4px 6px -1px color-mix(in srgb, var(${urgencyVarMap[mostUrgentUrgency]}) 60%, transparent)`,
-              }}
-            />
-          )}
-
-          {/* Bill dots row */}
-          <div className="flex items-center justify-center gap-1.5">
-            {visibleBills.map((bill, index) => {
-              const daysLeft = getDaysUntilDue(bill.due_date);
-              const urgency = getUrgency(daysLeft);
-              const isProjected = 'isProjected' in bill && bill.isProjected;
-              const cssVar = urgencyVarMap[urgency];
-
-              return (
-                <div
-                  key={bill.id}
-                  className={cn(
-                    'w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full transition-all duration-200',
-                    // Projected bills are translucent with ring
-                    isProjected && 'opacity-40 ring-1 ring-white/30',
-                    // Stagger animation
-                    'animate-in fade-in zoom-in duration-300'
-                  )}
-                  style={{
-                    backgroundColor: `var(${cssVar})`,
-                    boxShadow: isProjected ? undefined : `0 1px 2px color-mix(in srgb, var(${cssVar}) 60%, transparent)`,
-                    animationDelay: `${animationDelay + index * 50}ms`,
-                  }}
-                  title={`${bill.name}${isProjected ? ' (projected)' : ''}`}
-                />
-              );
-            })}
-
-            {/* Extra count badge */}
-            {extraCount > 0 && (
-              <span className="text-[10px] sm:text-[11px] font-semibold text-zinc-400 ml-0.5">
-                +{extraCount}
-              </span>
-            )}
-          </div>
+      {/* Drop zone indicator */}
+      {isDragOver && (
+        <div className="absolute inset-2 rounded-md border-2 border-dashed border-emerald-400/60 flex items-center justify-center pointer-events-none">
+          <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded">Drop here</span>
         </div>
       )}
 
-      {/* Hover effect overlay */}
+      {/* Header row: day number and total */}
+      <div className="flex items-start justify-between mb-1">
+        <span
+          className={cn(
+            'text-sm font-semibold transition-colors duration-200',
+            today
+              ? 'text-blue-400'
+              : isSelected
+              ? 'text-white'
+              : inCurrentMonth
+              ? 'text-zinc-400 group-hover:text-zinc-200'
+              : 'text-zinc-600'
+          )}
+        >
+          {dayNumber}
+        </span>
+
+        {/* Day total - only show if there are unpaid bills */}
+        {dayTotal > 0 && inCurrentMonth && !isDragOver && (
+          <span className="text-[10px] font-semibold text-zinc-500 group-hover:text-zinc-400 transition-colors">
+            {formatCurrency(dayTotal)}
+          </span>
+        )}
+      </div>
+
+      {/* Bill chips */}
+      {hasBills && !isDragOver && (
+        <div className="flex flex-col gap-1 flex-1 min-h-0">
+          {visibleBills.map((bill, index) => {
+            const daysLeft = getDaysUntilDue(bill.due_date);
+            const urgency = getUrgency(daysLeft);
+            const isProjected = 'isProjected' in bill && bill.isProjected;
+            const cssVar = urgencyVarMap[urgency];
+            const isDraggable = !bill.is_paid && !isProjected;
+            const { icon: BillIcon, colorClass } = getBillIcon(bill);
+
+            return (
+              <div
+                key={bill.id}
+                draggable={isDraggable}
+                onDragStart={(e) => {
+                  e.stopPropagation();
+                  handleDragStart(e, bill);
+                }}
+                className={cn(
+                  'relative flex items-center gap-1 px-1.5 py-1.5 rounded-md text-[10px] sm:text-[11px] font-medium',
+                  'transition-all duration-200 overflow-hidden',
+                  isProjected && 'opacity-60',
+                  bill.is_paid && 'opacity-40 line-through',
+                  isDraggable && 'cursor-grab active:cursor-grabbing hover:ring-1 hover:ring-white/30 active:scale-95'
+                )}
+                style={{
+                  backgroundColor: `color-mix(in srgb, var(${cssVar}) 15%, transparent)`,
+                  borderLeft: `3px solid var(${cssVar})`,
+                  animationDelay: `${animationDelay + index * 50}ms`,
+                }}
+                title={`${bill.name}${bill.amount ? ` - ${formatCurrency(bill.amount)}` : ''}${isProjected ? ' (projected)' : ''}${isDraggable ? ' • Drag to reschedule' : ''}`}
+              >
+                {/* Icon */}
+                <BillIcon className={cn('w-3 h-3 flex-shrink-0', colorClass)} />
+
+                {/* Bill name - truncated with amount inline */}
+                <span
+                  className={cn(
+                    'truncate flex-1 min-w-0',
+                    bill.is_paid ? 'text-zinc-500' : 'text-zinc-200'
+                  )}
+                  style={{ color: bill.is_paid ? undefined : `color-mix(in srgb, var(${cssVar}) 90%, white)` }}
+                >
+                  {bill.name}
+                  {bill.amount && !bill.is_paid && (
+                    <span className="text-zinc-400 ml-1">· ${Math.round(bill.amount)}</span>
+                  )}
+                </span>
+
+                {/* Projected indicator */}
+                {isProjected && (
+                  <RefreshCw className="w-2.5 h-2.5 text-zinc-500 flex-shrink-0" />
+                )}
+              </div>
+            );
+          })}
+
+          {/* Extra count badge */}
+          {extraCount > 0 && (
+            <div className="flex items-center justify-center">
+              <span className="text-[9px] font-semibold text-zinc-500 bg-white/[0.05] px-2 py-0.5 rounded-full">
+                +{extraCount} more
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Hover glow effect */}
       <div className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 bg-gradient-to-t from-white/[0.02] to-transparent transition-opacity duration-300 pointer-events-none" />
-    </button>
+    </div>
   );
 }

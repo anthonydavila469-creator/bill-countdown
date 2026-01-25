@@ -3,6 +3,7 @@ import {
   fetchBillEmails,
   refreshAccessToken,
   extractEmailBody,
+  extractEmailHtml,
   getHeader,
 } from '@/lib/gmail/client';
 import { processEmailBatch } from '@/lib/bill-extraction';
@@ -28,6 +29,35 @@ export async function POST(request: Request) {
     const maxResults = Math.min(body.maxResults || 200, 500);
     const daysBack = Math.min(body.daysBack || 60, 180);
     const skipAI = body.skipAI ?? true; // Default to mock extraction for speed
+    const forceRescan = body.forceRescan || false;
+
+    // If force rescan, clear processed state for non-accepted extractions
+    if (forceRescan) {
+      console.log('[ForceRescan] Clearing processed state for user', user.id);
+
+      // Delete non-accepted extractions
+      const { error: deleteExtractionsError } = await supabase
+        .from('bill_extractions')
+        .delete()
+        .eq('user_id', user.id)
+        .in('status', ['pending', 'needs_review', 'rejected', 'not_a_bill']);
+
+      if (deleteExtractionsError) {
+        console.error('[ForceRescan] Failed to delete extractions:', deleteExtractionsError);
+      }
+
+      // Clear cached body_cleaned to force re-preprocessing with latest logic
+      const { error: clearCacheError } = await supabase
+        .from('emails_raw')
+        .update({ body_cleaned: null, processed_at: null })
+        .eq('user_id', user.id);
+
+      if (clearCacheError) {
+        console.error('[ForceRescan] Failed to clear body_cleaned cache:', clearCacheError);
+      }
+
+      console.log('[ForceRescan] Cleared processed state and body cache');
+    }
 
     // Get stored Gmail tokens
     const { data: tokenData, error: tokenError } = await supabase
@@ -71,8 +101,18 @@ export async function POST(request: Request) {
       }
     }
 
-    // Fetch bill-related emails
+    // Fetch bill-related emails from Gmail
     const messages = await fetchBillEmails(accessToken, maxResults, daysBack);
+
+    // Also fetch unprocessed emails from emails_raw that may have been missed
+    const { data: unprocessedEmails } = await supabase
+      .from('emails_raw')
+      .select('*')
+      .eq('user_id', user.id)
+      .is('processed_at', null)
+      .limit(50);
+
+    console.log(`[Suggestions] Gmail returned ${messages.length}, unprocessed in DB: ${unprocessedEmails?.length || 0}`);
 
     // Filter out calendar emails and deduplicate
     const seenIds = new Set<string>();
@@ -102,6 +142,7 @@ export async function POST(request: Request) {
         }
 
         const bodyContent = extractEmailBody(msg);
+        const htmlContent = extractEmailHtml(msg);
 
         emails.push({
           gmail_message_id: msg.id,
@@ -109,9 +150,41 @@ export async function POST(request: Request) {
           from,
           date: new Date(parseInt(msg.internalDate)).toISOString(),
           body_plain: bodyContent,
+          body_html: htmlContent,
         });
       }
     }
+
+    // Add unprocessed emails from emails_raw that aren't already in the Gmail results
+    let unprocessedAdded = 0;
+    if (unprocessedEmails && unprocessedEmails.length > 0) {
+      for (const rawEmail of unprocessedEmails) {
+        if (seenIds.has(rawEmail.gmail_message_id)) continue;
+        seenIds.add(rawEmail.gmail_message_id);
+
+        // Skip Google Calendar notification emails
+        const fromLower = (rawEmail.from_address || '').toLowerCase();
+        if (
+          fromLower.includes('calendar-notification@google.com') ||
+          fromLower.includes('calendar@google.com') ||
+          fromLower.includes('noreply@google.com/calendar')
+        ) {
+          continue;
+        }
+
+        emails.push({
+          gmail_message_id: rawEmail.gmail_message_id,
+          subject: rawEmail.subject || '',
+          from: rawEmail.from_address || '',
+          date: rawEmail.date_received || new Date().toISOString(),
+          body_plain: rawEmail.body_plain || '',
+          body_html: rawEmail.body_html || '',
+        });
+        unprocessedAdded++;
+        console.log(`[Suggestions] Adding unprocessed email: "${rawEmail.subject?.substring(0, 50)}"`);
+      }
+    }
+    console.log(`[Suggestions] Added ${unprocessedAdded} unprocessed emails from DB`)
 
     // Get already-added bill gmail_message_ids to filter
     const { data: existingBills } = await supabase
@@ -144,7 +217,7 @@ export async function POST(request: Request) {
     // Process through the new extraction pipeline
     const batchResult = await processEmailBatch(user.id, filteredEmails, {
       skipAI,
-      forceReprocess: false,
+      forceReprocess: forceRescan,
     });
 
     // Get all pending extractions to show as suggestions
@@ -213,6 +286,23 @@ export async function POST(request: Request) {
       };
     });
 
+    // Log summary for debugging
+    console.log('[Suggestions] Summary:', JSON.stringify({
+      gmailFetched: messages.length,
+      unprocessedFromDb: unprocessedEmails?.length || 0,
+      unprocessedAdded,
+      afterCalendarFilter: emails.length,
+      alreadyAddedAsBills: addedMessageIds.size,
+      ignoredSuggestions: ignoredMessageIds.size,
+      sentToProcessing: filteredEmails.length,
+      processed: batchResult.processed,
+      skipped: batchResult.skipped,
+      rejected: batchResult.rejected,
+      needsReview: batchResult.needsReview,
+      autoAccepted: batchResult.autoAccepted,
+      debugSummary: batchResult.debugSummary,
+    }));
+
     return NextResponse.json({
       suggestions,
       totalEmails: emails.length,
@@ -223,6 +313,16 @@ export async function POST(request: Request) {
       rejected: batchResult.rejected,
       skipped: batchResult.skipped,
       scannedAt: new Date().toISOString(),
+      // Include debug info for troubleshooting
+      debug: {
+        gmailFetched: messages.length,
+        unprocessedFromDb: unprocessedEmails?.length || 0,
+        unprocessedAdded,
+        alreadyAddedAsBills: addedMessageIds.size,
+        ignoredSuggestions: ignoredMessageIds.size,
+        sentToProcessing: filteredEmails.length,
+        ...batchResult.debugSummary,
+      },
     });
   } catch (error) {
     console.error('Suggestions scan error:', error);

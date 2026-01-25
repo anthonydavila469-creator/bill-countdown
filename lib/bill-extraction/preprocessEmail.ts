@@ -255,6 +255,18 @@ export interface PreprocessResult {
 }
 
 /**
+ * Check if text contains bill-relevant content (dollar amounts or due dates)
+ */
+function hasBillContent(text: string): boolean {
+  // Check for dollar amounts
+  const hasDollar = /\$\d+(\.\d{2})?/.test(text);
+  // Check for due date patterns
+  const hasDueDate = /(due|payment).{0,20}(date|on|by)/i.test(text) ||
+    /\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}/.test(text);
+  return hasDollar || hasDueDate;
+}
+
+/**
  * Preprocess an email for bill extraction
  * 1. Convert HTML to text (if HTML provided)
  * 2. Remove footers, signatures, and legal disclaimers
@@ -264,17 +276,27 @@ export function preprocessEmail(
   bodyPlain: string | null,
   bodyHtml: string | null
 ): PreprocessResult {
-  // Prefer plain text, fall back to HTML conversion
   let text = bodyPlain || '';
+  let htmlText = '';
 
-  if (!text && bodyHtml) {
-    text = htmlToText(bodyHtml);
-  } else if (bodyHtml && text.length < 200) {
-    // If plain text is very short, try HTML conversion
-    const htmlText = htmlToText(bodyHtml);
-    if (htmlText.length > text.length * 1.5) {
-      text = htmlText;
-    }
+  // Always try HTML conversion if available
+  if (bodyHtml) {
+    htmlText = htmlToText(bodyHtml);
+  }
+
+  // Choose the better source:
+  // 1. If plain text has no bill content but HTML does, use HTML
+  // 2. If HTML is significantly longer and has bill content, use HTML
+  // 3. Otherwise prefer plain text
+  const plainHasBillContent = hasBillContent(text);
+  const htmlHasBillContent = hasBillContent(htmlText);
+
+  if (!text || (!plainHasBillContent && htmlHasBillContent)) {
+    // Plain text is empty or has no bill content, but HTML does
+    text = htmlText;
+  } else if (htmlHasBillContent && htmlText.length > text.length * 1.5) {
+    // HTML has bill content and is significantly longer
+    text = htmlText;
   }
 
   const originalLength = text.length;

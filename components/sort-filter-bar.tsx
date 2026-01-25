@@ -192,9 +192,8 @@ export function SortFilterBar({
         )}
       </div>
 
-      {/* Filter Chips - Tactile Keycap Design */}
-      <div className="flex items-center gap-1.5 flex-wrap">
-
+      {/* Filter Chips - Enhanced Tactile Design */}
+      <div className="flex items-center gap-2 flex-wrap">
         {filterOptions.map((filter) => {
           const isActive = activeFilter === filter.value;
           const colors = filterColors[filter.color];
@@ -204,7 +203,7 @@ export function SortFilterBar({
               key={filter.value}
               onClick={() => onFilterChange(filter.value)}
               className={cn(
-                'group relative flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all duration-200',
+                'group relative flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200',
                 'border',
                 isActive
                   ? cn(
@@ -214,39 +213,37 @@ export function SortFilterBar({
                       'scale-[1.02]'
                     )
                   : cn(
-                      'bg-gradient-to-b from-white/[0.04] to-white/[0.01]',
-                      'border-white/[0.06]',
+                      'bg-gradient-to-b from-white/[0.05] to-white/[0.02]',
+                      'border-white/[0.08]',
                       'text-zinc-400',
-                      'hover:from-white/[0.06] hover:to-white/[0.02]',
-                      'hover:border-white/[0.1]',
-                      'hover:text-zinc-300',
-                      'shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_2px_4px_-2px_rgba(0,0,0,0.3)]',
-                      'hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_4px_8px_-2px_rgba(0,0,0,0.4)]',
-                      'active:scale-[0.98]'
+                      'hover:from-white/[0.08] hover:to-white/[0.04]',
+                      'hover:border-white/[0.12]',
+                      'hover:text-white',
+                      'shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_2px_6px_-2px_rgba(0,0,0,0.4)]',
+                      'hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_4px_12px_-2px_rgba(0,0,0,0.5)]',
+                      'active:scale-[0.97]'
                     )
               )}
             >
               <span className={cn(
                 'transition-colors duration-200',
-                isActive ? colors.icon : 'text-zinc-500 group-hover:text-zinc-400'
+                isActive ? colors.icon : 'text-zinc-500 group-hover:text-zinc-300'
               )}>
                 {filter.icon}
               </span>
               <span>{filter.label}</span>
 
-              {/* Active indicator dot */}
+              {/* Active indicator dot with enhanced glow */}
               {isActive && (
                 <div className={cn(
-                  'absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full',
+                  'absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full',
                   'bg-gradient-to-br',
-                  filter.color === 'cyan' && 'from-cyan-400 to-cyan-500',
-                  filter.color === 'amber' && 'from-amber-400 to-amber-500',
-                  filter.color === 'rose' && 'from-rose-400 to-rose-500',
-                  filter.color === 'emerald' && 'from-emerald-400 to-emerald-500',
-                  filter.color === 'orange' && 'from-orange-400 to-orange-500',
-                  filter.color === 'violet' && 'from-violet-400 to-violet-500',
-                  'shadow-[0_0_6px_currentColor]',
-                  'animate-pulse'
+                  filter.color === 'cyan' && 'from-cyan-400 to-cyan-500 shadow-[0_0_8px_rgba(34,211,238,0.6)]',
+                  filter.color === 'amber' && 'from-amber-400 to-amber-500 shadow-[0_0_8px_rgba(251,191,36,0.6)]',
+                  filter.color === 'rose' && 'from-rose-400 to-rose-500 shadow-[0_0_8px_rgba(251,113,133,0.6)]',
+                  filter.color === 'emerald' && 'from-emerald-400 to-emerald-500 shadow-[0_0_8px_rgba(52,211,153,0.6)]',
+                  filter.color === 'orange' && 'from-orange-400 to-orange-500 shadow-[0_0_8px_rgba(251,146,60,0.6)]',
+                  filter.color === 'violet' && 'from-violet-400 to-violet-500 shadow-[0_0_8px_rgba(167,139,250,0.6)]'
                 )} />
               )}
             </button>

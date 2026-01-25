@@ -53,17 +53,7 @@ export async function DELETE() {
       console.error('Error deleting bill extractions:', extractError);
     }
 
-    // 4. Delete ignored suggestions
-    const { error: ignoredError } = await adminClient
-      .from('ignored_suggestions')
-      .delete()
-      .eq('user_id', userId);
-
-    if (ignoredError) {
-      console.error('Error deleting ignored suggestions:', ignoredError);
-    }
-
-    // 5. Delete bills
+    // 4. Delete bills
     const { error: billsError } = await adminClient
       .from('bills')
       .delete()
@@ -73,7 +63,7 @@ export async function DELETE() {
       console.error('Error deleting bills:', billsError);
     }
 
-    // 6. Delete raw emails
+    // 5. Delete raw emails
     const { error: emailsError } = await adminClient
       .from('emails_raw')
       .delete()
@@ -83,7 +73,7 @@ export async function DELETE() {
       console.error('Error deleting emails:', emailsError);
     }
 
-    // 7. Delete Gmail tokens
+    // 6. Delete Gmail tokens
     const { error: tokensError } = await adminClient
       .from('gmail_tokens')
       .delete()
@@ -93,7 +83,7 @@ export async function DELETE() {
       console.error('Error deleting Gmail tokens:', tokensError);
     }
 
-    // 8. Delete user preferences
+    // 7. Delete user preferences
     const { error: prefsError } = await adminClient
       .from('user_preferences')
       .delete()
@@ -103,7 +93,7 @@ export async function DELETE() {
       console.error('Error deleting user preferences:', prefsError);
     }
 
-    // 9. Finally, delete the auth user
+    // 8. Finally, delete the auth user
     const { error: deleteUserError } = await adminClient.auth.admin.deleteUser(userId);
 
     if (deleteUserError) {

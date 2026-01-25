@@ -1,7 +1,12 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Plus, Sparkles } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, DollarSign, Clock, AlertTriangle } from 'lucide-react';
+import { formatCurrency, getDaysUntilDue } from '@/lib/utils';
+import { cn } from '@/lib/utils';
+
+// Filter types (simplified - controlled via summary cards only)
+type CalendarFilter = 'all' | 'overdue' | 'due-soon';
 import { Bill } from '@/types';
 import {
   getMonthGrid,
@@ -21,13 +26,19 @@ interface CalendarGridProps {
   bills: Bill[];
   onBillClick: (bill: Bill) => void;
   onAddBill: (date?: Date) => void;
+  onMarkPaid?: (bill: Bill) => void;
+  onEdit?: (bill: Bill) => void;
+  onReschedule?: (billId: string, newDate: string, originalDate: string) => void;
+  getMutationState?: (billId: string) => import('@/contexts/bills-context').MutationState;
 }
 
-export function CalendarGrid({ bills, onBillClick, onAddBill }: CalendarGridProps) {
+export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit, onReschedule, getMutationState }: CalendarGridProps) {
   const today = new Date();
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [activeFilter, setActiveFilter] = useState<CalendarFilter>('all');
+
 
   // Generate month grid
   const monthGrid = useMemo(
@@ -50,6 +61,25 @@ export function CalendarGrid({ bills, onBillClick, onAddBill }: CalendarGridProp
     () => [...bills.filter((b) => !b.is_paid), ...projectedBills],
     [bills, projectedBills]
   );
+
+
+  // Apply filter to bills (simplified - only 3 filters via summary cards)
+  const filteredBills = useMemo(() => {
+    if (activeFilter === 'all') return allBills;
+
+    return allBills.filter((bill) => {
+      const daysUntilDue = getDaysUntilDue(bill.due_date);
+
+      switch (activeFilter) {
+        case 'overdue':
+          return daysUntilDue < 0;
+        case 'due-soon':
+          return daysUntilDue >= 0 && daysUntilDue <= 7;
+        default:
+          return true;
+      }
+    });
+  }, [allBills, activeFilter]);
 
   // Navigation
   const goToPreviousMonth = () => {
@@ -95,9 +125,17 @@ export function CalendarGrid({ bills, onBillClick, onAddBill }: CalendarGridProp
     onAddBill(date);
   };
 
-  // Get bills for selected date
+  // Handle bill drop (reschedule)
+  const handleBillDrop = (billId: string, newDate: string) => {
+    const bill = bills.find((b) => b.id === billId);
+    if (bill && !bill.is_paid && onReschedule) {
+      onReschedule(billId, newDate, bill.due_date);
+    }
+  };
+
+  // Get bills for selected date (using filtered bills)
   const selectedDateBills = selectedDate
-    ? getBillsForDate(allBills, selectedDate)
+    ? getBillsForDate(filteredBills, selectedDate)
     : [];
 
   const dayNames = getDayNames(true);
@@ -111,6 +149,81 @@ export function CalendarGrid({ bills, onBillClick, onAddBill }: CalendarGridProp
     const billDate = new Date(bill.due_date);
     return billDate.getMonth() === currentMonth && billDate.getFullYear() === currentYear;
   }).length;
+
+  // Calculate total amount due this month (unpaid only, excluding projected)
+  const monthTotalAmount = useMemo(() => {
+    return allBills
+      .filter(bill => {
+        const billDate = new Date(bill.due_date);
+        const isInCurrentMonth = billDate.getMonth() === currentMonth && billDate.getFullYear() === currentYear;
+        const isProjected = 'isProjected' in bill && bill.isProjected;
+        return isInCurrentMonth && !bill.is_paid && !isProjected;
+      })
+      .reduce((sum, bill) => sum + (bill.amount || 0), 0);
+  }, [allBills, currentMonth, currentYear]);
+
+  // Calculate overdue amount (unpaid only, excluding projected)
+  const { overdueTotal, overdueCount } = useMemo(() => {
+    let total = 0;
+    let count = 0;
+
+    allBills.forEach(bill => {
+      const isProjected = 'isProjected' in bill && bill.isProjected;
+      if (!isProjected && !bill.is_paid) {
+        const daysUntil = getDaysUntilDue(bill.due_date);
+        if (daysUntil < 0) {
+          total += bill.amount || 0;
+          count++;
+        }
+      }
+    });
+
+    return { overdueTotal: total, overdueCount: count };
+  }, [allBills]);
+
+  // Calculate total amount due in next 7 days INCLUDING today and overdue (unpaid only, excluding projected)
+  const { upcomingTotal, upcomingCount } = useMemo(() => {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const next7Days = new Date(todayStart);
+    next7Days.setDate(next7Days.getDate() + 7);
+
+    let total = 0;
+    let count = 0;
+
+    allBills.forEach(bill => {
+      const billDate = new Date(bill.due_date);
+      billDate.setHours(0, 0, 0, 0);
+      const isProjected = 'isProjected' in bill && bill.isProjected;
+      // Include overdue bills AND bills within next 7 days
+      const isOverdue = billDate < todayStart;
+      const isInRange = billDate >= todayStart && billDate < next7Days;
+
+      if (!isProjected && !bill.is_paid && (isOverdue || isInRange)) {
+        total += bill.amount || 0;
+        count++;
+      }
+    });
+
+    return { upcomingTotal: total, upcomingCount: count };
+  }, [allBills]);
+
+  // Calculate weekly totals for each week in the grid
+  const weeklyTotals = useMemo(() => {
+    return monthGrid.map(week => {
+      const weekStart = week[0];
+      const weekEnd = week[6];
+
+      return allBills
+        .filter(bill => {
+          const billDate = new Date(bill.due_date);
+          const isInWeek = billDate >= weekStart && billDate <= weekEnd;
+          const isProjected = 'isProjected' in bill && bill.isProjected;
+          return isInWeek && !bill.is_paid && !isProjected;
+        })
+        .reduce((sum, bill) => sum + (bill.amount || 0), 0);
+    });
+  }, [allBills, monthGrid]);
 
   return (
     <div className="flex flex-col xl:flex-row gap-6 h-full">
@@ -143,13 +256,76 @@ export function CalendarGrid({ bills, onBillClick, onAddBill }: CalendarGridProp
               <span className="text-lg text-zinc-500 font-light">{yearNum}</span>
             </div>
 
-            {/* Bills count badge */}
-            {billsThisMonth > 0 && (
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-blue-500/10 to-violet-500/10 border border-blue-500/20">
-                <Sparkles className="w-3 h-3 text-blue-400" />
-                <span className="text-xs font-medium text-blue-300">{billsThisMonth} bills</span>
-              </div>
+          </div>
+
+          {/* Summary stats - clickable to filter */}
+          <div className="hidden md:flex items-center gap-3">
+            {/* Overdue warning - only show if there are overdue bills */}
+            {overdueCount > 0 && (
+              <button
+                onClick={() => setActiveFilter(activeFilter === 'overdue' ? 'all' : 'overdue')}
+                className={cn(
+                  'flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-200',
+                  activeFilter === 'overdue'
+                    ? 'bg-red-500/20 border-2 border-red-500/50 ring-2 ring-red-500/20'
+                    : 'bg-red-500/10 border border-red-500/20 hover:bg-red-500/15 hover:border-red-500/30'
+                )}
+              >
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-red-500/30 to-rose-500/20 flex items-center justify-center">
+                  <AlertTriangle className="w-4 h-4 text-red-400" />
+                </div>
+                <div className="text-left">
+                  <p className="text-[10px] text-red-400/80 uppercase tracking-wide font-medium">Overdue</p>
+                  <p className="text-sm font-bold text-red-400">
+                    {formatCurrency(overdueTotal)}
+                    <span className="text-[10px] font-medium text-red-400/60 ml-1">({overdueCount})</span>
+                  </p>
+                </div>
+              </button>
             )}
+
+            {/* Upcoming (Next 7 days + overdue) */}
+            <button
+              onClick={() => setActiveFilter(activeFilter === 'due-soon' ? 'all' : 'due-soon')}
+              className={cn(
+                'flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-200',
+                activeFilter === 'due-soon'
+                  ? 'bg-amber-500/15 border-2 border-amber-500/40 ring-2 ring-amber-500/20'
+                  : 'bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] hover:border-white/10'
+              )}
+            >
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center">
+                <Clock className="w-4 h-4 text-amber-400" />
+              </div>
+              <div className="text-left">
+                <p className="text-[10px] text-zinc-500 uppercase tracking-wide">Due Soon</p>
+                <p className="text-sm font-semibold text-white">
+                  {upcomingTotal > 0 ? formatCurrency(upcomingTotal) : '$0'}
+                  {upcomingCount > 0 && <span className="text-[10px] font-medium text-zinc-500 ml-1">({upcomingCount})</span>}
+                </p>
+              </div>
+            </button>
+
+            {/* Month total */}
+            <button
+              onClick={() => setActiveFilter('all')}
+              className={cn(
+                'flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-200',
+                activeFilter === 'all'
+                  ? 'bg-blue-500/10 border-2 border-blue-500/30 ring-2 ring-blue-500/20'
+                  : 'bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] hover:border-white/10'
+              )}
+            >
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500/20 to-violet-500/20 flex items-center justify-center">
+                <DollarSign className="w-4 h-4 text-blue-400" />
+              </div>
+              <div className="text-left">
+                <p className="text-[10px] text-zinc-500 uppercase tracking-wide">This Month</p>
+                <p className="text-sm font-semibold text-white">
+                  {monthTotalAmount > 0 ? formatCurrency(monthTotalAmount) : '$0'}
+                </p>
+              </div>
+            </button>
           </div>
 
           <div className="flex items-center gap-3">
@@ -193,30 +369,71 @@ export function CalendarGrid({ bills, onBillClick, onAddBill }: CalendarGridProp
             </div>
 
             {/* Calendar grid */}
-            <div className="grid grid-cols-7">
-              {monthGrid.map((week, weekIndex) =>
-                week.map((date, dayIndex) => {
-                  const billsForDay = getBillsForDate(allBills, date);
-                  const isSelected =
-                    selectedDate !== null &&
-                    formatDateString(date) === formatDateString(selectedDate);
+            <div>
+              {monthGrid.map((week, weekIndex) => (
+                <div key={weekIndex}>
+                  {/* Week row */}
+                  <div className="grid grid-cols-7">
+                    {week.map((date, dayIndex) => {
+                      const billsForDay = getBillsForDate(filteredBills, date);
+                      const isSelected =
+                        selectedDate !== null &&
+                        formatDateString(date) === formatDateString(selectedDate);
 
-                  return (
-                    <CalendarDay
-                      key={`${weekIndex}-${dayIndex}`}
-                      date={date}
-                      currentMonth={currentMonth}
-                      currentYear={currentYear}
-                      bills={billsForDay}
-                      isSelected={isSelected}
-                      onClick={() => handleDayClick(date)}
-                      animationDelay={(weekIndex * 7 + dayIndex) * 15}
-                    />
-                  );
-                })
-              )}
+                      return (
+                        <CalendarDay
+                          key={`${weekIndex}-${dayIndex}`}
+                          date={date}
+                          currentMonth={currentMonth}
+                          currentYear={currentYear}
+                          bills={billsForDay}
+                          isSelected={isSelected}
+                          onClick={() => handleDayClick(date)}
+                          onBillDrop={handleBillDrop}
+                          animationDelay={(weekIndex * 7 + dayIndex) * 15}
+                        />
+                      );
+                    })}
+                  </div>
+                  {/* Weekly total footer */}
+                  {weeklyTotals[weekIndex] > 0 && (
+                    <div className="flex justify-end items-center gap-2 px-4 py-2 bg-gradient-to-r from-transparent via-white/[0.02] to-white/[0.03] border-b border-white/[0.04]">
+                      <DollarSign className="w-3 h-3 text-zinc-600" />
+                      <span className="text-[11px] font-semibold text-zinc-400">
+                        {formatCurrency(weeklyTotals[weekIndex])}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
+
+          {/* Empty state overlay when no bills this month */}
+          {billsThisMonth === 0 && (
+            <div className="absolute inset-0 flex items-center justify-center bg-[#0a0a0f]/60 backdrop-blur-sm rounded-2xl">
+              <div className="flex flex-col items-center text-center p-8">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/20 to-violet-500/20 flex items-center justify-center mb-4 border border-white/10">
+                  <Plus className="w-8 h-8 text-blue-400" />
+                </div>
+                <h3 className="text-lg font-medium text-white mb-2">No bills this month</h3>
+                <p className="text-sm text-zinc-400 mb-4 max-w-xs">
+                  Add your first bill to start tracking due dates and never miss a payment.
+                </p>
+                <button
+                  onClick={() => onAddBill()}
+                  className="flex items-center gap-2 px-5 py-2.5 text-white font-medium rounded-xl transition-all duration-300 hover:opacity-90"
+                  style={{
+                    backgroundColor: 'var(--accent-primary)',
+                    boxShadow: '0 10px 15px -3px color-mix(in srgb, var(--accent-primary) 25%, transparent)'
+                  }}
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Your First Bill
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Legend - uses CSS variables for custom colors */}
@@ -258,6 +475,9 @@ export function CalendarGrid({ bills, onBillClick, onAddBill }: CalendarGridProp
           onClose={() => setSelectedDate(null)}
           onBillClick={handleBillClick}
           onAddBill={handleAddBill}
+          onMarkPaid={onMarkPaid}
+          onEdit={onEdit}
+          getMutationState={getMutationState}
         />
       )}
     </div>

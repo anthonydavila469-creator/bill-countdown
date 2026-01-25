@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Sparkles, ChevronDown, Plus } from 'lucide-react';
 import { NewBillItem } from '@/lib/insights-utils';
 import { formatCurrency, cn } from '@/lib/utils';
+import { getIconFromName } from '@/lib/get-bill-icon';
 
 interface NewBillsListProps {
   newBills: NewBillItem[];
@@ -59,21 +60,24 @@ export function NewBillsList({ newBills }: NewBillsListProps) {
 
         {/* Bills list */}
         <div className="space-y-2">
-          {visibleBills.map((bill, index) => (
-            <div
-              key={bill.id}
-              className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.03] transition-all duration-200 group animate-in fade-in slide-in-from-left-2"
-              style={{ animationDelay: `${450 + index * 40}ms`, animationFillMode: 'backwards' }}
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-xl group-hover:scale-105 transition-transform duration-200">
-                  {bill.emoji}
+          {visibleBills.map((bill, index) => {
+            const { icon: BillIcon, colorClass } = getIconFromName(bill.name);
+            return (
+              <div
+                key={bill.id}
+                className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.03] transition-all duration-200 group animate-in fade-in slide-in-from-left-2"
+                style={{ animationDelay: `${450 + index * 40}ms`, animationFillMode: 'backwards' }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
+                    <BillIcon className={cn("w-5 h-5", colorClass)} />
+                  </div>
+                  <span className="text-sm font-medium text-white">{bill.name}</span>
                 </div>
-                <span className="text-sm font-medium text-white">{bill.name}</span>
+                <span className="text-sm font-semibold text-zinc-300">{formatCurrency(bill.amount)}</span>
               </div>
-              <span className="text-sm font-semibold text-zinc-300">{formatCurrency(bill.amount)}</span>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Show more / less button */}

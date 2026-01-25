@@ -230,6 +230,7 @@ export const BILL_SEARCH_QUERIES = [
   // Credit cards
   'from:(chase OR capitalone OR "capital one" OR amex OR citi OR discover)',
   'from:(barclays OR synchrony OR wellsfargo OR "bank of america")',
+  'from:(bestbuy OR "best buy" OR bestbuycard)',
   // Phone/Internet
   'from:(verizon OR att OR tmobile OR xfinity OR spectrum OR comcast)',
   'from:(cox OR frontier OR cricket OR boost OR visible)',
@@ -263,6 +264,7 @@ export async function fetchBillEmails(
 
   const baseQuery = BILL_SEARCH_QUERIES.join(' OR ');
   const query = `(${baseQuery}) after:${afterDateStr}`;
+  console.log(`[Gmail] Query (truncated): ${query.substring(0, 200)}...`);
   const encodedQuery = encodeURIComponent(query);
 
   // First, get the list of message IDs
@@ -280,8 +282,10 @@ export async function fetchBillEmails(
   }
 
   const listData = await listResponse.json();
+  console.log(`[Gmail] Found ${listData.messages?.length ?? 0} message IDs`);
 
   if (!listData.messages || listData.messages.length === 0) {
+    console.log(`[Gmail] No messages returned from Gmail API`);
     return [];
   }
 

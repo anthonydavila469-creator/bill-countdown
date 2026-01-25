@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Bill } from '@/types';
 import { cn, formatCurrency, getDaysUntilDue, getUrgency } from '@/lib/utils';
+import { getBillIcon } from '@/lib/get-bill-icon';
 import {
   X,
   Check,
@@ -133,11 +134,14 @@ export function PayNowModal({ bill, isOpen, onClose, onMarkPaid }: PayNowModalPr
                 {/* Header content */}
                 <div className="relative p-6 pb-8">
                   <div className="flex items-center gap-4">
-                    {/* Emoji with glass container */}
+                    {/* Icon with glass container */}
                     <div className="relative">
                       <div className="absolute inset-0 bg-white/20 rounded-2xl blur-xl" />
-                      <div className="relative w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-4xl shadow-lg">
-                        {bill.emoji}
+                      <div className="relative w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center shadow-lg">
+                        {(() => {
+                          const { icon: BillIcon, colorClass } = getBillIcon(bill);
+                          return <BillIcon className={cn("w-8 h-8", colorClass)} />;
+                        })()}
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
