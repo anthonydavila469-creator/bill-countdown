@@ -16,11 +16,11 @@ import {
   Lightbulb,
   Calendar,
   ArrowLeft,
-  Loader2,
   BarChart3,
   TrendingUp,
   Sparkles,
 } from 'lucide-react';
+import { Spinner } from '@/components/ui/animated-list';
 import {
   getCurrentMonthKey,
   getPreviousMonthKey,
@@ -32,12 +32,14 @@ import {
   getNewBillsThisMonth,
   isFirstMonthTracked,
   getMonthLabel,
+  getMonthlyTrends,
 } from '@/lib/insights-utils';
 import { MonthSelector } from '@/components/insights/month-selector';
 import { SummaryCards } from '@/components/insights/summary-cards';
 import { CategoryBreakdown } from '@/components/insights/category-breakdown';
 import { CategoryChanges } from '@/components/insights/category-changes';
 import { NewBillsList } from '@/components/insights/new-bills-list';
+import { TrendChart } from '@/components/insights/trend-chart';
 
 export default function InsightsPage() {
   const router = useRouter();
@@ -146,6 +148,11 @@ export default function InsightsPage() {
     [allBills]
   );
 
+  const trendData = useMemo(
+    () => getMonthlyTrends(allBills, 6),
+    [allBills]
+  );
+
   const hasBillsInSelectedMonth = currentMonthBills.length > 0;
 
   // Loading state
@@ -155,7 +162,7 @@ export default function InsightsPage() {
         <div className="flex flex-col items-center gap-4">
           <div className="relative">
             <div className="absolute inset-0 bg-violet-500/20 rounded-full blur-xl animate-pulse" />
-            <Loader2 className="w-10 h-10 text-violet-400 animate-spin relative" />
+            <Spinner size="lg" variant="accent" className="relative" />
           </div>
           <p className="text-zinc-400 font-medium">Loading insights...</p>
         </div>
@@ -189,15 +196,6 @@ export default function InsightsPage() {
               >
                 <LayoutGrid className="w-5 h-5" />
                 Dashboard
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/dashboard/suggestions"
-                className="flex items-center gap-3 px-3 py-2 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-              >
-                <Mail className="w-5 h-5" />
-                Suggestions
               </Link>
             </li>
             <li>
@@ -379,8 +377,11 @@ export default function InsightsPage() {
                 isFirstMonth={isFirstMonth}
               />
 
+              {/* Trend Chart */}
+              <TrendChart trendData={trendData} />
+
               {/* Category Breakdown */}
-              <CategoryBreakdown breakdown={categoryBreakdown} />
+              <CategoryBreakdown breakdown={categoryBreakdown} bills={currentMonthBills} />
 
               {/* Category Changes */}
               <CategoryChanges

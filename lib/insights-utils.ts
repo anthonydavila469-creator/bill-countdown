@@ -22,6 +22,7 @@ export interface CategoryChange {
   currentTotal: number;
   previousTotal: number;
   difference: number;
+  percentageChange: number; // Percentage change from previous to current
   isIncrease: boolean;
 }
 
@@ -166,6 +167,11 @@ export function compareCategorySpending(
     const difference = item.total - previousTotal;
 
     if (difference !== 0) {
+      // Calculate percentage change (handle division by zero)
+      const percentageChange = previousTotal > 0
+        ? ((item.total - previousTotal) / previousTotal) * 100
+        : 100; // If no previous spending, treat as 100% increase
+
       changes.push({
         category: item.category,
         emoji: item.emoji,
@@ -173,6 +179,7 @@ export function compareCategorySpending(
         currentTotal: item.total,
         previousTotal,
         difference: Math.abs(difference),
+        percentageChange: Math.abs(percentageChange),
         isIncrease: difference > 0,
       });
     }
@@ -189,21 +196,20 @@ export function compareCategorySpending(
         currentTotal: 0,
         previousTotal: item.total,
         difference: item.total,
+        percentageChange: 100, // 100% decrease (spent nothing)
         isIncrease: false,
       });
     }
   });
 
-  // Sort by difference amount and take top 3 for each
+  // Sort by difference amount and return ALL changes (not limited)
   const increases = changes
     .filter((c) => c.isIncrease)
-    .sort((a, b) => b.difference - a.difference)
-    .slice(0, 3);
+    .sort((a, b) => b.difference - a.difference);
 
   const decreases = changes
     .filter((c) => !c.isIncrease)
-    .sort((a, b) => b.difference - a.difference)
-    .slice(0, 3);
+    .sort((a, b) => b.difference - a.difference);
 
   return { increases, decreases };
 }
@@ -255,6 +261,50 @@ export function getNewBillsThisMonth(currentBills: Bill[], previousBills: Bill[]
   });
 
   return newBills;
+}
+
+// Trend data point for historical charts
+export interface MonthlyTrendPoint {
+  monthKey: string; // "YYYY-MM" format
+  monthLabel: string; // "Jan '26" format
+  total: number;
+  billCount: number;
+}
+
+// Get monthly spending trends for the last N months
+export function getMonthlyTrends(bills: Bill[], months: number = 6): MonthlyTrendPoint[] {
+  // Get all unique months with paid bills
+  const monthTotals = new Map<string, { total: number; count: number }>();
+
+  bills.forEach((bill) => {
+    if (!bill.is_paid || !bill.paid_at) return;
+
+    const monthKey = getMonthKey(bill.paid_at);
+    const amount = getBillAmount(bill);
+    const existing = monthTotals.get(monthKey) || { total: 0, count: 0 };
+    monthTotals.set(monthKey, {
+      total: existing.total + amount,
+      count: existing.count + 1,
+    });
+  });
+
+  // Sort by month key and take last N months
+  const sortedMonths = Array.from(monthTotals.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .slice(-months);
+
+  return sortedMonths.map(([monthKey, data]) => {
+    const [year, month] = monthKey.split('-').map(Number);
+    const date = new Date(year, month - 1, 1);
+    const monthLabel = date.toLocaleDateString('en-US', { month: 'short' }) + " '" + String(year).slice(-2);
+
+    return {
+      monthKey,
+      monthLabel,
+      total: Math.round(data.total * 100) / 100,
+      billCount: data.count,
+    };
+  });
 }
 
 // Check if this is the first month with any paid bills

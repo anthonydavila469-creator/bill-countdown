@@ -1,13 +1,44 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { PieChart } from 'lucide-react';
-import { CategoryBreakdownItem } from '@/lib/insights-utils';
+import {
+  PieChart,
+  Home,
+  Zap,
+  Tv,
+  Shield,
+  Phone,
+  Wifi,
+  CreditCard,
+  DollarSign,
+  Heart,
+  FileText,
+  LucideIcon,
+  ChevronDown,
+} from 'lucide-react';
+import { CategoryBreakdownItem, getBillAmount } from '@/lib/insights-utils';
 import { formatCurrency, cn } from '@/lib/utils';
-import { BillCategory } from '@/types';
+import { Bill, BillCategory } from '@/types';
+import { getBillIcon } from '@/lib/get-bill-icon';
+
+// Category icon mapping
+const categoryIcons: Record<BillCategory | 'other', LucideIcon> = {
+  rent: Home,
+  housing: Home,
+  utilities: Zap,
+  subscription: Tv,
+  insurance: Shield,
+  phone: Phone,
+  internet: Wifi,
+  credit_card: CreditCard,
+  loan: DollarSign,
+  health: Heart,
+  other: FileText,
+};
 
 interface CategoryBreakdownProps {
   breakdown: CategoryBreakdownItem[];
+  bills: Bill[];
 }
 
 // Category-specific colors for progress bars
@@ -25,8 +56,9 @@ const categoryColors: Record<BillCategory | 'other', { bar: string; text: string
   other: { bar: 'from-zinc-400 to-zinc-300', text: 'text-zinc-400', bg: 'bg-zinc-500/10' },
 };
 
-export function CategoryBreakdown({ breakdown }: CategoryBreakdownProps) {
+export function CategoryBreakdown({ breakdown, bills }: CategoryBreakdownProps) {
   const [animated, setAnimated] = useState(false);
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
 
   useEffect(() => {
     // Trigger animation after mount
@@ -37,6 +69,25 @@ export function CategoryBreakdown({ breakdown }: CategoryBreakdownProps) {
   if (breakdown.length === 0) {
     return null;
   }
+
+  // Get bills for a specific category
+  const getBillsForCategory = (category: BillCategory | 'other'): Bill[] => {
+    return bills.filter((bill) => {
+      const billCategory = bill.category ?? 'other';
+      return billCategory === category;
+    });
+  };
+
+  // Format date for display
+  const formatPaidDate = (paidAt: string | null): string => {
+    if (!paidAt) return '';
+    const date = new Date(paidAt);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  const toggleCategory = (category: string) => {
+    setExpandedCategory(expandedCategory === category ? null : category);
+  };
 
   return (
     <div
@@ -62,38 +113,89 @@ export function CategoryBreakdown({ breakdown }: CategoryBreakdownProps) {
         <div className="space-y-4">
           {breakdown.map((item, index) => {
             const colors = categoryColors[item.category];
+            const CategoryIcon = categoryIcons[item.category];
+            const isExpanded = expandedCategory === item.category;
+            const categoryBills = isExpanded ? getBillsForCategory(item.category) : [];
+
             return (
               <div
                 key={item.category}
-                className="group animate-in fade-in slide-in-from-left-2 duration-300"
+                className="animate-in fade-in slide-in-from-left-2 duration-300"
                 style={{ animationDelay: `${300 + index * 50}ms`, animationFillMode: 'backwards' }}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-3">
-                    <div className={cn(
-                      'w-10 h-10 rounded-xl flex items-center justify-center text-xl border border-white/5',
-                      colors.bg
-                    )}>
-                      {item.emoji}
+                {/* Category row - clickable */}
+                <button
+                  onClick={() => toggleCategory(item.category)}
+                  className="w-full text-left group"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      <div className={cn(
+                        'w-10 h-10 rounded-xl flex items-center justify-center border border-white/5',
+                        colors.bg
+                      )}>
+                        <CategoryIcon className={cn("w-5 h-5", colors.text)} />
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-white block">{item.label}</span>
+                        <span className="text-xs text-zinc-500">
+                          {item.count} {item.count === 1 ? 'bill' : 'bills'}
+                        </span>
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-sm font-medium text-white block">{item.label}</span>
-                      <span className="text-xs text-zinc-500">
-                        {item.count} {item.count === 1 ? 'bill' : 'bills'}
-                      </span>
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <span className="text-base font-semibold text-white block">
+                          {formatCurrency(item.total)}
+                        </span>
+                        <span className={cn('text-xs font-medium', colors.text)}>
+                          {item.percentage.toFixed(1)}%
+                        </span>
+                      </div>
+                      <ChevronDown
+                        className={cn(
+                          'w-4 h-4 text-zinc-500 transition-transform duration-200',
+                          isExpanded && 'rotate-180'
+                        )}
+                      />
                     </div>
                   </div>
-                  <div className="text-right">
-                    <span className="text-base font-semibold text-white block">
-                      {formatCurrency(item.total)}
-                    </span>
-                    <span className={cn('text-xs font-medium', colors.text)}>
-                      {item.percentage.toFixed(1)}%
-                    </span>
-                  </div>
-                </div>
+                </button>
 
-                {/* Enhanced progress bar */}
+                {/* Expanded bills list - appears between header and progress bar */}
+                {isExpanded && categoryBills.length > 0 && (
+                  <div className="my-3 ml-4 pl-4 border-l-2 border-white/10 space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                    {categoryBills.map((bill) => {
+                      const { icon: BillIcon, colorClass } = getBillIcon(bill);
+                      const amount = getBillAmount(bill);
+                      return (
+                        <div
+                          key={bill.id}
+                          className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.03] transition-colors duration-200"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-white/[0.04] border border-white/5 flex items-center justify-center">
+                              <BillIcon className={cn("w-4 h-4", colorClass)} />
+                            </div>
+                            <div>
+                              <span className="text-sm font-medium text-white block">{bill.name}</span>
+                              {bill.paid_at && (
+                                <span className="text-xs text-zinc-500">
+                                  Paid {formatPaidDate(bill.paid_at)}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <span className="text-sm font-semibold text-zinc-300">
+                            {formatCurrency(amount)}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Enhanced progress bar - closes each category section */}
                 <div className="h-2.5 bg-white/[0.04] rounded-full overflow-hidden">
                   <div
                     className={cn(
