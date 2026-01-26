@@ -14,8 +14,9 @@ import {
   Inbox,
   ArrowRight,
 } from 'lucide-react';
-import { ParsedBill, categoryEmojis, BillCategory } from '@/types';
+import { ParsedBill, BillCategory } from '@/types';
 import { cn, formatCurrency } from '@/lib/utils';
+import { getIconFromName } from '@/lib/get-bill-icon';
 
 interface BillImportModalProps {
   isOpen: boolean;
@@ -31,11 +32,6 @@ interface EditableBill extends ParsedBill {
   editingDate: boolean;
 }
 
-// Get emoji for category
-function getCategoryEmoji(category: BillCategory | null): string {
-  if (!category) return '📄';
-  return categoryEmojis[category] || '📄';
-}
 
 // Confidence indicator component
 function ConfidenceIndicator({ confidence }: { confidence: number }) {
@@ -213,12 +209,14 @@ export function BillImportModal({
           amount_guess: number | null;
           due_date_guess: string | null;
           category_guess: BillCategory | null;
+          payment_url_guess: string | null;
           confidence: number;
         }) => ({
           name: suggestion.name_guess,
           amount: suggestion.amount_guess,
           due_date: suggestion.due_date_guess,
           category: suggestion.category_guess,
+          payment_url: suggestion.payment_url_guess || null,
           confidence: suggestion.confidence || 0.5,
           source_email_id: suggestion.gmail_message_id, // Map to expected field name
           is_recurring: false,
@@ -485,10 +483,15 @@ export function BillImportModal({
                                 )}
                               </button>
 
-                              {/* Emoji */}
-                              <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center text-xl flex-shrink-0">
-                                {getCategoryEmoji(bill.category)}
-                              </div>
+                              {/* Icon */}
+                              {(() => {
+                                const { icon: IconComponent, colorClass } = getIconFromName(bill.name);
+                                return (
+                                  <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0">
+                                    <IconComponent className={cn('w-5 h-5', colorClass)} />
+                                  </div>
+                                );
+                              })()}
 
                               {/* Details */}
                               <div className="flex-1 min-w-0">

@@ -1,18 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
-import {
-  BILL_EXTRACTION_SYSTEM_PROMPT,
-  buildBatchEmailPrompt,
-  parseBatchAIResponse,
-  EmailForParsing,
-} from '@/lib/ai/prompts';
+import { processAllBillsRateLimited } from '@/lib/ai/process-bills';
+import { EmailInput } from '@/lib/ai/types';
 import { ParsedBill } from '@/types';
-
-// Initialize Anthropic client
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
 
 // POST /api/ai/parse-bills - Parse emails to extract bill information
 export async function POST(request: Request) {
@@ -31,7 +21,13 @@ export async function POST(request: Request) {
 
     // Get emails from request body
     const body = await request.json();
-    const emails: EmailForParsing[] = body.emails;
+    const emails: Array<{
+      id: string;
+      subject: string;
+      from: string;
+      date: string;
+      body: string;
+    }> = body.emails;
 
     if (!emails || !Array.isArray(emails) || emails.length === 0) {
       return NextResponse.json(
@@ -43,36 +39,21 @@ export async function POST(request: Request) {
     // Limit to 10 emails per request to manage costs
     const emailsToProcess = emails.slice(0, 10);
 
-    // Build the prompt
-    const userPrompt = buildBatchEmailPrompt(emailsToProcess);
+    // Transform to EmailInput format
+    const emailInputs: EmailInput[] = emailsToProcess.map(e => ({
+      id: e.id,
+      from: e.from,
+      subject: e.subject,
+      body: e.body,
+    }));
 
-    // Call Claude API
-    const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 4096,
-      messages: [
-        {
-          role: 'user',
-          content: userPrompt,
-        },
-      ],
-      system: BILL_EXTRACTION_SYSTEM_PROMPT,
+    // Process using the new extraction pipeline
+    const processedBills = await processAllBillsRateLimited(emailInputs, {
+      concurrency: 5,
     });
 
-    // Extract text response
-    const textContent = message.content.find((block) => block.type === 'text');
-    if (!textContent || textContent.type !== 'text') {
-      return NextResponse.json(
-        { error: 'No response from AI' },
-        { status: 500 }
-      );
-    }
-
-    // Parse the AI response
-    const extractedBills = parseBatchAIResponse(textContent.text);
-
     // Transform to ParsedBill format
-    const parsedBills: ParsedBill[] = extractedBills.map((bill) => ({
+    const parsedBills: ParsedBill[] = processedBills.map((bill) => ({
       name: bill.name,
       amount: bill.amount,
       due_date: bill.due_date,
@@ -80,7 +61,7 @@ export async function POST(request: Request) {
       is_recurring: bill.is_recurring,
       recurrence_interval: bill.recurrence_interval,
       confidence: bill.confidence,
-      source_email_id: bill.email_id,
+      source_email_id: bill.source_email_id,
     }));
 
     return NextResponse.json({
@@ -90,22 +71,6 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error('AI parsing error:', error);
-
-    // Handle specific Anthropic errors
-    if (error instanceof Anthropic.APIError) {
-      if (error.status === 401) {
-        return NextResponse.json(
-          { error: 'Invalid API key' },
-          { status: 500 }
-        );
-      }
-      if (error.status === 429) {
-        return NextResponse.json(
-          { error: 'Rate limit exceeded. Please try again later.' },
-          { status: 429 }
-        );
-      }
-    }
 
     return NextResponse.json(
       { error: 'Failed to parse emails' },

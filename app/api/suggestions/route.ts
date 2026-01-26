@@ -3,10 +3,9 @@ import {
   fetchBillEmails,
   refreshAccessToken,
   extractEmailBody,
-  extractEmailHtml,
   getHeader,
 } from '@/lib/gmail/client';
-import { processEmailBatch } from '@/lib/bill-extraction';
+import { processAllBillsRateLimited } from '@/lib/ai/process-bills';
 import { NextResponse } from 'next/server';
 
 // POST /api/suggestions - Scan emails using the new extraction engine
@@ -28,36 +27,7 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => ({}));
     const maxResults = Math.min(body.maxResults || 200, 500);
     const daysBack = Math.min(body.daysBack || 60, 180);
-    const skipAI = body.skipAI ?? true; // Default to mock extraction for speed
-    const forceRescan = body.forceRescan || false;
-
-    // If force rescan, clear processed state for non-accepted extractions
-    if (forceRescan) {
-      console.log('[ForceRescan] Clearing processed state for user', user.id);
-
-      // Delete non-accepted extractions
-      const { error: deleteExtractionsError } = await supabase
-        .from('bill_extractions')
-        .delete()
-        .eq('user_id', user.id)
-        .in('status', ['pending', 'needs_review', 'rejected', 'not_a_bill']);
-
-      if (deleteExtractionsError) {
-        console.error('[ForceRescan] Failed to delete extractions:', deleteExtractionsError);
-      }
-
-      // Clear cached body_cleaned to force re-preprocessing with latest logic
-      const { error: clearCacheError } = await supabase
-        .from('emails_raw')
-        .update({ body_cleaned: null, processed_at: null })
-        .eq('user_id', user.id);
-
-      if (clearCacheError) {
-        console.error('[ForceRescan] Failed to clear body_cleaned cache:', clearCacheError);
-      }
-
-      console.log('[ForceRescan] Cleared processed state and body cache');
-    }
+    const skipAI = body.skipAI ?? false; // Default to real AI extraction
 
     // Get stored Gmail tokens
     const { data: tokenData, error: tokenError } = await supabase
@@ -104,15 +74,7 @@ export async function POST(request: Request) {
     // Fetch bill-related emails from Gmail
     const messages = await fetchBillEmails(accessToken, maxResults, daysBack);
 
-    // Also fetch unprocessed emails from emails_raw that may have been missed
-    const { data: unprocessedEmails } = await supabase
-      .from('emails_raw')
-      .select('*')
-      .eq('user_id', user.id)
-      .is('processed_at', null)
-      .limit(50);
-
-    console.log(`[Suggestions] Gmail returned ${messages.length}, unprocessed in DB: ${unprocessedEmails?.length || 0}`);
+    console.log(`[Suggestions] Gmail returned ${messages.length} messages`);
 
     // Filter out calendar emails and deduplicate
     const seenIds = new Set<string>();
@@ -122,7 +84,6 @@ export async function POST(request: Request) {
       from: string;
       date: string;
       body_plain: string;
-      body_html?: string;
     }> = [];
 
     for (const msg of messages) {
@@ -142,7 +103,6 @@ export async function POST(request: Request) {
         }
 
         const bodyContent = extractEmailBody(msg);
-        const htmlContent = extractEmailHtml(msg);
 
         emails.push({
           gmail_message_id: msg.id,
@@ -150,41 +110,9 @@ export async function POST(request: Request) {
           from,
           date: new Date(parseInt(msg.internalDate)).toISOString(),
           body_plain: bodyContent,
-          body_html: htmlContent,
         });
       }
     }
-
-    // Add unprocessed emails from emails_raw that aren't already in the Gmail results
-    let unprocessedAdded = 0;
-    if (unprocessedEmails && unprocessedEmails.length > 0) {
-      for (const rawEmail of unprocessedEmails) {
-        if (seenIds.has(rawEmail.gmail_message_id)) continue;
-        seenIds.add(rawEmail.gmail_message_id);
-
-        // Skip Google Calendar notification emails
-        const fromLower = (rawEmail.from_address || '').toLowerCase();
-        if (
-          fromLower.includes('calendar-notification@google.com') ||
-          fromLower.includes('calendar@google.com') ||
-          fromLower.includes('noreply@google.com/calendar')
-        ) {
-          continue;
-        }
-
-        emails.push({
-          gmail_message_id: rawEmail.gmail_message_id,
-          subject: rawEmail.subject || '',
-          from: rawEmail.from_address || '',
-          date: rawEmail.date_received || new Date().toISOString(),
-          body_plain: rawEmail.body_plain || '',
-          body_html: rawEmail.body_html || '',
-        });
-        unprocessedAdded++;
-        console.log(`[Suggestions] Adding unprocessed email: "${rawEmail.subject?.substring(0, 50)}"`);
-      }
-    }
-    console.log(`[Suggestions] Added ${unprocessedAdded} unprocessed emails from DB`)
 
     // Get already-added bill gmail_message_ids to filter
     const { data: existingBills } = await supabase
@@ -214,115 +142,93 @@ export async function POST(request: Request) {
         !ignoredMessageIds.has(email.gmail_message_id)
     );
 
-    // Process through the new extraction pipeline
-    const batchResult = await processEmailBatch(user.id, filteredEmails, {
+    console.log(`[Suggestions] Processing ${filteredEmails.length} emails (${emails.length - filteredEmails.length} filtered out)`);
+
+    // Transform to input format for new extraction pipeline
+    const emailInputs = filteredEmails.map(e => ({
+      id: e.gmail_message_id,
+      from: e.from,
+      subject: e.subject,
+      body: e.body_plain,
+    }));
+
+    // Process through the new simplified extraction pipeline
+    const processedBills = await processAllBillsRateLimited(emailInputs, {
       skipAI,
-      forceReprocess: forceRescan,
+      concurrency: 5,
     });
 
-    // Get all pending extractions to show as suggestions
-    const { data: extractions } = await supabase
-      .from('bill_extractions')
-      .select(`
-        id,
-        extracted_name,
-        extracted_amount,
-        extracted_due_date,
-        extracted_category,
-        confidence_overall,
-        confidence_amount,
-        confidence_due_date,
-        evidence_snippets,
-        is_duplicate,
-        duplicate_reason,
-        status,
-        created_at,
-        email_raw_id,
-        payment_url,
-        payment_confidence,
-        emails_raw (
-          gmail_message_id,
-          subject,
-          from_address,
-          date_received
-        )
-      `)
-      .eq('user_id', user.id)
-      .in('status', ['needs_review', 'pending'])
-      .order('confidence_overall', { ascending: false })
-      .limit(100);
+    // Filter out bills more than 7 days past due
+    const GRACE_PERIOD_DAYS = 7;
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - GRACE_PERIOD_DAYS);
+    const cutoffDateStr = cutoffDate.toISOString().split('T')[0]; // YYYY-MM-DD
+
+    const filteredBills = processedBills.filter(bill => {
+      // Keep bills without a due date (user can decide)
+      if (!bill.due_date) return true;
+      // Keep bills where due_date >= cutoff (within grace period or future)
+      return bill.due_date >= cutoffDateStr;
+    });
+
+    // Deduplicate bills with same amount + due date (keep highest confidence)
+    const deduplicatedBills = (() => {
+      const seen = new Map<string, typeof filteredBills[0]>();
+      for (const bill of filteredBills) {
+        // Create key from amount + due_date
+        const key = `${bill.amount ?? 'null'}-${bill.due_date ?? 'null'}`;
+        const existing = seen.get(key);
+        // Keep the bill with higher confidence, or first one if same
+        if (!existing || (bill.confidence > existing.confidence)) {
+          seen.set(key, bill);
+        }
+      }
+      return Array.from(seen.values());
+    })();
+
+    // Create a map for looking up email metadata
+    const emailMap = new Map(filteredEmails.map(e => [e.gmail_message_id, e]));
 
     // Transform to suggestion format for the frontend
-    const suggestions = (extractions || []).map((ext) => {
-      // emails_raw is returned as an array from Supabase nested select
-      const emailRaw = Array.isArray(ext.emails_raw) ? ext.emails_raw[0] : ext.emails_raw;
-
-      // Check if this is a "view online" bill (has payment link but missing amount/date)
-      const isViewOnlineBill = ext.payment_url && ext.payment_confidence >= 0.8 &&
-        (ext.extracted_amount === null || ext.extracted_due_date === null);
-
+    const suggestions = deduplicatedBills.map(bill => {
+      const email = emailMap.get(bill.source_email_id);
       return {
-        id: ext.id,
-        gmail_message_id: emailRaw?.gmail_message_id || ext.id,
-        name_guess: ext.extracted_name || 'Unknown Bill',
-        amount_guess: ext.extracted_amount,
-        due_date_guess: ext.extracted_due_date,
-        category_guess: ext.extracted_category,
-        confidence: ext.confidence_overall || 0.5,
-        confidence_amount: ext.confidence_amount,
-        confidence_due_date: ext.confidence_due_date,
-        is_duplicate: ext.is_duplicate,
-        duplicate_reason: ext.duplicate_reason,
-        evidence_snippets: ext.evidence_snippets,
-        email_subject: emailRaw?.subject || '',
-        email_from: emailRaw?.from_address || '',
-        email_date: emailRaw?.date_received || ext.created_at,
-        email_snippet: '',
-        status: ext.status,
-        // Payment link info
-        payment_url: ext.payment_url,
-        payment_confidence: ext.payment_confidence,
-        is_view_online_bill: isViewOnlineBill,
+        gmail_message_id: bill.source_email_id,
+        name_guess: bill.name,
+        amount_guess: bill.amount,
+        due_date_guess: bill.due_date,
+        category_guess: bill.category,
+        payment_url_guess: bill.payment_url,
+        confidence: bill.confidence,
+        needs_review: bill.needs_review,
+        review_reasons: bill.review_reasons,
+        // Email metadata
+        email_subject: email?.subject || '',
+        email_from: email?.from || '',
+        email_date: email?.date || new Date().toISOString(),
       };
     });
 
     // Log summary for debugging
     console.log('[Suggestions] Summary:', JSON.stringify({
       gmailFetched: messages.length,
-      unprocessedFromDb: unprocessedEmails?.length || 0,
-      unprocessedAdded,
       afterCalendarFilter: emails.length,
       alreadyAddedAsBills: addedMessageIds.size,
       ignoredSuggestions: ignoredMessageIds.size,
       sentToProcessing: filteredEmails.length,
-      processed: batchResult.processed,
-      skipped: batchResult.skipped,
-      rejected: batchResult.rejected,
-      needsReview: batchResult.needsReview,
-      autoAccepted: batchResult.autoAccepted,
-      debugSummary: batchResult.debugSummary,
+      processedBills: processedBills.length,
+      pastDueFiltered: processedBills.length - filteredBills.length,
+      duplicatesRemoved: filteredBills.length - deduplicatedBills.length,
+      suggestionsReturned: suggestions.length,
     }));
 
     return NextResponse.json({
       suggestions,
       totalEmails: emails.length,
       filteredOut: emails.length - filteredEmails.length,
-      processed: batchResult.processed,
-      autoAccepted: batchResult.autoAccepted,
-      needsReview: batchResult.needsReview,
-      rejected: batchResult.rejected,
-      skipped: batchResult.skipped,
+      processed: filteredEmails.length,
+      suggestionsReturned: suggestions.length,
       scannedAt: new Date().toISOString(),
-      // Include debug info for troubleshooting
-      debug: {
-        gmailFetched: messages.length,
-        unprocessedFromDb: unprocessedEmails?.length || 0,
-        unprocessedAdded,
-        alreadyAddedAsBills: addedMessageIds.size,
-        ignoredSuggestions: ignoredMessageIds.size,
-        sentToProcessing: filteredEmails.length,
-        ...batchResult.debugSummary,
-      },
     });
   } catch (error) {
     console.error('Suggestions scan error:', error);

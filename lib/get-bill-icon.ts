@@ -83,24 +83,24 @@ export function getIconFromName(name: string): { icon: LucideIcon; colorClass: s
     return { icon: Music, colorClass: 'text-green-400' };
   }
 
-  // Auto/Car
-  if (lowerName.includes('auto') || lowerName.includes('car') || lowerName.includes('vehicle') || lowerName.includes('toyota') || lowerName.includes('ford') || lowerName.includes('honda') || lowerName.includes('chevy') || lowerName.includes('lease')) {
-    return { icon: Car, colorClass: 'text-red-400' };
+  // Credit Card (check BEFORE auto/car since "card" contains "car")
+  if (lowerName.includes('credit') || lowerName.includes('card') || lowerName.includes('visa') || lowerName.includes('mastercard') || lowerName.includes('amex') || lowerName.includes('discover') || lowerName.includes('chase') || lowerName.includes('capital one') || lowerName.includes('citi') || lowerName.includes('bank of america') || lowerName.includes('wells fargo') || lowerName.includes('best buy') || lowerName.includes('savor')) {
+    return { icon: CreditCard, colorClass: 'text-blue-400' };
   }
 
-  // Insurance
+  // Insurance (check BEFORE auto since "auto insurance" should show shield)
   if (lowerName.includes('insurance') || lowerName.includes('geico') || lowerName.includes('allstate') || lowerName.includes('state farm') || lowerName.includes('progressive') || lowerName.includes('liberty mutual')) {
     return { icon: Shield, colorClass: 'text-indigo-400' };
+  }
+
+  // Auto/Car (auto loans, car payments - NOT auto insurance)
+  if (lowerName.includes('auto') || lowerName.includes('vehicle') || lowerName.includes('toyota') || lowerName.includes('ford') || lowerName.includes('honda') || lowerName.includes('chevy')) {
+    return { icon: Car, colorClass: 'text-red-400' };
   }
 
   // Rent/Mortgage/Housing
   if (lowerName.includes('rent') || lowerName.includes('mortgage') || lowerName.includes('apartment') || lowerName.includes('housing') || lowerName.includes('hoa') || lowerName.includes('lease')) {
     return { icon: Home, colorClass: 'text-amber-400' };
-  }
-
-  // Credit Card
-  if (lowerName.includes('credit') || lowerName.includes('visa') || lowerName.includes('mastercard') || lowerName.includes('amex') || lowerName.includes('discover') || lowerName.includes('chase') || lowerName.includes('capital one') || lowerName.includes('citi') || lowerName.includes('bank of america') || lowerName.includes('wells fargo')) {
-    return { icon: CreditCard, colorClass: 'text-blue-400' };
   }
 
   // Health/Medical/Gym

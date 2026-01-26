@@ -1,5 +1,7 @@
 // Gmail OAuth and API client utilities
 
+import { convert } from 'html-to-text';
+
 const GMAIL_SCOPES = [
   'https://www.googleapis.com/auth/gmail.readonly',
   'https://www.googleapis.com/auth/userinfo.email',
@@ -231,6 +233,7 @@ export const BILL_SEARCH_QUERIES = [
   'from:(chase OR capitalone OR "capital one" OR amex OR citi OR discover)',
   'from:(barclays OR synchrony OR wellsfargo OR "bank of america")',
   'from:(bestbuy OR "best buy" OR bestbuycard)',
+  'from:(citi.com OR citibank.com OR citicards.com OR alertsp.citi.com)',
   // Phone/Internet
   'from:(verizon OR att OR tmobile OR xfinity OR spectrum OR comcast)',
   'from:(cox OR frontier OR cricket OR boost OR visible)',
@@ -309,7 +312,36 @@ export async function fetchBillEmails(
     })
   );
 
-  return messages.filter(Boolean) as GmailMessage[];
+  const validMessages = messages.filter(Boolean) as GmailMessage[];
+
+  // Log all fetched emails for debugging
+  console.log(`[GMAIL FETCH] Found ${validMessages.length} candidate emails`);
+  validMessages.forEach(msg => {
+    const from = getHeader(msg, 'From');
+    const subject = getHeader(msg, 'Subject');
+    console.log(`  - ${from}: ${subject}`);
+  });
+
+  return validMessages;
+}
+
+/**
+ * Check if text looks like CSS/HTML garbage rather than readable content
+ */
+function isGarbageText(text: string): boolean {
+  if (!text) return true;
+  const sample = text.substring(0, 1000).toLowerCase();
+  // Check for CSS patterns
+  if (sample.includes('@font-face') || sample.includes('@media screen') ||
+      sample.includes('font-family:') || sample.includes('font-style:')) {
+    return true;
+  }
+  // Check for HTML patterns that shouldn't be in plain text
+  if (sample.includes('<style') || sample.includes('<script') ||
+      sample.includes('<!doctype')) {
+    return true;
+  }
+  return false;
 }
 
 /**
@@ -319,28 +351,52 @@ export async function fetchBillEmails(
 export function extractEmailBody(message: GmailMessage): string {
   const { body_plain, body_html } = extractBodiesFromMessage(message);
 
-  // Prefer plain text
-  if (body_plain && body_plain.length > 0) {
+  // Convert HTML to text if available
+  let htmlAsText = '';
+  if (body_html && body_html.length > 0) {
+    htmlAsText = convert(body_html, {
+      wordwrap: false,
+      preserveNewlines: true,
+      selectors: [
+        { selector: 'a', options: { ignoreHref: true } },
+        { selector: 'img', format: 'skip' },
+        { selector: 'table', format: 'dataTable' },
+      ],
+    });
+  }
+
+  // Check if plain text is garbage (CSS, HTML, etc.)
+  const plainIsGarbage = isGarbageText(body_plain || '');
+  const plainLength = body_plain?.length || 0;
+  const htmlLength = htmlAsText.length;
+
+  // SIMPLE RULE: Use HTML-converted text if:
+  // 1. Plain text is garbage (CSS, HTML code)
+  // 2. HTML is significantly longer (more than 1.3x plain text length)
+  // 3. Plain text is too short (less than 500 chars)
+  if (htmlLength > 0) {
+    if (plainIsGarbage) {
+      return htmlAsText;
+    }
+    if (htmlLength > plainLength * 1.3) {
+      return htmlAsText;
+    }
+    if (plainLength < 500) {
+      return htmlAsText;
+    }
+  }
+
+  // Use plain text if it's valid and substantial
+  if (body_plain && plainLength > 0 && !plainIsGarbage) {
     return body_plain;
   }
 
-  // If only HTML, do basic conversion (caller should use extractEmailHtml for full HTML)
-  if (body_html && body_html.length > 0) {
-    return body_html
-      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, ' ')
-      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, ' ')
-      .replace(/<[^>]*>/g, ' ')
-      .replace(/&nbsp;/g, ' ')
-      .replace(/&amp;/g, '&')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'")
-      .replace(/\s+/g, ' ')
-      .trim();
+  // Fallback to HTML text if available
+  if (htmlLength > 0) {
+    return htmlAsText;
   }
 
-  // Fallback to snippet
+  // Final fallback to snippet
   return message.snippet || '';
 }
 

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { ParsedBill, categoryEmojis, BillCategory } from '@/types';
+import { getFallbackPaymentUrl, isValidPaymentUrl } from '@/lib/vendor-payment-urls';
 
 // POST /api/bills/import - Import multiple parsed bills
 export async function POST(request: Request) {
@@ -77,6 +78,9 @@ export async function POST(request: Request) {
       recurrence_interval: bill.recurrence_interval || null,
       source: 'gmail',
       gmail_message_id: bill.source_email_id || null,
+      payment_url: (bill.payment_url && isValidPaymentUrl(bill.payment_url))
+        ? bill.payment_url
+        : getFallbackPaymentUrl(bill.name) || null,
       notes: null,
     }));
 

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { scheduleNotificationsForBillWithSettings } from '@/lib/notifications/scheduler';
+import { getFallbackPaymentUrl, isValidPaymentUrl } from '@/lib/vendor-payment-urls';
 import type { Bill } from '@/types';
 
 // GET /api/bills - Get all bills for the current user
@@ -48,6 +49,24 @@ export async function GET(request: Request) {
         { error: 'Failed to fetch bills' },
         { status: 500 }
       );
+    }
+
+    // Auto-apply fallback payment URLs - always prefer known-good fallbacks over potentially bad extracted URLs
+    if (bills && bills.length > 0) {
+      for (const bill of bills) {
+        const fallbackUrl = getFallbackPaymentUrl(bill.name);
+        // If we have a fallback URL and it's different from current, update it
+        if (fallbackUrl && bill.payment_url !== fallbackUrl) {
+          // Update in database
+          await supabase
+            .from('bills')
+            .update({ payment_url: fallbackUrl })
+            .eq('id', bill.id)
+            .eq('user_id', user.id);
+          // Update the bill object we're returning
+          bill.payment_url = fallbackUrl;
+        }
+      }
     }
 
     return NextResponse.json(bills);
@@ -101,7 +120,7 @@ export async function POST(request: Request) {
         recurrence_day_of_month: body.recurrence_day_of_month || null,
         recurrence_weekday: body.recurrence_weekday || null,
         notes: body.notes || null,
-        payment_url: body.payment_url || null,
+        payment_url: body.payment_url || getFallbackPaymentUrl(body.name) || null,
         is_autopay: body.is_autopay || false,
         source: body.source || 'manual',
         gmail_message_id: body.gmail_message_id || null,

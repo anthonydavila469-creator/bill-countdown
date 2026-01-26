@@ -189,6 +189,7 @@ export interface ParsedBill {
   category: BillCategory | null;
   is_recurring: boolean;
   recurrence_interval: RecurrenceInterval | null;
+  payment_url?: string | null;  // Payment link from email
   confidence: number; // 0-1 confidence score
   source_email_id: string;
 }
