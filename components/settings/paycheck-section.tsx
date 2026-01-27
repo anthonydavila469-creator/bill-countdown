@@ -8,8 +8,10 @@ import {
   Clock,
   ChevronDown,
   Banknote,
+  Crown,
 } from 'lucide-react';
 import { useTheme } from '@/contexts/theme-context';
+import { useSubscription } from '@/hooks/use-subscription';
 import { PaycheckSettings, PaySchedule, DEFAULT_PAYCHECK_SETTINGS } from '@/types';
 import { cn } from '@/lib/utils';
 
@@ -139,6 +141,7 @@ function FieldRow({
 
 export function PaycheckSection() {
   const { paycheckSettings, updatePaycheckSettings } = useTheme();
+  const { canUsePaycheckMode, showUpgradeModal } = useSubscription();
   const [localSettings, setLocalSettings] = useState<PaycheckSettings>(
     paycheckSettings ?? DEFAULT_PAYCHECK_SETTINGS
   );
@@ -157,6 +160,12 @@ export function PaycheckSection() {
   }, [paycheckSettings]);
 
   const handleToggle = async (enabled: boolean) => {
+    // If trying to enable and user is not Pro, show upgrade modal
+    if (enabled && !canUsePaycheckMode) {
+      showUpgradeModal('paycheck mode');
+      return;
+    }
+
     const newSettings: PaycheckSettings = {
       ...localSettings,
       enabled,
@@ -206,19 +215,27 @@ export function PaycheckSection() {
         title="Paycheck Mode"
         description="See bills due before your next payday"
         action={
-          <PremiumToggle
-            enabled={localSettings.enabled}
-            onChange={handleToggle}
-          />
+          <div className="flex items-center gap-3">
+            {!canUsePaycheckMode && (
+              <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-500/30">
+                <Crown className="w-3.5 h-3.5 text-amber-400" />
+                <span className="text-xs font-semibold text-amber-300">Pro</span>
+              </span>
+            )}
+            <PremiumToggle
+              enabled={localSettings.enabled && canUsePaycheckMode}
+              onChange={handleToggle}
+            />
+          </div>
         }
         index={0}
       />
 
-      {/* Settings panel with slide animation */}
+      {/* Settings panel with slide animation - only show for Pro users when enabled */}
       <div
         className={cn(
           'grid transition-all duration-500 ease-out',
-          localSettings.enabled
+          localSettings.enabled && canUsePaycheckMode
             ? 'grid-rows-[1fr] opacity-100'
             : 'grid-rows-[0fr] opacity-0'
         )}

@@ -2,7 +2,9 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/contexts/theme-context";
+import { SubscriptionProvider } from "@/contexts/subscription-context";
 import { ToastProvider } from "@/components/ui/toast";
+import { UpgradeModal } from "@/components/upgrade-modal";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -68,7 +70,10 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ThemeProvider>
-          <ToastProvider>{children}</ToastProvider>
+          <SubscriptionProvider>
+            <ToastProvider>{children}</ToastProvider>
+            <UpgradeModal />
+          </SubscriptionProvider>
         </ThemeProvider>
       </body>
     </html>

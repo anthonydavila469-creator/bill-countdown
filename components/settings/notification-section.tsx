@@ -9,10 +9,13 @@ import {
   ChevronDown,
   Moon,
   Info,
+  RefreshCw,
+  Crown,
 } from 'lucide-react';
 import { NotificationSettings, DEFAULT_NOTIFICATION_SETTINGS } from '@/types';
 import { cn } from '@/lib/utils';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
+import { useSubscription } from '@/hooks/use-subscription';
 
 const LEAD_TIME_OPTIONS = [
   { value: 0, label: 'Day of' },
@@ -134,6 +137,7 @@ export function NotificationSection() {
   const [settings, setSettings] = useState<NotificationSettings>(DEFAULT_NOTIFICATION_SETTINGS);
   const [isLoading, setIsLoading] = useState(true);
   const { isSupported, isSubscribed, subscribe, unsubscribe } = usePushNotifications();
+  const { canUsePushNotifications, canUseDailyAutoSync, canCustomizeReminders, showUpgradeModal } = useSubscription();
 
   // Fetch settings on mount
   useEffect(() => {
@@ -196,6 +200,10 @@ export function NotificationSection() {
     await updateSettings({ ...settings, quiet_end: value || null });
   }, [settings, updateSettings]);
 
+  const handleAutoSyncToggle = useCallback(async (enabled: boolean) => {
+    await updateSettings({ ...settings, auto_sync_enabled: enabled });
+  }, [settings, updateSettings]);
+
   if (isLoading) {
     return (
       <section>
@@ -237,97 +245,179 @@ export function NotificationSection() {
           />
         </FieldRow>
 
-        {/* Push Notifications */}
+        {/* Push Notifications - Pro Feature */}
         <FieldRow
           icon={Smartphone}
           label="Push Notifications"
           description={!isSupported ? 'Not supported in this browser' : 'Get notified in your browser'}
           index={1}
         >
-          <Toggle
-            enabled={settings.push_enabled && isSubscribed}
-            onChange={handlePushToggle}
-            disabled={!isSupported}
-            color="#8b5cf6"
-          />
+          <div className="flex items-center gap-3">
+            {!canUsePushNotifications && (
+              <span className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-500/20 border border-amber-500/30">
+                <Crown className="w-3 h-3 text-amber-400" />
+                <span className="text-[10px] font-semibold text-amber-300">Pro</span>
+              </span>
+            )}
+            <Toggle
+              enabled={settings.push_enabled && isSubscribed && canUsePushNotifications}
+              onChange={(enabled) => {
+                if (!canUsePushNotifications) {
+                  showUpgradeModal('push notifications');
+                  return;
+                }
+                handlePushToggle(enabled);
+              }}
+              disabled={!isSupported}
+              color="#8b5cf6"
+            />
+          </div>
         </FieldRow>
 
-        {/* Lead Time */}
+        {/* Auto-Sync Bills - Pro Feature */}
+        <FieldRow
+          icon={RefreshCw}
+          label="Auto-Sync Bills"
+          description="Automatically scan Gmail for bills daily"
+          index={2}
+        >
+          <div className="flex items-center gap-3">
+            {!canUseDailyAutoSync && (
+              <span className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-500/20 border border-amber-500/30">
+                <Crown className="w-3 h-3 text-amber-400" />
+                <span className="text-[10px] font-semibold text-amber-300">Pro</span>
+              </span>
+            )}
+            <Toggle
+              enabled={(settings.auto_sync_enabled ?? false) && canUseDailyAutoSync}
+              onChange={(enabled) => {
+                if (!canUseDailyAutoSync) {
+                  showUpgradeModal('daily auto-sync');
+                  return;
+                }
+                handleAutoSyncToggle(enabled);
+              }}
+              color="#10b981"
+            />
+          </div>
+        </FieldRow>
+
+        {/* Lead Time - Pro Feature */}
         <FieldRow
           icon={Clock}
           label="Reminder Timing"
           description="When to send reminders"
-          index={2}
+          index={3}
         >
-          <div className="relative">
-            <select
-              value={settings.lead_days}
-              onChange={(e) => handleLeadDaysChange(parseInt(e.target.value))}
-              className={cn(
-                'appearance-none pl-4 pr-10 py-2.5 min-w-[160px]',
-                'bg-white/[0.04] hover:bg-white/[0.08]',
-                'border border-white/[0.08] hover:border-white/[0.15]',
-                'rounded-xl text-white text-sm font-medium tracking-wide',
-                'focus:outline-none focus:ring-2 focus:ring-indigo-500/30',
-                'cursor-pointer transition-all duration-200'
-              )}
-            >
-              {LEAD_TIME_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value} className="bg-zinc-900 text-white">
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+          <div className="flex items-center gap-3">
+            {!canCustomizeReminders && (
+              <span className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-500/20 border border-amber-500/30">
+                <Crown className="w-3 h-3 text-amber-400" />
+                <span className="text-[10px] font-semibold text-amber-300">Pro</span>
+              </span>
+            )}
+            <div className="relative">
+              <select
+                value={settings.lead_days}
+                onChange={(e) => {
+                  if (!canCustomizeReminders) {
+                    showUpgradeModal('custom reminders');
+                    return;
+                  }
+                  handleLeadDaysChange(parseInt(e.target.value));
+                }}
+                disabled={!canCustomizeReminders}
+                className={cn(
+                  'appearance-none pl-4 pr-10 py-2.5 min-w-[160px]',
+                  'bg-white/[0.04] hover:bg-white/[0.08]',
+                  'border border-white/[0.08] hover:border-white/[0.15]',
+                  'rounded-xl text-white text-sm font-medium tracking-wide',
+                  'focus:outline-none focus:ring-2 focus:ring-indigo-500/30',
+                  'cursor-pointer transition-all duration-200',
+                  !canCustomizeReminders && 'opacity-50 cursor-not-allowed'
+                )}
+              >
+                {LEAD_TIME_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value} className="bg-zinc-900 text-white">
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+            </div>
           </div>
         </FieldRow>
 
-        {/* Quiet Hours */}
+        {/* Quiet Hours - Pro Feature */}
         <FieldRow
           icon={Moon}
           label="Quiet Hours"
           description="Don't send notifications during this time"
-          index={3}
+          index={4}
         >
-          <div className="flex items-center gap-2">
-            <input
-              type="time"
-              value={settings.quiet_start ?? ''}
-              onChange={(e) => handleQuietStartChange(e.target.value)}
-              placeholder="Start"
-              className={cn(
-                'px-3 py-2 w-[100px]',
-                'bg-white/[0.04] hover:bg-white/[0.08]',
-                'border border-white/[0.08] hover:border-white/[0.15]',
-                'rounded-xl text-white text-sm font-medium',
-                'focus:outline-none focus:ring-2 focus:ring-indigo-500/30',
-                'transition-all duration-200',
-                '[color-scheme:dark]'
-              )}
-            />
-            <span className="text-zinc-500">to</span>
-            <input
-              type="time"
-              value={settings.quiet_end ?? ''}
-              onChange={(e) => handleQuietEndChange(e.target.value)}
-              placeholder="End"
-              className={cn(
-                'px-3 py-2 w-[100px]',
-                'bg-white/[0.04] hover:bg-white/[0.08]',
-                'border border-white/[0.08] hover:border-white/[0.15]',
-                'rounded-xl text-white text-sm font-medium',
-                'focus:outline-none focus:ring-2 focus:ring-indigo-500/30',
-                'transition-all duration-200',
-                '[color-scheme:dark]'
-              )}
-            />
+          <div className="flex items-center gap-3">
+            {!canCustomizeReminders && (
+              <span className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-500/20 border border-amber-500/30">
+                <Crown className="w-3 h-3 text-amber-400" />
+                <span className="text-[10px] font-semibold text-amber-300">Pro</span>
+              </span>
+            )}
+            <div className="flex items-center gap-2">
+              <input
+                type="time"
+                value={settings.quiet_start ?? ''}
+                onChange={(e) => {
+                  if (!canCustomizeReminders) {
+                    showUpgradeModal('custom reminders');
+                    return;
+                  }
+                  handleQuietStartChange(e.target.value);
+                }}
+                disabled={!canCustomizeReminders}
+                placeholder="Start"
+                className={cn(
+                  'px-3 py-2 w-[100px]',
+                  'bg-white/[0.04] hover:bg-white/[0.08]',
+                  'border border-white/[0.08] hover:border-white/[0.15]',
+                  'rounded-xl text-white text-sm font-medium',
+                  'focus:outline-none focus:ring-2 focus:ring-indigo-500/30',
+                  'transition-all duration-200',
+                  '[color-scheme:dark]',
+                  !canCustomizeReminders && 'opacity-50 cursor-not-allowed'
+                )}
+              />
+              <span className="text-zinc-500">to</span>
+              <input
+                type="time"
+                value={settings.quiet_end ?? ''}
+                onChange={(e) => {
+                  if (!canCustomizeReminders) {
+                    showUpgradeModal('custom reminders');
+                    return;
+                  }
+                  handleQuietEndChange(e.target.value);
+                }}
+                disabled={!canCustomizeReminders}
+                placeholder="End"
+                className={cn(
+                  'px-3 py-2 w-[100px]',
+                  'bg-white/[0.04] hover:bg-white/[0.08]',
+                  'border border-white/[0.08] hover:border-white/[0.15]',
+                  'rounded-xl text-white text-sm font-medium',
+                  'focus:outline-none focus:ring-2 focus:ring-indigo-500/30',
+                  'transition-all duration-200',
+                  '[color-scheme:dark]',
+                  !canCustomizeReminders && 'opacity-50 cursor-not-allowed'
+                )}
+              />
+            </div>
           </div>
         </FieldRow>
 
         {/* Info tip */}
         <div
           className="relative p-4 rounded-xl bg-indigo-500/[0.03] border border-indigo-500/10 animate-in fade-in slide-in-from-bottom-2"
-          style={{ animationDelay: '300ms', animationFillMode: 'backwards' }}
+          style={{ animationDelay: '375ms', animationFillMode: 'backwards' }}
         >
           <div className="absolute top-2 left-2 w-2 h-2 border-l border-t border-indigo-400/30 rounded-tl-sm" />
           <div className="absolute top-2 right-2 w-2 h-2 border-r border-t border-indigo-400/30 rounded-tr-sm" />

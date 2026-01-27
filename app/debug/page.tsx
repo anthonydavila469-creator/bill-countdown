@@ -90,6 +90,14 @@ export default function DebugPage() {
           daysBack: 90,
         }),
       });
+
+      // Handle 423 (sync already in progress)
+      if (res.status === 423) {
+        setRescanResult('A sync is already in progress. Please wait and try again.');
+        setRescanning(false);
+        return;
+      }
+
       const result = await res.json();
       setRescanResult(`Rescanned: ${result.processed} processed, ${result.autoAccepted} auto-accepted, ${result.needsReview} need review`);
       // Refresh the debug data

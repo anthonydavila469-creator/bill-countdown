@@ -39,13 +39,16 @@ import {
   Eye,
   EyeOff,
   Lightbulb,
+  Crown,
 } from 'lucide-react';
+import { useSubscription } from '@/hooks/use-subscription';
 import { cn } from '@/lib/utils';
 
 export default function DashboardPage() {
   const router = useRouter();
   const supabase = createClient();
   const { dashboardLayout, paycheckSettings } = useTheme();
+  const { canAddBill, showUpgradeModal, billsUsed, billLimit, isPro, canUsePaycheckMode, canUseCalendar, canUseHistory, refreshSubscription } = useSubscription();
 
   // Use optimistic mutations hook
   const {
@@ -165,6 +168,16 @@ export default function DashboardPage() {
     setIsAddModalOpen(true);
   };
 
+  // Handle Add Bill button click - checks bill limit
+  const handleAddBillClick = () => {
+    if (canAddBill) {
+      setEditingBill(null);
+      setIsAddModalOpen(true);
+    } else {
+      showUpgradeModal('unlimited bills');
+    }
+  };
+
   // Filter and sort bills based on search, filters, and layout preferences
   const filteredBills = useMemo(() => {
     let filtered = bills.filter((bill) =>
@@ -232,8 +245,9 @@ export default function DashboardPage() {
 
   // Handle adding/updating a bill
   const handleBillSuccess = async (bill: Bill) => {
-    // Refresh bills from context
+    // Refresh bills from context and subscription state (for bill count)
     await refetch();
+    await refreshSubscription();
     setEditingBill(null);
   };
 
@@ -371,6 +385,7 @@ export default function DashboardPage() {
       <OnboardingScreen
         onComplete={handleOnboardingComplete}
         onAddManually={handleAddManuallyFromOnboarding}
+        isGmailConnected={isGmailConnected}
       />
     );
   }
@@ -419,6 +434,12 @@ export default function DashboardPage() {
                   <Calendar className="w-4 h-4 group-hover:text-cyan-400 transition-colors duration-200" />
                 </div>
                 <span className="font-medium">Calendar</span>
+                {!canUseCalendar && (
+                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30">
+                    <Crown className="w-3 h-3 text-amber-400" />
+                    <span className="text-[10px] font-semibold text-amber-300">Pro</span>
+                  </span>
+                )}
               </Link>
             </li>
             <li>
@@ -430,6 +451,12 @@ export default function DashboardPage() {
                   <History className="w-4 h-4 group-hover:text-violet-400 transition-colors duration-200" />
                 </div>
                 <span className="font-medium">History</span>
+                {!canUseHistory && (
+                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30">
+                    <Crown className="w-3 h-3 text-amber-400" />
+                    <span className="text-[10px] font-semibold text-amber-300">Pro</span>
+                  </span>
+                )}
               </Link>
             </li>
             <li>
@@ -441,6 +468,12 @@ export default function DashboardPage() {
                   <Lightbulb className="w-4 h-4 group-hover:text-amber-400 transition-colors duration-200" />
                 </div>
                 <span className="font-medium">Insights</span>
+                {!canUseHistory && (
+                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30">
+                    <Crown className="w-3 h-3 text-amber-400" />
+                    <span className="text-[10px] font-semibold text-amber-300">Pro</span>
+                  </span>
+                )}
               </Link>
             </li>
             <li>
@@ -733,15 +766,21 @@ export default function DashboardPage() {
                 )}
               </div>
               <button
-                onClick={() => {
-                  setEditingBill(null);
-                  setIsAddModalOpen(true);
-                }}
-                className="hidden sm:flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:opacity-90 transition-opacity"
-                style={{ backgroundColor: 'var(--accent-primary)' }}
+                onClick={handleAddBillClick}
+                className={cn(
+                  "hidden sm:flex items-center gap-2 px-4 py-2 font-medium rounded-lg transition-opacity",
+                  canAddBill
+                    ? "text-white hover:opacity-90"
+                    : "text-amber-200 border border-amber-500/30"
+                )}
+                style={canAddBill ? { backgroundColor: 'var(--accent-primary)' } : { backgroundColor: 'rgba(245, 158, 11, 0.2)' }}
               >
-                <Plus className="w-4 h-4" />
-                Add Bill
+                {canAddBill ? (
+                  <Plus className="w-4 h-4" />
+                ) : (
+                  <Crown className="w-4 h-4" />
+                )}
+                {canAddBill ? 'Add Bill' : `${billsUsed}/${billLimit} Bills`}
               </button>
             </div>
           </div>
@@ -749,8 +788,8 @@ export default function DashboardPage() {
 
         {/* Dashboard content */}
         <div className="p-6">
-          {/* Paycheck Summary Card - shown when paycheck mode is enabled */}
-          {paycheckSettings?.enabled && (
+          {/* Paycheck Summary Card - shown when paycheck mode is enabled AND user is Pro */}
+          {paycheckSettings?.enabled && canUsePaycheckMode && (
             <div className="mb-6">
               <PaycheckSummaryCard bills={bills} settings={paycheckSettings} />
             </div>
@@ -904,12 +943,21 @@ export default function DashboardPage() {
                 </p>
                 {!searchQuery && (
                   <button
-                    onClick={() => setIsAddModalOpen(true)}
-                    className="inline-flex items-center gap-2 px-6 py-3 text-white font-medium rounded-lg hover:opacity-90 transition-opacity"
-                    style={{ backgroundColor: 'var(--accent-primary)' }}
+                    onClick={handleAddBillClick}
+                    className={cn(
+                      "inline-flex items-center gap-2 px-6 py-3 font-medium rounded-lg transition-opacity",
+                      canAddBill
+                        ? "text-white hover:opacity-90"
+                        : "text-amber-200 border border-amber-500/30"
+                    )}
+                    style={canAddBill ? { backgroundColor: 'var(--accent-primary)' } : { backgroundColor: 'rgba(245, 158, 11, 0.2)' }}
                   >
-                    <Plus className="w-5 h-5" />
-                    Add Your First Bill
+                    {canAddBill ? (
+                      <Plus className="w-5 h-5" />
+                    ) : (
+                      <Crown className="w-5 h-5" />
+                    )}
+                    {canAddBill ? 'Add Your First Bill' : 'Upgrade for More Bills'}
                   </button>
                 )}
               </div>
@@ -993,20 +1041,25 @@ export default function DashboardPage() {
 
       {/* Mobile FAB */}
       <button
-        onClick={() => {
-          setEditingBill(null);
-          setIsAddModalOpen(true);
-        }}
+        onClick={handleAddBillClick}
         className={cn(
-          "lg:hidden fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-white hover:opacity-90 transition-opacity",
-          selectedBillIds.size > 0 && "bottom-24" // Move up when batch bar is visible
+          "lg:hidden fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center hover:opacity-90 transition-opacity",
+          selectedBillIds.size > 0 && "bottom-24", // Move up when batch bar is visible
+          canAddBill ? "text-white" : "text-amber-200 border-2 border-amber-500/50"
         )}
-        style={{
+        style={canAddBill ? {
           backgroundColor: 'var(--accent-primary)',
           boxShadow: '0 10px 15px -3px color-mix(in srgb, var(--accent-primary) 25%, transparent)'
+        } : {
+          backgroundColor: 'rgba(245, 158, 11, 0.3)',
+          boxShadow: '0 10px 15px -3px rgba(245, 158, 11, 0.25)'
         }}
       >
-        <Plus className="w-6 h-6" />
+        {canAddBill ? (
+          <Plus className="w-6 h-6" />
+        ) : (
+          <Crown className="w-6 h-6" />
+        )}
       </button>
 
       {/* Add/Edit Bill Modal */}

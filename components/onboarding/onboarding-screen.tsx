@@ -4,12 +4,15 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { TemplateSelector } from './template-selector';
 import { OptionalSetup, SetupOptions } from './optional-setup';
+import { GmailSyncStep } from './gmail-sync-step';
 import {
   getTemplateById,
   getNextDueDateForDay,
 } from '@/lib/onboarding/bill-templates';
 import { useTheme } from '@/contexts/theme-context';
 import { useToast } from '@/components/ui/toast';
+import { useSubscription } from '@/hooks/use-subscription';
+import { Bill } from '@/types';
 import {
   Zap,
   Sparkles,
@@ -17,21 +20,26 @@ import {
   ArrowRight,
   Loader2,
   ChevronLeft,
+  Mail,
+  Crown,
 } from 'lucide-react';
 
-type OnboardingStep = 'welcome' | 'templates' | 'setup' | 'creating';
+type OnboardingStep = 'welcome' | 'gmail_sync' | 'templates' | 'setup' | 'creating';
 
 interface OnboardingScreenProps {
   onComplete: () => void;
   onAddManually: () => void;
+  isGmailConnected?: boolean;
 }
 
 export function OnboardingScreen({
   onComplete,
   onAddManually,
+  isGmailConnected = false,
 }: OnboardingScreenProps) {
   const { updatePaycheckSettings, paycheckSettings } = useTheme();
   const { addToast } = useToast();
+  const { isPro, canSyncGmail, showUpgradeModal, refreshSubscription } = useSubscription();
 
   const [step, setStep] = useState<OnboardingStep>('welcome');
   const [selectedTemplateIds, setSelectedTemplateIds] = useState<Set<string>>(
@@ -45,6 +53,28 @@ export function OnboardingScreen({
   const [isCreating, setIsCreating] = useState(false);
 
   const handleQuickAdd = () => {
+    setStep('templates');
+  };
+
+  const handleGmailSync = () => {
+    if (canSyncGmail) {
+      setStep('gmail_sync');
+    } else {
+      showUpgradeModal('unlimited Gmail syncs');
+    }
+  };
+
+  const handleGmailComplete = async (importedBills: Bill[]) => {
+    await refreshSubscription();
+    addToast({
+      message: `${importedBills.length} bill${importedBills.length === 1 ? '' : 's'} imported`,
+      description: 'Tap any bill to edit details',
+      type: 'success',
+    });
+    onComplete();
+  };
+
+  const handleGmailSkip = () => {
     setStep('templates');
   };
 
@@ -162,7 +192,20 @@ export function OnboardingScreen({
         {step === 'welcome' && (
           <WelcomeStep
             onQuickAdd={handleQuickAdd}
+            onGmailSync={handleGmailSync}
             onAddManually={onAddManually}
+            isPro={isPro}
+            canSyncGmail={canSyncGmail}
+          />
+        )}
+
+        {/* Step: Gmail Sync */}
+        {step === 'gmail_sync' && (
+          <GmailSyncStep
+            onBack={handleBackToWelcome}
+            onComplete={handleGmailComplete}
+            onSkip={handleGmailSkip}
+            isGmailConnected={isGmailConnected}
           />
         )}
 
@@ -199,10 +242,13 @@ export function OnboardingScreen({
 // Welcome Step Component
 interface WelcomeStepProps {
   onQuickAdd: () => void;
+  onGmailSync: () => void;
   onAddManually: () => void;
+  isPro: boolean;
+  canSyncGmail: boolean;
 }
 
-function WelcomeStep({ onQuickAdd, onAddManually }: WelcomeStepProps) {
+function WelcomeStep({ onQuickAdd, onGmailSync, onAddManually, isPro, canSyncGmail }: WelcomeStepProps) {
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Logo */}
@@ -225,33 +271,81 @@ function WelcomeStep({ onQuickAdd, onAddManually }: WelcomeStepProps) {
         </p>
       </div>
 
-      {/* Options */}
+      {/* Options - Different layout for Pro vs Free */}
       <div className="space-y-3">
-        {/* Quick Add */}
+        {/* Gmail Sync - Primary for Pro users */}
+        <button
+          onClick={onGmailSync}
+          className={cn(
+            'group w-full p-5 rounded-2xl transition-all duration-300',
+            isPro
+              ? 'bg-gradient-to-br from-blue-500/15 to-violet-500/15 border border-blue-500/30 hover:border-blue-500/50 hover:from-blue-500/20 hover:to-violet-500/20'
+              : 'bg-gradient-to-br from-blue-500/10 to-violet-500/10 border border-blue-500/20 hover:border-blue-500/40'
+          )}
+        >
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-violet-500">
+              <Mail className="w-5 h-5 text-white" />
+            </div>
+            <div className="flex-1 text-left">
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="font-semibold text-white">Sync from Gmail</h3>
+                {!isPro && canSyncGmail && (
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-medium">
+                    1 FREE
+                  </span>
+                )}
+                {!canSyncGmail && (
+                  <span className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-medium">
+                    <Crown className="w-3 h-3" />
+                    PRO
+                  </span>
+                )}
+              </div>
+              <p className="text-sm text-white/50">
+                {isPro
+                  ? 'Automatically import bills from your inbox'
+                  : canSyncGmail
+                    ? 'Import bills from your inbox (1 free sync)'
+                    : 'Upgrade to Pro for unlimited Gmail syncs'
+                }
+              </p>
+            </div>
+            <ArrowRight className="w-5 h-5 text-blue-400 group-hover:translate-x-1 transition-transform" />
+          </div>
+        </button>
+
+        {/* Quick Add from Templates */}
         <button
           onClick={onQuickAdd}
           className={cn(
             'group w-full p-5 rounded-2xl transition-all duration-300',
-            'bg-gradient-to-br from-violet-500/10 to-blue-500/10',
-            'border border-violet-500/20 hover:border-violet-500/40',
-            'hover:from-violet-500/15 hover:to-blue-500/15'
+            isPro
+              ? 'bg-white/[0.02] border border-white/10 hover:bg-white/[0.04] hover:border-white/20'
+              : 'bg-gradient-to-br from-violet-500/10 to-blue-500/10 border border-violet-500/20 hover:border-violet-500/40 hover:from-violet-500/15 hover:to-blue-500/15'
           )}
         >
           <div className="flex items-center gap-4">
-            <div className="p-3 rounded-xl bg-gradient-to-br from-violet-500 to-blue-500">
+            <div className={cn(
+              "p-3 rounded-xl",
+              isPro ? "bg-white/10" : "bg-gradient-to-br from-violet-500 to-blue-500"
+            )}>
               <Sparkles className="w-5 h-5 text-white" />
             </div>
             <div className="flex-1 text-left">
-              <h3 className="font-semibold text-white mb-1">Quick Add</h3>
+              <h3 className="font-semibold text-white mb-1">Add from Templates</h3>
               <p className="text-sm text-white/50">
                 Select from common bills like rent, utilities, subscriptions
               </p>
             </div>
-            <ArrowRight className="w-5 h-5 text-violet-400 group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className={cn(
+              "w-5 h-5 group-hover:translate-x-1 transition-transform",
+              isPro ? "text-white/40" : "text-violet-400"
+            )} />
           </div>
         </button>
 
-        {/* Add Manually */}
+        {/* Add Manually - tertiary option */}
         <button
           onClick={onAddManually}
           className={cn(

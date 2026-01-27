@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Check, Pencil, Trash2, Calendar, DollarSign, RefreshCw, FileText, ExternalLink, Link, CreditCard, TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react';
+import { X, Check, Pencil, Trash2, Calendar, DollarSign, RefreshCw, FileText, ExternalLink, Link, CreditCard, TrendingUp, TrendingDown, AlertTriangle, Crown } from 'lucide-react';
 import { Bill } from '@/types';
 import { cn, formatDate, formatCurrency, getDaysUntilDue, getUrgency, formatCountdown, getPriceChange } from '@/lib/utils';
 import { getBillIcon } from '@/lib/get-bill-icon';
 import { GradientCard } from './ui/gradient-card';
 import { CountdownDisplay } from './countdown-display';
+import { useSubscription } from '@/hooks/use-subscription';
 
 interface BillDetailModalProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ export function BillDetailModal({
   onDelete,
   onMarkPaid,
 }: BillDetailModalProps) {
+  const { canUsePaymentLinks, showUpgradeModal } = useSubscription();
   const [isMarkingPaid, setIsMarkingPaid] = useState(false);
 
   // Prevent body scroll when modal is open
@@ -221,7 +223,7 @@ export function BillDetailModal({
             {/* Actions */}
             <div className="p-6 pt-0 space-y-3">
               {/* Pay Now button - only show if payment URL exists */}
-              {bill.payment_url && (
+              {bill.payment_url && canUsePaymentLinks && (
                 <a
                   href={bill.payment_url}
                   target="_blank"
@@ -232,6 +234,17 @@ export function BillDetailModal({
                   <ExternalLink className="w-5 h-5" />
                   Pay Now
                 </a>
+              )}
+
+              {/* Upgrade prompt for Pay Now - free users with payment URL */}
+              {bill.payment_url && !canUsePaymentLinks && (
+                <button
+                  onClick={() => showUpgradeModal('payment links')}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 text-amber-200 font-semibold rounded-xl hover:from-amber-500/30 hover:to-orange-500/30 transition-colors"
+                >
+                  <Crown className="w-5 h-5" />
+                  Upgrade for Pay Now
+                </button>
               )}
 
               {/* Mark as Paid button */}

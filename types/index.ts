@@ -250,6 +250,10 @@ export interface DashboardLayout {
   sortBy: SortBy;
 }
 
+// Subscription types
+export type SubscriptionStatus = 'free' | 'active' | 'canceled' | 'past_due';
+export type SubscriptionPlan = 'monthly' | 'yearly' | null;
+
 export interface UserPreferences {
   id: string;
   user_id: string;
@@ -257,6 +261,14 @@ export interface UserPreferences {
   accent_color: string;
   custom_urgency_colors: UrgencyColors;
   dashboard_layout: DashboardLayout;
+  // Stripe subscription fields
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
+  subscription_status: SubscriptionStatus;
+  subscription_plan: SubscriptionPlan;
+  subscription_current_period_end: string | null;
+  subscription_cancel_at_period_end: boolean;
+  gmail_syncs_used: number;
   created_at: string;
   updated_at: string;
 }
@@ -320,6 +332,7 @@ export interface NotificationSettings {
   quiet_start: string | null; // HH:MM format
   quiet_end: string | null; // HH:MM format
   timezone: string; // IANA timezone
+  auto_sync_enabled: boolean; // Auto-sync Gmail daily
 }
 
 export interface PushSubscription {
@@ -350,4 +363,37 @@ export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
   quiet_start: null,
   quiet_end: null,
   timezone: 'America/New_York',
+  auto_sync_enabled: true,
 };
+
+// Sync Types
+export type SyncType = 'manual' | 'auto';
+export type SyncStatus = 'running' | 'completed' | 'failed' | 'skipped';
+
+export interface SyncLog {
+  id: string;
+  user_id: string;
+  sync_type: SyncType;
+  started_at: string;
+  completed_at: string | null;
+  status: SyncStatus;
+  emails_fetched: number;
+  emails_filtered: number;
+  emails_processed: number;
+  bills_created: number;
+  bills_needs_review: number;
+  ai_tokens_used: number;
+  error_message: string | null;
+  created_at: string;
+}
+
+export interface SyncResult {
+  success: boolean;
+  syncLogId?: string;
+  emailsFetched: number;
+  emailsFiltered: number;
+  emailsProcessed: number;
+  billsCreated: number;
+  billsNeedsReview: number;
+  error?: string;
+}

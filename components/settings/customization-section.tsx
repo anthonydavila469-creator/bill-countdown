@@ -18,6 +18,7 @@ import {
   BarChart3,
 } from 'lucide-react';
 import { useTheme } from '@/contexts/theme-context';
+import { useSubscription } from '@/hooks/use-subscription';
 import {
   DEFAULT_URGENCY_COLORS,
   DEFAULT_ACCENT_COLOR,
@@ -391,6 +392,7 @@ export function CustomizationSection() {
     updateUrgencyColors,
     updateDashboardLayout,
   } = useTheme();
+  const { showUpgradeModal } = useSubscription();
 
   const handleUrgencyColorChange = (key: keyof typeof urgencyColors, color: string) => {
     updateUrgencyColors({ ...urgencyColors, [key]: color });
@@ -443,7 +445,10 @@ export function CustomizationSection() {
                 <p className="text-zinc-400 mb-6 max-w-md">
                   Personalize your experience with custom colors, themes, and urgency indicators that match your style.
                 </p>
-                <button className="group relative px-6 py-3 overflow-hidden rounded-xl font-medium transition-all duration-300">
+                <button
+                  onClick={() => showUpgradeModal('custom colors')}
+                  className="group relative px-6 py-3 overflow-hidden rounded-xl font-medium transition-all duration-300"
+                >
                   <div className="absolute inset-0 bg-gradient-to-r from-amber-400 to-orange-500" />
                   <div className="absolute inset-0 bg-gradient-to-r from-amber-300 to-orange-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <div className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700" />

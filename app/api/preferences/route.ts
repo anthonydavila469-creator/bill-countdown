@@ -119,6 +119,11 @@ export async function PUT(request: Request) {
       updateData.notification_settings = body.notification_settings;
     }
 
+    // Gmail syncs counter can be incremented
+    if (body.gmail_syncs_used !== undefined) {
+      updateData.gmail_syncs_used = body.gmail_syncs_used;
+    }
+
     // Upsert preferences
     const { data: preferences, error } = await supabase
       .from('user_preferences')

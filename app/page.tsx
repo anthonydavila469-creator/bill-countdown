@@ -10,6 +10,13 @@ import {
   CheckCircle2,
   Zap,
   Shield,
+  Repeat,
+  Calendar,
+  BarChart3,
+  Wallet,
+  Check,
+  X,
+  Crown,
 } from 'lucide-react';
 
 // Demo bills for the hero showcase
@@ -135,6 +142,34 @@ const features = [
     gradient: 'from-orange-500 to-amber-500',
   },
   {
+    icon: Repeat,
+    title: 'Recurring Bills',
+    description:
+      'Set up weekly, biweekly, monthly, or yearly bills that auto-generate on schedule.',
+    gradient: 'from-emerald-500 to-teal-500',
+  },
+  {
+    icon: Calendar,
+    title: 'Calendar View',
+    description:
+      'See all your bills on a monthly calendar. Drag and drop to reschedule due dates.',
+    gradient: 'from-pink-500 to-rose-500',
+  },
+  {
+    icon: BarChart3,
+    title: 'Analytics & Insights',
+    description:
+      'Track spending trends, category breakdowns, and monthly comparisons at a glance.',
+    gradient: 'from-cyan-500 to-blue-500',
+  },
+  {
+    icon: Wallet,
+    title: 'Paycheck Mode',
+    description:
+      'See which bills are due before vs after payday. Know exactly what\'s left over.',
+    gradient: 'from-amber-500 to-yellow-500',
+  },
+  {
     icon: Moon,
     title: 'Dark Mode',
     description:
@@ -198,6 +233,12 @@ export default function LandingPage() {
                 className="text-sm text-zinc-400 hover:text-white transition-colors"
               >
                 Features
+              </a>
+              <a
+                href="#pricing"
+                className="text-sm text-zinc-400 hover:text-white transition-colors"
+              >
+                Pricing
               </a>
               <a
                 href="#how-it-works"
@@ -374,6 +415,137 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Pricing Section */}
+      <section id="pricing" className="relative py-24 border-t border-white/5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Section header */}
+          <div className="text-center mb-16">
+            <span className="text-sm font-semibold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent uppercase tracking-wider">
+              Simple Pricing
+            </span>
+            <h2 className="mt-3 text-3xl sm:text-4xl font-bold tracking-tight">
+              Choose Your{' '}
+              <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+                Plan
+              </span>
+            </h2>
+            <p className="mt-4 text-lg text-zinc-400 max-w-2xl mx-auto">
+              Start free and upgrade when you need more
+            </p>
+          </div>
+
+          {/* Pricing Cards Grid */}
+          <div className="grid sm:grid-cols-2 gap-8 max-w-3xl mx-auto">
+            {/* Free Card */}
+            <div className="relative p-8 rounded-2xl bg-white/[0.02] border border-white/5">
+              <div className="mb-6">
+                <h3 className="text-xl font-bold text-white mb-2">Free</h3>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl font-bold text-white">$0</span>
+                  <span className="text-zinc-500">/forever</span>
+                </div>
+              </div>
+
+              <ul className="space-y-4 mb-8">
+                <li className="flex items-center gap-3 text-zinc-300">
+                  <Check className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                  <span>Up to 5 bills</span>
+                </li>
+                <li className="flex items-center gap-3 text-zinc-300">
+                  <Check className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                  <span>Bill templates for quick setup</span>
+                </li>
+                <li className="flex items-center gap-3 text-zinc-300">
+                  <Check className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                  <span>Bill countdown & reminders</span>
+                </li>
+                <li className="flex items-center gap-3 text-zinc-300">
+                  <Check className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                  <span>1 Gmail sync to try AI extraction</span>
+                </li>
+                <li className="flex items-center gap-3 text-zinc-500">
+                  <X className="w-5 h-5 text-zinc-600 flex-shrink-0" />
+                  <span>Calendar view</span>
+                </li>
+                <li className="flex items-center gap-3 text-zinc-500">
+                  <X className="w-5 h-5 text-zinc-600 flex-shrink-0" />
+                  <span>Analytics & insights</span>
+                </li>
+              </ul>
+
+              <Link
+                href="/signup"
+                className="block w-full py-3 text-center font-semibold bg-white/10 hover:bg-white/20 rounded-xl transition-colors"
+              >
+                Get Started
+              </Link>
+            </div>
+
+            {/* Pro Card */}
+            <div className="relative p-8 rounded-2xl bg-gradient-to-br from-blue-500/10 to-violet-500/10 border border-blue-500/30">
+              {/* Best Value Badge */}
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <span className="px-3 py-1 text-xs font-semibold bg-gradient-to-r from-blue-500 to-violet-500 rounded-full text-white">
+                  Best Value
+                </span>
+              </div>
+
+              <div className="mb-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <Crown className="w-5 h-5 text-amber-400" />
+                  <h3 className="text-xl font-bold text-white">Pro</h3>
+                </div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl font-bold text-white">$4.99</span>
+                  <span className="text-zinc-400">/month</span>
+                </div>
+                <p className="text-sm text-emerald-400 mt-1">
+                  or $39.99/year (save 33%)
+                </p>
+              </div>
+
+              <ul className="space-y-4 mb-8">
+                <li className="flex items-center gap-3 text-zinc-300">
+                  <Check className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                  <span>Unlimited bills</span>
+                </li>
+                <li className="flex items-center gap-3 text-zinc-300">
+                  <Check className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                  <span>Unlimited Gmail syncs + daily auto-sync</span>
+                </li>
+                <li className="flex items-center gap-3 text-zinc-300">
+                  <Check className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                  <span>Payment links ("Pay Now")</span>
+                </li>
+                <li className="flex items-center gap-3 text-zinc-300">
+                  <Check className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                  <span>Calendar view</span>
+                </li>
+                <li className="flex items-center gap-3 text-zinc-300">
+                  <Check className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                  <span>Analytics & insights</span>
+                </li>
+                <li className="flex items-center gap-3 text-zinc-300">
+                  <Check className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                  <span>Paycheck mode</span>
+                </li>
+                <li className="flex items-center gap-3 text-zinc-300">
+                  <Check className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                  <span>Full notification controls</span>
+                </li>
+              </ul>
+
+              <Link
+                href="/signup"
+                className="block w-full py-3 text-center font-semibold bg-gradient-to-r from-blue-500 to-violet-500 hover:opacity-90 rounded-xl transition-opacity"
+              >
+                Get Pro
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* How it Works Section */}
       <section
         id="how-it-works"
@@ -453,7 +625,7 @@ export default function LandingPage() {
             </Link>
 
             <p className="text-sm text-zinc-500 mt-4">
-              No credit card required • Free forever for up to 10 bills
+              No credit card required • Free forever for up to 5 bills
             </p>
           </div>
         </div>

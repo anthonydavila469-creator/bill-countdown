@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { NextResponse } from 'next/server';
 import {
   fetchBillEmails,
@@ -8,14 +9,19 @@ import {
   getHeader,
 } from '@/lib/gmail/client';
 import { processEmailBatch, ProcessEmailOptions } from '@/lib/bill-extraction';
+import { acquireSyncLock, releaseSyncLock } from '@/lib/sync/auto-sync';
 
 /**
  * POST /api/extraction/scan-inbox
  * Batch scan Gmail inbox for bill emails
  */
 export async function POST(request: Request) {
+  let lockAcquired = false;
+  let userId: string | null = null;
+
   try {
     const supabase = await createClient();
+    const adminClient = createAdminClient();
 
     // Verify user is authenticated
     const {
@@ -25,6 +31,17 @@ export async function POST(request: Request) {
 
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    userId = user.id;
+
+    // Try to acquire sync lock (prevent concurrent syncs)
+    lockAcquired = await acquireSyncLock(adminClient, user.id);
+    if (!lockAcquired) {
+      return NextResponse.json(
+        { error: 'sync_in_progress', message: 'A sync is already running. Please wait and try again.' },
+        { status: 423 }
+      );
     }
 
     // Parse request body for optional parameters
@@ -42,6 +59,10 @@ export async function POST(request: Request) {
       .single();
 
     if (tokenError || !tokenData) {
+      // Release lock before returning
+      if (lockAcquired && userId) {
+        await releaseSyncLock(adminClient, userId);
+      }
       return NextResponse.json(
         { error: 'Gmail not connected', code: 'GMAIL_NOT_CONNECTED' },
         { status: 400 }
@@ -66,6 +87,10 @@ export async function POST(request: Request) {
           })
           .eq('user_id', user.id);
       } catch {
+        // Release lock before returning
+        if (lockAcquired && userId) {
+          await releaseSyncLock(adminClient, userId);
+        }
         return NextResponse.json(
           {
             error: 'Failed to refresh Gmail access. Please reconnect Gmail.',
@@ -164,6 +189,11 @@ export async function POST(request: Request) {
       forceReprocess,
     });
 
+    // Release lock before returning
+    if (lockAcquired && userId) {
+      await releaseSyncLock(adminClient, userId);
+    }
+
     return NextResponse.json({
       summary: {
         fetchedFromGmail: messages.length,
@@ -177,6 +207,13 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error('Inbox scan error:', error);
+
+    // Release lock on error
+    if (lockAcquired && userId) {
+      const adminClient = createAdminClient();
+      await releaseSyncLock(adminClient, userId);
+    }
+
     return NextResponse.json(
       { error: 'Failed to scan inbox' },
       { status: 500 }

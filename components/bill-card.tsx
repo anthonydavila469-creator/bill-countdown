@@ -15,8 +15,9 @@ import { GradientCard } from './ui/gradient-card';
 import { CountdownDisplay } from './countdown-display';
 import {
   RefreshCw, Calendar, DollarSign, ExternalLink, CreditCard, TrendingUp, TrendingDown, Check, Zap,
-  AlertTriangle, Clock, History, AlertCircle, LucideIcon
+  AlertTriangle, Clock, History, AlertCircle, LucideIcon, Crown
 } from 'lucide-react';
+import { useSubscription } from '@/hooks/use-subscription';
 
 interface BillCardProps {
   bill: Bill;
@@ -61,11 +62,13 @@ export function BillCard({
   showMarkPaid = true,
   riskType,
 }: BillCardProps) {
+  const { canUsePaymentLinks, showUpgradeModal } = useSubscription();
   const daysLeft = getDaysUntilDue(bill.due_date);
   const urgency = getUrgency(daysLeft);
   const priceChange = getPriceChange(bill.amount, bill.previous_amount);
   const isPaid = bill.is_paid;
   const hasPaymentLink = !!bill.payment_url;
+  const canShowPayNow = hasPaymentLink && canUsePaymentLinks;
   const { icon: IconComponent, colorClass: iconColorClass } = getBillIcon(bill);
   const showLatePaymentRisk = hasLatePaymentRisk(bill);
   const riskConfig = riskType ? riskBadgeConfig[riskType] : null;
@@ -142,7 +145,7 @@ export function BillCard({
             {showMarkPaid && !isPaid && (
               <div className="flex items-center gap-1.5 opacity-0 translate-x-2 group-hover/compact:opacity-100 group-hover/compact:translate-x-0 transition-all duration-200">
                 {/* Pay Now button */}
-                {hasPaymentLink ? (
+                {canShowPayNow ? (
                   <button
                     onClick={handlePayNow}
                     className={cn(
@@ -154,6 +157,22 @@ export function BillCard({
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
                     Pay
+                  </button>
+                ) : hasPaymentLink && !canUsePaymentLinks ? (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      showUpgradeModal('payment links');
+                    }}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium",
+                      "bg-gradient-to-r from-amber-500/30 to-orange-500/30",
+                      "text-amber-200 border border-amber-500/30"
+                    )}
+                    title="Upgrade to Pro for payment links"
+                  >
+                    <Crown className="w-3.5 h-3.5" />
+                    Pro
                   </button>
                 ) : (
                   <button
@@ -395,8 +414,8 @@ export function BillCard({
           {/* Action Buttons */}
           {showMarkPaid && !isPaid && (
             <div className="flex gap-2">
-              {/* Pay Now Button - Primary action if payment link exists */}
-              {hasPaymentLink ? (
+              {/* Pay Now Button - Primary action if payment link exists and user is Pro */}
+              {canShowPayNow ? (
                 <button
                   onClick={handlePayNow}
                   className={cn(
@@ -409,6 +428,23 @@ export function BillCard({
                 >
                   <ExternalLink className="w-4 h-4 text-white" />
                   <span className="text-white font-semibold">Pay Now</span>
+                </button>
+              ) : hasPaymentLink && !canUsePaymentLinks ? (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    showUpgradeModal('payment links');
+                  }}
+                  className={cn(
+                    "group relative flex-1 py-2.5 rounded-xl font-medium text-sm transition-all duration-200",
+                    "bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30",
+                    "active:scale-[0.98]",
+                    "flex items-center justify-center gap-2",
+                    "border border-amber-500/30"
+                  )}
+                >
+                  <Crown className="w-4 h-4 text-amber-300" />
+                  <span className="text-amber-200 font-semibold">Upgrade for Pay Now</span>
                 </button>
               ) : (
                 <div className="flex-1 relative">
@@ -476,11 +512,13 @@ export function BillListItem({
   showMarkPaid = true,
   riskType,
 }: BillCardProps) {
+  const { canUsePaymentLinks, showUpgradeModal } = useSubscription();
   const daysLeft = getDaysUntilDue(bill.due_date);
   const urgency = getUrgency(daysLeft);
   const priceChange = getPriceChange(bill.amount, bill.previous_amount);
   const isPaid = bill.is_paid;
   const hasPaymentLink = !!bill.payment_url;
+  const canShowPayNow = hasPaymentLink && canUsePaymentLinks;
   const { icon: IconComponent, colorClass: iconColorClass } = getBillIcon(bill);
   const showLatePaymentRisk = hasLatePaymentRisk(bill);
   const riskConfig = riskType ? riskBadgeConfig[riskType] : null;
@@ -637,7 +675,7 @@ export function BillListItem({
       {showMarkPaid && !isPaid ? (
         <div className="flex items-center gap-2">
           {/* Pay Now button */}
-          {hasPaymentLink ? (
+          {canShowPayNow ? (
             <button
               onClick={handlePayNow}
               className={cn(
@@ -649,6 +687,22 @@ export function BillListItem({
             >
               <ExternalLink className="w-4 h-4" />
               Pay
+            </button>
+          ) : hasPaymentLink && !canUsePaymentLinks ? (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                showUpgradeModal('payment links');
+              }}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200",
+                "bg-amber-500/20 text-amber-500 dark:text-amber-400",
+                "border border-amber-500/30 hover:bg-amber-500/30"
+              )}
+              title="Upgrade to Pro for payment links"
+            >
+              <Crown className="w-4 h-4" />
+              Pro
             </button>
           ) : (
             <button

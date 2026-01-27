@@ -19,7 +19,9 @@ import {
   BarChart3,
   TrendingUp,
   Sparkles,
+  Crown,
 } from 'lucide-react';
+import { useSubscription } from '@/hooks/use-subscription';
 import { Spinner } from '@/components/ui/animated-list';
 import {
   getCurrentMonthKey,
@@ -44,6 +46,7 @@ import { TrendChart } from '@/components/insights/trend-chart';
 export default function InsightsPage() {
   const router = useRouter();
   const supabase = createClient();
+  const { canUseCalendar, canUseHistory } = useSubscription();
 
   // Auth state
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
@@ -205,6 +208,12 @@ export default function InsightsPage() {
               >
                 <Calendar className="w-5 h-5" />
                 Calendar
+                {!canUseCalendar && (
+                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30 ml-auto">
+                    <Crown className="w-3 h-3 text-amber-400" />
+                    <span className="text-[10px] font-semibold text-amber-300">Pro</span>
+                  </span>
+                )}
               </Link>
             </li>
             <li>
@@ -214,6 +223,12 @@ export default function InsightsPage() {
               >
                 <History className="w-5 h-5" />
                 History
+                {!canUseHistory && (
+                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30 ml-auto">
+                    <Crown className="w-3 h-3 text-amber-400" />
+                    <span className="text-[10px] font-semibold text-amber-300">Pro</span>
+                  </span>
+                )}
               </Link>
             </li>
             <li>
@@ -223,6 +238,12 @@ export default function InsightsPage() {
               >
                 <Lightbulb className="w-5 h-5" />
                 Insights
+                {!canUseHistory && (
+                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30 ml-auto">
+                    <Crown className="w-3 h-3 text-amber-400" />
+                    <span className="text-[10px] font-semibold text-amber-300">Pro</span>
+                  </span>
+                )}
               </Link>
             </li>
             <li>
