@@ -9,11 +9,12 @@ import {
   ReactNode,
 } from 'react';
 import {
-  UrgencyColors,
   DashboardLayout,
   PaycheckSettings,
-  DEFAULT_URGENCY_COLORS,
-  DEFAULT_ACCENT_COLOR,
+  ColorThemeId,
+  COLOR_THEMES,
+  UNIVERSAL_URGENCY_COLORS,
+  DEFAULT_COLOR_THEME,
   DEFAULT_DASHBOARD_LAYOUT,
   DEFAULT_PAYCHECK_SETTINGS,
 } from '@/types';
@@ -21,15 +22,15 @@ import {
 interface ThemeContextValue {
   // State
   isPro: boolean;
-  accentColor: string;
-  urgencyColors: UrgencyColors;
+  selectedTheme: ColorThemeId;
+  accentColor: string;       // Derived from theme
+  cardGradient: string;      // Derived from theme
   dashboardLayout: DashboardLayout;
   paycheckSettings: PaycheckSettings;
   isLoading: boolean;
 
   // Actions
-  updateAccentColor: (color: string) => Promise<void>;
-  updateUrgencyColors: (colors: UrgencyColors) => Promise<void>;
+  updateTheme: (themeId: ColorThemeId) => Promise<void>;
   updateDashboardLayout: (layout: Partial<DashboardLayout>) => Promise<void>;
   updatePaycheckSettings: (settings: PaycheckSettings) => Promise<void>;
   refreshPreferences: () => Promise<void>;
@@ -38,16 +39,23 @@ interface ThemeContextValue {
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 // Apply CSS variables to document root
-function applyCSSVariables(urgencyColors: UrgencyColors, accentColor: string) {
+// Urgency colors are UNIVERSAL and never change per theme
+function applyCSSVariables(themeId: ColorThemeId) {
   if (typeof document === 'undefined') return;
 
+  const theme = COLOR_THEMES[themeId];
   const root = document.documentElement;
-  root.style.setProperty('--urgency-overdue', urgencyColors.overdue);
-  root.style.setProperty('--urgency-urgent', urgencyColors.urgent);
-  root.style.setProperty('--urgency-soon', urgencyColors.soon);
-  root.style.setProperty('--urgency-safe', urgencyColors.safe);
-  root.style.setProperty('--urgency-distant', urgencyColors.distant);
-  root.style.setProperty('--accent-primary', accentColor);
+
+  // Universal urgency colors - same for all themes
+  root.style.setProperty('--urgency-overdue', UNIVERSAL_URGENCY_COLORS.overdue);
+  root.style.setProperty('--urgency-urgent', UNIVERSAL_URGENCY_COLORS.urgent);
+  root.style.setProperty('--urgency-soon', UNIVERSAL_URGENCY_COLORS.soon);
+  root.style.setProperty('--urgency-safe', UNIVERSAL_URGENCY_COLORS.safe);
+  root.style.setProperty('--urgency-distant', UNIVERSAL_URGENCY_COLORS.distant);
+
+  // Theme-specific colors
+  root.style.setProperty('--accent-primary', theme.accentColor);
+  root.style.setProperty('--card-gradient', theme.cardGradient);
 }
 
 interface ThemeProviderProps {
@@ -56,11 +64,14 @@ interface ThemeProviderProps {
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
   const [isPro, setIsPro] = useState(false);
-  const [accentColor, setAccentColor] = useState(DEFAULT_ACCENT_COLOR);
-  const [urgencyColors, setUrgencyColors] = useState<UrgencyColors>(DEFAULT_URGENCY_COLORS);
+  const [selectedTheme, setSelectedTheme] = useState<ColorThemeId>(DEFAULT_COLOR_THEME);
   const [dashboardLayout, setDashboardLayout] = useState<DashboardLayout>(DEFAULT_DASHBOARD_LAYOUT);
   const [paycheckSettings, setPaycheckSettings] = useState<PaycheckSettings>(DEFAULT_PAYCHECK_SETTINGS);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Derived values from theme
+  const accentColor = COLOR_THEMES[selectedTheme].accentColor;
+  const cardGradient = COLOR_THEMES[selectedTheme].cardGradient;
 
   // Fetch preferences on mount
   const refreshPreferences = useCallback(async () => {
@@ -73,16 +84,12 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 
       const data = await response.json();
       setIsPro(data.is_pro ?? false);
-      setAccentColor(data.accent_color ?? DEFAULT_ACCENT_COLOR);
-      setUrgencyColors(data.custom_urgency_colors ?? DEFAULT_URGENCY_COLORS);
+      setSelectedTheme(data.color_theme ?? DEFAULT_COLOR_THEME);
       setDashboardLayout(data.dashboard_layout ?? DEFAULT_DASHBOARD_LAYOUT);
       setPaycheckSettings(data.paycheck_settings ?? DEFAULT_PAYCHECK_SETTINGS);
 
       // Apply CSS variables
-      applyCSSVariables(
-        data.custom_urgency_colors ?? DEFAULT_URGENCY_COLORS,
-        data.accent_color ?? DEFAULT_ACCENT_COLOR
-      );
+      applyCSSVariables(data.color_theme ?? DEFAULT_COLOR_THEME);
     } catch (error) {
       console.error('Failed to fetch preferences:', error);
     } finally {
@@ -94,46 +101,27 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     refreshPreferences();
   }, [refreshPreferences]);
 
-  // Apply CSS variables when colors change
+  // Apply CSS variables when theme changes
   useEffect(() => {
-    applyCSSVariables(urgencyColors, accentColor);
-  }, [urgencyColors, accentColor]);
+    applyCSSVariables(selectedTheme);
+  }, [selectedTheme]);
 
-  // Update accent color
-  const updateAccentColor = useCallback(async (color: string) => {
-    if (!isPro) return;
-
-    setAccentColor(color);
-    applyCSSVariables(urgencyColors, color);
-
-    try {
-      await fetch('/api/preferences', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accent_color: color }),
-      });
-    } catch (error) {
-      console.error('Failed to save accent color:', error);
-    }
-  }, [isPro, urgencyColors]);
-
-  // Update urgency colors
-  const updateUrgencyColors = useCallback(async (colors: UrgencyColors) => {
-    if (!isPro) return;
-
-    setUrgencyColors(colors);
-    applyCSSVariables(colors, accentColor);
+  // Update theme
+  // TODO: Re-enable Pro check after testing: if (!isPro) return;
+  const updateTheme = useCallback(async (themeId: ColorThemeId) => {
+    setSelectedTheme(themeId);
+    applyCSSVariables(themeId);
 
     try {
       await fetch('/api/preferences', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ custom_urgency_colors: colors }),
+        body: JSON.stringify({ color_theme: themeId }),
       });
     } catch (error) {
-      console.error('Failed to save urgency colors:', error);
+      console.error('Failed to save theme:', error);
     }
-  }, [isPro, accentColor]);
+  }, [isPro]);
 
   // Update dashboard layout
   const updateDashboardLayout = useCallback(async (layout: Partial<DashboardLayout>) => {
@@ -170,13 +158,13 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     <ThemeContext.Provider
       value={{
         isPro,
+        selectedTheme,
         accentColor,
-        urgencyColors,
+        cardGradient,
         dashboardLayout,
         paycheckSettings,
         isLoading,
-        updateAccentColor,
-        updateUrgencyColors,
+        updateTheme,
         updateDashboardLayout,
         updatePaycheckSettings,
         refreshPreferences,

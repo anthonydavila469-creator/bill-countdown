@@ -6,7 +6,7 @@ import { ProjectedBill, formatDateString } from '@/lib/calendar-utils';
 import { cn, getDaysUntilDue, getUrgency, formatCurrency } from '@/lib/utils';
 import { isToday, isInMonth } from '@/lib/calendar-utils';
 import { getBillIcon } from '@/lib/get-bill-icon';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, DollarSign } from 'lucide-react';
 
 interface CalendarDayProps {
   date: Date;
@@ -17,6 +17,7 @@ interface CalendarDayProps {
   onClick: () => void;
   animationDelay?: number;
   onBillDrop?: (billId: string, newDate: string) => void;
+  isPayday?: boolean;
 }
 
 // Map urgency to CSS variable name
@@ -37,6 +38,7 @@ export function CalendarDay({
   onClick,
   animationDelay = 0,
   onBillDrop,
+  isPayday = false,
 }: CalendarDayProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const inCurrentMonth = isInMonth(date, currentYear, currentMonth);
@@ -152,6 +154,14 @@ export function CalendarDay({
       {isDragOver && (
         <div className="absolute inset-2 rounded-md border-2 border-dashed border-emerald-400/60 flex items-center justify-center pointer-events-none">
           <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded">Drop here</span>
+        </div>
+      )}
+
+      {/* Payday marker */}
+      {isPayday && inCurrentMonth && (
+        <div className="absolute top-1 right-1 flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-emerald-500/20 border border-emerald-400/30 pointer-events-none">
+          <DollarSign className="w-2.5 h-2.5 text-emerald-400" />
+          <span className="text-[9px] font-bold text-emerald-300 uppercase">Pay</span>
         </div>
       )}
 

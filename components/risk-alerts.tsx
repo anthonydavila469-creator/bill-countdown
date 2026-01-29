@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Bill } from '@/types';
+import Link from 'next/link';
+import { Bill, PaycheckSettings } from '@/types';
 import { getRiskBills, RiskBill, RiskType } from '@/lib/risk-utils';
+import { detectBillCluster, BillCluster } from '@/lib/clustering-utils';
 import { formatCurrency, getDaysUntilDue } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import { getBillIcon } from '@/lib/get-bill-icon';
@@ -19,6 +21,7 @@ import {
   CreditCard,
   LucideIcon,
   AlertCircle,
+  CalendarDays,
 } from 'lucide-react';
 
 // Risk type styling configuration with enhanced visual hierarchy
@@ -77,6 +80,7 @@ interface RiskAlertsProps {
   onMarkPaid: (bill: Bill) => void;
   onEditBill?: (bill: Bill) => void;
   className?: string;
+  paycheckSettings?: PaycheckSettings | null;
 }
 
 export function RiskAlerts({
@@ -85,21 +89,41 @@ export function RiskAlerts({
   onMarkPaid,
   onEditBill,
   className,
+  paycheckSettings,
 }: RiskAlertsProps) {
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
   const [isCollapsed, setIsCollapsed] = useState(true); // Collapsed by default for cleaner dashboard
+  const [clusterDismissed, setClusterDismissed] = useState(false);
 
   const riskBills = useMemo(() => {
     const allRisk = getRiskBills(bills, 5);
     return allRisk.filter(rb => !dismissedIds.has(rb.bill.id));
   }, [bills, dismissedIds]);
 
+  // Detect bill cluster
+  const billCluster = useMemo(() => {
+    if (clusterDismissed) return null;
+    return detectBillCluster(bills, paycheckSettings);
+  }, [bills, paycheckSettings, clusterDismissed]);
+
   const handleDismiss = (billId: string) => {
     setDismissedIds(prev => new Set([...prev, billId]));
   };
 
-  // Don't render if no risk bills
-  if (riskBills.length === 0) return null;
+  // Don't render if no risk bills and no cluster
+  if (riskBills.length === 0 && !billCluster) return null;
+
+  // If only cluster alert (no risk bills), show standalone cluster alert
+  if (riskBills.length === 0 && billCluster) {
+    return (
+      <div className={cn('relative', className)}>
+        <ClusterAlert
+          cluster={billCluster}
+          onDismiss={() => setClusterDismissed(true)}
+        />
+      </div>
+    );
+  }
 
   // Count by type for header
   const overdueCount = riskBills.filter(rb => rb.riskType === 'overdue').length;
@@ -252,6 +276,16 @@ export function RiskAlerts({
           </div>
         </button>
 
+        {/* Cluster alert (if present) */}
+        {billCluster && (
+          <div className="px-4 pt-4">
+            <ClusterAlert
+              cluster={billCluster}
+              onDismiss={() => setClusterDismissed(true)}
+            />
+          </div>
+        )}
+
         {/* Risk items */}
         <div className="p-4 space-y-3">
           {riskBills.map((riskBill, index) => (
@@ -265,6 +299,89 @@ export function RiskAlerts({
               animationDelay={index * 50}
             />
           ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Cluster Alert Component
+interface ClusterAlertProps {
+  cluster: BillCluster;
+  onDismiss: () => void;
+}
+
+function ClusterAlert({ cluster, onDismiss }: ClusterAlertProps) {
+  return (
+    <div className={cn(
+      'group relative flex items-stretch gap-0 rounded-xl overflow-hidden',
+      'bg-gradient-to-r from-amber-500/15 via-yellow-500/10 to-amber-500/15',
+      'border border-amber-500/25 hover:border-amber-400/40',
+      'shadow-[0_0_20px_rgba(245,158,11,0.1)]',
+      'transition-all duration-300',
+      'animate-in fade-in slide-in-from-top-2'
+    )}>
+      {/* Left accent bar */}
+      <div className="relative w-1.5 flex-shrink-0">
+        <div className="absolute inset-0 bg-amber-500" />
+      </div>
+
+      {/* Main content */}
+      <div className="flex-1 flex items-center gap-3 p-3 pl-3">
+        {/* Icon */}
+        <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-amber-500/20 border border-amber-500/30">
+          <CalendarDays className="w-5 h-5 text-amber-400" />
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <h3 className="font-semibold text-amber-200 text-sm">
+              Heavy Week Ahead
+            </h3>
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/25 text-[10px] font-bold uppercase tracking-wide text-amber-300 border border-amber-500/30">
+              <AlertTriangle className="w-3 h-3" />
+              Cluster
+            </span>
+          </div>
+          <p className="text-sm text-amber-100/80">
+            {cluster.bills.length} bills totaling{' '}
+            <span className="font-semibold text-amber-200">
+              {formatCurrency(cluster.totalAmount)}
+            </span>{' '}
+            due {cluster.dateRange}
+          </p>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <Link
+            href="/dashboard/calendar"
+            className={cn(
+              'flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold transition-all duration-200',
+              'bg-gradient-to-r from-amber-500/30 to-yellow-500/20',
+              'hover:from-amber-500/40 hover:to-yellow-500/30',
+              'text-amber-200 border border-amber-500/30',
+              'active:scale-95'
+            )}
+          >
+            <CalendarDays className="w-3.5 h-3.5" />
+            View in Calendar
+          </Link>
+
+          {/* Dismiss button */}
+          <button
+            onClick={onDismiss}
+            className={cn(
+              'flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-200',
+              'opacity-0 group-hover:opacity-100',
+              'hover:bg-white/10 text-amber-400/60 hover:text-amber-300',
+              'active:scale-95'
+            )}
+            title="Dismiss this alert"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
         </div>
       </div>
     </div>

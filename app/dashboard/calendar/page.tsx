@@ -26,11 +26,13 @@ import {
 } from 'lucide-react';
 import { ProFeatureGate } from '@/components/pro-feature-gate';
 import { useSubscription } from '@/hooks/use-subscription';
+import { useTheme } from '@/contexts/theme-context';
 
 export default function CalendarPage() {
   const router = useRouter();
   const supabase = createClient();
   const { canUseCalendar, canUseHistory } = useSubscription();
+  const { paycheckSettings } = useTheme();
 
   // Auth state
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
@@ -351,6 +353,7 @@ export default function CalendarPage() {
             onEdit={handleEditFromDetail}
             onReschedule={handleReschedule}
             getMutationState={getMutationState}
+            paydayDate={paycheckSettings?.enabled ? paycheckSettings.next_payday : null}
           />
         </div>
       </main>

@@ -15,6 +15,7 @@ import { Bill, PaycheckSettings, PaycheckSummary, PaycheckRiskLevel, PaySchedule
 import { calculatePaycheckSummary, formatPayday } from '@/lib/paycheck-utils';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/contexts/theme-context';
+import { CashFlowProjection } from './cash-flow-projection';
 
 interface PaycheckSummaryCardProps {
   bills: Bill[];
@@ -353,35 +354,45 @@ export function PaycheckSummaryCard({ bills, settings }: PaycheckSummaryCardProp
         {/* Before/After Grid - Equal halves */}
         <div className="grid grid-cols-2 gap-3 mb-3">
           {/* Before Payday */}
-          <div className="relative p-4 rounded-2xl bg-white/15 backdrop-blur-sm border border-white/20">
-            <div className="flex items-center gap-2 mb-2">
-              {/* Pulsing dot indicator for urgent bills */}
-              {hasUrgentBills ? (
+          {hasUrgentBills ? (
+            <div className="relative p-4 rounded-2xl bg-white/15 backdrop-blur-sm border border-white/20">
+              <div className="flex items-center gap-2 mb-2">
+                {/* Pulsing dot indicator for urgent bills */}
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-400" />
                 </span>
-              ) : (
-                <span className="h-2 w-2 rounded-full bg-white/40" />
-              )}
-              <span className="text-xs font-bold uppercase tracking-wider text-white/90">
-                Before Payday
-              </span>
-            </div>
+                <span className="text-xs font-bold uppercase tracking-wider text-white/90">
+                  Before Payday
+                </span>
+              </div>
 
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-2xl font-black text-white tabular-nums">
-                {summary.billsBeforePayday}
-              </span>
-              <span className="text-white/80 text-sm font-medium">
-                {summary.billsBeforePayday === 1 ? 'bill' : 'bills'}
-              </span>
-              <span className="text-white/50 text-sm mx-0.5">·</span>
-              <span className="text-white font-semibold text-sm">
-                ${summary.totalBeforePayday.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-              </span>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-2xl font-black text-white tabular-nums">
+                  {summary.billsBeforePayday}
+                </span>
+                <span className="text-white/80 text-sm font-medium">
+                  {summary.billsBeforePayday === 1 ? 'bill' : 'bills'}
+                </span>
+                <span className="text-white/50 text-sm mx-0.5">·</span>
+                <span className="text-white font-semibold text-sm">
+                  ${summary.totalBeforePayday.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                </span>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="relative p-4 rounded-2xl bg-emerald-500/10 backdrop-blur-sm border border-emerald-400/20">
+              <div className="flex items-center gap-2 mb-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald-200">
+                  You're Clear
+                </span>
+              </div>
+              <p className="text-sm text-emerald-100/80 font-medium">
+                No bills due before payday
+              </p>
+            </div>
+          )}
 
           {/* After Payday */}
           <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/15">
@@ -407,29 +418,75 @@ export function PaycheckSummaryCard({ bills, settings }: PaycheckSummaryCardProp
           </div>
         </div>
 
-        {/* Budget Status Bar */}
-        {summary.moneyLeft !== null && risk && RiskIcon && (
-          <div className="flex items-center justify-between p-3 rounded-xl bg-black/20 backdrop-blur-sm">
-            <div className="flex items-center gap-2.5">
-              <RiskIcon className={cn('w-4 h-4', risk.iconClass)} />
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-lg font-bold text-white tabular-nums">
-                  ${Math.abs(summary.moneyLeft).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                </span>
-                <span className="text-white/70 text-sm font-medium">
-                  {risk.label}
-                </span>
+        {/* Budget Status Bar with Progress */}
+        {summary.moneyLeft !== null && settings.amount && risk && RiskIcon && (() => {
+          const percentRemaining = (summary.moneyLeft / settings.amount) * 100;
+          const percentUsed = Math.min(100, Math.max(0, 100 - percentRemaining));
+
+          // Determine progress bar styling based on thresholds
+          let barColor = 'bg-emerald-400';
+          let barGlow = 'shadow-emerald-500/30';
+          let statusBadge = 'ON TRACK';
+          let badgeClass = 'bg-emerald-400/20 text-emerald-200 border-emerald-300/30';
+
+          if (percentRemaining <= 0) {
+            barColor = 'bg-rose-400';
+            barGlow = 'shadow-rose-500/30';
+            statusBadge = 'OVER';
+            badgeClass = 'bg-rose-400/20 text-rose-200 border-rose-300/30';
+          } else if (percentRemaining <= 20) {
+            barColor = 'bg-rose-400';
+            barGlow = 'shadow-rose-500/30';
+            statusBadge = 'LOW';
+            badgeClass = 'bg-rose-400/20 text-rose-200 border-rose-300/30';
+          } else if (percentRemaining <= 50) {
+            barColor = 'bg-amber-400';
+            barGlow = 'shadow-amber-500/30';
+            statusBadge = 'TIGHT';
+            badgeClass = 'bg-amber-400/20 text-amber-200 border-amber-300/30';
+          }
+
+          return (
+            <div className="p-3 rounded-xl bg-black/20 backdrop-blur-sm space-y-2.5">
+              {/* Top row: Amount and badge */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <RiskIcon className={cn('w-4 h-4', risk.iconClass)} />
+                  <div className="flex items-baseline gap-1.5 flex-wrap">
+                    <span className="text-lg font-bold text-white tabular-nums">
+                      ${Math.abs(summary.moneyLeft).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    </span>
+                    <span className="text-white/70 text-sm font-medium">
+                      {summary.moneyLeft >= 0 ? 'remaining' : 'over budget'}
+                    </span>
+                    <span className="text-white/50 text-sm">
+                      from ${settings.amount.toLocaleString('en-US', { minimumFractionDigits: 0 })}
+                    </span>
+                  </div>
+                </div>
+
+                <div className={cn(
+                  'px-2.5 py-1 rounded-md border text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5',
+                  badgeClass
+                )}>
+                  {percentRemaining <= 0 && <AlertCircle className="w-3 h-3" />}
+                  {statusBadge}
+                </div>
+              </div>
+
+              {/* Progress bar */}
+              <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+                <div
+                  className={cn('h-full rounded-full transition-all duration-500', barColor, barGlow)}
+                  style={{
+                    width: `${percentUsed}%`,
+                    boxShadow: `0 0 12px currentColor`
+                  }}
+                />
               </div>
             </div>
-
-            <div className={cn(
-              'px-2.5 py-1 rounded-md border text-[11px] font-bold uppercase tracking-wider',
-              risk.badgeClass
-            )}>
-              {risk.badgeText}
-            </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* Prompt to set amount if not set */}
         {summary.moneyLeft === null && (
@@ -448,6 +505,11 @@ export function PaycheckSummaryCard({ bills, settings }: PaycheckSummaryCardProp
             </div>
             <ArrowRight className="w-4 h-4 text-white/50 group-hover/link:text-white group-hover/link:translate-x-1 transition-all duration-200" />
           </button>
+        )}
+
+        {/* Cash Flow Projection - collapsible section at bottom */}
+        {localSettings.amount && (
+          <CashFlowProjection bills={bills} settings={localSettings} />
         )}
       </div>
     </div>

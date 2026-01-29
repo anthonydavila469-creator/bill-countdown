@@ -143,27 +143,32 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     setUpgradeModalFeature(null);
   }, []);
 
-  // Computed values
-  const billLimit = isPro ? Infinity : FREE_TIER_LIMITS.MAX_BILLS;
-  const canAddBill = isPro || billsUsed < FREE_TIER_LIMITS.MAX_BILLS;
-  const gmailSyncsAllowed = isPro ? Infinity : FREE_TIER_LIMITS.MAX_GMAIL_SYNCS;
-  const canSyncGmail = isPro || gmailSyncsUsed < FREE_TIER_LIMITS.MAX_GMAIL_SYNCS;
+  // TODO: Remove this override after testing
+  const isProOverride = true; // Temporary override for testing
+
+  // Computed values (using override)
+  const effectiveIsPro = isProOverride || isPro;
+  const billLimit = effectiveIsPro ? Infinity : FREE_TIER_LIMITS.MAX_BILLS;
+  const canAddBill = effectiveIsPro || billsUsed < FREE_TIER_LIMITS.MAX_BILLS;
+  const gmailSyncsAllowed = effectiveIsPro ? Infinity : FREE_TIER_LIMITS.MAX_GMAIL_SYNCS;
+  const canSyncGmail = effectiveIsPro || gmailSyncsUsed < FREE_TIER_LIMITS.MAX_GMAIL_SYNCS;
 
   // Feature flags
-  const canUseCalendar = isPro;
-  const canUsePaymentLinks = isPro;
-  const canUsePaycheckMode = isPro;
-  const canUseHistory = isPro;
-  const canUseVariableBills = isPro;
-  const canCustomizeReminders = isPro;
-  const canUsePushNotifications = isPro;
-  const canUseDailyAutoSync = isPro;
+  // TODO: Re-enable isPro checks after testing
+  const canUseCalendar = true; // isPro
+  const canUsePaymentLinks = true; // isPro
+  const canUsePaycheckMode = true; // isPro
+  const canUseHistory = true; // isPro
+  const canUseVariableBills = true; // isPro
+  const canCustomizeReminders = true; // isPro
+  const canUsePushNotifications = true; // isPro
+  const canUseDailyAutoSync = true; // isPro
 
   return (
     <SubscriptionContext.Provider
       value={{
         // Core status
-        isPro,
+        isPro: effectiveIsPro, // TODO: Change back to isPro after testing
         subscriptionStatus,
         subscriptionPlan,
         currentPeriodEnd,

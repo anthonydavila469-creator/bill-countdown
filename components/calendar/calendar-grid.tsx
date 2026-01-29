@@ -30,9 +30,10 @@ interface CalendarGridProps {
   onEdit?: (bill: Bill) => void;
   onReschedule?: (billId: string, newDate: string, originalDate: string) => void;
   getMutationState?: (billId: string) => import('@/contexts/bills-context').MutationState;
+  paydayDate?: string | null;
 }
 
-export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit, onReschedule, getMutationState }: CalendarGridProps) {
+export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit, onReschedule, getMutationState, paydayDate }: CalendarGridProps) {
   const today = new Date();
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
@@ -379,6 +380,8 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
                       const isSelected =
                         selectedDate !== null &&
                         formatDateString(date) === formatDateString(selectedDate);
+                      const dateStr = formatDateString(date);
+                      const isPayday = paydayDate ? dateStr === paydayDate : false;
 
                       return (
                         <CalendarDay
@@ -391,6 +394,7 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
                           onClick={() => handleDayClick(date)}
                           onBillDrop={handleBillDrop}
                           animationDelay={(weekIndex * 7 + dayIndex) * 15}
+                          isPayday={isPayday}
                         />
                       );
                     })}

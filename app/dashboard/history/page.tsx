@@ -39,6 +39,7 @@ import {
   Filter,
   ChevronRight,
   Crown,
+  FolderOpen,
 } from 'lucide-react';
 import { ProFeatureGate } from '@/components/pro-feature-gate';
 import { useSubscription } from '@/hooks/use-subscription';
@@ -555,6 +556,33 @@ export default function HistoryPage() {
     return groups;
   }, [filteredBills]);
 
+  // Calculate top categories by total spend
+  const topCategories = useMemo(() => {
+    const categoryStats: Record<string, { total: number; count: number }> = {};
+
+    filteredByPeriod.forEach(bill => {
+      const category = bill.category || 'Other';
+      const amount = bill.last_paid_amount ?? bill.amount ?? 0;
+
+      if (!categoryStats[category]) {
+        categoryStats[category] = { total: 0, count: 0 };
+      }
+      categoryStats[category].total += amount;
+      categoryStats[category].count += 1;
+    });
+
+    // Sort by total spend descending and take top 3
+    return Object.entries(categoryStats)
+      .map(([name, stats]) => ({
+        name,
+        total: stats.total,
+        count: stats.count,
+        average: stats.total / stats.count,
+      }))
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 3);
+  }, [filteredByPeriod]);
+
   // Get missed bills (bills that were due but never marked paid)
   const missedBills = getMissedBills(allBills);
 
@@ -781,13 +809,18 @@ export default function HistoryPage() {
                 <p className="text-3xl font-bold text-white mb-1">
                   ${totalPaid.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                 </p>
-                {comparisonDiff !== null && comparisonDiff !== 0 && (
+                {comparisonDiff !== null && previousPeriodStats > 0 && comparisonDiff !== 0 && (
                   <p className={cn(
                     "text-sm font-medium flex items-center gap-1",
                     comparisonDiff > 0 ? "text-rose-400" : "text-emerald-400"
                   )}>
                     <TrendingUp className={cn("w-4 h-4", comparisonDiff < 0 && "rotate-180")} />
                     {comparisonDiff > 0 ? '+' : ''}${Math.abs(comparisonDiff).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} vs {periodFilter === 'last30' ? 'prev. 30d' : 'last year'}
+                  </p>
+                )}
+                {periodFilter !== 'allTime' && previousPeriodStats === 0 && (
+                  <p className="text-sm text-zinc-500 font-medium">
+                    First tracked period
                   </p>
                 )}
               </div>
@@ -808,20 +841,38 @@ export default function HistoryPage() {
               </div>
             </div>
 
-            {/* Average Per Bill Card */}
+            {/* Top Categories Card */}
             <div className="relative p-6 rounded-2xl bg-gradient-to-br from-violet-500/10 via-purple-500/5 to-transparent border border-violet-500/20 overflow-hidden sm:col-span-2 lg:col-span-1">
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-violet-500/10 to-transparent rounded-bl-full" />
               <div className="relative">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-xl bg-violet-500/20 border border-violet-500/30 flex items-center justify-center">
-                    <TrendingUp className="w-5 h-5 text-violet-400" />
+                    <FolderOpen className="w-5 h-5 text-violet-400" />
                   </div>
-                  <p className="text-sm text-violet-400 font-medium">Average Per Bill</p>
+                  <p className="text-sm text-violet-400 font-medium">Top Categories</p>
                 </div>
-                <p className="text-3xl font-bold text-white mb-1">
-                  ${filteredByPeriod.length > 0 ? (totalPaid / filteredByPeriod.length).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
-                </p>
-                <p className="text-sm text-zinc-500">{periodFilterLabels[periodFilter].toLowerCase()}</p>
+                {topCategories.length === 0 ? (
+                  <p className="text-sm text-zinc-500">No category data</p>
+                ) : (
+                  <div className="space-y-2">
+                    {topCategories.map((cat, index) => (
+                      <div key={cat.name} className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-zinc-600 text-xs font-mono">{index === 0 ? '├' : index === topCategories.length - 1 ? '└' : '├'}──</span>
+                          <span className="text-sm text-zinc-300 truncate max-w-[120px]">{cat.name}</span>
+                        </div>
+                        <span className="text-sm font-semibold text-white">
+                          ${cat.count === 1
+                            ? cat.total.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+                            : cat.average.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                          <span className="text-xs text-zinc-500 font-normal ml-1">
+                            {cat.count === 1 ? 'total' : '/avg'}
+                          </span>
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>

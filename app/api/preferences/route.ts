@@ -1,8 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import {
-  DEFAULT_URGENCY_COLORS,
-  DEFAULT_ACCENT_COLOR,
+  DEFAULT_COLOR_THEME,
   DEFAULT_DASHBOARD_LAYOUT,
   DEFAULT_PAYCHECK_SETTINGS,
   DEFAULT_NOTIFICATION_SETTINGS,
@@ -43,8 +42,7 @@ export async function GET() {
     if (!preferences) {
       return NextResponse.json({
         is_pro: false,
-        accent_color: DEFAULT_ACCENT_COLOR,
-        custom_urgency_colors: DEFAULT_URGENCY_COLORS,
+        color_theme: DEFAULT_COLOR_THEME,
         dashboard_layout: DEFAULT_DASHBOARD_LAYOUT,
         paycheck_settings: DEFAULT_PAYCHECK_SETTINGS,
         notification_settings: DEFAULT_NOTIFICATION_SETTINGS,
@@ -92,16 +90,9 @@ export async function PUT(request: Request) {
       user_id: user.id,
     };
 
-    // Only update customization fields if user is pro
-    const isPro = existing?.is_pro ?? false;
-
-    if (isPro) {
-      if (body.accent_color !== undefined) {
-        updateData.accent_color = body.accent_color;
-      }
-      if (body.custom_urgency_colors !== undefined) {
-        updateData.custom_urgency_colors = body.custom_urgency_colors;
-      }
+    // Color theme can be updated by anyone (themes are free)
+    if (body.color_theme !== undefined) {
+      updateData.color_theme = body.color_theme;
     }
 
     // Dashboard layout can be updated by anyone for now

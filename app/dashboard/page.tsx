@@ -18,6 +18,7 @@ import { getDaysUntilDue } from '@/lib/utils';
 import { getBillRiskType } from '@/lib/risk-utils';
 import { getBillIcon } from '@/lib/get-bill-icon';
 import { RiskAlerts } from '@/components/risk-alerts';
+import { OnTimePayments } from '@/components/on-time-payments';
 import { createClient } from '@/lib/supabase/client';
 import { useTheme } from '@/contexts/theme-context';
 import { useBillMutations } from '@/hooks/use-bill-mutations';
@@ -795,6 +796,9 @@ export default function DashboardPage() {
             </div>
           )}
 
+          {/* On-Time Payments Counter - placed below Paycheck Mode widget */}
+          <OnTimePayments bills={bills} className="mb-6" />
+
           {/* Stats - conditionally rendered based on layout preferences, hidden when Paycheck Mode is active */}
           {dashboardLayout.showStatsBar && !paycheckSettings?.enabled && (
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
@@ -841,6 +845,7 @@ export default function DashboardPage() {
             onPayNow={handlePayNow}
             onMarkPaid={handleMarkAsPaidFromCard}
             onEditBill={handleEditFromRiskAlert}
+            paycheckSettings={paycheckSettings}
             className="mb-8"
           />
 

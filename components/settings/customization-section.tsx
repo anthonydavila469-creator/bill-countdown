@@ -1,7 +1,5 @@
 'use client';
 
-import { useState } from 'react';
-import { HexColorPicker } from 'react-colorful';
 import {
   Lock,
   Crown,
@@ -20,223 +18,85 @@ import {
 import { useTheme } from '@/contexts/theme-context';
 import { useSubscription } from '@/hooks/use-subscription';
 import {
-  DEFAULT_URGENCY_COLORS,
-  DEFAULT_ACCENT_COLOR,
   DEFAULT_DASHBOARD_LAYOUT,
+  DEFAULT_COLOR_THEME,
+  COLOR_THEMES,
+  ColorThemeId,
   CardSize,
   DashboardView,
   SortBy,
 } from '@/types';
 import { cn } from '@/lib/utils';
 
-// Urgency color configuration with icons and enhanced descriptions
-// Urgency thresholds match getUrgency() in lib/utils.ts:
-// overdue: daysLeft < 0 | urgent: <= 3 | soon: <= 7 | safe: <= 30 | distant: > 30
-const urgencyConfig = {
-  overdue: {
-    label: 'Overdue',
-    description: 'Past due date',
-    icon: '🔴',
-  },
-  urgent: {
-    label: 'Urgent',
-    description: '0-3 days left',
-    icon: '🟠',
-  },
-  soon: {
-    label: 'Soon',
-    description: '4-7 days left',
-    icon: '🟡',
-  },
-  safe: {
-    label: 'Safe',
-    description: '8-30 days left',
-    icon: '🟢',
-  },
-  distant: {
-    label: 'Distant',
-    description: '31+ days left',
-    icon: '🔵',
-  },
-};
-
-// Premium color swatch component with gem-like appearance
-function ColorSwatch({
-  color,
-  onClick,
-  isActive,
-  size = 'md',
-}: {
-  color: string;
-  onClick?: () => void;
-  isActive?: boolean;
-  size?: 'sm' | 'md' | 'lg';
-}) {
-  const sizeClasses = {
-    sm: 'w-8 h-8',
-    md: 'w-12 h-12',
-    lg: 'w-16 h-16',
-  };
-
-  const className = cn(
-    'relative rounded-xl transition-all duration-300',
-    sizeClasses[size],
-    'group',
-    onClick && 'cursor-pointer hover:scale-110',
-    isActive && 'ring-2 ring-white/50 ring-offset-2 ring-offset-[#0a0a0f]'
-  );
-
-  const content = (
-    <>
-      {/* Outer glow */}
-      <div
-        className="absolute inset-0 rounded-xl blur-md opacity-50 group-hover:opacity-75 transition-opacity"
-        style={{ backgroundColor: color }}
-      />
-      {/* Main swatch with glass effect */}
-      <div
-        className="absolute inset-0 rounded-xl"
-        style={{ backgroundColor: color }}
-      />
-      {/* Top highlight - gem bevel effect */}
-      <div className="absolute inset-0 rounded-xl bg-gradient-to-b from-white/30 via-transparent to-black/20" />
-      {/* Inner shine */}
-      <div className="absolute inset-[3px] rounded-lg bg-gradient-to-br from-white/20 to-transparent" />
-    </>
-  );
-
-  // Use div when no onClick (to avoid nested button issues), button when interactive
-  if (onClick) {
-    return (
-      <button onClick={onClick} className={className}>
-        {content}
-      </button>
-    );
-  }
-
-  return <div className={className}>{content}</div>;
-}
-
-// Premium color picker with popover
-function ColorPickerField({
-  color,
-  onChange,
-  label,
-  description,
-  icon,
+// Theme card component for the theme selection grid
+function ThemeCard({
+  themeId,
+  isSelected,
+  onSelect,
   disabled,
   index = 0,
 }: {
-  color: string;
-  onChange: (color: string) => void;
-  label: string;
-  description: string;
-  icon?: string;
+  themeId: ColorThemeId;
+  isSelected: boolean;
+  onSelect: () => void;
   disabled?: boolean;
   index?: number;
 }) {
-  const [isOpen, setIsOpen] = useState(false);
+  const theme = COLOR_THEMES[themeId];
 
   return (
-    <div
-      className="animate-in fade-in slide-in-from-bottom-2 duration-500"
+    <button
+      onClick={() => !disabled && onSelect()}
+      disabled={disabled}
+      className={cn(
+        'group relative flex flex-col p-4 rounded-2xl transition-all duration-300',
+        'bg-white/[0.02] hover:bg-white/[0.05]',
+        'border-2',
+        isSelected
+          ? 'border-white/40 ring-2 ring-white/20'
+          : 'border-white/[0.08] hover:border-white/[0.15]',
+        disabled && 'opacity-40 cursor-not-allowed',
+        'animate-in fade-in slide-in-from-bottom-2 duration-500'
+      )}
       style={{ animationDelay: `${index * 75}ms`, animationFillMode: 'backwards' }}
     >
-      <button
-        onClick={() => !disabled && setIsOpen(!isOpen)}
-        disabled={disabled}
-        className={cn(
-          'group relative w-full flex items-center gap-4 p-4',
-          'bg-white/[0.02] hover:bg-white/[0.04]',
-          'border border-white/[0.06] hover:border-white/[0.12]',
-          'rounded-2xl transition-all duration-300',
-          disabled && 'opacity-40 cursor-not-allowed',
-          isOpen && 'bg-white/[0.04] border-white/[0.12]'
-        )}
+      {/* Theme gradient preview */}
+      <div
+        className="w-full h-16 rounded-xl mb-3 relative overflow-hidden"
+        style={{ background: theme.cardGradient }}
       >
-        {/* Color swatch */}
-        <ColorSwatch color={color} size="md" />
+        {/* Glass overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent" />
+        <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/20" />
 
-        {/* Label and description */}
-        <div className="flex-1 text-left">
-          <div className="flex items-center gap-2">
-            {icon && <span className="text-sm">{icon}</span>}
-            <span className="font-medium text-white tracking-wide">{label}</span>
-          </div>
-          <p className="text-sm text-zinc-500 mt-0.5">{description}</p>
-        </div>
-
-        {/* Hex value preview */}
-        <div className="hidden sm:flex items-center gap-2">
-          <span className="text-xs font-mono text-zinc-500 uppercase tracking-wider">
-            {color}
-          </span>
-          <ChevronDown
-            className={cn(
-              'w-4 h-4 text-zinc-500 transition-transform duration-300',
-              isOpen && 'rotate-180'
-            )}
-          />
-        </div>
-
-        {/* Hover gradient line */}
+        {/* Accent color indicator */}
         <div
-          className="absolute bottom-0 left-4 right-4 h-[1px] opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-          style={{
-            background: `linear-gradient(90deg, transparent, ${color}, transparent)`,
-          }}
+          className="absolute bottom-2 right-2 w-4 h-4 rounded-full ring-2 ring-white/30"
+          style={{ backgroundColor: theme.accentColor }}
         />
-      </button>
+      </div>
 
-      {/* Color picker popover */}
-      {isOpen && !disabled && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-          <div className="absolute left-0 right-0 sm:left-auto sm:right-auto sm:w-auto mt-2 z-50 animate-in fade-in zoom-in-95 duration-200">
-            <div className="relative p-5 bg-[#0c0c10]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl shadow-black/50">
-              {/* Decorative corner accents */}
-              <div className="absolute top-2 left-2 w-3 h-3 border-l-2 border-t-2 border-white/20 rounded-tl-sm" />
-              <div className="absolute top-2 right-2 w-3 h-3 border-r-2 border-t-2 border-white/20 rounded-tr-sm" />
-              <div className="absolute bottom-2 left-2 w-3 h-3 border-l-2 border-b-2 border-white/20 rounded-bl-sm" />
-              <div className="absolute bottom-2 right-2 w-3 h-3 border-r-2 border-b-2 border-white/20 rounded-br-sm" />
+      {/* Theme info */}
+      <div className="flex items-center justify-between">
+        <div className="text-left">
+          <h4 className="font-medium text-white text-sm">{theme.name}</h4>
+          <p className="text-xs text-zinc-500 mt-0.5">{theme.description}</p>
+        </div>
 
-              {/* Color picker */}
-              <div className="relative">
-                <HexColorPicker color={color} onChange={onChange} />
-              </div>
-
-              {/* Hex input and confirm */}
-              <div className="mt-4 flex items-center gap-3">
-                <div className="flex-1 relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 text-sm">#</span>
-                  <input
-                    type="text"
-                    value={color.replace('#', '')}
-                    onChange={(e) => onChange(`#${e.target.value}`)}
-                    className="w-full pl-7 pr-3 py-2.5 text-sm font-mono uppercase tracking-wider bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all"
-                    maxLength={6}
-                  />
-                </div>
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className="p-2.5 bg-white text-zinc-900 rounded-xl hover:bg-zinc-200 transition-colors"
-                >
-                  <Check className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Preview bar */}
-              <div
-                className="mt-4 h-2 rounded-full"
-                style={{
-                  background: `linear-gradient(90deg, ${color}, color-mix(in srgb, ${color} 50%, white))`,
-                }}
-              />
-            </div>
+        {/* Selection indicator */}
+        {isSelected && (
+          <div className="flex items-center justify-center w-6 h-6 rounded-full bg-white">
+            <Check className="w-4 h-4 text-zinc-900" />
           </div>
-        </>
-      )}
-    </div>
+        )}
+      </div>
+
+      {/* Hover glow effect */}
+      <div
+        className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-20 transition-opacity duration-300 pointer-events-none"
+        style={{ background: theme.cardGradient }}
+      />
+    </button>
   );
 }
 
@@ -385,23 +245,18 @@ function SectionHeader({
 export function CustomizationSection() {
   const {
     isPro,
-    accentColor,
-    urgencyColors,
+    selectedTheme,
     dashboardLayout,
-    updateAccentColor,
-    updateUrgencyColors,
+    updateTheme,
     updateDashboardLayout,
   } = useTheme();
   const { showUpgradeModal } = useSubscription();
 
-  const handleUrgencyColorChange = (key: keyof typeof urgencyColors, color: string) => {
-    updateUrgencyColors({ ...urgencyColors, [key]: color });
-  };
+  const themeIds = Object.keys(COLOR_THEMES) as ColorThemeId[];
 
-  const resetColors = () => {
-    if (!isPro) return;
-    updateAccentColor(DEFAULT_ACCENT_COLOR);
-    updateUrgencyColors(DEFAULT_URGENCY_COLORS);
+  const resetTheme = () => {
+    // TODO: Re-enable Pro check after testing: if (!isPro) return;
+    updateTheme(DEFAULT_COLOR_THEME);
   };
 
   const resetLayout = () => {
@@ -443,10 +298,10 @@ export function CustomizationSection() {
                   Unlock <span className="font-semibold">Customization</span>
                 </h3>
                 <p className="text-zinc-400 mb-6 max-w-md">
-                  Personalize your experience with custom colors, themes, and urgency indicators that match your style.
+                  Personalize your dashboard with beautiful color themes that match your style.
                 </p>
                 <button
-                  onClick={() => showUpgradeModal('custom colors')}
+                  onClick={() => showUpgradeModal('color themes')}
                   className="group relative px-6 py-3 overflow-hidden rounded-xl font-medium transition-all duration-300"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-amber-400 to-orange-500" />
@@ -462,17 +317,17 @@ export function CustomizationSection() {
         </div>
       )}
 
-      {/* Color Customization Section */}
+      {/* Color Theme Section */}
       <section className="relative">
         <SectionHeader
           icon={Palette}
           iconGradient="from-pink-500/80 to-rose-500/80"
-          title="Color Palette"
-          description="Customize your urgency indicators"
+          title="Color Theme"
+          description="Choose your dashboard aesthetic"
           action={
-            isPro && (
+            selectedTheme !== DEFAULT_COLOR_THEME && ( // TODO: Add isPro && back after testing
               <button
-                onClick={resetColors}
+                onClick={resetTheme}
                 className="flex items-center gap-2 px-4 py-2 text-sm text-zinc-400 hover:text-white hover:bg-white/[0.06] rounded-xl transition-all duration-200"
               >
                 <RotateCcw className="w-4 h-4" />
@@ -482,9 +337,9 @@ export function CustomizationSection() {
           }
         />
 
-        {/* Lock overlay for non-pro */}
-        <div className={cn('relative space-y-3', !isPro && 'pointer-events-none')}>
-          {!isPro && (
+        {/* Lock overlay for non-pro - TODO: Re-enable after testing */}
+        <div className={cn('relative')}>
+          {/* {!isPro && (
             <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#08080c]/70 backdrop-blur-sm rounded-2xl">
               <div className="flex flex-col items-center gap-3 text-center p-6">
                 <div className="p-4 rounded-2xl bg-white/[0.04] border border-white/[0.08]">
@@ -492,43 +347,25 @@ export function CustomizationSection() {
                 </div>
                 <div>
                   <p className="font-medium text-zinc-400">Pro Feature</p>
-                  <p className="text-sm text-zinc-600">Upgrade to customize colors</p>
+                  <p className="text-sm text-zinc-600">Upgrade to customize theme</p>
                 </div>
               </div>
             </div>
-          )}
+          )} */}
 
-          {/* Accent Color */}
-          <ColorPickerField
-            color={accentColor}
-            onChange={updateAccentColor}
-            label="Accent Color"
-            description="Buttons, links, and highlights"
-            icon="✨"
-            disabled={!isPro}
-            index={0}
-          />
-
-          {/* Divider with label */}
-          <div className="flex items-center gap-4 py-3">
-            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-            <span className="text-xs font-medium text-zinc-600 uppercase tracking-widest">Urgency Levels</span>
-            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+          {/* Theme Grid - 2x3 layout */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {themeIds.map((themeId, index) => (
+              <ThemeCard
+                key={themeId}
+                themeId={themeId}
+                isSelected={selectedTheme === themeId}
+                onSelect={() => updateTheme(themeId)}
+                disabled={false} // TODO: Change back to {!isPro} after testing
+                index={index}
+              />
+            ))}
           </div>
-
-          {/* Urgency Colors */}
-          {(Object.keys(urgencyConfig) as Array<keyof typeof urgencyConfig>).map((key, index) => (
-            <ColorPickerField
-              key={key}
-              color={urgencyColors[key]}
-              onChange={(color) => handleUrgencyColorChange(key, color)}
-              label={urgencyConfig[key].label}
-              description={urgencyConfig[key].description}
-              icon={urgencyConfig[key].icon}
-              disabled={!isPro}
-              index={index + 1}
-            />
-          ))}
         </div>
       </section>
 
@@ -611,30 +448,6 @@ export function CustomizationSection() {
         </div>
       </section>
 
-      {/* Color Preview Bar */}
-      {isPro && (
-        <section className="animate-in fade-in duration-500" style={{ animationDelay: '500ms' }}>
-          <div className="p-5 bg-white/[0.02] border border-white/[0.06] rounded-2xl">
-            <p className="text-xs font-medium text-zinc-500 uppercase tracking-widest mb-4">
-              Color Preview
-            </p>
-            <div className="flex items-center gap-2">
-              {Object.entries(urgencyColors).map(([key, color]) => (
-                <div key={key} className="flex-1 group relative">
-                  <div
-                    className="h-3 rounded-full transition-all duration-300 group-hover:h-5"
-                    style={{ backgroundColor: color }}
-                  />
-                  <div
-                    className="absolute inset-0 rounded-full blur-md opacity-0 group-hover:opacity-50 transition-opacity"
-                    style={{ backgroundColor: color }}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
     </div>
   );
 }

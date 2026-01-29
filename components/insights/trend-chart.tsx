@@ -50,7 +50,8 @@ export function TrendChart({ trendData }: TrendChartProps) {
     };
   }, [chartData]);
 
-  if (trendData.length < 2) {
+  // No data at all - show empty state
+  if (trendData.length === 0) {
     return (
       <div
         className="relative p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06] overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500"
@@ -76,8 +77,55 @@ export function TrendChart({ trendData }: TrendChartProps) {
             </div>
             <p className="text-zinc-400 font-medium">Not enough data yet</p>
             <p className="text-xs text-zinc-500 mt-1 max-w-xs">
-              The trend chart will appear once you have at least 2 months of paid bills
+              The trend chart will appear once you have paid bills to track
             </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Single month of data - show summary instead of chart
+  if (trendData.length === 1) {
+    const firstMonth = trendData[0];
+    return (
+      <div
+        className="relative p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06] overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500"
+        style={{ animationDelay: '150ms', animationFillMode: 'backwards' }}
+      >
+        <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.02]" />
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500/60 via-cyan-500/60 to-teal-500/30" />
+
+        <div className="relative">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2.5 rounded-xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-500/30">
+              <TrendingUp className="w-5 h-5 text-blue-400" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-white">Spending Trends</h3>
+              <p className="text-xs text-zinc-500">Your first month of data</p>
+            </div>
+          </div>
+
+          <div className="flex flex-col items-center justify-center py-6 text-center">
+            {/* Month label */}
+            <span className="text-sm font-medium text-zinc-400 mb-2">
+              {firstMonth.monthLabel}
+            </span>
+
+            {/* Total spending - prominent display */}
+            <span className="text-4xl font-bold text-white mb-1">
+              {formatCurrency(firstMonth.total)}
+            </span>
+            <span className="text-sm text-zinc-500 mb-6">total spent</span>
+
+            {/* Prompt for more data */}
+            <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
+              <Calendar className="w-4 h-4 text-blue-400" />
+              <p className="text-xs text-blue-300">
+                Add another month to see spending trends
+              </p>
+            </div>
           </div>
         </div>
       </div>

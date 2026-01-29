@@ -36,6 +36,74 @@ export type BillIconKey =
 
 export type BillUrgency = 'overdue' | 'urgent' | 'soon' | 'safe' | 'distant';
 
+// Universal urgency colors - NEVER change per theme
+// These remain consistent across all themes for instant recognition
+export const UNIVERSAL_URGENCY_COLORS = {
+  overdue: '#f43f5e',  // Rose - past due
+  urgent: '#f97316',   // Orange - 1-3 days
+  soon: '#eab308',     // Yellow - 4-7 days
+  safe: '#22c55e',     // Green - 8-14 days
+  distant: '#06b6d4',  // Cyan - 15+ days
+} as const;
+
+// Color theme system
+export type ColorThemeId = 'default' | 'ocean' | 'sunset' | 'midnight' | 'forest' | 'monochrome';
+
+export interface ColorTheme {
+  id: ColorThemeId;
+  name: string;
+  description: string;
+  cardGradient: string;  // CSS gradient for card backgrounds
+  accentColor: string;   // Accent color for buttons, links
+}
+
+export const COLOR_THEMES: Record<ColorThemeId, ColorTheme> = {
+  default: {
+    id: 'default',
+    name: 'Default',
+    description: 'Teal gradient with indigo accents',
+    cardGradient: 'linear-gradient(135deg, rgba(13, 148, 136, 0.35) 0%, rgba(15, 118, 110, 0.25) 100%)',
+    accentColor: '#6366f1',
+  },
+  ocean: {
+    id: 'ocean',
+    name: 'Ocean',
+    description: 'Cool, calming blues',
+    cardGradient: 'linear-gradient(135deg, rgba(2, 132, 199, 0.35) 0%, rgba(3, 105, 161, 0.25) 100%)',
+    accentColor: '#0ea5e9',
+  },
+  sunset: {
+    id: 'sunset',
+    name: 'Sunset',
+    description: 'Warm coral and orange',
+    cardGradient: 'linear-gradient(135deg, rgba(249, 115, 22, 0.35) 0%, rgba(234, 88, 12, 0.25) 100%)',
+    accentColor: '#f97316',
+  },
+  midnight: {
+    id: 'midnight',
+    name: 'Midnight',
+    description: 'Premium purple vibes',
+    cardGradient: 'linear-gradient(135deg, rgba(124, 58, 237, 0.35) 0%, rgba(109, 40, 217, 0.25) 100%)',
+    accentColor: '#8b5cf6',
+  },
+  forest: {
+    id: 'forest',
+    name: 'Forest',
+    description: 'Natural, grounded greens',
+    cardGradient: 'linear-gradient(135deg, rgba(5, 150, 105, 0.35) 0%, rgba(4, 120, 87, 0.25) 100%)',
+    accentColor: '#10b981',
+  },
+  monochrome: {
+    id: 'monochrome',
+    name: 'Mono',
+    description: 'Minimal and professional',
+    cardGradient: 'linear-gradient(135deg, rgba(82, 82, 91, 0.35) 0%, rgba(63, 63, 70, 0.25) 100%)',
+    accentColor: '#6b7280',
+  },
+};
+
+export const DEFAULT_COLOR_THEME: ColorThemeId = 'default';
+
 export type RecurrenceInterval = 'weekly' | 'biweekly' | 'monthly' | 'yearly';
 
 export type BillSource = 'manual' | 'gmail';
@@ -234,6 +302,7 @@ export type CardSize = 'compact' | 'default';
 export type DashboardView = 'grid' | 'list';
 export type SortBy = 'due_date' | 'amount' | 'name';
 
+// Legacy type - kept for backwards compatibility but now derived from UNIVERSAL_URGENCY_COLORS
 export interface UrgencyColors {
   overdue: string;
   urgent: string;
@@ -258,8 +327,7 @@ export interface UserPreferences {
   id: string;
   user_id: string;
   is_pro: boolean;
-  accent_color: string;
-  custom_urgency_colors: UrgencyColors;
+  color_theme: ColorThemeId;
   dashboard_layout: DashboardLayout;
   // Stripe subscription fields
   stripe_customer_id: string | null;
@@ -274,15 +342,17 @@ export interface UserPreferences {
 }
 
 // Default values for preferences
+// Now uses UNIVERSAL_URGENCY_COLORS - kept for backwards compatibility
 export const DEFAULT_URGENCY_COLORS: UrgencyColors = {
-  overdue: '#f43f5e',
-  urgent: '#f97316',
-  soon: '#fbbf24',
-  safe: '#34d399',
-  distant: '#60a5fa',
+  overdue: UNIVERSAL_URGENCY_COLORS.overdue,
+  urgent: UNIVERSAL_URGENCY_COLORS.urgent,
+  soon: UNIVERSAL_URGENCY_COLORS.soon,
+  safe: UNIVERSAL_URGENCY_COLORS.safe,
+  distant: UNIVERSAL_URGENCY_COLORS.distant,
 };
 
-export const DEFAULT_ACCENT_COLOR = '#6366f1';
+// Legacy - now derived from theme
+export const DEFAULT_ACCENT_COLOR = COLOR_THEMES.default.accentColor;
 
 export const DEFAULT_DASHBOARD_LAYOUT: DashboardLayout = {
   cardSize: 'default',
