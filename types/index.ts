@@ -39,15 +39,24 @@ export type BillUrgency = 'overdue' | 'urgent' | 'soon' | 'safe' | 'distant';
 // Universal urgency colors - NEVER change per theme
 // These remain consistent across all themes for instant recognition
 export const UNIVERSAL_URGENCY_COLORS = {
-  overdue: '#f43f5e',  // Rose - past due
+  overdue: '#ef4444',  // Red - past due
   urgent: '#f97316',   // Orange - 1-3 days
   soon: '#eab308',     // Yellow - 4-7 days
   safe: '#22c55e',     // Green - 8-14 days
-  distant: '#06b6d4',  // Cyan - 15+ days
+  distant: '#3b82f6',  // Blue - 15+ days
 } as const;
 
-// Color theme system
-export type ColorThemeId = 'default' | 'ocean' | 'sunset' | 'midnight' | 'forest' | 'monochrome';
+// Urgency gradient pairs for gradient text effects - vibrant colorful gradients
+export const URGENCY_GRADIENTS = {
+  overdue: { from: '#f472b6', to: '#9333ea' },   // Pink to purple
+  urgent: { from: '#fbbf24', to: '#f97316' },    // Yellow to orange
+  soon: { from: '#a3e635', to: '#22c55e' },      // Lime to green
+  safe: { from: '#4ade80', to: '#06b6d4' },      // Green to cyan
+  distant: { from: '#22d3ee', to: '#6366f1' },   // Cyan to indigo
+} as const;
+
+// Color theme system - 9 visually distinct themes
+export type ColorThemeId = 'ember' | 'cosmic' | 'emerald' | 'midnight' | 'wine' | 'onyx' | 'amethyst' | 'ocean' | 'sunset';
 
 export interface ColorTheme {
   id: ColorThemeId;
@@ -55,54 +64,127 @@ export interface ColorTheme {
   description: string;
   cardGradient: string;  // CSS gradient for card backgrounds
   accentColor: string;   // Accent color for buttons, links
+  glowColor: string;     // Subtle box-shadow for cards
+  preview: {             // Preview colors for theme card display
+    primary: string;     // Top color (lighter)
+    secondary: string;   // Bottom color (darker)
+  };
 }
 
 export const COLOR_THEMES: Record<ColorThemeId, ColorTheme> = {
-  default: {
-    id: 'default',
-    name: 'Default',
-    description: 'Teal gradient with indigo accents',
-    cardGradient: 'linear-gradient(135deg, rgba(13, 148, 136, 0.35) 0%, rgba(15, 118, 110, 0.25) 100%)',
-    accentColor: '#6366f1',
+  // Vibrant themes (white/urgency numbers)
+  ember: {
+    id: 'ember',
+    name: 'Pink',
+    description: 'Bold & vibrant',
+    cardGradient: 'linear-gradient(135deg, #f472b6 0%, #c084fc 50%, #a78bfa 100%)',
+    accentColor: '#f472b6',
+    glowColor: '0 8px 32px rgba(244, 114, 182, 0.25)',
+    preview: {
+      primary: '#f472b6',
+      secondary: '#a78bfa',
+    },
+  },
+  cosmic: {
+    id: 'cosmic',
+    name: 'Sky',
+    description: 'Calm & serene',
+    cardGradient: 'linear-gradient(135deg, #60a5fa 0%, #818cf8 50%, #a78bfa 100%)',
+    accentColor: '#60a5fa',
+    glowColor: '0 8px 32px rgba(96, 165, 250, 0.25)',
+    preview: {
+      primary: '#60a5fa',
+      secondary: '#a78bfa',
+    },
+  },
+  emerald: {
+    id: 'emerald',
+    name: 'Emerald',
+    description: 'Fresh & natural',
+    cardGradient: 'linear-gradient(135deg, #10b981 0%, #14b8a6 50%, #2dd4bf 100%)',
+    accentColor: '#10b981',
+    glowColor: '0 8px 32px rgba(16, 185, 129, 0.25)',
+    preview: {
+      primary: '#10b981',
+      secondary: '#2dd4bf',
+    },
+  },
+  // Dark themes (gradient numbers)
+  midnight: {
+    id: 'midnight',
+    name: 'Midnight',
+    description: 'Deep navy',
+    cardGradient: 'linear-gradient(135deg, #1e3a5f 0%, #1e40af 50%, #3730a3 100%)',
+    accentColor: '#60a5fa',
+    glowColor: '0 8px 32px rgba(30, 58, 95, 0.5)',
+    preview: {
+      primary: '#1e3a5f',
+      secondary: '#3730a3',
+    },
+  },
+  wine: {
+    id: 'wine',
+    name: 'Wine',
+    description: 'Rich & elegant',
+    cardGradient: 'linear-gradient(135deg, #4a1942 0%, #6b2737 50%, #831843 100%)',
+    accentColor: '#f472b6',
+    glowColor: '0 8px 32px rgba(74, 25, 66, 0.5)',
+    preview: {
+      primary: '#4a1942',
+      secondary: '#831843',
+    },
+  },
+  onyx: {
+    id: 'onyx',
+    name: 'Onyx',
+    description: 'Pure black',
+    cardGradient: 'linear-gradient(135deg, #0a0a0a 0%, #171717 50%, #1c1c1c 100%)',
+    accentColor: '#a1a1aa',
+    glowColor: '0 8px 32px rgba(0, 0, 0, 0.6)',
+    preview: {
+      primary: '#0a0a0a',
+      secondary: '#1c1c1c',
+    },
+  },
+  amethyst: {
+    id: 'amethyst',
+    name: 'Amethyst',
+    description: 'Royal purple',
+    cardGradient: 'linear-gradient(135deg, #2d1b4e 0%, #4c1d95 50%, #581c87 100%)',
+    accentColor: '#a78bfa',
+    glowColor: '0 8px 32px rgba(45, 27, 78, 0.5)',
+    preview: {
+      primary: '#2d1b4e',
+      secondary: '#581c87',
+    },
   },
   ocean: {
     id: 'ocean',
     name: 'Ocean',
-    description: 'Cool, calming blues',
-    cardGradient: 'linear-gradient(135deg, rgba(2, 132, 199, 0.35) 0%, rgba(3, 105, 161, 0.25) 100%)',
-    accentColor: '#0ea5e9',
+    description: 'Deep teal',
+    cardGradient: 'linear-gradient(135deg, #134e4a 0%, #0f766e 50%, #0d9488 100%)',
+    accentColor: '#2dd4bf',
+    glowColor: '0 8px 32px rgba(19, 78, 74, 0.5)',
+    preview: {
+      primary: '#134e4a',
+      secondary: '#0d9488',
+    },
   },
   sunset: {
     id: 'sunset',
     name: 'Sunset',
-    description: 'Warm coral and orange',
-    cardGradient: 'linear-gradient(135deg, rgba(249, 115, 22, 0.35) 0%, rgba(234, 88, 12, 0.25) 100%)',
-    accentColor: '#f97316',
-  },
-  midnight: {
-    id: 'midnight',
-    name: 'Midnight',
-    description: 'Premium purple vibes',
-    cardGradient: 'linear-gradient(135deg, rgba(124, 58, 237, 0.35) 0%, rgba(109, 40, 217, 0.25) 100%)',
-    accentColor: '#8b5cf6',
-  },
-  forest: {
-    id: 'forest',
-    name: 'Forest',
-    description: 'Natural, grounded greens',
-    cardGradient: 'linear-gradient(135deg, rgba(5, 150, 105, 0.35) 0%, rgba(4, 120, 87, 0.25) 100%)',
-    accentColor: '#10b981',
-  },
-  monochrome: {
-    id: 'monochrome',
-    name: 'Mono',
-    description: 'Minimal and professional',
-    cardGradient: 'linear-gradient(135deg, rgba(82, 82, 91, 0.35) 0%, rgba(63, 63, 70, 0.25) 100%)',
-    accentColor: '#6b7280',
+    description: 'Warm & bold',
+    cardGradient: 'linear-gradient(135deg, #451a03 0%, #78350f 50%, #92400e 100%)',
+    accentColor: '#fb923c',
+    glowColor: '0 8px 32px rgba(69, 26, 3, 0.5)',
+    preview: {
+      primary: '#451a03',
+      secondary: '#92400e',
+    },
   },
 };
 
-export const DEFAULT_COLOR_THEME: ColorThemeId = 'default';
+export const DEFAULT_COLOR_THEME: ColorThemeId = 'onyx';
 
 export type RecurrenceInterval = 'weekly' | 'biweekly' | 'monthly' | 'yearly';
 
@@ -301,6 +383,7 @@ export interface BillAnomaly {
 export type CardSize = 'compact' | 'default';
 export type DashboardView = 'grid' | 'list';
 export type SortBy = 'due_date' | 'amount' | 'name';
+export type NumberColorMode = 'white' | 'urgency' | 'gradient';
 
 // Legacy type - kept for backwards compatibility but now derived from UNIVERSAL_URGENCY_COLORS
 export interface UrgencyColors {
@@ -317,6 +400,7 @@ export interface DashboardLayout {
   cardsPerRow: 2 | 3 | 4;
   showStatsBar: boolean;
   sortBy: SortBy;
+  numberColorMode: NumberColorMode;
 }
 
 // Subscription types
@@ -352,7 +436,7 @@ export const DEFAULT_URGENCY_COLORS: UrgencyColors = {
 };
 
 // Legacy - now derived from theme
-export const DEFAULT_ACCENT_COLOR = COLOR_THEMES.default.accentColor;
+export const DEFAULT_ACCENT_COLOR = COLOR_THEMES.onyx.accentColor;
 
 export const DEFAULT_DASHBOARD_LAYOUT: DashboardLayout = {
   cardSize: 'default',
@@ -360,6 +444,7 @@ export const DEFAULT_DASHBOARD_LAYOUT: DashboardLayout = {
   cardsPerRow: 3,
   showStatsBar: true,
   sortBy: 'due_date',
+  numberColorMode: 'white',
 };
 
 // Paycheck Mode Types

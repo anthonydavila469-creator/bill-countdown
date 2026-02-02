@@ -1,9 +1,18 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { BillUrgency } from '@/types';
+import { BillUrgency, NumberColorMode } from '@/types';
 
-// Map urgency to CSS variable name
+// Map urgency to CSS variable names for gradients
+const urgencyGradientVarMap: Record<BillUrgency, { from: string; to: string }> = {
+  overdue: { from: '--urgency-overdue-from', to: '--urgency-overdue-to' },
+  urgent: { from: '--urgency-urgent-from', to: '--urgency-urgent-to' },
+  soon: { from: '--urgency-soon-from', to: '--urgency-soon-to' },
+  safe: { from: '--urgency-safe-from', to: '--urgency-safe-to' },
+  distant: { from: '--urgency-distant-from', to: '--urgency-distant-to' },
+};
+
+// Map urgency to CSS variable name (solid color)
 const urgencyVarMap: Record<BillUrgency, string> = {
   overdue: '--urgency-overdue',
   urgent: '--urgency-urgent',
@@ -17,6 +26,7 @@ interface CountdownDisplayProps {
   urgency: BillUrgency;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+  colorMode?: NumberColorMode;
 }
 
 const sizeStyles = {
@@ -42,11 +52,13 @@ export function CountdownDisplay({
   urgency,
   size = 'md',
   className,
+  colorMode = 'white',
 }: CountdownDisplayProps) {
   const styles = sizeStyles[size];
   const isOverdue = daysLeft < 0;
   const displayNumber = Math.abs(daysLeft);
   const urgencyCssVar = urgencyVarMap[urgency];
+  const urgencyGradientVars = urgencyGradientVarMap[urgency];
 
   // Determine label text
   const getLabel = () => {
@@ -57,6 +69,38 @@ export function CountdownDisplay({
     return displayNumber === 1 ? 'day left' : 'days left';
   };
 
+  // Get number styles based on color mode
+  const getNumberStyle = (): React.CSSProperties => {
+    const baseStyle: React.CSSProperties = {
+      fontFamily: "'SF Pro Display', 'Inter', system-ui, sans-serif",
+      fontVariantNumeric: 'tabular-nums',
+    };
+
+    switch (colorMode) {
+      case 'gradient':
+        return {
+          ...baseStyle,
+          backgroundImage: `linear-gradient(160deg, var(${urgencyGradientVars.from}) 0%, var(${urgencyGradientVars.to}) 100%)`,
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text',
+        };
+      case 'urgency':
+        return {
+          ...baseStyle,
+          color: `var(${urgencyCssVar})`,
+          textShadow: '0 2px 10px rgba(0,0,0,0.3)',
+        };
+      case 'white':
+      default:
+        return {
+          ...baseStyle,
+          color: 'white',
+          textShadow: '0 2px 10px rgba(0,0,0,0.3)',
+        };
+    }
+  };
+
   return (
     <div
       className={cn(
@@ -65,25 +109,18 @@ export function CountdownDisplay({
         className
       )}
     >
-      {/* Large countdown number - uses urgency color for instant recognition */}
+      {/* Large countdown number */}
       <div className="relative">
-        {/* Number with bold, impactful styling - colored by urgency */}
+        {/* Number with bold, impactful styling */}
         <span
           className={cn(
             styles.number,
             'font-black tracking-tight',
-            // Text shadow for depth
             'drop-shadow-lg',
-            // Subtle animation on the number
             'transition-transform duration-300',
             'group-hover:scale-105'
           )}
-          style={{
-            fontFamily: "'SF Pro Display', 'Inter', system-ui, sans-serif",
-            fontVariantNumeric: 'tabular-nums',
-            color: `var(${urgencyCssVar})`,
-            textShadow: '0 2px 10px rgba(0,0,0,0.3)',
-          }}
+          style={getNumberStyle()}
         >
           {displayNumber}
         </span>

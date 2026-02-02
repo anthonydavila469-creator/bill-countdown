@@ -8,6 +8,7 @@ import { getBillIcon } from '@/lib/get-bill-icon';
 import { GradientCard } from './ui/gradient-card';
 import { CountdownDisplay } from './countdown-display';
 import { useSubscription } from '@/hooks/use-subscription';
+import { useTheme } from '@/contexts/theme-context';
 
 interface BillDetailModalProps {
   isOpen: boolean;
@@ -27,6 +28,7 @@ export function BillDetailModal({
   onMarkPaid,
 }: BillDetailModalProps) {
   const { canUsePaymentLinks, showUpgradeModal } = useSubscription();
+  const { selectedTheme } = useTheme();
   const [isMarkingPaid, setIsMarkingPaid] = useState(false);
 
   // Prevent body scroll when modal is open
@@ -107,7 +109,18 @@ export function BillDetailModal({
                 )}
 
                 <div className="mt-6 flex justify-center">
-                  <CountdownDisplay daysLeft={daysLeft} urgency={urgency} size="lg" />
+                  <CountdownDisplay
+                    daysLeft={daysLeft}
+                    urgency={urgency}
+                    size="lg"
+                    colorMode={
+                      ['midnight', 'wine', 'onyx', 'amethyst', 'ocean', 'sunset'].includes(selectedTheme)
+                        ? 'gradient'
+                        : (urgency === 'overdue' || urgency === 'urgent' || urgency === 'soon')
+                          ? 'urgency'
+                          : 'white'
+                    }
+                  />
                 </div>
               </div>
             </GradientCard>

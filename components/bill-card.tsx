@@ -18,6 +18,7 @@ import {
   AlertTriangle, Clock, History, AlertCircle, LucideIcon, Crown
 } from 'lucide-react';
 import { useSubscription } from '@/hooks/use-subscription';
+import { useTheme } from '@/contexts/theme-context';
 
 interface BillCardProps {
   bill: Bill;
@@ -63,6 +64,7 @@ export function BillCard({
   riskType,
 }: BillCardProps) {
   const { canUsePaymentLinks, showUpgradeModal } = useSubscription();
+  const { selectedTheme } = useTheme();
   const daysLeft = getDaysUntilDue(bill.due_date);
   const urgency = getUrgency(daysLeft);
   const priceChange = getPriceChange(bill.amount, bill.previous_amount);
@@ -214,6 +216,13 @@ export function BillCard({
               daysLeft={daysLeft}
               urgency={urgency}
               size="sm"
+              colorMode={
+                ['midnight', 'wine', 'onyx', 'amethyst', 'ocean', 'sunset'].includes(selectedTheme)
+                  ? 'gradient'
+                  : (urgency === 'overdue' || urgency === 'urgent' || urgency === 'soon')
+                    ? 'urgency'
+                    : 'white'
+              }
             />
           </div>
         </div>
@@ -373,6 +382,13 @@ export function BillCard({
             daysLeft={daysLeft}
             urgency={urgency}
             size="lg"
+            colorMode={
+              ['midnight', 'wine', 'onyx', 'amethyst', 'ocean', 'sunset'].includes(selectedTheme)
+                ? 'gradient'
+                : (urgency === 'overdue' || urgency === 'urgent' || urgency === 'soon')
+                  ? 'urgency'
+                  : 'white'
+            }
           />
         </div>
 

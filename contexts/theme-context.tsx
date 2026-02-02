@@ -14,6 +14,7 @@ import {
   ColorThemeId,
   COLOR_THEMES,
   UNIVERSAL_URGENCY_COLORS,
+  URGENCY_GRADIENTS,
   DEFAULT_COLOR_THEME,
   DEFAULT_DASHBOARD_LAYOUT,
   DEFAULT_PAYCHECK_SETTINGS,
@@ -38,12 +39,21 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
+// Validate theme ID and fallback to default if invalid (handles migration from old themes)
+function getValidThemeId(themeId: string | null | undefined): ColorThemeId {
+  if (themeId && themeId in COLOR_THEMES) {
+    return themeId as ColorThemeId;
+  }
+  return DEFAULT_COLOR_THEME;
+}
+
 // Apply CSS variables to document root
 // Urgency colors are UNIVERSAL and never change per theme
 function applyCSSVariables(themeId: ColorThemeId) {
   if (typeof document === 'undefined') return;
 
-  const theme = COLOR_THEMES[themeId];
+  const validThemeId = getValidThemeId(themeId);
+  const theme = COLOR_THEMES[validThemeId];
   const root = document.documentElement;
 
   // Universal urgency colors - same for all themes
@@ -53,9 +63,22 @@ function applyCSSVariables(themeId: ColorThemeId) {
   root.style.setProperty('--urgency-safe', UNIVERSAL_URGENCY_COLORS.safe);
   root.style.setProperty('--urgency-distant', UNIVERSAL_URGENCY_COLORS.distant);
 
+  // Urgency gradient pairs for gradient text effects
+  root.style.setProperty('--urgency-overdue-from', URGENCY_GRADIENTS.overdue.from);
+  root.style.setProperty('--urgency-overdue-to', URGENCY_GRADIENTS.overdue.to);
+  root.style.setProperty('--urgency-urgent-from', URGENCY_GRADIENTS.urgent.from);
+  root.style.setProperty('--urgency-urgent-to', URGENCY_GRADIENTS.urgent.to);
+  root.style.setProperty('--urgency-soon-from', URGENCY_GRADIENTS.soon.from);
+  root.style.setProperty('--urgency-soon-to', URGENCY_GRADIENTS.soon.to);
+  root.style.setProperty('--urgency-safe-from', URGENCY_GRADIENTS.safe.from);
+  root.style.setProperty('--urgency-safe-to', URGENCY_GRADIENTS.safe.to);
+  root.style.setProperty('--urgency-distant-from', URGENCY_GRADIENTS.distant.from);
+  root.style.setProperty('--urgency-distant-to', URGENCY_GRADIENTS.distant.to);
+
   // Theme-specific colors
   root.style.setProperty('--accent-primary', theme.accentColor);
   root.style.setProperty('--card-gradient', theme.cardGradient);
+  root.style.setProperty('--card-glow', theme.glowColor);
 }
 
 interface ThemeProviderProps {
@@ -69,9 +92,10 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   const [paycheckSettings, setPaycheckSettings] = useState<PaycheckSettings>(DEFAULT_PAYCHECK_SETTINGS);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Derived values from theme
-  const accentColor = COLOR_THEMES[selectedTheme].accentColor;
-  const cardGradient = COLOR_THEMES[selectedTheme].cardGradient;
+  // Derived values from theme (with fallback for invalid themes)
+  const validTheme = COLOR_THEMES[selectedTheme] ?? COLOR_THEMES[DEFAULT_COLOR_THEME];
+  const accentColor = validTheme.accentColor;
+  const cardGradient = validTheme.cardGradient;
 
   // Fetch preferences on mount
   const refreshPreferences = useCallback(async () => {
@@ -83,13 +107,14 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
       }
 
       const data = await response.json();
+      const validThemeId = getValidThemeId(data.color_theme);
       setIsPro(data.is_pro ?? false);
-      setSelectedTheme(data.color_theme ?? DEFAULT_COLOR_THEME);
+      setSelectedTheme(validThemeId);
       setDashboardLayout(data.dashboard_layout ?? DEFAULT_DASHBOARD_LAYOUT);
       setPaycheckSettings(data.paycheck_settings ?? DEFAULT_PAYCHECK_SETTINGS);
 
       // Apply CSS variables
-      applyCSSVariables(data.color_theme ?? DEFAULT_COLOR_THEME);
+      applyCSSVariables(validThemeId);
     } catch (error) {
       console.error('Failed to fetch preferences:', error);
     } finally {

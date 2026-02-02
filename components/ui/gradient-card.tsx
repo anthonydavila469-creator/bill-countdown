@@ -4,34 +4,23 @@ import { cn } from '@/lib/utils';
 import { BillUrgency } from '@/types';
 import { ReactNode } from 'react';
 
-// Map urgency to CSS variable name
-const urgencyVarMap: Record<BillUrgency, string> = {
-  overdue: '--urgency-overdue',
-  urgent: '--urgency-urgent',
-  soon: '--urgency-soon',
-  safe: '--urgency-safe',
-  distant: '--urgency-distant',
-};
-
 interface GradientCardProps {
-  urgency: BillUrgency;
+  urgency?: BillUrgency;
   children: ReactNode;
   className?: string;
   onClick?: () => void;
 }
 
 export function GradientCard({
-  urgency,
   children,
   className,
   onClick,
 }: GradientCardProps) {
-  const urgencyCssVar = urgencyVarMap[urgency];
 
-  // Dark base layer for card background
+  // Dark base layer for card background with subtle shadow
   const cardStyle = {
-    background: 'linear-gradient(135deg, #0c0c10 0%, #0a0a0e 100%)',
-    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.25)',
+    background: 'var(--card-gradient)',
+    boxShadow: 'var(--card-glow)',
   };
 
   return (
@@ -51,17 +40,6 @@ export function GradientCard({
         className
       )}
     >
-      {/* Theme tint overlay - subtle, from CSS variable */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{ background: 'var(--card-gradient)' }}
-      />
-
-      {/* Urgency indicator stripe on left edge */}
-      <div
-        className="absolute left-0 top-0 bottom-0 w-1.5"
-        style={{ backgroundColor: `var(${urgencyCssVar})` }}
-      />
 
       {/* Noise texture overlay for depth */}
       <div

@@ -49,53 +49,43 @@ function ThemeCard({
       onClick={() => !disabled && onSelect()}
       disabled={disabled}
       className={cn(
-        'group relative flex flex-col p-4 rounded-2xl transition-all duration-300',
-        'bg-white/[0.02] hover:bg-white/[0.05]',
-        'border-2',
-        isSelected
-          ? 'border-white/40 ring-2 ring-white/20'
-          : 'border-white/[0.08] hover:border-white/[0.15]',
+        'group relative flex flex-col rounded-2xl transition-all duration-300 overflow-hidden',
+        'hover:scale-[1.02] hover:-translate-y-0.5',
+        isSelected && 'ring-2 ring-white/40',
         disabled && 'opacity-40 cursor-not-allowed',
         'animate-in fade-in slide-in-from-bottom-2 duration-500'
       )}
       style={{ animationDelay: `${index * 75}ms`, animationFillMode: 'backwards' }}
     >
-      {/* Theme gradient preview */}
+      {/* Theme gradient preview - vertical gradient like the reference */}
       <div
-        className="w-full h-16 rounded-xl mb-3 relative overflow-hidden"
+        className="w-full h-28 relative"
         style={{ background: theme.cardGradient }}
       >
-        {/* Glass overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent" />
-        <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/20" />
+        {/* Inner border for polish */}
+        <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10" />
+
+        {/* Selection checkmark */}
+        {isSelected && (
+          <div
+            className="absolute top-3 right-3 flex items-center justify-center w-6 h-6 rounded-full bg-white/20 backdrop-blur-sm"
+          >
+            <Check className="w-4 h-4 text-white" />
+          </div>
+        )}
+
+        {/* Theme name and description */}
+        <div className="absolute bottom-3 left-3">
+          <h4 className="font-semibold text-white text-sm">{theme.name}</h4>
+          <p className="text-[11px] text-white/50">{theme.description}</p>
+        </div>
 
         {/* Accent color indicator */}
         <div
-          className="absolute bottom-2 right-2 w-4 h-4 rounded-full ring-2 ring-white/30"
+          className="absolute bottom-3 right-3 w-4 h-4 rounded-full ring-2 ring-white/30"
           style={{ backgroundColor: theme.accentColor }}
         />
       </div>
-
-      {/* Theme info */}
-      <div className="flex items-center justify-between">
-        <div className="text-left">
-          <h4 className="font-medium text-white text-sm">{theme.name}</h4>
-          <p className="text-xs text-zinc-500 mt-0.5">{theme.description}</p>
-        </div>
-
-        {/* Selection indicator */}
-        {isSelected && (
-          <div className="flex items-center justify-center w-6 h-6 rounded-full bg-white">
-            <Check className="w-4 h-4 text-zinc-900" />
-          </div>
-        )}
-      </div>
-
-      {/* Hover glow effect */}
-      <div
-        className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-20 transition-opacity duration-300 pointer-events-none"
-        style={{ background: theme.cardGradient }}
-      />
     </button>
   );
 }
@@ -438,12 +428,13 @@ export function CustomizationSection() {
             index={3}
           />
 
+
           <ToggleField
             label="Show Stats Bar"
             checked={dashboardLayout.showStatsBar}
             onChange={(checked) => updateDashboardLayout({ showStatsBar: checked })}
             icon={BarChart3}
-            index={4}
+            index={5}
           />
         </div>
       </section>
