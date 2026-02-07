@@ -1076,7 +1076,7 @@ export default function DashboardPage() {
       <button
         onClick={handleAddBillClick}
         className={cn(
-          "lg:hidden fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center hover:opacity-90 transition-opacity",
+          "lg:hidden fixed bottom-24 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center hover:opacity-90 transition-opacity z-40",
           canAddBill ? "text-white" : "text-amber-200 border-2 border-amber-500/50"
         )}
         style={canAddBill ? {

@@ -104,12 +104,12 @@ export function BillCard({
               <IconComponent className="w-5 h-5 text-white" />
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <h3 className="font-semibold text-white truncate">{bill.name}</h3>
-                {/* Compact risk badge */}
+              <div className="flex items-center gap-1.5">
+                <h3 className="font-semibold text-white truncate max-w-[140px]">{bill.name}</h3>
+                {/* Compact risk badge - always on same line */}
                 {riskConfig && !isPaid && (
                   <span className={cn(
-                    "flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold",
+                    "flex-shrink-0 flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold",
                     riskConfig.bgColor,
                     riskConfig.textColor
                   )}>
