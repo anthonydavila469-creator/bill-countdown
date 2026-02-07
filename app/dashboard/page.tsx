@@ -922,7 +922,7 @@ export default function DashboardPage() {
                 </button>
 
                 {isLayoutSettingsOpen && (
-                  <div className="absolute top-full right-0 mt-2 z-50 w-56 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="absolute bottom-full right-0 mb-2 z-50 w-56 animate-in fade-in slide-in-from-bottom-2 duration-200">
                     <div className="absolute -inset-1 bg-gradient-to-b from-white/5 to-transparent rounded-2xl blur-xl" />
                     <div className="relative bg-[#0a0a0e]/98 backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.8)] overflow-hidden">
                       {/* Header */}
