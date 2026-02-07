@@ -370,11 +370,11 @@ export function BillCard({
               <span className="text-sm font-medium">
                 {formatDate(bill.due_date)}
               </span>
-              {/* Late fee risk warning - enhanced visibility */}
+              {/* Late fee risk warning */}
               {showLatePaymentRisk && (
-                <span className="inline-flex items-center gap-1.5 ml-2 px-2 py-0.5 rounded-md bg-rose-500/30 border border-rose-400/40 animate-pulse">
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-rose-500/30 border border-rose-400/40">
                   <AlertCircle className="w-3 h-3 text-rose-300" />
-                  <span className="text-[10px] font-bold text-rose-200 uppercase tracking-wide">Late Fee Risk</span>
+                  <span className="text-[9px] font-semibold text-rose-200 whitespace-nowrap">Late Risk</span>
                 </span>
               )}
             </div>
@@ -382,16 +382,16 @@ export function BillCard({
             <div className="flex items-center gap-2">
               {/* Payment link indicator */}
               {bill.payment_url && (
-                <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-white/20 text-white/80">
-                  <ExternalLink className="w-3 h-3" />
+                <span className="flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-md bg-white/20 text-white/80">
+                  <ExternalLink className="w-2.5 h-2.5" />
                   Pay
                 </span>
               )}
 
               {/* Source indicator */}
               {bill.source === 'gmail' && (
-                <span className="text-xs px-2 py-0.5 rounded-full bg-white/20 text-white/80">
-                  from email
+                <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-md bg-white/20 text-white/80 whitespace-nowrap">
+                  email
                 </span>
               )}
             </div>
