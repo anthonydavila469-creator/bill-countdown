@@ -17,28 +17,28 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BillCountdown - Never Miss a Bill Payment",
+  title: "Duezo - Never Miss a Bill Payment",
   description: "Track bill due dates with beautiful countdown cards and AI-powered email sync. Never miss a payment again.",
   keywords: ["bills", "payments", "finance", "countdown", "reminders", "budget"],
-  authors: [{ name: "BillCountdown" }],
+  authors: [{ name: "Duezo" }],
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "BillCountdown",
+    title: "Duezo",
   },
   formatDetection: {
     telephone: false,
   },
   openGraph: {
     type: "website",
-    title: "BillCountdown - Never Miss a Bill Payment",
+    title: "Duezo - Never Miss a Bill Payment",
     description: "Track bill due dates with beautiful countdown cards and AI-powered email sync.",
-    siteName: "BillCountdown",
+    siteName: "Duezo",
   },
   twitter: {
     card: "summary_large_image",
-    title: "BillCountdown - Never Miss a Bill Payment",
+    title: "Duezo - Never Miss a Bill Payment",
     description: "Track bill due dates with beautiful countdown cards and AI-powered email sync.",
   },
 };

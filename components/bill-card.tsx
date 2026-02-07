@@ -89,14 +89,6 @@ export function BillCard({
     }
   };
 
-  // Format variable bill amount display
-  const formatVariableAmount = () => {
-    if (bill.is_variable && bill.typical_min !== null && bill.typical_max !== null) {
-      return `${formatCurrency(bill.typical_min)} - ${formatCurrency(bill.typical_max)}`;
-    }
-    return bill.amount ? formatCurrency(bill.amount).replace('$', '') : null;
-  };
-
   if (variant === 'compact') {
     return (
       <GradientCard
@@ -113,9 +105,6 @@ export function BillCard({
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <h3 className="font-semibold text-white truncate">{bill.name}</h3>
-                {bill.is_variable && (
-                  <TrendingUp className="w-3 h-3 text-amber-300 flex-shrink-0" />
-                )}
                 {/* Compact risk badge */}
                 {riskConfig && !isPaid && (
                   <span className={cn(
@@ -263,17 +252,10 @@ export function BillCard({
               <h3 className="font-bold text-lg text-white leading-tight">
                 {bill.name}
               </h3>
-              {(bill.amount || bill.is_variable) && (
+              {bill.amount && (
                 <p className="text-white/80 text-sm font-medium flex items-center gap-1">
                   <DollarSign className="w-3.5 h-3.5" />
-                  {bill.is_variable ? (
-                    <span className="flex items-center gap-1">
-                      {formatVariableAmount()}
-                      <TrendingUp className="w-3 h-3 text-amber-300" />
-                    </span>
-                  ) : (
-                    formatCurrency(bill.amount!).replace('$', '')
-                  )}
+                  {formatCurrency(bill.amount).replace('$', '')}
                 </p>
               )}
             </div>
@@ -330,18 +312,6 @@ export function BillCard({
               </div>
             )}
 
-            {/* Variable bill badge */}
-            {bill.is_variable && !isPaid && (
-              <div
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/30 backdrop-blur-sm"
-                title="Variable amount"
-              >
-                <TrendingUp className="w-3.5 h-3.5 text-amber-200" />
-                <span className="text-xs font-medium text-amber-100">
-                  Variable
-                </span>
-              </div>
-            )}
 
             {/* Price change badge */}
             {priceChange && !isPaid && (
@@ -578,9 +548,6 @@ export function BillListItem({
 
   // Format amount display
   const formatAmount = () => {
-    if (bill.is_variable && bill.typical_min !== null && bill.typical_max !== null) {
-      return `${formatCurrency(bill.typical_min)} - ${formatCurrency(bill.typical_max)}`;
-    }
     return bill.amount ? formatCurrency(bill.amount) : null;
   };
 
@@ -647,12 +614,6 @@ export function BillListItem({
           )}
           {bill.is_recurring && !isPaid && (
             <RefreshCw className="w-3.5 h-3.5 text-zinc-400 flex-shrink-0" />
-          )}
-          {bill.is_variable && !isPaid && (
-            <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
-              <TrendingUp className="w-3 h-3" />
-              Varies
-            </span>
           )}
           {bill.payment_url && !isPaid && (
             <ExternalLink className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />

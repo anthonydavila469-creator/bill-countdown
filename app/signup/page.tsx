@@ -10,7 +10,7 @@ const benefits = [
   'AI-powered bill detection from your email',
   'Beautiful countdown cards for each bill',
   'Smart reminders before due dates',
-  'Free forever for up to 10 bills',
+  'Free forever for up to 5 bills',
 ];
 
 export default function SignupPage() {
@@ -133,7 +133,7 @@ export default function SignupPage() {
                 <Zap className="w-6 h-6 text-white" />
               </div>
               <span className="text-2xl font-bold tracking-tight">
-                Bill<span className="text-blue-400">Countdown</span>
+                Due<span className="text-blue-400">zo</span>
               </span>
             </Link>
 
@@ -303,13 +303,13 @@ export default function SignupPage() {
             {/* Terms */}
             <p className="text-xs text-zinc-500 text-center">
               By creating an account, you agree to our{' '}
-              <a href="#" className="text-blue-400 hover:underline">
+              <Link href="/terms" className="text-blue-400 hover:underline">
                 Terms of Service
-              </a>{' '}
+              </Link>{' '}
               and{' '}
-              <a href="#" className="text-blue-400 hover:underline">
+              <Link href="/privacy" className="text-blue-400 hover:underline">
                 Privacy Policy
-              </a>
+              </Link>
             </p>
           </form>
 

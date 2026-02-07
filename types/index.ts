@@ -213,13 +213,9 @@ export interface Bill {
   generated_next: boolean; // Flag to prevent duplicate generation
   source: BillSource;
   gmail_message_id: string | null;
-  notes: string | null;
   payment_url: string | null;
   is_autopay: boolean; // Whether bill is on automatic payment
   previous_amount: number | null; // Previous amount for price change detection
-  is_variable: boolean; // Whether bill amount changes each month
-  typical_min: number | null; // Minimum typical amount for variable bills
-  typical_max: number | null; // Maximum typical amount for variable bills
   icon_key: BillIconKey | null; // Icon identifier for display
   created_at: string;
   updated_at: string;
@@ -235,12 +231,8 @@ export interface BillFormData {
   recurrence_interval: RecurrenceInterval | null;
   recurrence_day_of_month: number | null;
   recurrence_weekday: number | null;
-  notes: string | null;
   payment_url: string | null;
   is_autopay: boolean;
-  is_variable: boolean;
-  typical_min: number | null;
-  typical_max: number | null;
 }
 
 // Price change detection result
@@ -447,35 +439,6 @@ export const DEFAULT_DASHBOARD_LAYOUT: DashboardLayout = {
   numberColorMode: 'white',
 };
 
-// Paycheck Mode Types
-export type PaySchedule = 'weekly' | 'biweekly' | 'monthly';
-
-export interface PaycheckSettings {
-  enabled: boolean;
-  schedule: PaySchedule;
-  next_payday: string; // YYYY-MM-DD format
-  amount: number | null; // In dollars, or null if not set
-}
-
-export type PaycheckRiskLevel = 'safe' | 'tight' | 'short';
-
-export interface PaycheckSummary {
-  nextPayday: string;
-  billsBeforePayday: number;
-  billsAfterPayday: number;
-  totalBeforePayday: number; // In dollars
-  totalAfterPayday: number; // In dollars
-  moneyLeft: number | null; // In dollars, null if no paycheck amount set
-  riskLevel: PaycheckRiskLevel | null;
-}
-
-export const DEFAULT_PAYCHECK_SETTINGS: PaycheckSettings = {
-  enabled: false,
-  schedule: 'biweekly',
-  next_payday: '',
-  amount: null,
-};
-
 // Notification Types
 export type NotificationChannel = 'email' | 'push';
 export type NotificationStatus = 'pending' | 'sent' | 'failed' | 'skipped';
@@ -484,8 +447,6 @@ export interface NotificationSettings {
   email_enabled: boolean;
   push_enabled: boolean;
   lead_days: number; // Days before due date to send reminder
-  quiet_start: string | null; // HH:MM format
-  quiet_end: string | null; // HH:MM format
   timezone: string; // IANA timezone
   auto_sync_enabled: boolean; // Auto-sync Gmail daily
 }
@@ -515,8 +476,6 @@ export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
   email_enabled: true,
   push_enabled: false,
   lead_days: 3,
-  quiet_start: null,
-  quiet_end: null,
   timezone: 'America/New_York',
   auto_sync_enabled: true,
 };

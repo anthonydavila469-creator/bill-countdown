@@ -1,8 +1,8 @@
-# Bill Countdown App - Architecture Documentation
+# Duezo App - Architecture Documentation
 
 ## Overview
 
-Bill Countdown is a web application that helps users track bill due dates with beautiful countdown cards. It features AI-powered email sync to automatically detect bills from Gmail.
+Duezo is a web application that helps users track bill due dates with beautiful countdown cards. It features AI-powered email sync to automatically detect bills from Gmail.
 
 ## Tech Stack
 
@@ -19,7 +19,7 @@ Bill Countdown is a web application that helps users track bill due dates with b
 ## Project Structure
 
 ```
-bill-countdown/
+duezo/
 ├── app/                          # Next.js App Router pages
 │   ├── page.tsx                  # Landing page
 │   ├── login/page.tsx            # Login page
@@ -36,7 +36,7 @@ bill-countdown/
 ├── components/                   # React components
 │   ├── ui/                       # Base UI components
 │   │   └── gradient-card.tsx     # Gradient card with urgency colors
-│   ├── bill-card.tsx             # Bill countdown card (grid & list variants)
+│   ├── bill-card.tsx             # Bill card (grid & list variants)
 │   ├── bill-form.tsx             # Bill form with validation
 │   ├── add-bill-modal.tsx        # Add/Edit bill modal
 │   ├── delete-bill-modal.tsx     # Delete confirmation modal

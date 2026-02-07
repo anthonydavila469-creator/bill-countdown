@@ -10,9 +10,7 @@ import { DeleteBillModal } from '@/components/delete-bill-modal';
 import { BillDetailModal } from '@/components/bill-detail-modal';
 import { PayNowModal } from '@/components/pay-now-modal';
 import { BillListView } from '@/components/bill-list-view';
-import { BatchActionBar, SnoozeOption } from '@/components/batch-action-bar';
 import { SortFilterBar, SortOption, FilterOption } from '@/components/sort-filter-bar';
-import { PaycheckSummaryCard } from '@/components/paycheck-summary-card';
 import { Bill, DashboardView } from '@/types';
 import { getDaysUntilDue } from '@/lib/utils';
 import { getBillRiskType } from '@/lib/risk-utils';
@@ -41,6 +39,8 @@ import {
   EyeOff,
   Lightbulb,
   Crown,
+  SlidersHorizontal,
+  Check,
 } from 'lucide-react';
 import { useSubscription } from '@/hooks/use-subscription';
 import { cn } from '@/lib/utils';
@@ -48,7 +48,7 @@ import { cn } from '@/lib/utils';
 export default function DashboardPage() {
   const router = useRouter();
   const supabase = createClient();
-  const { dashboardLayout, paycheckSettings } = useTheme();
+  const { dashboardLayout, updateDashboardLayout } = useTheme();
   const { canAddBill, showUpgradeModal, billsUsed, billLimit, isPro, canUsePaycheckMode, canUseCalendar, canUseHistory, refreshSubscription } = useSubscription();
 
   // Use optimistic mutations hook
@@ -77,14 +77,41 @@ export default function DashboardPage() {
 
   // List view state
   const [selectedBillIds, setSelectedBillIds] = useState<Set<string>>(new Set());
-  const [sortBy, setSortBy] = useState<SortOption>('due_date');
+  const [sortBy, setSortBy] = useState<SortOption>(dashboardLayout.sortBy || 'due_date');
   const [quickFilter, setQuickFilter] = useState<FilterOption>('all');
-  const [isBatchProcessing, setIsBatchProcessing] = useState(false);
+
+  // Layout settings popover state
+  const [isLayoutSettingsOpen, setIsLayoutSettingsOpen] = useState(false);
+  const layoutSettingsRef = useRef<HTMLDivElement>(null);
 
   // Sync view with layout preference when it changes
   useEffect(() => {
     setView(dashboardLayout.defaultView);
   }, [dashboardLayout.defaultView]);
+
+  // Sync sortBy with layout preference when it changes
+  useEffect(() => {
+    if (dashboardLayout.sortBy) {
+      setSortBy(dashboardLayout.sortBy);
+    }
+  }, [dashboardLayout.sortBy]);
+
+  // Close layout settings popover when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (layoutSettingsRef.current && !layoutSettingsRef.current.contains(event.target as Node)) {
+        setIsLayoutSettingsOpen(false);
+      }
+    };
+
+    if (isLayoutSettingsOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isLayoutSettingsOpen]);
 
   // Modal state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -244,6 +271,12 @@ export default function DashboardPage() {
   });
   const notificationCount = billsDueSoon.length + overdueBills.length;
 
+  // Handle sort change - update local state and persist to layout settings
+  const handleSortChange = (newSort: SortOption) => {
+    setSortBy(newSort);
+    updateDashboardLayout({ sortBy: newSort });
+  };
+
   // Handle adding/updating a bill
   const handleBillSuccess = async (bill: Bill) => {
     // Refresh bills from context and subscription state (for bill count)
@@ -291,11 +324,6 @@ export default function DashboardPage() {
 
   // Handle marking a bill as paid from the card (without closing modal)
   const handleMarkAsPaidFromCard = async (bill: Bill) => {
-    // For variable bills, show the pay modal to prompt for the actual amount
-    if (bill.is_variable) {
-      setPayingBill(bill);
-      return;
-    }
     await handleMarkAsPaid(bill);
   };
 
@@ -312,60 +340,6 @@ export default function DashboardPage() {
   // Handle marking paid from Pay Now modal (with custom amount)
   const handleMarkPaidFromPayNow = async (bill: Bill, amount: number | null) => {
     await markPaid(bill, amount);
-  };
-
-  // Batch action: Mark all selected as paid
-  const handleBatchMarkPaid = async () => {
-    if (selectedBillIds.size === 0) return;
-
-    setIsBatchProcessing(true);
-    const selectedBills = bills.filter((b) => selectedBillIds.has(b.id) && !b.is_paid);
-
-    // Process bills sequentially to avoid race conditions with recurring bills
-    for (const bill of selectedBills) {
-      await markPaid(bill);
-    }
-
-    // Clear selection after batch action
-    setSelectedBillIds(new Set());
-    setIsBatchProcessing(false);
-  };
-
-  // Batch action: Snooze selected bills
-  const handleBatchSnooze = async (option: SnoozeOption) => {
-    if (selectedBillIds.size === 0) return;
-
-    setIsBatchProcessing(true);
-    const daysToAdd = option === '1_day' ? 1 : option === '3_days' ? 3 : 7;
-
-    const selectedBills = bills.filter((b) => selectedBillIds.has(b.id) && !b.is_paid);
-
-    for (const bill of selectedBills) {
-      await snoozeBill(bill.id, daysToAdd);
-    }
-
-    setSelectedBillIds(new Set());
-    setIsBatchProcessing(false);
-  };
-
-  // Batch action: Delete selected bills
-  const handleBatchDelete = async () => {
-    if (selectedBillIds.size === 0) return;
-
-    setIsBatchProcessing(true);
-    const selectedBillsList = bills.filter((b) => selectedBillIds.has(b.id));
-
-    for (const bill of selectedBillsList) {
-      await deleteBill(bill.id);
-    }
-
-    setSelectedBillIds(new Set());
-    setIsBatchProcessing(false);
-  };
-
-  // Clear batch selection
-  const handleClearSelection = () => {
-    setSelectedBillIds(new Set());
   };
 
   // Loading state
@@ -403,7 +377,7 @@ export default function DashboardPage() {
               <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </div>
             <span className="text-lg font-bold text-white tracking-tight">
-              Bill<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-violet-400">Countdown</span>
+              Due<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-violet-400">zo</span>
             </span>
           </Link>
         </div>
@@ -544,8 +518,8 @@ export default function DashboardPage() {
       {/* Main content */}
       <main className="lg:ml-64">
         {/* Header */}
-        <header className="sticky top-0 z-40 bg-[#08080c]/80 backdrop-blur-xl border-b border-white/5">
-          <div className="flex items-center justify-between px-6 h-16">
+        <header className="sticky top-0 z-40">
+          <div className="flex items-center justify-between px-6 h-16 bg-[#08080c]/80 backdrop-blur-xl border-b border-white/5">
             {/* Mobile logo */}
             <div className="lg:hidden flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center">
@@ -785,22 +759,17 @@ export default function DashboardPage() {
               </button>
             </div>
           </div>
+
         </header>
 
         {/* Dashboard content */}
         <div className="p-6">
-          {/* Paycheck Summary Card - shown when paycheck mode is enabled AND user is Pro */}
-          {paycheckSettings?.enabled && canUsePaycheckMode && (
-            <div className="mb-6">
-              <PaycheckSummaryCard bills={bills} settings={paycheckSettings} />
-            </div>
-          )}
 
           {/* On-Time Payments Counter - placed below Paycheck Mode widget */}
           <OnTimePayments bills={bills} className="mb-6" />
 
-          {/* Stats - conditionally rendered based on layout preferences, hidden when Paycheck Mode is active */}
-          {dashboardLayout.showStatsBar && !paycheckSettings?.enabled && (
+          {/* Stats - conditionally rendered based on layout preferences */}
+          {dashboardLayout.showStatsBar && (
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
               <div className="relative p-6 rounded-2xl bg-gradient-to-br from-white/[0.03] to-white/[0.01] border border-white/[0.06] overflow-hidden group hover:border-white/[0.1] transition-all duration-300">
                 <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
@@ -845,7 +814,6 @@ export default function DashboardPage() {
             onPayNow={handlePayNow}
             onMarkPaid={handleMarkAsPaidFromCard}
             onEditBill={handleEditFromRiskAlert}
-            paycheckSettings={paycheckSettings}
             className="mb-8"
           />
 
@@ -925,14 +893,112 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Sort & Filter Bar */}
-            <SortFilterBar
-              sortBy={sortBy}
-              onSortChange={setSortBy}
-              activeFilter={quickFilter}
-              onFilterChange={setQuickFilter}
-              className="mb-6"
-            />
+            {/* Sort, Filter & Layout Controls */}
+            <div className="flex flex-wrap items-center gap-3 mb-6">
+              {/* Sort & Filter Bar */}
+              <SortFilterBar
+                sortBy={sortBy}
+                onSortChange={handleSortChange}
+                activeFilter={quickFilter}
+                onFilterChange={setQuickFilter}
+              />
+
+              {/* Layout Settings Popover */}
+              <div className="relative" ref={layoutSettingsRef}>
+                <button
+                  onClick={() => setIsLayoutSettingsOpen(!isLayoutSettingsOpen)}
+                  className={cn(
+                    'group flex items-center justify-center w-10 h-10 rounded-xl border transition-all duration-200',
+                    isLayoutSettingsOpen
+                      ? 'bg-gradient-to-b from-white/[0.1] to-white/[0.05] border-white/[0.15] text-white'
+                      : 'bg-gradient-to-b from-white/[0.05] to-white/[0.02] border-white/[0.08] text-zinc-400 hover:from-white/[0.08] hover:to-white/[0.04] hover:border-white/[0.12] hover:text-white'
+                  )}
+                  title="Layout settings"
+                >
+                  <SlidersHorizontal className={cn(
+                    'w-4 h-4 transition-transform duration-200',
+                    isLayoutSettingsOpen && 'rotate-180'
+                  )} />
+                </button>
+
+                {isLayoutSettingsOpen && (
+                  <div className="absolute top-full right-0 mt-2 z-50 w-56 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="absolute -inset-1 bg-gradient-to-b from-white/5 to-transparent rounded-2xl blur-xl" />
+                    <div className="relative bg-[#0a0a0e]/98 backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.8)] overflow-hidden">
+                      {/* Header */}
+                      <div className="px-4 py-3 border-b border-white/[0.06]">
+                        <p className="text-xs font-semibold text-white">Layout Settings</p>
+                      </div>
+
+                      <div className="p-2 space-y-1">
+                        {/* Card Size */}
+                        <div className="px-2 py-1.5">
+                          <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider mb-2">Card Size</p>
+                          <div className="flex gap-1">
+                            {(['compact', 'default'] as const).map((size) => (
+                              <button
+                                key={size}
+                                onClick={() => updateDashboardLayout({ cardSize: size })}
+                                className={cn(
+                                  'flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200',
+                                  dashboardLayout.cardSize === size
+                                    ? 'bg-white/[0.1] text-white'
+                                    : 'text-zinc-400 hover:bg-white/[0.05] hover:text-white'
+                                )}
+                              >
+                                {size.charAt(0).toUpperCase() + size.slice(1)}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Cards Per Row */}
+                        <div className="px-2 py-1.5">
+                          <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider mb-2">Cards Per Row</p>
+                          <div className="flex gap-1">
+                            {[2, 3, 4].map((cols) => (
+                              <button
+                                key={cols}
+                                onClick={() => updateDashboardLayout({ cardsPerRow: cols as 2 | 3 | 4 })}
+                                className={cn(
+                                  'flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200',
+                                  dashboardLayout.cardsPerRow === cols
+                                    ? 'bg-white/[0.1] text-white'
+                                    : 'text-zinc-400 hover:bg-white/[0.05] hover:text-white'
+                                )}
+                              >
+                                {cols}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Stats Bar Toggle */}
+                        <button
+                          onClick={() => updateDashboardLayout({ showStatsBar: !dashboardLayout.showStatsBar })}
+                          className="w-full flex items-center justify-between px-2 py-2.5 rounded-lg hover:bg-white/[0.05] transition-all duration-200"
+                        >
+                          <span className="text-xs font-medium text-zinc-300">Show Stats Bar</span>
+                          <div
+                            className={cn(
+                              'relative w-9 h-5 rounded-full transition-all duration-200',
+                              dashboardLayout.showStatsBar ? 'bg-cyan-500' : 'bg-white/10'
+                            )}
+                          >
+                            <div
+                              className={cn(
+                                'absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all duration-200',
+                                dashboardLayout.showStatsBar ? 'left-[18px]' : 'left-0.5'
+                              )}
+                            />
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
 
             {/* Empty state */}
             {filteredBills.filter(b => showPaidBills ? true : !b.is_paid).length === 0 && (
@@ -1034,22 +1100,11 @@ export default function DashboardPage() {
         </div>
       </main>
 
-      {/* Batch Action Bar */}
-      <BatchActionBar
-        selectedCount={selectedBillIds.size}
-        onMarkAllPaid={handleBatchMarkPaid}
-        onSnooze={handleBatchSnooze}
-        onDelete={handleBatchDelete}
-        onClearSelection={handleClearSelection}
-        isProcessing={isBatchProcessing}
-      />
-
       {/* Mobile FAB */}
       <button
         onClick={handleAddBillClick}
         className={cn(
           "lg:hidden fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center hover:opacity-90 transition-opacity",
-          selectedBillIds.size > 0 && "bottom-24", // Move up when batch bar is visible
           canAddBill ? "text-white" : "text-amber-200 border-2 border-amber-500/50"
         )}
         style={canAddBill ? {

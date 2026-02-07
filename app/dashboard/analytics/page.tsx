@@ -130,7 +130,7 @@ export default function AnalyticsPage() {
               <Zap className="w-5 h-5 text-white" />
             </div>
             <span className="text-lg font-bold text-white tracking-tight">
-              Bill<span className="text-blue-400">Countdown</span>
+              Due<span className="text-blue-400">zo</span>
             </span>
           </Link>
         </div>

@@ -26,13 +26,11 @@ import {
 } from 'lucide-react';
 import { ProFeatureGate } from '@/components/pro-feature-gate';
 import { useSubscription } from '@/hooks/use-subscription';
-import { useTheme } from '@/contexts/theme-context';
 
 export default function CalendarPage() {
   const router = useRouter();
   const supabase = createClient();
   const { canUseCalendar, canUseHistory } = useSubscription();
-  const { paycheckSettings } = useTheme();
 
   // Auth state
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
@@ -201,7 +199,7 @@ export default function CalendarPage() {
               <Zap className="w-5 h-5 text-white" />
             </div>
             <span className="text-lg font-bold text-white tracking-tight">
-              Bill<span className="text-blue-400">Countdown</span>
+              Due<span className="text-blue-400">zo</span>
             </span>
           </Link>
         </div>
@@ -329,7 +327,7 @@ export default function CalendarPage() {
                 <Zap className="w-5 h-5 text-white" />
               </div>
               <span className="text-lg font-bold text-white tracking-tight">
-                Bill<span className="text-blue-400">Countdown</span>
+                Due<span className="text-blue-400">zo</span>
               </span>
             </div>
 
@@ -353,7 +351,7 @@ export default function CalendarPage() {
             onEdit={handleEditFromDetail}
             onReschedule={handleReschedule}
             getMutationState={getMutationState}
-            paydayDate={paycheckSettings?.enabled ? paycheckSettings.next_payday : null}
+            paydayDate={null}
           />
         </div>
       </main>

@@ -10,7 +10,7 @@ import type { PushSubscription } from '@/types';
 // Configure web-push with VAPID keys
 if (process.env.VAPID_PRIVATE_KEY && process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) {
   webpush.setVapidDetails(
-    'mailto:support@billcountdown.app',
+    'mailto:support@duezo.app',
     process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
     process.env.VAPID_PRIVATE_KEY
   );

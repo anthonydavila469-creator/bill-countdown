@@ -1,4 +1,4 @@
-import { Bill, PaycheckSettings } from '@/types';
+import { Bill } from '@/types';
 
 export interface BillCluster {
   bills: Bill[];
@@ -16,7 +16,6 @@ export interface BillCluster {
  */
 export function detectBillCluster(
   bills: Bill[],
-  paycheckSettings?: PaycheckSettings | null
 ): BillCluster | null {
   const now = new Date();
   now.setHours(0, 0, 0, 0);
@@ -37,9 +36,7 @@ export function detectBillCluster(
   });
 
   // Calculate threshold
-  const amountThreshold = paycheckSettings?.amount
-    ? paycheckSettings.amount * 0.25
-    : 500;
+  const amountThreshold = 500;
 
   // Sliding window to find clusters
   let bestCluster: BillCluster | null = null;

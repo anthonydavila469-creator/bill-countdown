@@ -7,7 +7,6 @@ import {
   Smartphone,
   Clock,
   ChevronDown,
-  Moon,
   Info,
   RefreshCw,
   Crown,
@@ -192,14 +191,6 @@ export function NotificationSection() {
     await updateSettings({ ...settings, lead_days: value });
   }, [settings, updateSettings]);
 
-  const handleQuietStartChange = useCallback(async (value: string) => {
-    await updateSettings({ ...settings, quiet_start: value || null });
-  }, [settings, updateSettings]);
-
-  const handleQuietEndChange = useCallback(async (value: string) => {
-    await updateSettings({ ...settings, quiet_end: value || null });
-  }, [settings, updateSettings]);
-
   const handleAutoSyncToggle = useCallback(async (enabled: boolean) => {
     await updateSettings({ ...settings, auto_sync_enabled: enabled });
   }, [settings, updateSettings]);
@@ -348,72 +339,6 @@ export function NotificationSection() {
           </div>
         </FieldRow>
 
-        {/* Quiet Hours - Pro Feature */}
-        <FieldRow
-          icon={Moon}
-          label="Quiet Hours"
-          description="Don't send notifications during this time"
-          index={4}
-        >
-          <div className="flex items-center gap-3">
-            {!canCustomizeReminders && (
-              <span className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-500/20 border border-amber-500/30">
-                <Crown className="w-3 h-3 text-amber-400" />
-                <span className="text-[10px] font-semibold text-amber-300">Pro</span>
-              </span>
-            )}
-            <div className="flex items-center gap-2">
-              <input
-                type="time"
-                value={settings.quiet_start ?? ''}
-                onChange={(e) => {
-                  if (!canCustomizeReminders) {
-                    showUpgradeModal('custom reminders');
-                    return;
-                  }
-                  handleQuietStartChange(e.target.value);
-                }}
-                disabled={!canCustomizeReminders}
-                placeholder="Start"
-                className={cn(
-                  'px-3 py-2 w-[100px]',
-                  'bg-white/[0.04] hover:bg-white/[0.08]',
-                  'border border-white/[0.08] hover:border-white/[0.15]',
-                  'rounded-xl text-white text-sm font-medium',
-                  'focus:outline-none focus:ring-2 focus:ring-indigo-500/30',
-                  'transition-all duration-200',
-                  '[color-scheme:dark]',
-                  !canCustomizeReminders && 'opacity-50 cursor-not-allowed'
-                )}
-              />
-              <span className="text-zinc-500">to</span>
-              <input
-                type="time"
-                value={settings.quiet_end ?? ''}
-                onChange={(e) => {
-                  if (!canCustomizeReminders) {
-                    showUpgradeModal('custom reminders');
-                    return;
-                  }
-                  handleQuietEndChange(e.target.value);
-                }}
-                disabled={!canCustomizeReminders}
-                placeholder="End"
-                className={cn(
-                  'px-3 py-2 w-[100px]',
-                  'bg-white/[0.04] hover:bg-white/[0.08]',
-                  'border border-white/[0.08] hover:border-white/[0.15]',
-                  'rounded-xl text-white text-sm font-medium',
-                  'focus:outline-none focus:ring-2 focus:ring-indigo-500/30',
-                  'transition-all duration-200',
-                  '[color-scheme:dark]',
-                  !canCustomizeReminders && 'opacity-50 cursor-not-allowed'
-                )}
-              />
-            </div>
-          </div>
-        </FieldRow>
-
         {/* Info tip */}
         <div
           className="relative p-4 rounded-xl bg-indigo-500/[0.03] border border-indigo-500/10 animate-in fade-in slide-in-from-bottom-2"
@@ -433,8 +358,7 @@ export function NotificationSection() {
                 About Notifications
               </p>
               <p className="text-xs text-zinc-400 leading-relaxed">
-                Reminders are sent at 9 AM in your timezone. Enable quiet hours to prevent
-                notifications during sleeping hours. Push notifications require browser permission.
+                Reminders are sent at 9 AM in your timezone. Push notifications require browser permission.
               </p>
             </div>
           </div>

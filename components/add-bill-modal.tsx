@@ -133,12 +133,8 @@ export function AddBillModal({
                         recurrence_interval: editBill.recurrence_interval,
                         recurrence_day_of_month: editBill.recurrence_day_of_month,
                         recurrence_weekday: editBill.recurrence_weekday,
-                        notes: editBill.notes,
                         payment_url: editBill.payment_url,
                         is_autopay: editBill.is_autopay,
-                        is_variable: editBill.is_variable,
-                        typical_min: editBill.typical_min,
-                        typical_max: editBill.typical_max,
                       }
                     : initialData
                     ? initialData

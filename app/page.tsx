@@ -13,7 +13,6 @@ import {
   Repeat,
   Calendar,
   BarChart3,
-  Wallet,
   Check,
   X,
   Crown,
@@ -42,13 +41,9 @@ const demoBills: Bill[] = [
     generated_next: false,
     source: 'gmail',
     gmail_message_id: null,
-    notes: null,
     payment_url: null,
     is_autopay: true,
     previous_amount: 15.99, // Shows price increase!
-    is_variable: false,
-    typical_min: null,
-    typical_max: null,
     icon_key: 'tv',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
@@ -74,13 +69,9 @@ const demoBills: Bill[] = [
     generated_next: false,
     source: 'gmail',
     gmail_message_id: null,
-    notes: null,
     payment_url: null,
     is_autopay: false,
     previous_amount: null,
-    is_variable: true,
-    typical_min: 120,
-    typical_max: 180,
     icon_key: 'bolt',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
@@ -106,13 +97,9 @@ const demoBills: Bill[] = [
     generated_next: false,
     source: 'manual',
     gmail_message_id: null,
-    notes: null,
     payment_url: null,
     is_autopay: true,
     previous_amount: null,
-    is_variable: false,
-    typical_min: null,
-    typical_max: null,
     icon_key: 'home',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
@@ -161,13 +148,6 @@ const features = [
     description:
       'Track spending trends, category breakdowns, and monthly comparisons at a glance.',
     gradient: 'from-cyan-500 to-blue-500',
-  },
-  {
-    icon: Wallet,
-    title: 'Paycheck Mode',
-    description:
-      'See which bills are due before vs after payday. Know exactly what\'s left over.',
-    gradient: 'from-amber-500 to-yellow-500',
   },
   {
     icon: Moon,
@@ -222,7 +202,7 @@ export default function LandingPage() {
                 <Zap className="w-5 h-5 text-white" />
               </div>
               <span className="text-xl font-bold tracking-tight">
-                Bill<span className="text-blue-400">Countdown</span>
+                Due<span className="text-blue-400">zo</span>
               </span>
             </div>
 
@@ -457,7 +437,7 @@ export default function LandingPage() {
                 </li>
                 <li className="flex items-center gap-3 text-zinc-300">
                   <Check className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-                  <span>Bill countdown & reminders</span>
+                  <span>Due date tracking & reminders</span>
                 </li>
                 <li className="flex items-center gap-3 text-zinc-300">
                   <Check className="w-5 h-5 text-emerald-400 flex-shrink-0" />
@@ -524,10 +504,6 @@ export default function LandingPage() {
                 <li className="flex items-center gap-3 text-zinc-300">
                   <Check className="w-5 h-5 text-emerald-400 flex-shrink-0" />
                   <span>Analytics & insights</span>
-                </li>
-                <li className="flex items-center gap-3 text-zinc-300">
-                  <Check className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-                  <span>Paycheck mode</span>
                 </li>
                 <li className="flex items-center gap-3 text-zinc-300">
                   <Check className="w-5 h-5 text-emerald-400 flex-shrink-0" />
@@ -640,25 +616,25 @@ export default function LandingPage() {
               <div className="w-6 h-6 rounded-md bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center">
                 <Zap className="w-4 h-4 text-white" />
               </div>
-              <span className="font-semibold">BillCountdown</span>
+              <span className="font-semibold">Duezo</span>
             </div>
 
             {/* Links */}
             <div className="flex items-center gap-6 text-sm text-zinc-500">
-              <a href="#" className="hover:text-white transition-colors">
+              <Link href="/privacy" className="hover:text-white transition-colors">
                 Privacy
-              </a>
-              <a href="#" className="hover:text-white transition-colors">
+              </Link>
+              <Link href="/terms" className="hover:text-white transition-colors">
                 Terms
-              </a>
-              <a href="#" className="hover:text-white transition-colors">
+              </Link>
+              <a href="mailto:support@duezo.app" className="hover:text-white transition-colors">
                 Contact
               </a>
             </div>
 
             {/* Copyright */}
             <p className="text-sm text-zinc-500">
-              © {new Date().getFullYear()} BillCountdown. All rights reserved.
+              © {new Date().getFullYear()} Duezo. All rights reserved.
             </p>
           </div>
         </div>

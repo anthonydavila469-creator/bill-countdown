@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Bill, PaycheckSettings } from '@/types';
+import { Bill } from '@/types';
 import { getRiskBills, RiskBill, RiskType } from '@/lib/risk-utils';
 import { detectBillCluster, BillCluster } from '@/lib/clustering-utils';
 import { formatCurrency, getDaysUntilDue } from '@/lib/utils';
@@ -80,7 +80,6 @@ interface RiskAlertsProps {
   onMarkPaid: (bill: Bill) => void;
   onEditBill?: (bill: Bill) => void;
   className?: string;
-  paycheckSettings?: PaycheckSettings | null;
 }
 
 export function RiskAlerts({
@@ -89,7 +88,6 @@ export function RiskAlerts({
   onMarkPaid,
   onEditBill,
   className,
-  paycheckSettings,
 }: RiskAlertsProps) {
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
   const [isCollapsed, setIsCollapsed] = useState(true); // Collapsed by default for cleaner dashboard
@@ -103,8 +101,8 @@ export function RiskAlerts({
   // Detect bill cluster
   const billCluster = useMemo(() => {
     if (clusterDismissed) return null;
-    return detectBillCluster(bills, paycheckSettings);
-  }, [bills, paycheckSettings, clusterDismissed]);
+    return detectBillCluster(bills);
+  }, [bills, clusterDismissed]);
 
   const handleDismiss = (billId: string) => {
     setDismissedIds(prev => new Set([...prev, billId]));

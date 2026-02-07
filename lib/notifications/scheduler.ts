@@ -170,45 +170,6 @@ function getScheduledTimeInTimezone(
   }
 }
 
-/**
- * Check if current time is within quiet hours
- */
-export function isInQuietHours(
-  settings: NotificationSettings,
-  now: Date = new Date()
-): boolean {
-  if (!settings.quiet_start || !settings.quiet_end) {
-    return false;
-  }
-
-  try {
-    const formatter = new Intl.DateTimeFormat('en-US', {
-      timeZone: settings.timezone,
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    });
-
-    const parts = formatter.formatToParts(now);
-    const hour = parseInt(parts.find(p => p.type === 'hour')?.value ?? '0');
-    const minute = parseInt(parts.find(p => p.type === 'minute')?.value ?? '0');
-    const currentMinutes = hour * 60 + minute;
-
-    const [startHour, startMinute] = settings.quiet_start.split(':').map(Number);
-    const [endHour, endMinute] = settings.quiet_end.split(':').map(Number);
-    const startMinutes = startHour * 60 + startMinute;
-    const endMinutes = endHour * 60 + endMinute;
-
-    // Handle overnight quiet hours (e.g., 22:00 to 07:00)
-    if (startMinutes > endMinutes) {
-      return currentMinutes >= startMinutes || currentMinutes < endMinutes;
-    }
-
-    return currentMinutes >= startMinutes && currentMinutes < endMinutes;
-  } catch {
-    return false;
-  }
-}
 
 /**
  * Schedule notifications for a bill, fetching user settings automatically

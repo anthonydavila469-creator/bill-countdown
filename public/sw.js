@@ -1,4 +1,4 @@
-// Service Worker for Bill Countdown Push Notifications
+// Service Worker for Duezo Push Notifications
 
 self.addEventListener('install', (event) => {
   // Skip waiting to activate immediately
@@ -39,7 +39,7 @@ self.addEventListener('push', (event) => {
   };
 
   event.waitUntil(
-    self.registration.showNotification(data.title || 'Bill Countdown', options)
+    self.registration.showNotification(data.title || 'Duezo', options)
   );
 });
 

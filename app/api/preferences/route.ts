@@ -3,7 +3,6 @@ import { NextResponse } from 'next/server';
 import {
   DEFAULT_COLOR_THEME,
   DEFAULT_DASHBOARD_LAYOUT,
-  DEFAULT_PAYCHECK_SETTINGS,
   DEFAULT_NOTIFICATION_SETTINGS,
 } from '@/types';
 
@@ -44,7 +43,6 @@ export async function GET() {
         is_pro: false,
         color_theme: DEFAULT_COLOR_THEME,
         dashboard_layout: DEFAULT_DASHBOARD_LAYOUT,
-        paycheck_settings: DEFAULT_PAYCHECK_SETTINGS,
         notification_settings: DEFAULT_NOTIFICATION_SETTINGS,
       });
     }
@@ -98,11 +96,6 @@ export async function PUT(request: Request) {
     // Dashboard layout can be updated by anyone for now
     if (body.dashboard_layout !== undefined) {
       updateData.dashboard_layout = body.dashboard_layout;
-    }
-
-    // Paycheck settings can be updated by anyone
-    if (body.paycheck_settings !== undefined) {
-      updateData.paycheck_settings = body.paycheck_settings;
     }
 
     // Notification settings can be updated by anyone

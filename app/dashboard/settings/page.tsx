@@ -28,7 +28,6 @@ import {
 import { cn } from '@/lib/utils';
 import { BillImportModal } from '@/components/bill-import-modal';
 import { CustomizationSection } from '@/components/settings/customization-section';
-import { PaycheckSection } from '@/components/settings/paycheck-section';
 import { NotificationSection } from '@/components/settings/notification-section';
 import { SubscriptionSection } from '@/components/settings/subscription-section';
 import { DeleteAccountModal } from '@/components/settings/delete-account-modal';
@@ -404,7 +403,7 @@ export default function SettingsPage() {
               <Zap className="w-5 h-5 text-white" />
             </div>
             <span className="text-lg font-bold text-white tracking-tight">
-              Bill<span className="text-blue-400">Countdown</span>
+              Due<span className="text-blue-400">zo</span>
             </span>
           </Link>
         </div>
@@ -738,11 +737,6 @@ export default function SettingsPage() {
             <NotificationSection />
           </section>
 
-          {/* Paycheck Mode */}
-          <section>
-            <PaycheckSection />
-          </section>
-
           {/* Customization Section */}
           <section>
             <CustomizationSection />
@@ -889,24 +883,24 @@ export default function SettingsPage() {
             <div className="flex flex-col items-center gap-4">
               <div className="flex items-center gap-2 text-zinc-600">
                 <Zap className="w-4 h-4" />
-                <span className="text-sm font-medium tracking-wide">BillCountdown v1.0.0</span>
+                <span className="text-sm font-medium tracking-wide">Duezo v1.0.0</span>
               </div>
               <div className="flex items-center gap-4 text-sm">
-                <a
-                  href="#"
+                <Link
+                  href="/privacy"
                   className="text-zinc-500 hover:text-white transition-colors flex items-center gap-1.5"
                 >
                   Privacy Policy
                   <ExternalLink className="w-3 h-3" />
-                </a>
+                </Link>
                 <span className="text-zinc-700">•</span>
-                <a
-                  href="#"
+                <Link
+                  href="/terms"
                   className="text-zinc-500 hover:text-white transition-colors flex items-center gap-1.5"
                 >
                   Terms of Service
                   <ExternalLink className="w-3 h-3" />
-                </a>
+                </Link>
               </div>
             </div>
           </div>

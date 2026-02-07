@@ -78,21 +78,6 @@ export async function PUT(request: Request) {
       );
     }
 
-    // Validate quiet hours format (HH:MM)
-    const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
-    if (newSettings.quiet_start && !timeRegex.test(newSettings.quiet_start)) {
-      return NextResponse.json(
-        { error: 'Invalid quiet_start format (expected HH:MM)' },
-        { status: 400 }
-      );
-    }
-    if (newSettings.quiet_end && !timeRegex.test(newSettings.quiet_end)) {
-      return NextResponse.json(
-        { error: 'Invalid quiet_end format (expected HH:MM)' },
-        { status: 400 }
-      );
-    }
-
     // Upsert preferences with new notification settings
     const { data: preferences, error } = await supabase
       .from('user_preferences')

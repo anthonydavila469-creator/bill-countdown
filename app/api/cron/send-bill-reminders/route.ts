@@ -1,7 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import { sendBillReminderEmail } from '@/lib/notifications/email-sender';
 import { sendBillReminderPushToAll } from '@/lib/notifications/push-sender';
-import { isInQuietHours } from '@/lib/notifications/scheduler';
 import { NextResponse } from 'next/server';
 import { DEFAULT_NOTIFICATION_SETTINGS } from '@/types';
 import type { Bill, NotificationSettings, PushSubscription, BillNotification } from '@/types';
@@ -78,13 +77,6 @@ export async function POST(request: Request) {
       const userEmail = userResult.data?.user?.email;
       const settings: NotificationSettings = prefsResult.data?.notification_settings ?? DEFAULT_NOTIFICATION_SETTINGS;
       const pushSubscriptions: PushSubscription[] = (subsResult.data as PushSubscription[]) ?? [];
-
-      // Check if in quiet hours
-      if (isInQuietHours(settings, now)) {
-        // Skip all notifications for this user (will be retried next run)
-        results.skipped += userNotifications.length;
-        continue;
-      }
 
       // Process each notification for this user
       for (const notification of userNotifications) {

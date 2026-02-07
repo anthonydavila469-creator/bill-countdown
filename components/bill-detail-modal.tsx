@@ -202,17 +202,6 @@ export function BillDetailModal({
                 </div>
               )}
 
-              {/* Notes */}
-              {bill.notes && (
-                <div className="flex items-start gap-3 text-zinc-300">
-                  <FileText className="w-5 h-5 text-zinc-500 mt-0.5" />
-                  <div>
-                    <p className="text-sm text-zinc-500">Notes</p>
-                    <p className="font-medium">{bill.notes}</p>
-                  </div>
-                </div>
-              )}
-
               {/* Payment Link */}
               {bill.payment_url && (
                 <div className="flex items-start gap-3 text-zinc-300">

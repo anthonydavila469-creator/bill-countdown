@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { BillFormData, BillCategory, RecurrenceInterval, categoryEmojis, categoryIconKeys, BillIconKey } from '@/types';
 import { cn, formatDateForInput, getNextDueDate, formatNextDueDate } from '@/lib/utils';
 import { applyAutoCategorization } from '@/lib/auto-categorize';
-import { Calendar, DollarSign, RefreshCw, FileText, ChevronDown, Link, CreditCard, Sparkles, Check, ExternalLink, AlertCircle, TrendingUp } from 'lucide-react';
+import { Calendar, DollarSign, RefreshCw, ChevronDown, Link, CreditCard, Sparkles, Check, ExternalLink, AlertCircle } from 'lucide-react';
 
 interface BillFormProps {
   initialData?: Partial<BillFormData>;
@@ -285,12 +285,8 @@ export function BillForm({
     recurrence_interval: initialData?.recurrence_interval || null,
     recurrence_day_of_month: initialData?.recurrence_day_of_month || null,
     recurrence_weekday: initialData?.recurrence_weekday || null,
-    notes: initialData?.notes || null,
     payment_url: initialData?.payment_url || null,
     is_autopay: initialData?.is_autopay || false,
-    is_variable: initialData?.is_variable || false,
-    typical_min: initialData?.typical_min ?? null,
-    typical_max: initialData?.typical_max ?? null,
   });
 
   // Track if user has manually changed category to prevent auto-override
@@ -356,15 +352,6 @@ export function BillForm({
     }));
   };
 
-  const handleVariableToggle = (checked: boolean) => {
-    handleChange('is_variable', checked);
-    if (!checked) {
-      // Clear range when disabling variable
-      handleChange('typical_min', null);
-      handleChange('typical_max', null);
-    }
-  };
-
   const handleRecurringToggle = (checked: boolean) => {
     handleChange('is_recurring', checked);
     if (!checked) {
@@ -392,15 +379,6 @@ export function BillForm({
     // Validate payment URL must start with https://
     if (formData.payment_url && !formData.payment_url.startsWith('https://')) {
       newErrors.payment_url = 'Payment link must start with https://';
-    }
-
-    // Validate variable bill range
-    if (formData.is_variable) {
-      if (formData.typical_min === null || formData.typical_max === null) {
-        newErrors.typical_range = 'Both min and max are required for variable bills';
-      } else if (formData.typical_min > formData.typical_max) {
-        newErrors.typical_range = 'Minimum must be less than or equal to maximum';
-      }
     }
 
     setErrors(newErrors);
@@ -705,165 +683,6 @@ export function BillForm({
             <p className="text-xs text-zinc-500">This bill is paid automatically</p>
           </div>
         </label>
-      </div>
-
-      {/* Variable Bill Section */}
-      <div className={cn(
-        "relative rounded-2xl transition-all duration-500",
-        formData.is_variable
-          ? "bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-yellow-500/10 border border-amber-500/20 overflow-visible"
-          : "bg-white/[0.02] border border-white/10 overflow-hidden"
-      )}>
-        {/* Subtle animated gradient background when active */}
-        {formData.is_variable && (
-          <div className="absolute inset-0 opacity-30">
-            <div className="absolute inset-0 bg-gradient-to-r from-amber-500/0 via-amber-500/10 to-amber-500/0 animate-[shimmer_3s_ease-in-out_infinite]" />
-          </div>
-        )}
-
-        <div className="relative p-5 space-y-5">
-          {/* Toggle Header */}
-          <button
-            type="button"
-            onClick={() => handleVariableToggle(!formData.is_variable)}
-            className="w-full flex items-center justify-between group"
-          >
-            <div className="flex items-center gap-3">
-              <div className={cn(
-                "relative w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300",
-                formData.is_variable
-                  ? "bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg shadow-amber-500/25"
-                  : "bg-white/5 group-hover:bg-white/10"
-              )}>
-                <TrendingUp className={cn(
-                  "w-5 h-5 transition-all duration-300",
-                  formData.is_variable
-                    ? "text-white"
-                    : "text-zinc-400 group-hover:text-zinc-300"
-                )} />
-              </div>
-              <div className="text-left">
-                <span className={cn(
-                  "font-semibold transition-colors",
-                  formData.is_variable ? "text-white" : "text-zinc-300 group-hover:text-white"
-                )}>
-                  Variable Amount
-                </span>
-                <p className={cn(
-                  "text-xs transition-colors",
-                  formData.is_variable ? "text-amber-300/70" : "text-zinc-500"
-                )}>
-                  {formData.is_variable ? "Amount changes each month" : "Enable for bills that vary"}
-                </p>
-              </div>
-            </div>
-
-            {/* Toggle Switch */}
-            <div className={cn(
-              "relative w-14 h-8 rounded-full transition-all duration-300",
-              formData.is_variable
-                ? "bg-gradient-to-r from-amber-500 to-orange-500 shadow-lg shadow-amber-500/30"
-                : "bg-white/10"
-            )}>
-              <div className={cn(
-                "absolute top-1 w-6 h-6 rounded-full transition-all duration-300 shadow-md",
-                formData.is_variable
-                  ? "left-7 bg-white"
-                  : "left-1 bg-zinc-400"
-              )}>
-                {formData.is_variable && (
-                  <TrendingUp className="w-3 h-3 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-amber-500" />
-                )}
-              </div>
-            </div>
-          </button>
-
-          {/* Expanded Options */}
-          <div className={cn(
-            "space-y-4 overflow-hidden transition-all duration-500",
-            formData.is_variable ? "max-h-[200px] opacity-100" : "max-h-0 opacity-0"
-          )}>
-            <div className="grid grid-cols-2 gap-4">
-              {/* Typical Min */}
-              <div>
-                <label className="block text-xs font-medium text-amber-300/70 uppercase tracking-wider mb-2">
-                  Typical Min
-                </label>
-                <div className="relative">
-                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-400" />
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={formData.typical_min ?? ''}
-                    onChange={(e) =>
-                      handleChange(
-                        'typical_min',
-                        e.target.value ? parseFloat(e.target.value) : null
-                      )
-                    }
-                    placeholder="0.00"
-                    className="w-full pl-9 pr-4 py-3 bg-white/5 border border-amber-500/20 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/30 transition-all"
-                  />
-                </div>
-              </div>
-
-              {/* Typical Max */}
-              <div>
-                <label className="block text-xs font-medium text-amber-300/70 uppercase tracking-wider mb-2">
-                  Typical Max
-                </label>
-                <div className="relative">
-                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-400" />
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={formData.typical_max ?? ''}
-                    onChange={(e) =>
-                      handleChange(
-                        'typical_max',
-                        e.target.value ? parseFloat(e.target.value) : null
-                      )
-                    }
-                    placeholder="0.00"
-                    className="w-full pl-9 pr-4 py-3 bg-white/5 border border-amber-500/20 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/30 transition-all"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {errors.typical_range && (
-              <p className="text-sm text-red-400 flex items-center gap-1">
-                <AlertCircle className="w-3 h-3" />
-                {errors.typical_range}
-              </p>
-            )}
-
-            <p className="text-xs text-zinc-500">
-              Set the typical range for this bill. You&apos;ll be prompted for the actual amount when marking as paid.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Notes */}
-      <div>
-        <label className="block text-sm font-medium text-zinc-400 mb-2">
-          Notes (optional)
-        </label>
-        <div className="relative">
-          <FileText className="absolute left-3 top-3 w-5 h-5 text-zinc-500" />
-          <textarea
-            value={formData.notes || ''}
-            onChange={(e) =>
-              handleChange('notes', e.target.value || null)
-            }
-            placeholder="Add any notes..."
-            rows={3}
-            className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
-          />
-        </div>
       </div>
 
       {/* Payment URL */}

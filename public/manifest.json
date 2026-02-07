@@ -1,6 +1,6 @@
 {
-  "name": "BillCountdown",
-  "short_name": "BillCountdown",
+  "name": "Duezo",
+  "short_name": "Duezo",
   "description": "Never miss a bill payment. Track due dates with beautiful countdown cards and AI-powered email sync.",
   "start_url": "/dashboard",
   "display": "standalone",

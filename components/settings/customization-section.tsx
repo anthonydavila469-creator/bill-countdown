@@ -1,30 +1,18 @@
 'use client';
 
 import {
-  Lock,
   Crown,
   Palette,
-  LayoutGrid,
-  ChevronDown,
   Check,
   RotateCcw,
-  Gem,
   Sparkles,
-  Grid3X3,
-  List,
-  ArrowUpDown,
-  BarChart3,
 } from 'lucide-react';
 import { useTheme } from '@/contexts/theme-context';
 import { useSubscription } from '@/hooks/use-subscription';
 import {
-  DEFAULT_DASHBOARD_LAYOUT,
   DEFAULT_COLOR_THEME,
   COLOR_THEMES,
   ColorThemeId,
-  CardSize,
-  DashboardView,
-  SortBy,
 } from '@/types';
 import { cn } from '@/lib/utils';
 
@@ -90,118 +78,6 @@ function ThemeCard({
   );
 }
 
-// Premium select field
-function SelectField<T extends string>({
-  label,
-  value,
-  onChange,
-  options,
-  icon: Icon,
-  index = 0,
-}: {
-  label: string;
-  value: T;
-  onChange: (value: T) => void;
-  options: { value: T; label: string }[];
-  icon?: React.ComponentType<{ className?: string }>;
-  index?: number;
-}) {
-  return (
-    <div
-      className="group flex items-center justify-between p-4 bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.06] hover:border-white/[0.1] rounded-2xl transition-all duration-300 animate-in fade-in slide-in-from-bottom-2"
-      style={{ animationDelay: `${index * 75}ms`, animationFillMode: 'backwards' }}
-    >
-      <div className="flex items-center gap-3">
-        {Icon && (
-          <div className="p-2 rounded-lg bg-white/[0.04]">
-            <Icon className="w-4 h-4 text-zinc-400" />
-          </div>
-        )}
-        <span className="font-medium text-white tracking-wide">{label}</span>
-      </div>
-      <div className="relative">
-        <select
-          value={value}
-          onChange={(e) => onChange(e.target.value as T)}
-          className={cn(
-            'appearance-none pl-4 pr-10 py-2.5 min-w-[140px]',
-            'bg-white/[0.04] hover:bg-white/[0.08]',
-            'border border-white/[0.08] hover:border-white/[0.15]',
-            'rounded-xl text-white text-sm font-medium tracking-wide',
-            'focus:outline-none focus:ring-2 focus:ring-white/20',
-            'cursor-pointer transition-all duration-200'
-          )}
-        >
-          {options.map((opt) => (
-            <option key={opt.value} value={opt.value} className="bg-zinc-900 text-white">
-              {opt.label}
-            </option>
-          ))}
-        </select>
-        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
-      </div>
-    </div>
-  );
-}
-
-// Premium toggle switch
-function ToggleField({
-  label,
-  checked,
-  onChange,
-  icon: Icon,
-  index = 0,
-}: {
-  label: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-  icon?: React.ComponentType<{ className?: string }>;
-  index?: number;
-}) {
-  return (
-    <div
-      className="group flex items-center justify-between p-4 bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.06] hover:border-white/[0.1] rounded-2xl transition-all duration-300 animate-in fade-in slide-in-from-bottom-2"
-      style={{ animationDelay: `${index * 75}ms`, animationFillMode: 'backwards' }}
-    >
-      <div className="flex items-center gap-3">
-        {Icon && (
-          <div className="p-2 rounded-lg bg-white/[0.04]">
-            <Icon className="w-4 h-4 text-zinc-400" />
-          </div>
-        )}
-        <span className="font-medium text-white tracking-wide">{label}</span>
-      </div>
-      <button
-        onClick={() => onChange(!checked)}
-        className={cn(
-          'relative w-14 h-8 rounded-full transition-all duration-300',
-          !checked && 'bg-white/10'
-        )}
-        style={checked ? { backgroundColor: 'var(--accent-primary)' } : undefined}
-      >
-        {/* Track glow when active */}
-        {checked && (
-          <div
-            className="absolute inset-0 rounded-full blur-md opacity-50"
-            style={{ backgroundColor: 'var(--accent-primary)' }}
-          />
-        )}
-        {/* Thumb */}
-        <div
-          className={cn(
-            'absolute top-1 w-6 h-6 rounded-full transition-all duration-300',
-            'bg-white shadow-lg',
-            checked ? 'left-7' : 'left-1'
-          )}
-        >
-          {/* Thumb highlight */}
-          <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white to-zinc-200" />
-        </div>
-      </button>
-    </div>
-  );
-}
-
 // Section header component
 function SectionHeader({
   icon: Icon,
@@ -234,23 +110,16 @@ function SectionHeader({
 
 export function CustomizationSection() {
   const {
-    isPro,
     selectedTheme,
-    dashboardLayout,
     updateTheme,
-    updateDashboardLayout,
   } = useTheme();
-  const { showUpgradeModal } = useSubscription();
+  const { isPro, showUpgradeModal } = useSubscription();
 
   const themeIds = Object.keys(COLOR_THEMES) as ColorThemeId[];
 
   const resetTheme = () => {
     // TODO: Re-enable Pro check after testing: if (!isPro) return;
     updateTheme(DEFAULT_COLOR_THEME);
-  };
-
-  const resetLayout = () => {
-    updateDashboardLayout(DEFAULT_DASHBOARD_LAYOUT);
   };
 
   return (
@@ -358,87 +227,6 @@ export function CustomizationSection() {
           </div>
         </div>
       </section>
-
-      {/* Dashboard Layout Section */}
-      <section>
-        <SectionHeader
-          icon={LayoutGrid}
-          iconGradient="from-blue-500/80 to-cyan-500/80"
-          title="Dashboard Layout"
-          description="Customize your view preferences"
-          action={
-            <button
-              onClick={resetLayout}
-              className="flex items-center gap-2 px-4 py-2 text-sm text-zinc-400 hover:text-white hover:bg-white/[0.06] rounded-xl transition-all duration-200"
-            >
-              <RotateCcw className="w-4 h-4" />
-              <span className="hidden sm:inline">Reset</span>
-            </button>
-          }
-        />
-
-        <div className="space-y-3">
-          <SelectField<DashboardView>
-            label="Default View"
-            value={dashboardLayout.defaultView}
-            onChange={(value) => updateDashboardLayout({ defaultView: value })}
-            options={[
-              { value: 'grid', label: 'Grid View' },
-              { value: 'list', label: 'List View' },
-            ]}
-            icon={dashboardLayout.defaultView === 'grid' ? Grid3X3 : List}
-            index={0}
-          />
-
-          <SelectField<CardSize>
-            label="Card Size"
-            value={dashboardLayout.cardSize}
-            onChange={(value) => updateDashboardLayout({ cardSize: value })}
-            options={[
-              { value: 'compact', label: 'Compact' },
-              { value: 'default', label: 'Default' },
-            ]}
-            icon={Gem}
-            index={1}
-          />
-
-          <SelectField<'2' | '3' | '4'>
-            label="Cards Per Row"
-            value={String(dashboardLayout.cardsPerRow) as '2' | '3' | '4'}
-            onChange={(value) => updateDashboardLayout({ cardsPerRow: Number(value) as 2 | 3 | 4 })}
-            options={[
-              { value: '2', label: '2 Cards' },
-              { value: '3', label: '3 Cards' },
-              { value: '4', label: '4 Cards' },
-            ]}
-            icon={LayoutGrid}
-            index={2}
-          />
-
-          <SelectField<SortBy>
-            label="Sort Bills By"
-            value={dashboardLayout.sortBy}
-            onChange={(value) => updateDashboardLayout({ sortBy: value })}
-            options={[
-              { value: 'due_date', label: 'Due Date' },
-              { value: 'amount', label: 'Amount' },
-              { value: 'name', label: 'Name' },
-            ]}
-            icon={ArrowUpDown}
-            index={3}
-          />
-
-
-          <ToggleField
-            label="Show Stats Bar"
-            checked={dashboardLayout.showStatsBar}
-            onChange={(checked) => updateDashboardLayout({ showStatsBar: checked })}
-            icon={BarChart3}
-            index={5}
-          />
-        </div>
-      </section>
-
     </div>
   );
 }

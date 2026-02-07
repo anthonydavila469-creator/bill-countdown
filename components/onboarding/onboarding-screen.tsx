@@ -9,7 +9,6 @@ import {
   getTemplateById,
   getNextDueDateForDay,
 } from '@/lib/onboarding/bill-templates';
-import { useTheme } from '@/contexts/theme-context';
 import { useToast } from '@/components/ui/toast';
 import { useSubscription } from '@/hooks/use-subscription';
 import { Bill } from '@/types';
@@ -37,7 +36,6 @@ export function OnboardingScreen({
   onAddManually,
   isGmailConnected = false,
 }: OnboardingScreenProps) {
-  const { updatePaycheckSettings, paycheckSettings } = useTheme();
   const { addToast } = useToast();
   const { isPro, canSyncGmail, showUpgradeModal, refreshSubscription } = useSubscription();
 
@@ -96,16 +94,6 @@ export function OnboardingScreen({
   };
 
   const handleFinish = async () => {
-    // Apply optional settings
-    if (setupOptions.paycheckMode && paycheckSettings) {
-      await updatePaycheckSettings({
-        ...paycheckSettings,
-        enabled: true,
-      });
-    }
-
-    // TODO: Handle email reminders setting when that feature is available
-
     await createBills();
   };
 

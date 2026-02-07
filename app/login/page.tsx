@@ -71,7 +71,7 @@ export default function LoginPage() {
                 <Zap className="w-6 h-6 text-white" />
               </div>
               <span className="text-2xl font-bold tracking-tight">
-                Bill<span className="text-blue-400">Countdown</span>
+                Due<span className="text-blue-400">zo</span>
               </span>
             </Link>
 

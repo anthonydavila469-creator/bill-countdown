@@ -47,7 +47,7 @@ export async function sendBillReminderEmail(
     });
 
     const { data, error } = await getResendClient().emails.send({
-      from: 'Bill Countdown <onboarding@resend.dev>',
+      from: 'Duezo <onboarding@resend.dev>',
       to: email,
       subject: `${bill.emoji} ${bill.name} is due ${dueText}`,
       html: `
@@ -96,7 +96,7 @@ export async function sendBillReminderEmail(
               ` : ''}
 
               <p style="text-align: center; color: rgba(255,255,255,0.4); font-size: 12px; margin: 0;">
-                Sent by <a href="https://billcountdown.app" style="color: rgba(255,255,255,0.6);">Bill Countdown</a>
+                Sent by <a href="https://duezo.app" style="color: rgba(255,255,255,0.6);">Duezo</a>
               </p>
             </div>
           </body>
@@ -113,7 +113,7 @@ Due Date: ${formattedDueDate}
 ${bill.payment_url ? `Pay now: ${bill.payment_url}` : ''}
 
 ---
-Sent by Bill Countdown
+Sent by Duezo
       `.trim(),
     });
 

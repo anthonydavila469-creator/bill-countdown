@@ -139,13 +139,6 @@ function PaidBillCard({ bill, isRecent, isEven }: { bill: Bill; isRecent?: boole
                 {bill.recurrence_interval}
               </span>
             )}
-            {/* Variable badge */}
-            {bill.is_variable && (
-              <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400 text-xs font-medium">
-                <TrendingUp className="w-3 h-3" />
-                Variable
-              </span>
-            )}
           </div>
           <div className="flex items-center gap-4 text-sm text-zinc-400">
             <span className="flex items-center gap-1.5">
@@ -167,13 +160,6 @@ function PaidBillCard({ bill, isRecent, isEven }: { bill: Bill; isRecent?: boole
           {displayAmount && (
             <p className="text-xl font-bold text-emerald-400">
               ${displayAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-            </p>
-          )}
-          {/* Show typical range for variable bills */}
-          {bill.is_variable && bill.typical_min !== null && bill.typical_max !== null && (
-            <p className="text-xs text-amber-400/70 flex items-center justify-end gap-1">
-              <TrendingUp className="w-3 h-3" />
-              Range: ${bill.typical_min.toFixed(0)} - ${bill.typical_max.toFixed(0)}
             </p>
           )}
           {/* Next due date indicator */}
@@ -615,7 +601,7 @@ export default function HistoryPage() {
               <Zap className="w-5 h-5 text-white" />
             </div>
             <span className="text-lg font-bold text-white tracking-tight">
-              Bill<span className="text-blue-400">Countdown</span>
+              Due<span className="text-blue-400">zo</span>
             </span>
           </Link>
         </div>

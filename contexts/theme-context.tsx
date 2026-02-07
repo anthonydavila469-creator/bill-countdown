@@ -10,14 +10,12 @@ import {
 } from 'react';
 import {
   DashboardLayout,
-  PaycheckSettings,
   ColorThemeId,
   COLOR_THEMES,
   UNIVERSAL_URGENCY_COLORS,
   URGENCY_GRADIENTS,
   DEFAULT_COLOR_THEME,
   DEFAULT_DASHBOARD_LAYOUT,
-  DEFAULT_PAYCHECK_SETTINGS,
 } from '@/types';
 
 interface ThemeContextValue {
@@ -27,13 +25,11 @@ interface ThemeContextValue {
   accentColor: string;       // Derived from theme
   cardGradient: string;      // Derived from theme
   dashboardLayout: DashboardLayout;
-  paycheckSettings: PaycheckSettings;
   isLoading: boolean;
 
   // Actions
   updateTheme: (themeId: ColorThemeId) => Promise<void>;
   updateDashboardLayout: (layout: Partial<DashboardLayout>) => Promise<void>;
-  updatePaycheckSettings: (settings: PaycheckSettings) => Promise<void>;
   refreshPreferences: () => Promise<void>;
 }
 
@@ -89,7 +85,6 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   const [isPro, setIsPro] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState<ColorThemeId>(DEFAULT_COLOR_THEME);
   const [dashboardLayout, setDashboardLayout] = useState<DashboardLayout>(DEFAULT_DASHBOARD_LAYOUT);
-  const [paycheckSettings, setPaycheckSettings] = useState<PaycheckSettings>(DEFAULT_PAYCHECK_SETTINGS);
   const [isLoading, setIsLoading] = useState(true);
 
   // Derived values from theme (with fallback for invalid themes)
@@ -111,7 +106,6 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
       setIsPro(data.is_pro ?? false);
       setSelectedTheme(validThemeId);
       setDashboardLayout(data.dashboard_layout ?? DEFAULT_DASHBOARD_LAYOUT);
-      setPaycheckSettings(data.paycheck_settings ?? DEFAULT_PAYCHECK_SETTINGS);
 
       // Apply CSS variables
       applyCSSVariables(validThemeId);
@@ -164,21 +158,6 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     }
   }, [dashboardLayout]);
 
-  // Update paycheck settings
-  const updatePaycheckSettings = useCallback(async (settings: PaycheckSettings) => {
-    setPaycheckSettings(settings);
-
-    try {
-      await fetch('/api/preferences', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ paycheck_settings: settings }),
-      });
-    } catch (error) {
-      console.error('Failed to save paycheck settings:', error);
-    }
-  }, []);
-
   return (
     <ThemeContext.Provider
       value={{
@@ -187,11 +166,9 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
         accentColor,
         cardGradient,
         dashboardLayout,
-        paycheckSettings,
         isLoading,
         updateTheme,
         updateDashboardLayout,
-        updatePaycheckSettings,
         refreshPreferences,
       }}
     >

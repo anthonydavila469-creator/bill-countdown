@@ -32,12 +32,7 @@ const urgencyGradients = {
 };
 
 export function PayNowModal({ bill, isOpen, onClose, onMarkPaid }: PayNowModalProps) {
-  // For variable bills, prefer last_paid_amount as the default (what they paid last time)
-  // For regular bills, use the fixed amount
   const getDefaultAmount = () => {
-    if (bill.is_variable && bill.last_paid_amount !== null && bill.last_paid_amount !== undefined) {
-      return bill.last_paid_amount.toString();
-    }
     return bill.amount?.toString() || '';
   };
 
@@ -149,18 +144,8 @@ export function PayNowModal({ bill, isOpen, onClose, onMarkPaid }: PayNowModalPr
                         <h2 className="text-2xl font-bold text-white truncate drop-shadow-lg">
                           {bill.name}
                         </h2>
-                        {bill.is_variable && (
-                          <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/30 backdrop-blur-sm">
-                            <TrendingUp className="w-3 h-3 text-amber-200" />
-                            <span className="text-xs font-medium text-amber-100">Variable</span>
-                          </div>
-                        )}
                       </div>
-                      {bill.is_variable && bill.typical_min !== null && bill.typical_max !== null ? (
-                        <p className="text-white/90 text-lg font-semibold flex items-center gap-1 drop-shadow">
-                          ${bill.typical_min.toFixed(2)} - ${bill.typical_max.toFixed(2)}
-                        </p>
-                      ) : bill.amount ? (
+                      {bill.amount ? (
                         <p className="text-white/90 text-lg font-semibold flex items-center gap-1 drop-shadow">
                           ${bill.amount.toFixed(2)}
                         </p>
@@ -251,25 +236,9 @@ export function PayNowModal({ bill, isOpen, onClose, onMarkPaid }: PayNowModalPr
                       />
                     </div>
 
-                    {bill.is_variable ? (
-                      <div className="mt-3 space-y-1">
-                        {bill.typical_min !== null && bill.typical_max !== null && (
-                          <p className="text-xs text-amber-400/80 flex items-center gap-1.5">
-                            <TrendingUp className="w-3 h-3" />
-                            Typical range: ${bill.typical_min.toFixed(2)} - ${bill.typical_max.toFixed(2)}
-                          </p>
-                        )}
-                        {bill.last_paid_amount !== null && bill.last_paid_amount !== undefined && (
-                          <p className="text-xs text-zinc-400">
-                            Last paid: ${bill.last_paid_amount.toFixed(2)}
-                          </p>
-                        )}
-                      </div>
-                    ) : (
-                      <p className="mt-3 text-xs text-zinc-500">
-                        Edit if the amount differs from the original
-                      </p>
-                    )}
+                    <p className="mt-3 text-xs text-zinc-500">
+                      Edit if the amount differs from the original
+                    </p>
                   </div>
                 </div>
 

@@ -1,6 +1,6 @@
-# BillCountdown Architecture
+# Duezo Architecture
 
-A comprehensive guide to the BillCountdown application architecture.
+A comprehensive guide to the Duezo application architecture.
 
 ## Tech Stack
 
@@ -20,7 +20,7 @@ A comprehensive guide to the BillCountdown application architecture.
 ## Project Structure
 
 ```
-bill-countdown/
+duezo/
 ├── app/                    # Next.js App Router
 │   ├── api/               # API routes
 │   │   ├── bills/         # Bill CRUD + pay/undo
