@@ -449,8 +449,8 @@ function RiskAlertItem({
         {/* Content - compact single line */}
         <div className="flex-1 min-w-0 overflow-hidden">
           <div className="flex items-center gap-1.5 whitespace-nowrap">
-            {/* Name - truncates as needed */}
-            <h3 className="font-semibold text-white text-sm truncate min-w-0 flex-shrink">
+            {/* Name - fixed max width for consistency */}
+            <h3 className="font-semibold text-white text-sm truncate max-w-[100px] sm:max-w-[150px]">
               {bill.name}
             </h3>
             
