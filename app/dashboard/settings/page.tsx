@@ -817,6 +817,55 @@ export default function SettingsPage() {
             </div>
           </section>
 
+          {/* Customer Support */}
+          <section>
+            <SectionHeader
+              icon={Mail}
+              iconGradient="from-blue-500/80 to-cyan-500/80"
+              title="Customer Support"
+              description="Get help when you need it"
+              index={3}
+            />
+
+            <div
+              className="relative overflow-hidden rounded-2xl animate-in fade-in slide-in-from-bottom-2 duration-500"
+              style={{ animationDelay: '300ms', animationFillMode: 'backwards' }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/[0.02] to-cyan-500/[0.01]" />
+              <div className="absolute inset-0 border border-white/[0.06] rounded-2xl" />
+
+              <div className="relative p-4 sm:p-6 space-y-4">
+                {/* Email Support */}
+                <a
+                  href="mailto:support@duezo.app"
+                  className="flex items-center gap-4 p-4 bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.06] hover:border-white/[0.12] rounded-xl transition-all duration-200"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+                    <Mail className="w-5 h-5 text-blue-400" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-white">Email Support</p>
+                    <p className="text-sm text-zinc-500">support@duezo.app</p>
+                  </div>
+                </a>
+
+                {/* Feature Request */}
+                <a
+                  href="mailto:feedback@duezo.app?subject=Feature Request"
+                  className="flex items-center gap-4 p-4 bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.06] hover:border-white/[0.12] rounded-xl transition-all duration-200"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center flex-shrink-0">
+                    <Lightbulb className="w-5 h-5 text-violet-400" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-white">Request a Feature</p>
+                    <p className="text-sm text-zinc-500">We'd love to hear your ideas</p>
+                  </div>
+                </a>
+              </div>
+            </div>
+          </section>
+
           {/* Danger Zone */}
           <section>
             <SectionHeader
@@ -824,7 +873,7 @@ export default function SettingsPage() {
               iconGradient="from-red-500/80 to-rose-500/80"
               title="Danger Zone"
               description="Irreversible account actions"
-              index={3}
+              index={4}
             />
 
             <div
