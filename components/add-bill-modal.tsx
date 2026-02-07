@@ -97,17 +97,21 @@ export function AddBillModal({
       />
 
       {/* Modal */}
-      <div className="absolute inset-0 overflow-y-auto">
-        <div className="flex min-h-full items-start sm:items-center justify-center px-4 pt-16 pb-24 sm:py-8">
+      <div 
+        className="absolute inset-0 overflow-y-auto overscroll-contain"
+        style={{ WebkitOverflowScrolling: 'touch' }}
+      >
+        <div className="flex min-h-full items-start justify-center px-4 pt-4 pb-28 sm:pt-8 sm:pb-8 sm:items-center">
           <div
             className={cn(
               'relative w-full max-w-lg bg-[#0c0c10] border border-white/10 rounded-2xl shadow-2xl',
               'animate-in fade-in zoom-in-95 duration-200'
             )}
+            onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-white/10">
-              <h2 className="text-xl font-bold text-white">
+            {/* Header - sticky on mobile */}
+            <div className="sticky top-0 z-10 flex items-center justify-between p-4 sm:p-6 border-b border-white/10 bg-[#0c0c10] rounded-t-2xl">
+              <h2 className="text-lg sm:text-xl font-bold text-white">
                 {editBill ? 'Edit Bill' : 'Add New Bill'}
               </h2>
               <button
@@ -119,7 +123,7 @@ export function AddBillModal({
             </div>
 
             {/* Form */}
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               <BillForm
                 initialData={
                   editBill

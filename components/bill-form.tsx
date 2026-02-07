@@ -394,7 +394,7 @@ export function BillForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6 touch-manipulation">
       {/* Name and Emoji */}
       <div className="flex gap-3">
         {/* Emoji picker */}
@@ -439,9 +439,10 @@ export function BillForm({
             onChange={(e) => handleChange('name', e.target.value)}
             placeholder="Bill name"
             className={cn(
-              'w-full px-4 py-4 bg-white/5 border rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-lg font-medium',
+              'w-full px-4 py-4 bg-white/5 border rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-medium',
               errors.name ? 'border-red-500' : 'border-white/10'
             )}
+            style={{ fontSize: '16px' }}
           />
           {errors.name && (
             <p className="mt-1 text-sm text-red-400">{errors.name}</p>
@@ -457,9 +458,10 @@ export function BillForm({
             Amount (optional)
           </label>
           <div className="relative">
-            <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
+            <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500 pointer-events-none" />
             <input
               type="number"
+              inputMode="decimal"
               step="0.01"
               min="0"
               value={formData.amount ?? ''}
@@ -471,6 +473,7 @@ export function BillForm({
               }
               placeholder="0.00"
               className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              style={{ fontSize: '16px' }}
             />
           </div>
         </div>
@@ -481,15 +484,17 @@ export function BillForm({
             Due Date
           </label>
           <div className="relative">
-            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
+            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500 pointer-events-none" />
             <input
               type="date"
               value={formData.due_date}
               onChange={(e) => handleChange('due_date', e.target.value)}
               className={cn(
-                'w-full pl-10 pr-4 py-3 bg-white/5 border rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all',
+                'w-full pl-10 pr-4 py-3 bg-white/5 border rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none',
+                '[color-scheme:dark]',
                 errors.due_date ? 'border-red-500' : 'border-white/10'
               )}
+              style={{ fontSize: '16px' }} // Prevents iOS zoom on focus
             />
           </div>
           {errors.due_date && (
@@ -722,6 +727,7 @@ export function BillForm({
                 "w-full pl-10 pr-4 py-3 bg-white/5 border rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all",
                 errors.payment_url ? "border-red-500" : "border-white/10"
               )}
+              style={{ fontSize: '16px' }}
             />
           </div>
           {/* Test Link Button */}
