@@ -434,7 +434,7 @@ function RiskAlertItem({
       </div>
 
       {/* Main content - tight on mobile */}
-      <div className="flex-1 flex items-center gap-1.5 sm:gap-3 p-2 sm:p-3 pl-1.5 sm:pl-3">
+      <div className="flex-1 flex items-center gap-1.5 sm:gap-3 p-2 sm:p-3 pl-1.5 sm:pl-3 pr-2.5 sm:pr-3">
         {/* Bill icon - smaller on mobile */}
         <div
           className={cn(
