@@ -446,15 +446,15 @@ function RiskAlertItem({
           <BillIconComponent className={cn("w-4 h-4 sm:w-5 sm:h-5", colorClass)} />
         </div>
 
-        {/* Content - consistent single line */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            {/* Name - truncate aggressively */}
-            <h3 className="font-semibold text-white text-sm truncate max-w-[90px] sm:max-w-[150px]">
+        {/* Content - bulletproof single line */}
+        <div className="flex-1 min-w-0 overflow-hidden">
+          <div className="flex items-center gap-1.5 sm:gap-2 whitespace-nowrap">
+            {/* Name - flex-shrink so it truncates */}
+            <h3 className="font-semibold text-white text-sm truncate min-w-0 flex-shrink">
               {bill.name}
             </h3>
             
-            {/* Days counter */}
+            {/* Days counter - never shrink */}
             <span className={cn(
               'text-xs font-bold flex-shrink-0',
               riskType === 'overdue' ? 'text-rose-400' : config.textColor
@@ -462,14 +462,14 @@ function RiskAlertItem({
               {getDaysDisplay()}
             </span>
 
-            {/* Amount - always visible, no wrap */}
+            {/* Amount - never shrink */}
             {bill.amount && (
               <span className="text-sm font-semibold text-white/90 flex-shrink-0">
                 {formatCurrency(bill.amount)}
               </span>
             )}
 
-            {/* Late fee icon */}
+            {/* Late fee icon - never shrink */}
             {showLateRisk && (
               <AlertCircle className="w-3.5 h-3.5 text-rose-400 flex-shrink-0" title="Late fee risk" />
             )}
