@@ -74,6 +74,14 @@ export default function LoginPage() {
     );
   }
 
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-[#08080c] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#08080c] text-white flex">
       {/* Left side - Form */}
