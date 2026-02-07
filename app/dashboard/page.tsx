@@ -823,43 +823,19 @@ export default function DashboardPage() {
             <div className="mb-6 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
 
             <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
-                <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-400">
+              <div className="flex items-center gap-3">
+                <h2 className="text-lg sm:text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-400">
                   Your Bills
                 </h2>
-                {/* Count badge styled like filter pills */}
-                <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gradient-to-b from-cyan-500/20 to-cyan-600/10 border border-cyan-500/30 text-xs font-bold text-cyan-300 shadow-[0_0_12px_-3px_rgba(34,211,238,0.3)]">
-                    {filteredBills.filter(b => !b.is_paid).length} unpaid
-                  </span>
-                  {showPaidBills && (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gradient-to-b from-emerald-500/15 to-emerald-600/10 border border-emerald-500/25 text-xs font-bold text-emerald-400">
-                      {filteredBills.filter(b => b.is_paid).length} paid
-                    </span>
-                  )}
-                </div>
+                {/* Count badge */}
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gradient-to-b from-cyan-500/20 to-cyan-600/10 border border-cyan-500/30 text-xs font-bold text-cyan-300 shadow-[0_0_12px_-3px_rgba(34,211,238,0.3)]">
+                  {filteredBills.filter(b => !b.is_paid).length} unpaid
+                </span>
               </div>
 
-              {/* View toggle */}
-              <div className="flex items-center gap-3">
-                {/* Show Paid Bills Toggle */}
-                <button
-                  onClick={() => setShowPaidBills(!showPaidBills)}
-                  className={cn(
-                    "flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-xl border transition-all duration-200",
-                    showPaidBills
-                      ? "text-emerald-400 bg-gradient-to-b from-emerald-500/15 to-emerald-600/10 border-emerald-500/30 shadow-[0_0_15px_-3px_rgba(52,211,153,0.3)]"
-                      : "text-zinc-400 bg-white/[0.03] border-white/[0.06] hover:text-white hover:bg-white/[0.06] hover:border-white/[0.1]"
-                  )}
-                >
-                  {showPaidBills ? (
-                    <Eye className="w-4 h-4" />
-                  ) : (
-                    <EyeOff className="w-4 h-4" />
-                  )}
-                  <span className="hidden sm:inline">{showPaidBills ? 'Showing Paid' : 'Show Paid'}</span>
-                </button>
-                {/* View toggle buttons - larger and more prominent */}
+              {/* View controls */}
+              <div className="flex items-center gap-2">
+                {/* View toggle buttons */}
                 <div className="flex items-center bg-gradient-to-b from-white/[0.05] to-white/[0.02] border border-white/[0.08] rounded-xl p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
                   <button
                     onClick={() => {
@@ -977,6 +953,27 @@ export default function DashboardPage() {
                                 className={cn(
                                   'absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all duration-200',
                                   dashboardLayout.showStatsBar ? 'left-[18px]' : 'left-0.5'
+                                )}
+                              />
+                            </div>
+                          </button>
+
+                          {/* Show Paid Bills Toggle */}
+                          <button
+                            onClick={() => setShowPaidBills(!showPaidBills)}
+                            className="w-full flex items-center justify-between px-2 py-2.5 rounded-lg hover:bg-white/[0.05] transition-all duration-200"
+                          >
+                            <span className="text-xs font-medium text-zinc-300">Show Paid Bills</span>
+                            <div
+                              className={cn(
+                                'relative w-9 h-5 rounded-full transition-all duration-200',
+                                showPaidBills ? 'bg-emerald-500' : 'bg-white/10'
+                              )}
+                            >
+                              <div
+                                className={cn(
+                                  'absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all duration-200',
+                                  showPaidBills ? 'left-[18px]' : 'left-0.5'
                                 )}
                               />
                             </div>
