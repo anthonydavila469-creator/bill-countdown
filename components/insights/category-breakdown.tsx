@@ -106,7 +106,7 @@ export function CategoryBreakdown({ breakdown, bills }: CategoryBreakdownProps) 
           </div>
           <div>
             <h3 className="text-lg font-semibold text-white">Spending by Category</h3>
-            <p className="text-xs text-zinc-500">{breakdown.length} categories</p>
+            <p className="text-xs text-zinc-500">{breakdown.length} {breakdown.length === 1 ? 'category' : 'categories'}</p>
           </div>
         </div>
 

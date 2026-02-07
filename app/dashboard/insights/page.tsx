@@ -335,7 +335,7 @@ export default function InsightsPage() {
         </header>
 
         {/* Content */}
-        <div className="p-6 space-y-6">
+        <div className="p-4 sm:p-6 pb-24 lg:pb-6 space-y-6">
           {/* Empty state: no paid bills ever */}
           {!hasPaidBillsEver && (
             <div className="flex flex-col items-center justify-center py-20 animate-in fade-in duration-500">
@@ -389,6 +389,14 @@ export default function InsightsPage() {
           {/* Main content when we have bills */}
           {hasPaidBillsEver && hasBillsInSelectedMonth && (
             <>
+              {/* Month in progress notice */}
+              {selectedMonth === getCurrentMonthKey() && (
+                <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm">
+                  <Calendar className="w-4 h-4 flex-shrink-0" />
+                  <span>Month in progress — data will update as you pay bills</span>
+                </div>
+              )}
+
               {/* Summary Cards */}
               <SummaryCards
                 currentTotal={currentTotal}
