@@ -192,8 +192,8 @@ export function SortFilterBar({
         )}
       </div>
 
-      {/* Filter Chips - Enhanced Tactile Design */}
-      <div className="flex items-center gap-2 flex-wrap">
+      {/* Filter Chips - Horizontal Scroll on Mobile */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none -mx-1 px-1 sm:flex-wrap sm:overflow-visible">
         {filterOptions.map((filter) => {
           const isActive = activeFilter === filter.value;
           const colors = filterColors[filter.color];

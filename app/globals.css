@@ -96,6 +96,16 @@ body {
   background: var(--foreground);
 }
 
+/* Hide scrollbar utility */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
 /* Animation utilities */
 @keyframes fade-in {
   from {
