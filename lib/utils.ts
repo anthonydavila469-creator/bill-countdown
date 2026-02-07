@@ -62,22 +62,12 @@ export function formatDate(dateString: string): string {
   });
 }
 
-// Format date for compact display (no year if current year, no weekday)
+// Format date for compact display (short format, no weekday)
 export function formatDateCompact(dateString: string): string {
-  const date = new Date(dateString);
-  const currentYear = new Date().getFullYear();
-  const dateYear = date.getFullYear();
-  
-  if (dateYear === currentYear) {
-    return date.toLocaleDateString('en-US', {
-      day: 'numeric',
-      month: 'short',
-    });
-  }
+  const date = new Date(dateString + 'T00:00:00');
   return date.toLocaleDateString('en-US', {
     day: 'numeric',
     month: 'short',
-    year: 'numeric',
   });
 }
 
