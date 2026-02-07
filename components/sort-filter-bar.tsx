@@ -14,6 +14,7 @@ import {
   RefreshCw,
   Layers,
   Check,
+  MoreHorizontal,
 } from 'lucide-react';
 
 export type SortOption = 'due_date' | 'amount' | 'name';
@@ -33,11 +34,16 @@ const sortOptions: { value: SortOption; label: string; icon: React.ReactNode }[]
   { value: 'name', label: 'Name (A-Z)', icon: <ArrowDownAZ className="w-4 h-4" /> },
 ];
 
-const filterOptions: { value: FilterOption; label: string; icon: React.ReactNode; color: string }[] = [
+// Primary filters shown directly
+const primaryFilters: { value: FilterOption; label: string; icon: React.ReactNode; color: string }[] = [
   { value: 'all', label: 'All', icon: <Layers className="w-3.5 h-3.5" />, color: 'cyan' },
   { value: 'due_soon', label: 'Soon', icon: <Clock className="w-3.5 h-3.5" />, color: 'amber' },
   { value: 'overdue', label: 'Overdue', icon: <AlertTriangle className="w-3.5 h-3.5" />, color: 'rose' },
-  { value: 'autopay', label: 'Auto', icon: <CreditCard className="w-3.5 h-3.5" />, color: 'emerald' },
+];
+
+// Secondary filters in "More" dropdown
+const secondaryFilters: { value: FilterOption; label: string; icon: React.ReactNode; color: string }[] = [
+  { value: 'autopay', label: 'Auto-pay', icon: <CreditCard className="w-3.5 h-3.5" />, color: 'emerald' },
   { value: 'manual', label: 'Manual', icon: <Hand className="w-3.5 h-3.5" />, color: 'orange' },
   { value: 'recurring', label: 'Recurring', icon: <RefreshCw className="w-3.5 h-3.5" />, color: 'violet' },
 ];
@@ -84,13 +90,18 @@ export function SortFilterBar({
   className,
 }: SortFilterBarProps) {
   const [isSortOpen, setIsSortOpen] = useState(false);
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
   const sortRef = useRef<HTMLDivElement>(null);
+  const moreRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown on click outside
+  // Close dropdowns on click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (sortRef.current && !sortRef.current.contains(event.target as Node)) {
         setIsSortOpen(false);
+      }
+      if (moreRef.current && !moreRef.current.contains(event.target as Node)) {
+        setIsMoreOpen(false);
       }
     };
 
@@ -99,6 +110,50 @@ export function SortFilterBar({
   }, []);
 
   const currentSort = sortOptions.find((opt) => opt.value === sortBy);
+  const activeSecondaryFilter = secondaryFilters.find((f) => f.value === activeFilter);
+
+  // Helper to render a filter chip
+  const renderFilterChip = (filter: { value: FilterOption; label: string; icon: React.ReactNode; color: string }) => {
+    const isActive = activeFilter === filter.value;
+    const colors = filterColors[filter.color];
+
+    return (
+      <button
+        key={filter.value}
+        onClick={() => onFilterChange(filter.value)}
+        className={cn(
+          'group relative flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200',
+          'border',
+          isActive
+            ? cn(
+                'bg-gradient-to-b',
+                colors.active,
+                colors.glow,
+                'scale-[1.02]'
+              )
+            : cn(
+                'bg-gradient-to-b from-white/[0.05] to-white/[0.02]',
+                'border-white/[0.08]',
+                'text-zinc-400',
+                'hover:from-white/[0.08] hover:to-white/[0.04]',
+                'hover:border-white/[0.12]',
+                'hover:text-white',
+                'shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_2px_6px_-2px_rgba(0,0,0,0.4)]',
+                'hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_4px_12px_-2px_rgba(0,0,0,0.5)]',
+                'active:scale-[0.97]'
+              )
+        )}
+      >
+        <span className={cn(
+          'transition-colors duration-200',
+          isActive ? colors.icon : 'text-zinc-500 group-hover:text-zinc-300'
+        )}>
+          {filter.icon}
+        </span>
+        <span>{filter.label}</span>
+      </button>
+    );
+  };
 
   return (
     <div className={cn('flex flex-col sm:flex-row sm:items-center gap-4', className)}>
@@ -142,17 +197,13 @@ export function SortFilterBar({
           </div>
         </button>
 
-        {/* Dropdown menu - Floating card */}
+        {/* Sort Dropdown menu */}
         {isSortOpen && (
           <div className="absolute top-full left-0 mt-2 z-50 min-w-[200px] animate-in fade-in slide-in-from-top-2 duration-200">
-            {/* Glow effect */}
             <div className="absolute -inset-1 bg-gradient-to-b from-cyan-500/10 to-transparent rounded-2xl blur-xl" />
-
             <div className="relative py-1.5 bg-[#0a0a0e]/98 backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.8)]">
-              {/* Top accent line */}
               <div className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-cyan-500/40 to-transparent" />
-
-              {sortOptions.map((option, index) => {
+              {sortOptions.map((option) => {
                 const isActive = sortBy === option.value;
                 return (
                   <button
@@ -174,7 +225,7 @@ export function SortFilterBar({
                       'flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-200',
                       isActive
                         ? 'bg-cyan-500/20 text-cyan-400'
-                        : 'bg-white/[0.03] text-zinc-500 group-hover:text-zinc-400'
+                        : 'bg-white/[0.03] text-zinc-500'
                     )}>
                       {option.icon}
                     </span>
@@ -192,63 +243,98 @@ export function SortFilterBar({
         )}
       </div>
 
-      {/* Filter Chips - Horizontal Scroll on Mobile */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none -mx-1 px-1 sm:flex-wrap sm:overflow-visible">
-        {filterOptions.map((filter) => {
-          const isActive = activeFilter === filter.value;
-          const colors = filterColors[filter.color];
+      {/* Filter Chips - Primary + More dropdown */}
+      <div className="flex items-center gap-2 flex-wrap">
+        {/* Primary filters always visible */}
+        {primaryFilters.map(renderFilterChip)}
 
-          return (
-            <button
-              key={filter.value}
-              onClick={() => onFilterChange(filter.value)}
-              className={cn(
-                'group relative flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200',
-                'border',
-                isActive
-                  ? cn(
-                      'bg-gradient-to-b',
-                      colors.active,
-                      colors.glow,
-                      'scale-[1.02]'
-                    )
-                  : cn(
-                      'bg-gradient-to-b from-white/[0.05] to-white/[0.02]',
-                      'border-white/[0.08]',
-                      'text-zinc-400',
-                      'hover:from-white/[0.08] hover:to-white/[0.04]',
-                      'hover:border-white/[0.12]',
-                      'hover:text-white',
-                      'shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_2px_6px_-2px_rgba(0,0,0,0.4)]',
-                      'hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_4px_12px_-2px_rgba(0,0,0,0.5)]',
-                      'active:scale-[0.97]'
-                    )
-              )}
-            >
-              <span className={cn(
-                'transition-colors duration-200',
-                isActive ? colors.icon : 'text-zinc-500 group-hover:text-zinc-300'
-              )}>
-                {filter.icon}
-              </span>
-              <span>{filter.label}</span>
+        {/* More dropdown for secondary filters */}
+        <div className="relative" ref={moreRef}>
+          <button
+            onClick={() => setIsMoreOpen(!isMoreOpen)}
+            className={cn(
+              'group relative flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200',
+              'border',
+              activeSecondaryFilter
+                ? cn(
+                    'bg-gradient-to-b',
+                    filterColors[activeSecondaryFilter.color].active,
+                    filterColors[activeSecondaryFilter.color].glow
+                  )
+                : cn(
+                    'bg-gradient-to-b from-white/[0.05] to-white/[0.02]',
+                    'border-white/[0.08]',
+                    'text-zinc-400',
+                    'hover:from-white/[0.08] hover:to-white/[0.04]',
+                    'hover:border-white/[0.12]',
+                    'hover:text-white',
+                    'shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_2px_6px_-2px_rgba(0,0,0,0.4)]'
+                  )
+            )}
+          >
+            {activeSecondaryFilter ? (
+              <>
+                <span className={filterColors[activeSecondaryFilter.color].icon}>
+                  {activeSecondaryFilter.icon}
+                </span>
+                <span>{activeSecondaryFilter.label}</span>
+              </>
+            ) : (
+              <>
+                <MoreHorizontal className="w-3.5 h-3.5 text-zinc-500 group-hover:text-zinc-300" />
+                <span>More</span>
+              </>
+            )}
+            <ChevronDown className={cn(
+              'w-3 h-3 transition-transform duration-200',
+              isMoreOpen && 'rotate-180'
+            )} />
+          </button>
 
-              {/* Active indicator dot with enhanced glow */}
-              {isActive && (
-                <div className={cn(
-                  'absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full',
-                  'bg-gradient-to-br',
-                  filter.color === 'cyan' && 'from-cyan-400 to-cyan-500 shadow-[0_0_8px_rgba(34,211,238,0.6)]',
-                  filter.color === 'amber' && 'from-amber-400 to-amber-500 shadow-[0_0_8px_rgba(251,191,36,0.6)]',
-                  filter.color === 'rose' && 'from-rose-400 to-rose-500 shadow-[0_0_8px_rgba(251,113,133,0.6)]',
-                  filter.color === 'emerald' && 'from-emerald-400 to-emerald-500 shadow-[0_0_8px_rgba(52,211,153,0.6)]',
-                  filter.color === 'orange' && 'from-orange-400 to-orange-500 shadow-[0_0_8px_rgba(251,146,60,0.6)]',
-                  filter.color === 'violet' && 'from-violet-400 to-violet-500 shadow-[0_0_8px_rgba(167,139,250,0.6)]'
-                )} />
-              )}
-            </button>
-          );
-        })}
+          {/* More dropdown menu */}
+          {isMoreOpen && (
+            <div className="absolute top-full right-0 mt-2 z-50 min-w-[160px] animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="absolute -inset-1 bg-gradient-to-b from-violet-500/10 to-transparent rounded-2xl blur-xl" />
+              <div className="relative py-1.5 bg-[#0a0a0e]/98 backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.8)]">
+                <div className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-violet-500/40 to-transparent" />
+                {secondaryFilters.map((filter) => {
+                  const isActive = activeFilter === filter.value;
+                  const colors = filterColors[filter.color];
+                  return (
+                    <button
+                      key={filter.value}
+                      onClick={() => {
+                        onFilterChange(filter.value);
+                        setIsMoreOpen(false);
+                      }}
+                      className={cn(
+                        'w-full flex items-center gap-3 px-3 py-2.5 mx-1.5 rounded-lg text-sm transition-all duration-200',
+                        'first:mt-1 last:mb-1',
+                        isActive
+                          ? 'bg-gradient-to-r from-violet-500/15 to-transparent text-white'
+                          : 'text-zinc-400 hover:bg-white/[0.05] hover:text-white'
+                      )}
+                      style={{ width: 'calc(100% - 12px)' }}
+                    >
+                      <span className={cn(
+                        'flex items-center justify-center w-6 h-6 rounded-lg transition-all duration-200',
+                        isActive ? colors.icon : 'text-zinc-500'
+                      )}>
+                        {filter.icon}
+                      </span>
+                      <span className="flex-1 text-left">{filter.label}</span>
+                      {isActive && (
+                        <div className="flex items-center justify-center w-5 h-5 rounded-full bg-violet-500/20">
+                          <Check className="w-3 h-3 text-violet-400" />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
