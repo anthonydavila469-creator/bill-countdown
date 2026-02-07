@@ -142,25 +142,26 @@ function PaidBillCard({ bill, isRecent, isEven }: { bill: Bill; isRecent?: boole
           </div>
         </div>
 
-        {/* Amount and actions */}
-        <div className="text-right space-y-1 sm:space-y-2 flex-shrink-0">
+        {/* Amount and payment link */}
+        <div className="flex flex-col items-end flex-shrink-0">
           {displayAmount && (
             <p className="text-base sm:text-xl font-bold text-emerald-400">
               ${displayAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
             </p>
           )}
-          {/* Payment Site - icon only on mobile */}
-          {bill.payment_url && (
+          {/* Payment Site - always show aligned */}
+          {bill.payment_url ? (
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 window.open(bill.payment_url!, '_blank');
               }}
-              className="flex items-center justify-end gap-1 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+              className="mt-1 text-blue-400 hover:text-blue-300 transition-colors"
             >
-              <ExternalLink className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Payment Site</span>
+              <ExternalLink className="w-4 h-4" />
             </button>
+          ) : (
+            <div className="mt-1 w-4 h-4" /> 
           )}
         </div>
       </div>
@@ -314,10 +315,10 @@ function ExportDropdown({ bills, periodFilter }: { bills: Bill[]; periodFilter: 
       {isOpen && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-          <div className="absolute left-0 sm:right-0 sm:left-auto mt-2 w-44 rounded-xl bg-[#16161a] border border-white/10 shadow-xl z-50 overflow-hidden">
+          <div className="absolute left-0 bottom-full mb-2 w-44 rounded-xl bg-[#1a1a1e] border border-white/15 shadow-2xl z-50 overflow-hidden">
             <button
               onClick={exportToCSV}
-              className="w-full flex items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors text-left"
+              className="w-full flex items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/10 transition-colors text-left"
             >
               <FileText className="w-4 h-4 text-emerald-400" />
               Export as CSV
