@@ -823,15 +823,9 @@ export default function DashboardPage() {
             <div className="mb-6 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
 
             <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <h2 className="text-lg sm:text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-400">
+              <h2 className="text-lg sm:text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-400">
                   Your Bills
                 </h2>
-                {/* Count badge */}
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gradient-to-b from-cyan-500/20 to-cyan-600/10 border border-cyan-500/30 text-xs font-bold text-cyan-300 shadow-[0_0_12px_-3px_rgba(34,211,238,0.3)]">
-                  {filteredBills.filter(b => !b.is_paid).length} unpaid
-                </span>
-              </div>
 
               {/* View controls */}
               <div className="flex items-center gap-2">
