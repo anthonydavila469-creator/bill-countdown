@@ -543,6 +543,24 @@ export default function DashboardPage() {
 
             {/* Actions */}
             <div className="flex items-center gap-2">
+              {/* Add Bill Button */}
+              <button
+                onClick={handleAddBillClick}
+                className={cn(
+                  "p-2 rounded-lg transition-all duration-200",
+                  canAddBill
+                    ? "text-zinc-400 hover:text-white hover:bg-white/10"
+                    : "text-amber-400 hover:bg-amber-500/10"
+                )}
+                title={canAddBill ? "Add Bill" : "Upgrade for more bills"}
+              >
+                {canAddBill ? (
+                  <Plus className="w-5 h-5" />
+                ) : (
+                  <Crown className="w-5 h-5" />
+                )}
+              </button>
+
               {/* Notification Bell */}
               <div className="relative" ref={notificationsRef}>
                 <button
@@ -1071,28 +1089,6 @@ export default function DashboardPage() {
           </div>
         </div>
       </main>
-
-      {/* Mobile FAB */}
-      <button
-        onClick={handleAddBillClick}
-        className={cn(
-          "lg:hidden fixed bottom-24 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center hover:opacity-90 transition-opacity z-40",
-          canAddBill ? "text-white" : "text-amber-200 border-2 border-amber-500/50"
-        )}
-        style={canAddBill ? {
-          backgroundColor: 'var(--accent-primary)',
-          boxShadow: '0 10px 15px -3px color-mix(in srgb, var(--accent-primary) 25%, transparent)'
-        } : {
-          backgroundColor: 'rgba(245, 158, 11, 0.3)',
-          boxShadow: '0 10px 15px -3px rgba(245, 158, 11, 0.25)'
-        }}
-      >
-        {canAddBill ? (
-          <Plus className="w-6 h-6" />
-        ) : (
-          <Crown className="w-6 h-6" />
-        )}
-      </button>
 
       {/* Add/Edit Bill Modal */}
       <AddBillModal
