@@ -958,26 +958,6 @@ export default function DashboardPage() {
                             </div>
                           </button>
 
-                          {/* Show Paid Bills Toggle */}
-                          <button
-                            onClick={() => setShowPaidBills(!showPaidBills)}
-                            className="w-full flex items-center justify-between px-2 py-2.5 rounded-lg hover:bg-white/[0.05] transition-all duration-200"
-                          >
-                            <span className="text-xs font-medium text-zinc-300">Show Paid Bills</span>
-                            <div
-                              className={cn(
-                                'relative w-9 h-5 rounded-full transition-all duration-200',
-                                showPaidBills ? 'bg-emerald-500' : 'bg-white/10'
-                              )}
-                            >
-                              <div
-                                className={cn(
-                                  'absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all duration-200',
-                                  showPaidBills ? 'left-[18px]' : 'left-0.5'
-                                )}
-                              />
-                            </div>
-                          </button>
                         </div>
                       </div>
                     </div>
