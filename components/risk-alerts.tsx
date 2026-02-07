@@ -446,42 +446,34 @@ function RiskAlertItem({
           <BillIconComponent className={cn("w-4 h-4 sm:w-5 sm:h-5", colorClass)} />
         </div>
 
-        {/* Content - single line on mobile */}
+        {/* Content - consistent single line */}
         <div className="flex-1 min-w-0">
-          {/* Mobile: compact single line */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-semibold text-white text-sm truncate max-w-[120px] sm:max-w-none">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            {/* Name - truncate aggressively */}
+            <h3 className="font-semibold text-white text-sm truncate max-w-[90px] sm:max-w-[150px]">
               {bill.name}
             </h3>
             
-            {/* Days counter - always visible */}
+            {/* Days counter */}
             <span className={cn(
-              'text-xs font-bold',
+              'text-xs font-bold flex-shrink-0',
               riskType === 'overdue' ? 'text-rose-400' : config.textColor
             )}>
               {getDaysDisplay()}
             </span>
 
-            {/* Amount */}
+            {/* Amount - always visible, no wrap */}
             {bill.amount && (
-              <span className="text-sm font-semibold text-white/90">
+              <span className="text-sm font-semibold text-white/90 flex-shrink-0">
                 {formatCurrency(bill.amount)}
               </span>
             )}
 
-            {/* Late fee risk - icon only on mobile */}
+            {/* Late fee icon */}
             {showLateRisk && (
-              <AlertCircle className="w-3.5 h-3.5 text-rose-400 sm:hidden" title="Late fee risk" />
+              <AlertCircle className="w-3.5 h-3.5 text-rose-400 flex-shrink-0" title="Late fee risk" />
             )}
           </div>
-          
-          {/* Desktop: show late fee text */}
-          {showLateRisk && (
-            <span className="hidden sm:inline-flex items-center gap-1 text-[10px] text-rose-400 mt-0.5">
-              <AlertCircle className="w-3 h-3" />
-              Late fee risk
-            </span>
-          )}
         </div>
 
         {/* Actions - compact */}
