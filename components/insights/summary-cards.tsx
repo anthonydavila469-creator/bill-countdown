@@ -72,19 +72,27 @@ export function SummaryCards({
               {isIncrease && <TrendingUp className="w-4 h-4 text-rose-400" />}
               {isDecrease && <TrendingDown className="w-4 h-4 text-emerald-400" />}
               {noChange && <Minus className="w-4 h-4 text-zinc-400" />}
-              <span className={cn(
-                'font-bold',
-                isIncrease && 'text-rose-400',
-                isDecrease && 'text-emerald-400',
-                noChange && 'text-zinc-400'
-              )}>
-                {noChange ? 'No change' : `${isIncrease ? '+' : '-'}${formatCurrency(Math.abs(difference)).replace('$', '')}`}
-              </span>
+              <div className="flex flex-col">
+                <span className="text-[10px] text-zinc-500 uppercase tracking-wide">vs Last Month</span>
+                <span className={cn(
+                  'font-bold text-sm',
+                  isIncrease && 'text-rose-400',
+                  isDecrease && 'text-emerald-400',
+                  noChange && 'text-zinc-400'
+                )}>
+                  {noChange ? 'No change' : `${isIncrease ? '+' : ''}${formatCurrency(difference)}`}
+                </span>
+              </div>
             </div>
-            <span className="text-xs text-zinc-400">
-              {isIncrease && `${percentChange}% more`}
-              {isDecrease && `${percentChange}% less`}
-              {noChange && 'Same'}
+            <span className={cn(
+              'text-sm font-medium',
+              isIncrease && 'text-rose-400',
+              isDecrease && 'text-emerald-400',
+              noChange && 'text-zinc-400'
+            )}>
+              {isIncrease && `↑ ${percentChange}%`}
+              {isDecrease && `↓ ${percentChange}%`}
+              {noChange && '—'}
             </span>
           </div>
         )}
