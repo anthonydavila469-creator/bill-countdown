@@ -390,6 +390,28 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
 
           {/* Mobile summary stats - shown only on small screens */}
           <div className="flex md:hidden items-center gap-2">
+              {/* Overdue - only show if there are overdue bills */}
+              {overdueCount > 0 && (
+                <button
+                  onClick={() => setActiveFilter(activeFilter === 'overdue' ? 'all' : 'overdue')}
+                  className={cn(
+                    'flex-1 flex flex-col items-center gap-0.5 px-2 py-2 rounded-xl text-xs transition-all',
+                    activeFilter === 'overdue'
+                      ? 'bg-red-500/25 border border-red-500/50'
+                      : 'bg-red-500/10 border border-red-500/25'
+                  )}
+                >
+                  <span className="text-[10px] text-red-400 uppercase tracking-wide font-medium">Overdue</span>
+                  <div className="flex items-center gap-1">
+                    <AlertTriangle className="w-3 h-3 text-red-400" />
+                    <span className="text-red-400 font-semibold">
+                      {formatCurrency(overdueTotal)}
+                    </span>
+                    <span className="text-red-400/60 text-[10px]">({overdueCount})</span>
+                  </div>
+                </button>
+              )}
+
               {/* Due Soon */}
               <button
                 onClick={() => {
