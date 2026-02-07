@@ -320,63 +320,41 @@ function ClusterAlert({ cluster, onDismiss }: ClusterAlertProps) {
       'animate-in fade-in slide-in-from-top-2'
     )}>
       {/* Left accent bar */}
-      <div className="relative w-1.5 flex-shrink-0">
+      <div className="relative w-1 sm:w-1.5 flex-shrink-0">
         <div className="absolute inset-0 bg-amber-500" />
       </div>
 
-      {/* Main content */}
-      <div className="flex-1 flex items-center gap-3 p-3 pl-3">
-        {/* Icon */}
-        <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-amber-500/20 border border-amber-500/30">
-          <CalendarDays className="w-5 h-5 text-amber-400" />
+      {/* Main content - compact */}
+      <div className="flex-1 flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3">
+        {/* Icon - smaller on mobile */}
+        <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 bg-amber-500/20 border border-amber-500/30">
+          <CalendarDays className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" />
         </div>
 
-        {/* Content */}
+        {/* Content - inline on mobile */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-semibold text-amber-200 text-sm">
-              Heavy Week Ahead
-            </h3>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-semibold text-amber-200 text-sm">Busy Week</span>
+            <span className="text-xs text-amber-300/80">
+              {cluster.bills.length} bills · {formatCurrency(cluster.totalAmount)} · {cluster.dateRange}
+            </span>
           </div>
-          <p className="text-sm text-amber-100/80">
-            {cluster.bills.length} bills totaling{' '}
-            <span className="font-semibold text-amber-200">
-              {formatCurrency(cluster.totalAmount)}
-            </span>{' '}
-            due {cluster.dateRange}
-          </p>
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <Link
-            href="/dashboard/calendar"
-            className={cn(
-              'flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold transition-all duration-200',
-              'bg-gradient-to-r from-amber-500/30 to-yellow-500/20',
-              'hover:from-amber-500/40 hover:to-yellow-500/30',
-              'text-amber-200 border border-amber-500/30',
-              'active:scale-95'
-            )}
-          >
-            <CalendarDays className="w-3.5 h-3.5" />
-            View in Calendar
-          </Link>
-
-          {/* Dismiss button */}
-          <button
-            onClick={onDismiss}
-            className={cn(
-              'flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-200',
-              'opacity-0 group-hover:opacity-100',
-              'hover:bg-white/10 text-amber-400/60 hover:text-amber-300',
-              'active:scale-95'
-            )}
-            title="Dismiss this alert"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
-        </div>
+        {/* Calendar button - icon only on mobile */}
+        <Link
+          href="/dashboard/calendar"
+          className={cn(
+            'flex items-center justify-center gap-1.5 px-2.5 sm:px-3.5 py-2 rounded-lg text-xs font-bold transition-all duration-200',
+            'bg-gradient-to-r from-amber-500/30 to-yellow-500/20',
+            'hover:from-amber-500/40 hover:to-yellow-500/30',
+            'text-amber-200 border border-amber-500/30',
+            'active:scale-95'
+          )}
+        >
+          <CalendarDays className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">View</span>
+        </Link>
       </div>
     </div>
   );
@@ -472,7 +450,7 @@ function RiskAlertItem({
         <div className="flex-1 min-w-0">
           {/* Mobile: compact single line */}
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-semibold text-white text-sm truncate max-w-[100px] sm:max-w-none">
+            <h3 className="font-semibold text-white text-sm truncate max-w-[120px] sm:max-w-none">
               {bill.name}
             </h3>
             
