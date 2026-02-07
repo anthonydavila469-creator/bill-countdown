@@ -133,9 +133,9 @@ export function BillCard({
 
           {/* Right side: countdown + hover actions */}
           <div className="flex items-center gap-3">
-            {/* Hover-reveal action buttons */}
+            {/* Hover-reveal action buttons - hidden on mobile, show on desktop hover */}
             {showMarkPaid && !isPaid && (
-              <div className="flex items-center gap-1.5 opacity-0 translate-x-2 group-hover/compact:opacity-100 group-hover/compact:translate-x-0 transition-all duration-200">
+              <div className="hidden sm:flex items-center gap-1.5 opacity-0 translate-x-2 group-hover/compact:opacity-100 group-hover/compact:translate-x-0 transition-all duration-200">
                 {/* Pay Now button */}
                 {canShowPayNow ? (
                   <button
