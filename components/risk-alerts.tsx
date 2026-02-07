@@ -446,65 +446,60 @@ function RiskAlertItem({
           <BillIconComponent className={cn("w-4 h-4 sm:w-5 sm:h-5", colorClass)} />
         </div>
 
-        {/* Content - bulletproof single line */}
+        {/* Content - compact single line */}
         <div className="flex-1 min-w-0 overflow-hidden">
-          <div className="flex items-center gap-1.5 sm:gap-2 whitespace-nowrap">
-            {/* Name - flex-shrink so it truncates */}
+          <div className="flex items-center gap-1.5 whitespace-nowrap">
+            {/* Name - truncates as needed */}
             <h3 className="font-semibold text-white text-sm truncate min-w-0 flex-shrink">
               {bill.name}
             </h3>
             
-            {/* Days counter - never shrink */}
+            {/* Days counter */}
             <span className={cn(
-              'text-xs font-bold flex-shrink-0',
+              'text-[11px] font-bold flex-shrink-0',
               riskType === 'overdue' ? 'text-rose-400' : config.textColor
             )}>
               {getDaysDisplay()}
             </span>
 
-            {/* Amount - never shrink */}
+            {/* Amount */}
             {bill.amount && (
               <span className="text-sm font-semibold text-white/90 flex-shrink-0">
                 {formatCurrency(bill.amount)}
               </span>
             )}
-
-            {/* Late fee icon - never shrink */}
-            {showLateRisk && (
-              <AlertCircle className="w-3.5 h-3.5 text-rose-400 flex-shrink-0" title="Late fee risk" />
-            )}
           </div>
         </div>
 
-        {/* Actions - compact */}
-        <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+        {/* Actions - tight */}
+        <div className="flex items-center gap-1 flex-shrink-0">
           {/* Pay Now button */}
           {hasPaymentLink ? (
             <button
               onClick={handlePayNow}
               className={cn(
-                'flex items-center gap-1 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-xs font-bold transition-all duration-200',
+                'flex items-center justify-center w-7 h-7 sm:w-auto sm:h-auto sm:gap-1.5 sm:px-3 sm:py-1.5 rounded-lg text-xs font-bold transition-all duration-200',
                 'bg-gradient-to-r from-emerald-500 to-teal-500',
                 'hover:from-emerald-400 hover:to-teal-400',
-                'text-white shadow-lg shadow-emerald-500/25',
+                'text-white',
                 'active:scale-95'
               )}
+              title="Pay Now"
             >
               <ExternalLink className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Pay Now</span>
+              <span className="hidden sm:inline">Pay</span>
             </button>
           ) : (
             <button
               onClick={handleEdit}
               className={cn(
-                'flex items-center justify-center w-8 h-8 sm:w-auto sm:h-auto sm:gap-1.5 sm:px-3 sm:py-2 rounded-lg text-xs font-medium transition-all duration-200',
-                'bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 hover:border-white/20',
+                'flex items-center justify-center w-7 h-7 rounded-lg text-xs font-medium transition-all duration-200',
+                'bg-white/[0.05] hover:bg-white/[0.1] border border-white/10',
                 'text-zinc-400 hover:text-white'
               )}
               title="Add payment link"
             >
               <Link2 className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Add Link</span>
             </button>
           )}
 
@@ -512,7 +507,7 @@ function RiskAlertItem({
           <button
             onClick={handleMarkPaid}
             className={cn(
-              'flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-lg transition-all duration-200',
+              'flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-200',
               'bg-white/[0.05] hover:bg-emerald-500/20 border border-white/10 hover:border-emerald-500/40',
               'text-zinc-400 hover:text-emerald-400',
               'active:scale-95'
@@ -520,9 +515,9 @@ function RiskAlertItem({
             title={bill.is_autopay ? 'Confirm Auto-Paid' : 'Mark as Paid'}
           >
             {bill.is_autopay ? (
-              <Zap className="w-4 h-4" />
+              <Zap className="w-3.5 h-3.5" />
             ) : (
-              <Check className="w-4 h-4" />
+              <Check className="w-3.5 h-3.5" />
             )}
           </button>
         </div>
