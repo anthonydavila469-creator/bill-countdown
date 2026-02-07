@@ -121,9 +121,9 @@ export function BillCard({
                 <Calendar className="w-3 h-3" />
                 {formatDate(bill.due_date)}
                 {showLatePaymentRisk && (
-                  <span className="inline-flex items-center gap-1 ml-1 px-1.5 py-0.5 rounded bg-rose-500/30 border border-rose-400/30">
-                    <AlertCircle className="w-2.5 h-2.5 text-rose-300 animate-pulse" />
-                    <span className="text-[9px] font-bold text-rose-200 uppercase">Late Risk</span>
+                  <span className="inline-flex items-center gap-0.5 ml-1 px-1 py-0.5 rounded bg-rose-500/30 border border-rose-400/30">
+                    <AlertCircle className="w-2 h-2 text-rose-300" />
+                    <span className="text-[8px] font-semibold text-rose-200">Late</span>
                   </span>
                 )}
               </p>
@@ -640,9 +640,9 @@ export function BillListItem({
           {formatDate(bill.due_date)}
           {formatAmount() && ` • ${formatAmount()}`}
           {showLatePaymentRisk && (
-            <span className="inline-flex items-center gap-1 ml-2 px-1.5 py-0.5 rounded bg-rose-100 dark:bg-rose-500/20 border border-rose-200 dark:border-rose-500/30">
-              <AlertCircle className="w-2.5 h-2.5 text-rose-500 dark:text-rose-400 animate-pulse" />
-              <span className="text-[9px] font-bold text-rose-600 dark:text-rose-300 uppercase tracking-wide">Late Risk</span>
+            <span className="inline-flex items-center gap-0.5 ml-2 px-1 py-0.5 rounded bg-rose-100 dark:bg-rose-500/20 border border-rose-200 dark:border-rose-500/30">
+              <AlertCircle className="w-2 h-2 text-rose-500 dark:text-rose-400" />
+              <span className="text-[8px] font-semibold text-rose-600 dark:text-rose-300">Late</span>
             </span>
           )}
         </p>
