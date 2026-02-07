@@ -910,8 +910,8 @@ export default function DashboardPage() {
                             </div>
                           </div>
 
-                          {/* Cards Per Row */}
-                          <div className="px-2 py-1.5">
+                          {/* Cards Per Row - hidden on mobile */}
+                          <div className="hidden sm:block px-2 py-1.5">
                             <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider mb-2">Cards Per Row</p>
                             <div className="flex gap-1">
                               {[2, 3, 4].map((cols) => (
