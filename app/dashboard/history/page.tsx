@@ -112,7 +112,7 @@ function PaidBillCard({ bill, isRecent, isEven }: { bill: Bill; isRecent?: boole
         {/* Bill info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 sm:gap-2 mb-1 flex-wrap">
-            <h3 className="font-semibold text-white text-sm sm:text-base truncate max-w-[140px] sm:max-w-none">{bill.name}</h3>
+            <h3 className="font-semibold text-white text-sm sm:text-base truncate max-w-[180px] sm:max-w-none">{bill.name}</h3>
             {/* Auto/Manual badge - compact on mobile */}
             {isAutoPay ? (
               <span className="flex items-center gap-1 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 text-[10px] sm:text-xs font-medium">
@@ -736,7 +736,7 @@ export default function HistoryPage() {
         </header>
 
         {/* Content */}
-        <div className="p-6">
+        <div className="p-4 sm:p-6 pb-24 lg:pb-6">
           {/* Period Filter Tabs */}
           <div className="flex flex-wrap items-center gap-2 mb-6">
             <Filter className="w-4 h-4 text-zinc-500" />
@@ -820,7 +820,7 @@ export default function HistoryPage() {
                     {topCategories.map((cat, index) => (
                       <div key={cat.name} className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="text-zinc-600 text-xs font-mono">{index === 0 ? '├' : index === topCategories.length - 1 ? '└' : '├'}──</span>
+                          <span className="w-1.5 h-1.5 rounded-full bg-zinc-500" />
                           <span className="text-sm text-zinc-300 truncate max-w-[120px] capitalize">
                             {cat.name.replace(/_/g, ' ')}
                           </span>
