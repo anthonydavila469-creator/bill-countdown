@@ -104,9 +104,10 @@ export function CalendarDay({
   });
 
   // Show up to 2 bill chips on desktop, 1 on mobile, then "+N more"
-  // We'll use a simpler approach: always slice to 2, CSS will hide the second on mobile
-  const visibleBills = sortedBills.slice(0, 2);
-  const extraCount = Math.max(0, sortedBills.length - 2);
+  const visibleBillsDesktop = sortedBills.slice(0, 2);
+  const visibleBillsMobile = sortedBills.slice(0, 1);
+  const extraCountDesktop = Math.max(0, sortedBills.length - 2);
+  const extraCountMobile = Math.max(0, sortedBills.length - 1);
 
   // Calculate total for the day
   const dayTotal = bills.reduce((sum, bill) => {
@@ -124,7 +125,7 @@ export function CalendarDay({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       className={cn(
-        'group relative flex flex-col p-1 sm:p-2 min-h-[80px] sm:min-h-[110px] transition-all duration-300 cursor-pointer',
+        'group relative flex flex-col p-1 md:p-2 min-h-[60px] sm:min-h-[80px] md:min-h-[110px] transition-all duration-300 cursor-pointer',
         'border-r border-b border-white/[0.04]',
         'hover:bg-white/[0.03]',
         'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-inset',
@@ -167,10 +168,10 @@ export function CalendarDay({
       )}
 
       {/* Header row: day number and total */}
-      <div className="flex items-start justify-between mb-1">
+      <div className="flex items-start justify-between mb-0.5 sm:mb-1">
         <span
           className={cn(
-            'text-sm font-semibold transition-colors duration-200',
+            'text-xs sm:text-sm font-semibold transition-colors duration-200',
             today
               ? 'text-blue-400'
               : isSelected
@@ -183,81 +184,109 @@ export function CalendarDay({
           {dayNumber}
         </span>
 
-        {/* Day total - only show on larger screens */}
+        {/* Day total - only show on larger screens (md+) */}
         {dayTotal > 0 && inCurrentMonth && !isDragOver && (
-          <span className="hidden sm:inline text-[10px] font-semibold text-zinc-500 group-hover:text-zinc-400 transition-colors">
+          <span className="hidden md:inline text-[10px] font-semibold text-zinc-500 group-hover:text-zinc-400 transition-colors">
             {formatCurrency(dayTotal)}
           </span>
         )}
       </div>
 
-      {/* Bill chips */}
+      {/* Bill chips - Desktop (md+) */}
       {hasBills && !isDragOver && (
-        <div className="flex flex-col gap-1 flex-1 min-h-0">
-          {visibleBills.map((bill, index) => {
-            const daysLeft = getDaysUntilDue(bill.due_date);
-            const urgency = getUrgency(daysLeft);
-            const isProjected = 'isProjected' in bill && bill.isProjected;
-            const cssVar = urgencyVarMap[urgency];
-            const isDraggable = !bill.is_paid && !isProjected;
-            const { icon: BillIcon, colorClass } = getBillIcon(bill);
+        <>
+          {/* Desktop view - show 2 bills with names */}
+          <div className="hidden md:flex flex-col gap-1 flex-1 min-h-0">
+            {visibleBillsDesktop.map((bill, index) => {
+              const daysLeft = getDaysUntilDue(bill.due_date);
+              const urgency = getUrgency(daysLeft);
+              const isProjected = 'isProjected' in bill && bill.isProjected;
+              const cssVar = urgencyVarMap[urgency];
+              const isDraggable = !bill.is_paid && !isProjected;
+              const { icon: BillIcon, colorClass } = getBillIcon(bill);
 
-            return (
-              <div
-                key={bill.id}
-                draggable={isDraggable}
-                onDragStart={(e) => {
-                  e.stopPropagation();
-                  handleDragStart(e, bill);
-                }}
-                className={cn(
-                  'relative flex items-center gap-0.5 sm:gap-1 px-1 sm:px-1.5 py-1 sm:py-1.5 rounded-md text-[9px] sm:text-[11px] font-medium',
-                  'transition-all duration-200 overflow-hidden',
-                  isProjected && 'opacity-60',
-                  bill.is_paid && 'opacity-40 line-through',
-                  isDraggable && 'cursor-grab active:cursor-grabbing hover:ring-1 hover:ring-white/30 active:scale-95'
-                )}
-                style={{
-                  backgroundColor: `color-mix(in srgb, var(${cssVar}) 15%, transparent)`,
-                  borderLeft: `3px solid var(${cssVar})`,
-                  animationDelay: `${animationDelay + index * 50}ms`,
-                }}
-                title={`${bill.name}${bill.amount ? ` - ${formatCurrency(bill.amount)}` : ''}${isProjected ? ' (projected)' : ''}${isDraggable ? ' • Drag to reschedule' : ''}`}
-              >
-                {/* Icon */}
-                <BillIcon className={cn('w-3 h-3 flex-shrink-0', colorClass)} />
-
-                {/* Bill name - truncated, amount hidden on mobile */}
-                <span
+              return (
+                <div
+                  key={bill.id}
+                  draggable={isDraggable}
+                  onDragStart={(e) => {
+                    e.stopPropagation();
+                    handleDragStart(e, bill);
+                  }}
                   className={cn(
-                    'truncate flex-1 min-w-0',
-                    bill.is_paid ? 'text-zinc-500' : 'text-zinc-200'
+                    'relative flex items-center gap-1 px-1.5 py-1.5 rounded-md text-[11px] font-medium',
+                    'transition-all duration-200 overflow-hidden',
+                    isProjected && 'opacity-60',
+                    bill.is_paid && 'opacity-40 line-through',
+                    isDraggable && 'cursor-grab active:cursor-grabbing hover:ring-1 hover:ring-white/30 active:scale-95'
                   )}
-                  style={{ color: bill.is_paid ? undefined : `color-mix(in srgb, var(${cssVar}) 90%, white)` }}
+                  style={{
+                    backgroundColor: `color-mix(in srgb, var(${cssVar}) 15%, transparent)`,
+                    borderLeft: `3px solid var(${cssVar})`,
+                    animationDelay: `${animationDelay + index * 50}ms`,
+                  }}
+                  title={`${bill.name}${bill.amount ? ` - ${formatCurrency(bill.amount)}` : ''}${isProjected ? ' (projected)' : ''}${isDraggable ? ' • Drag to reschedule' : ''}`}
                 >
-                  {bill.name}
-                  {bill.amount && !bill.is_paid && (
-                    <span className="hidden sm:inline text-zinc-400 ml-1">· ${Math.round(bill.amount)}</span>
-                  )}
+                  <BillIcon className={cn('w-3 h-3 flex-shrink-0', colorClass)} />
+                  <span
+                    className={cn('truncate flex-1 min-w-0', bill.is_paid ? 'text-zinc-500' : 'text-zinc-200')}
+                    style={{ color: bill.is_paid ? undefined : `color-mix(in srgb, var(${cssVar}) 90%, white)` }}
+                  >
+                    {bill.name}
+                    {bill.amount && !bill.is_paid && (
+                      <span className="text-zinc-400 ml-1">· ${Math.round(bill.amount)}</span>
+                    )}
+                  </span>
+                  {isProjected && <RefreshCw className="w-2.5 h-2.5 text-zinc-500 flex-shrink-0" />}
+                </div>
+              );
+            })}
+            {extraCountDesktop > 0 && (
+              <div className="flex items-center justify-center">
+                <span className="text-[9px] font-semibold text-zinc-500 bg-white/[0.05] px-2 py-0.5 rounded-full">
+                  +{extraCountDesktop} more
                 </span>
-
-                {/* Projected indicator */}
-                {isProjected && (
-                  <RefreshCw className="w-2.5 h-2.5 text-zinc-500 flex-shrink-0" />
-                )}
               </div>
-            );
-          })}
+            )}
+          </div>
 
-          {/* Extra count badge */}
-          {extraCount > 0 && (
-            <div className="flex items-center justify-center">
-              <span className="text-[9px] font-semibold text-zinc-500 bg-white/[0.05] px-2 py-0.5 rounded-full">
-                +{extraCount} more
+          {/* Mobile view - compact icon-only pills */}
+          <div className="flex md:hidden flex-wrap gap-0.5 mt-0.5">
+            {visibleBillsMobile.map((bill, index) => {
+              const daysLeft = getDaysUntilDue(bill.due_date);
+              const urgency = getUrgency(daysLeft);
+              const isProjected = 'isProjected' in bill && bill.isProjected;
+              const cssVar = urgencyVarMap[urgency];
+              const { icon: BillIcon, colorClass } = getBillIcon(bill);
+
+              return (
+                <div
+                  key={bill.id}
+                  className={cn(
+                    'flex items-center gap-0.5 px-1 py-0.5 rounded text-[8px] font-medium',
+                    isProjected && 'opacity-60',
+                    bill.is_paid && 'opacity-40'
+                  )}
+                  style={{
+                    backgroundColor: `color-mix(in srgb, var(${cssVar}) 20%, transparent)`,
+                    borderLeft: `2px solid var(${cssVar})`,
+                  }}
+                  title={bill.name}
+                >
+                  <BillIcon className={cn('w-2.5 h-2.5', colorClass)} />
+                  <span className="truncate max-w-[3ch]" style={{ color: `var(${cssVar})` }}>
+                    {bill.name.substring(0, 2)}..
+                  </span>
+                </div>
+              );
+            })}
+            {extraCountMobile > 0 && (
+              <span className="text-[8px] font-semibold text-zinc-500 px-1">
+                +{extraCountMobile}
               </span>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        </>
       )}
 
       {/* Hover glow effect */}

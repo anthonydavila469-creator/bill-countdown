@@ -466,29 +466,26 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
         </div>
 
         {/* Legend - uses CSS variables for custom colors */}
-        <div className="flex flex-wrap items-center justify-center gap-6 mt-6 px-4">
+        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 mt-4 sm:mt-6 px-4">
           {[
             { cssVar: '--urgency-overdue', label: 'Overdue' },
             { cssVar: '--urgency-urgent', label: 'Urgent' },
             { cssVar: '--urgency-soon', label: 'Soon' },
             { cssVar: '--urgency-safe', label: 'Safe' },
-            { cssVar: '--urgency-distant', label: 'Distant' },
-            { cssVar: null, label: 'Projected', isProjected: true },
           ].map((item, index) => (
             <div
               key={item.label}
-              className="flex items-center gap-2 animate-in fade-in duration-300"
+              className="flex items-center gap-1.5 sm:gap-2 animate-in fade-in duration-300"
               style={{ animationDelay: `${600 + index * 100}ms` }}
             >
               <div
-                className="w-2.5 h-2.5 rounded-full"
+                className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full"
                 style={{
-                  backgroundColor: item.cssVar ? `var(${item.cssVar})` : '#71717a',
-                  boxShadow: item.cssVar ? `0 0 8px color-mix(in srgb, var(${item.cssVar}) 50%, transparent)` : 'none',
-                  opacity: item.isProjected ? 0.5 : 1,
+                  backgroundColor: `var(${item.cssVar})`,
+                  boxShadow: `0 0 8px color-mix(in srgb, var(${item.cssVar}) 50%, transparent)`,
                 }}
               />
-              <span className="text-[11px] font-medium tracking-wide text-zinc-500 uppercase">
+              <span className="text-[10px] sm:text-[11px] font-medium tracking-wide text-zinc-500 uppercase">
                 {item.label}
               </span>
             </div>
