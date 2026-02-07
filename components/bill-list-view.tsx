@@ -1,7 +1,7 @@
 'use client';
 
 import { Bill } from '@/types';
-import { cn, formatCurrency, formatDate, getDaysUntilDue, getUrgency } from '@/lib/utils';
+import { cn, formatCurrency, formatDate, formatDateCompact, getDaysUntilDue, getUrgency } from '@/lib/utils';
 import { getBillRiskType, hasLatePaymentRisk, RiskType } from '@/lib/risk-utils';
 import { getBillIcon } from '@/lib/get-bill-icon';
 import {
@@ -312,14 +312,8 @@ export function BillListView({
 
                   {/* Mobile: show due date + amount inline */}
                   <p className="text-xs text-zinc-500 sm:hidden mt-1">
-                    {formatDate(bill.due_date)}
+                    {formatDateCompact(bill.due_date)}
                     {bill.amount && ` • ${formatCurrency(bill.amount)}`}
-                    {showLatePaymentRisk && (
-                      <span className="text-rose-400 ml-1.5 inline-flex items-center gap-0.5">
-                        <AlertCircle className="w-2.5 h-2.5" />
-                        Late risk
-                      </span>
-                    )}
                   </p>
                 </div>
               </div>
