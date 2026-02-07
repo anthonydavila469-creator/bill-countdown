@@ -117,11 +117,11 @@ export function BillCard({
                   </span>
                 )}
               </div>
-              <p className="text-xs text-white/70 flex items-center gap-1">
-                <Calendar className="w-3 h-3" />
-                {formatDate(bill.due_date)}
+              <p className="text-xs text-white/70 flex items-center gap-1 whitespace-nowrap">
+                <Calendar className="w-3 h-3 flex-shrink-0" />
+                <span className="truncate">{formatDate(bill.due_date)}</span>
                 {showLatePaymentRisk && (
-                  <span className="inline-flex items-center gap-0.5 ml-1 px-1 py-0.5 rounded bg-rose-500/30 border border-rose-400/30">
+                  <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded bg-rose-500/30 border border-rose-400/30 flex-shrink-0">
                     <AlertCircle className="w-2 h-2 text-rose-300" />
                     <span className="text-[8px] font-semibold text-rose-200">Late</span>
                   </span>
