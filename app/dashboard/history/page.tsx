@@ -80,110 +80,86 @@ function PaidBillCard({ bill, isRecent, isEven }: { bill: Bill; isRecent?: boole
 
   return (
     <div className={cn(
-      "group relative p-4 rounded-2xl transition-all duration-300",
+      "group relative p-3 sm:p-4 rounded-2xl transition-all duration-300",
       "border border-white/5",
       "hover:bg-white/[0.06] hover:border-white/15 hover:shadow-lg hover:shadow-black/20",
       isRecent && "ring-1 ring-emerald-500/20",
-      // Alternating backgrounds for visual separation
       isEven ? "bg-white/[0.02]" : "bg-white/[0.035]"
     )}>
-      {/* Left accent bar - colored by category */}
+      {/* Left accent bar */}
       <div className={cn(
-        "absolute left-0 top-3 bottom-3 w-1.5 rounded-full transition-all duration-300",
+        "absolute left-0 top-3 bottom-3 w-1 sm:w-1.5 rounded-full transition-all duration-300",
         colors.accent
       )} />
 
-      <div className="flex items-center gap-4 pl-3">
-        {/* Icon with paid status indicator */}
+      <div className="flex items-center gap-2 sm:gap-4 pl-2 sm:pl-3">
+        {/* Icon with paid status */}
         <div className="relative flex-shrink-0">
           <div className={cn(
-            "w-14 h-14 rounded-xl border-2 flex items-center justify-center transition-all duration-200",
+            "w-11 h-11 sm:w-14 sm:h-14 rounded-xl border-2 flex items-center justify-center transition-all duration-200",
             "group-hover:scale-105 group-hover:shadow-lg",
             `bg-gradient-to-br ${colors.bg}`,
             colors.border
           )}>
-            <IconComponent className={cn("w-7 h-7", iconColorClass)} />
+            <IconComponent className={cn("w-5 h-5 sm:w-7 sm:h-7", iconColorClass)} />
           </div>
-          {/* Paid checkmark badge */}
-          <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-500 border-2 border-[#0c0c10] flex items-center justify-center shadow-lg">
-            <CheckCircle2 className="w-4 h-4 text-white" />
+          {/* Paid checkmark */}
+          <div className="absolute -bottom-1 -right-1 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-emerald-500 border-2 border-[#0c0c10] flex items-center justify-center shadow-lg">
+            <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
           </div>
-          {/* Recurring indicator */}
-          {isRecurring && (
-            <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-teal-500/90 border border-[#0c0c10] flex items-center justify-center">
-              <RefreshCw className="w-3 h-3 text-white animate-[spin_4s_linear_infinite]" />
-            </div>
-          )}
         </div>
 
         {/* Bill info */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-            <h3 className="font-semibold text-white text-base truncate">{bill.name}</h3>
-            {/* Auto/Manual badge */}
+          <div className="flex items-center gap-1.5 sm:gap-2 mb-1 flex-wrap">
+            <h3 className="font-semibold text-white text-sm sm:text-base truncate max-w-[140px] sm:max-w-none">{bill.name}</h3>
+            {/* Auto/Manual badge - compact on mobile */}
             {isAutoPay ? (
-              <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 text-xs font-medium">
-                <CreditCard className="w-3.5 h-3.5" />
-                Auto
+              <span className="flex items-center gap-1 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 text-[10px] sm:text-xs font-medium">
+                <CreditCard className="w-3 h-3" />
+                <span className="hidden sm:inline">Auto</span>
               </span>
             ) : (
-              <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400 text-xs font-medium">
-                <HandMetal className="w-3.5 h-3.5" />
-                Manual
-              </span>
-            )}
-            {/* Recurring badge */}
-            {bill.is_recurring && bill.recurrence_interval && (
-              <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-violet-500/20 border border-violet-500/30 text-violet-400 text-xs font-medium capitalize">
-                <RefreshCw className="w-3 h-3" />
-                {bill.recurrence_interval}
+              <span className="flex items-center gap-1 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400 text-[10px] sm:text-xs font-medium">
+                <HandMetal className="w-3 h-3" />
+                <span className="hidden sm:inline">Manual</span>
               </span>
             )}
           </div>
-          <div className="flex items-center gap-4 text-sm text-zinc-400">
-            <span className="flex items-center gap-1.5">
-              <Calendar className="w-4 h-4 text-zinc-500" />
-              Due: {formatDate(bill.due_date)}
+          {/* Dates - simplified on mobile */}
+          <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm text-zinc-400">
+            <span className="flex items-center gap-1">
+              <Calendar className="w-3.5 h-3.5 text-zinc-500" />
+              <span className="sm:hidden">
+                {new Date(bill.due_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              </span>
+              <span className="hidden sm:inline">Due: {formatDate(bill.due_date)}</span>
             </span>
-            <span className="flex items-center gap-1.5">
+            <span className="hidden sm:flex items-center gap-1.5">
               <Clock className="w-4 h-4 text-emerald-500/70" />
-              Paid {paidDate.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-              })}
+              Paid {paidDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
             </span>
           </div>
         </div>
 
         {/* Amount and actions */}
-        <div className="text-right space-y-2 flex-shrink-0">
+        <div className="text-right space-y-1 sm:space-y-2 flex-shrink-0">
           {displayAmount && (
-            <p className="text-xl font-bold text-emerald-400">
+            <p className="text-base sm:text-xl font-bold text-emerald-400">
               ${displayAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
             </p>
           )}
-          {/* Next due date indicator */}
-          {isRecurring && nextDueFormatted && (
-            <div className="flex items-center justify-end gap-1.5">
-              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-teal-500/15 to-cyan-500/10 border border-teal-500/25">
-                <ArrowRight className="w-3.5 h-3.5 text-teal-400" />
-                <span className="text-xs font-medium text-teal-400">
-                  Next: {nextDueFormatted}
-                </span>
-              </div>
-            </div>
-          )}
-          {/* View Payment Site link */}
+          {/* Payment Site - icon only on mobile */}
           {bill.payment_url && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 window.open(bill.payment_url!, '_blank');
               }}
-              className="flex items-center justify-end gap-1.5 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+              className="flex items-center justify-end gap-1 text-xs text-blue-400 hover:text-blue-300 transition-colors"
             >
               <ExternalLink className="w-3.5 h-3.5" />
-              <span>Payment Site</span>
+              <span className="hidden sm:inline">Payment Site</span>
             </button>
           )}
         </div>
@@ -845,7 +821,9 @@ export default function HistoryPage() {
                       <div key={cat.name} className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <span className="text-zinc-600 text-xs font-mono">{index === 0 ? '├' : index === topCategories.length - 1 ? '└' : '├'}──</span>
-                          <span className="text-sm text-zinc-300 truncate max-w-[120px]">{cat.name}</span>
+                          <span className="text-sm text-zinc-300 truncate max-w-[120px] capitalize">
+                            {cat.name.replace(/_/g, ' ')}
+                          </span>
                         </div>
                         <span className="text-sm font-semibold text-white">
                           ${cat.count === 1
