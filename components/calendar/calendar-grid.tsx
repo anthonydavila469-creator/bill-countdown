@@ -420,9 +420,9 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
                       );
                     })}
                   </div>
-                  {/* Weekly total footer */}
+                  {/* Weekly total footer - hidden on mobile */}
                   {weeklyTotals[weekIndex] > 0 && (
-                    <div className="flex justify-end items-center gap-2 px-4 py-2 bg-gradient-to-r from-transparent via-white/[0.02] to-white/[0.03] border-b border-white/[0.04]">
+                    <div className="hidden sm:flex justify-end items-center gap-2 px-4 py-2 bg-gradient-to-r from-transparent via-white/[0.02] to-white/[0.03] border-b border-white/[0.04]">
                       <DollarSign className="w-3 h-3 text-zinc-600" />
                       <span className="text-[11px] font-semibold text-zinc-400">
                         {formatCurrency(weeklyTotals[weekIndex])}

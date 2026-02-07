@@ -103,7 +103,8 @@ export function CalendarDay({
     return daysA - daysB;
   });
 
-  // Show up to 2 bill chips, then "+N more"
+  // Show up to 2 bill chips on desktop, 1 on mobile, then "+N more"
+  // We'll use a simpler approach: always slice to 2, CSS will hide the second on mobile
   const visibleBills = sortedBills.slice(0, 2);
   const extraCount = Math.max(0, sortedBills.length - 2);
 
@@ -123,7 +124,7 @@ export function CalendarDay({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       className={cn(
-        'group relative flex flex-col p-1.5 sm:p-2 min-h-[90px] sm:min-h-[110px] transition-all duration-300 cursor-pointer',
+        'group relative flex flex-col p-1 sm:p-2 min-h-[80px] sm:min-h-[110px] transition-all duration-300 cursor-pointer',
         'border-r border-b border-white/[0.04]',
         'hover:bg-white/[0.03]',
         'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-inset',
@@ -182,9 +183,9 @@ export function CalendarDay({
           {dayNumber}
         </span>
 
-        {/* Day total - only show if there are unpaid bills */}
+        {/* Day total - only show on larger screens */}
         {dayTotal > 0 && inCurrentMonth && !isDragOver && (
-          <span className="text-[10px] font-semibold text-zinc-500 group-hover:text-zinc-400 transition-colors">
+          <span className="hidden sm:inline text-[10px] font-semibold text-zinc-500 group-hover:text-zinc-400 transition-colors">
             {formatCurrency(dayTotal)}
           </span>
         )}
@@ -210,7 +211,7 @@ export function CalendarDay({
                   handleDragStart(e, bill);
                 }}
                 className={cn(
-                  'relative flex items-center gap-1 px-1.5 py-1.5 rounded-md text-[10px] sm:text-[11px] font-medium',
+                  'relative flex items-center gap-0.5 sm:gap-1 px-1 sm:px-1.5 py-1 sm:py-1.5 rounded-md text-[9px] sm:text-[11px] font-medium',
                   'transition-all duration-200 overflow-hidden',
                   isProjected && 'opacity-60',
                   bill.is_paid && 'opacity-40 line-through',
@@ -226,7 +227,7 @@ export function CalendarDay({
                 {/* Icon */}
                 <BillIcon className={cn('w-3 h-3 flex-shrink-0', colorClass)} />
 
-                {/* Bill name - truncated with amount inline */}
+                {/* Bill name - truncated, amount hidden on mobile */}
                 <span
                   className={cn(
                     'truncate flex-1 min-w-0',
@@ -236,7 +237,7 @@ export function CalendarDay({
                 >
                   {bill.name}
                   {bill.amount && !bill.is_paid && (
-                    <span className="text-zinc-400 ml-1">· ${Math.round(bill.amount)}</span>
+                    <span className="hidden sm:inline text-zinc-400 ml-1">· ${Math.round(bill.amount)}</span>
                   )}
                 </span>
 
