@@ -39,8 +39,8 @@ export function MobileBottomNav() {
       {/* Top border glow */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
-      <div className="bg-[#0a0a0e]/95 backdrop-blur-xl border-t border-white/[0.06]">
-        <div className="flex items-center justify-around px-1 h-16 max-w-lg mx-auto">
+      <div className="bg-[#0a0a0e]/95 backdrop-blur-xl border-t border-white/[0.06] overflow-hidden">
+        <div className="flex items-center justify-around px-2 h-16 max-w-lg mx-auto">
           {navItems.map((item) => {
             const isActive = item.href === '/dashboard'
               ? pathname === '/dashboard'
