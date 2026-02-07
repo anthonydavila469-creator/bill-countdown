@@ -103,6 +103,13 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
     setSelectedDate(null);
   };
 
+  // Navigate to a specific date's month
+  const goToDate = (date: Date) => {
+    setCurrentYear(date.getFullYear());
+    setCurrentMonth(date.getMonth());
+    setSelectedDate(date);
+  };
+
   // Handle day click
   const handleDayClick = (date: Date) => {
     setSelectedDate(date);
@@ -183,7 +190,8 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
   }, [allBills]);
 
   // Calculate total amount due in next 7 days INCLUDING today and overdue (unpaid only, excluding projected)
-  const { upcomingTotal, upcomingCount } = useMemo(() => {
+  // Also track the earliest due-soon bill's date for navigation
+  const { upcomingTotal, upcomingCount, earliestDueSoonDate } = useMemo(() => {
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
     const next7Days = new Date(todayStart);
@@ -191,6 +199,7 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
 
     let total = 0;
     let count = 0;
+    let earliestDate: Date | null = null;
 
     allBills.forEach(bill => {
       const billDate = new Date(bill.due_date);
@@ -203,10 +212,14 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
       if (!isProjected && !bill.is_paid && (isOverdue || isInRange)) {
         total += bill.amount || 0;
         count++;
+        // Track the earliest date for navigation
+        if (!earliestDate || billDate < earliestDate) {
+          earliestDate = billDate;
+        }
       }
     });
 
-    return { upcomingTotal: total, upcomingCount: count };
+    return { upcomingTotal: total, upcomingCount: count, earliestDueSoonDate: earliestDate };
   }, [allBills]);
 
   // Calculate weekly totals for each week in the grid
@@ -287,7 +300,15 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
 
             {/* Upcoming (Next 7 days + overdue) */}
             <button
-              onClick={() => setActiveFilter(activeFilter === 'due-soon' ? 'all' : 'due-soon')}
+              onClick={() => {
+                // Toggle filter
+                const newFilter = activeFilter === 'due-soon' ? 'all' : 'due-soon';
+                setActiveFilter(newFilter);
+                // If activating filter and there's a due-soon bill, navigate to its month
+                if (newFilter === 'due-soon' && earliestDueSoonDate) {
+                  goToDate(earliestDueSoonDate);
+                }
+              }}
               className={cn(
                 'flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-200',
                 activeFilter === 'due-soon'
@@ -420,9 +441,13 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/20 to-violet-500/20 flex items-center justify-center mb-4 border border-white/10">
                   <Plus className="w-8 h-8 text-blue-400" />
                 </div>
-                <h3 className="text-lg font-medium text-white mb-2">No bills this month</h3>
+                <h3 className="text-lg font-medium text-white mb-2">
+                  No bills in {monthName}
+                </h3>
                 <p className="text-sm text-zinc-400 mb-4 max-w-xs">
-                  Add your first bill to start tracking due dates and never miss a payment.
+                  {bills.length > 0
+                    ? `You have ${bills.filter(b => !b.is_paid).length} bills in other months. Use the arrows to navigate.`
+                    : 'Add your first bill to start tracking due dates and never miss a payment.'}
                 </p>
                 <button
                   onClick={() => onAddBill()}
@@ -433,7 +458,7 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
                   }}
                 >
                   <Plus className="w-4 h-4" />
-                  Add Your First Bill
+                  {bills.length > 0 ? 'Add Bill' : 'Add Your First Bill'}
                 </button>
               </div>
             </div>
