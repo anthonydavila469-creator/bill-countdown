@@ -276,7 +276,7 @@ export function RiskAlerts({
 
         {/* Cluster alert (if present) */}
         {billCluster && (
-          <div className="px-4 pt-4">
+          <div className="px-2 sm:px-4 pt-2 sm:pt-4">
             <ClusterAlert
               cluster={billCluster}
               onDismiss={() => setClusterDismissed(true)}
@@ -285,7 +285,7 @@ export function RiskAlerts({
         )}
 
         {/* Risk items */}
-        <div className="p-4 space-y-3">
+        <div className="p-2 sm:p-4 space-y-2 sm:space-y-3">
           {riskBills.map((riskBill, index) => (
             <RiskAlertItem
               key={riskBill.bill.id}
@@ -433,8 +433,8 @@ function RiskAlertItem({
         )}
       </div>
 
-      {/* Main content - compact layout */}
-      <div className="flex-1 flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 pl-2 sm:pl-3">
+      {/* Main content - tight on mobile */}
+      <div className="flex-1 flex items-center gap-1.5 sm:gap-3 p-2 sm:p-3 pl-1.5 sm:pl-3">
         {/* Bill icon - smaller on mobile */}
         <div
           className={cn(
