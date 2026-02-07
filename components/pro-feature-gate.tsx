@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Crown, Check, Sparkles, ArrowLeft } from 'lucide-react';
 import { useSubscription } from '@/hooks/use-subscription';
@@ -36,10 +36,16 @@ export function ProFeatureGate({
   featureDescription,
   icon: Icon = Sparkles,
 }: ProFeatureGateProps) {
+  const [mounted, setMounted] = useState(false);
   const { isPro, showUpgradeModal, isLoading } = useSubscription();
 
-  // Show loading state
-  if (isLoading) {
+  // Wait for client-side mount to prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Show loading state until mounted and subscription loaded
+  if (!mounted || isLoading) {
     return (
       <div className="min-h-screen bg-[#08080c] flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
