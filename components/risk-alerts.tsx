@@ -337,10 +337,6 @@ function ClusterAlert({ cluster, onDismiss }: ClusterAlertProps) {
             <h3 className="font-semibold text-amber-200 text-sm">
               Heavy Week Ahead
             </h3>
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/25 text-[10px] font-bold uppercase tracking-wide text-amber-300 border border-amber-500/30">
-              <AlertTriangle className="w-3 h-3" />
-              Cluster
-            </span>
           </div>
           <p className="text-sm text-amber-100/80">
             {cluster.bills.length} bills totaling{' '}
@@ -459,96 +455,85 @@ function RiskAlertItem({
         )}
       </div>
 
-      {/* Main content */}
-      <div className="flex-1 flex items-center gap-3 p-3 pl-3">
-        {/* Bill icon */}
+      {/* Main content - compact layout */}
+      <div className="flex-1 flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 pl-2 sm:pl-3">
+        {/* Bill icon - smaller on mobile */}
         <div
           className={cn(
-            'relative w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0',
+            'relative w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0',
             'bg-white/[0.05] border border-white/[0.08]',
             'group-hover:bg-white/[0.08] transition-colors'
           )}
         >
-          <BillIconComponent className={cn("w-5 h-5", colorClass)} />
+          <BillIconComponent className={cn("w-4 h-4 sm:w-5 sm:h-5", colorClass)} />
         </div>
 
-        {/* Content */}
+        {/* Content - single line on mobile */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <h3 className="font-semibold text-white text-sm">
+          {/* Mobile: compact single line */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="font-semibold text-white text-sm truncate max-w-[100px] sm:max-w-none">
               {bill.name}
             </h3>
-
-            {/* Risk badge */}
-            <span
-              className={cn(
-                'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide',
-                riskType === 'overdue' && 'bg-rose-500/30 text-rose-300 border border-rose-500/30',
-                riskType === 'urgent' && 'bg-orange-500/30 text-orange-300 border border-orange-500/30',
-                riskType === 'forgot_last_month' && 'bg-violet-500/30 text-violet-300 border border-violet-500/30'
-              )}
-            >
-              <config.icon className="w-3 h-3" />
-              {config.label}
-            </span>
-
-            {/* Days counter */}
+            
+            {/* Days counter - always visible */}
             <span className={cn(
-              'text-xs font-mono font-bold',
+              'text-xs font-bold',
               riskType === 'overdue' ? 'text-rose-400' : config.textColor
             )}>
               {getDaysDisplay()}
             </span>
-          </div>
 
-          {/* Amount and late fee risk */}
-          <div className="flex items-center gap-3 flex-wrap">
+            {/* Amount */}
             {bill.amount && (
               <span className="text-sm font-semibold text-white/90">
                 {formatCurrency(bill.amount)}
               </span>
             )}
 
-            {/* Late fee risk warning - more prominent */}
+            {/* Late fee risk - icon only on mobile */}
             {showLateRisk && (
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-rose-500/20 border border-rose-500/30">
-                <AlertCircle className="w-3 h-3 text-rose-400 animate-pulse" />
-                <span className="text-[10px] font-semibold text-rose-300 uppercase tracking-wide">
-                  Late Fee Risk
-                </span>
-              </span>
+              <AlertCircle className="w-3.5 h-3.5 text-rose-400 sm:hidden" title="Late fee risk" />
             )}
           </div>
+          
+          {/* Desktop: show late fee text */}
+          {showLateRisk && (
+            <span className="hidden sm:inline-flex items-center gap-1 text-[10px] text-rose-400 mt-0.5">
+              <AlertCircle className="w-3 h-3" />
+              Late fee risk
+            </span>
+          )}
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-2 flex-shrink-0">
-          {/* Pay Now button - or Add Link prompt */}
+        {/* Actions - compact */}
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+          {/* Pay Now button */}
           {hasPaymentLink ? (
             <button
               onClick={handlePayNow}
               className={cn(
-                'flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold transition-all duration-200',
+                'flex items-center gap-1 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-xs font-bold transition-all duration-200',
                 'bg-gradient-to-r from-emerald-500 to-teal-500',
                 'hover:from-emerald-400 hover:to-teal-400',
                 'text-white shadow-lg shadow-emerald-500/25',
-                'active:scale-95 hover:shadow-emerald-500/40'
+                'active:scale-95'
               )}
             >
               <ExternalLink className="w-3.5 h-3.5" />
-              Pay Now
+              <span className="hidden sm:inline">Pay Now</span>
             </button>
           ) : (
             <button
               onClick={handleEdit}
               className={cn(
-                'group/add flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200',
+                'flex items-center justify-center w-8 h-8 sm:w-auto sm:h-auto sm:gap-1.5 sm:px-3 sm:py-2 rounded-lg text-xs font-medium transition-all duration-200',
                 'bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 hover:border-white/20',
                 'text-zinc-400 hover:text-white'
               )}
-              title="Add a payment link to enable quick pay"
+              title="Add payment link"
             >
-              <Link2 className="w-3.5 h-3.5 group-hover/add:text-blue-400 transition-colors" />
+              <Link2 className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Add Link</span>
             </button>
           )}
@@ -557,7 +542,7 @@ function RiskAlertItem({
           <button
             onClick={handleMarkPaid}
             className={cn(
-              'flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-200',
+              'flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-lg transition-all duration-200',
               'bg-white/[0.05] hover:bg-emerald-500/20 border border-white/10 hover:border-emerald-500/40',
               'text-zinc-400 hover:text-emerald-400',
               'active:scale-95'
@@ -569,20 +554,6 @@ function RiskAlertItem({
             ) : (
               <Check className="w-4 h-4" />
             )}
-          </button>
-
-          {/* Dismiss button */}
-          <button
-            onClick={handleDismiss}
-            className={cn(
-              'flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-200',
-              'opacity-0 group-hover:opacity-100',
-              'hover:bg-white/10 text-zinc-500 hover:text-zinc-300',
-              'active:scale-95'
-            )}
-            title="Dismiss this alert"
-          >
-            <X className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
