@@ -244,30 +244,30 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
       {/* Calendar */}
       <div className="flex-1 animate-in fade-in duration-500">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
+        <div className="flex items-center justify-between mb-6 sm:mb-8 gap-2">
+          <div className="flex items-center gap-2 sm:gap-4">
             {/* Navigation arrows */}
             <div className="flex items-center gap-1">
               <button
                 onClick={goToPreviousMonth}
-                className="group relative p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] hover:border-white/10 transition-all duration-300"
+                className="group relative p-2 sm:p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] hover:border-white/10 transition-all duration-300"
               >
                 <ChevronLeft className="w-4 h-4 text-zinc-400 group-hover:text-white transition-colors" />
               </button>
               <button
                 onClick={goToNextMonth}
-                className="group relative p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] hover:border-white/10 transition-all duration-300"
+                className="group relative p-2 sm:p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] hover:border-white/10 transition-all duration-300"
               >
                 <ChevronRight className="w-4 h-4 text-zinc-400 group-hover:text-white transition-colors" />
               </button>
             </div>
 
             {/* Month/Year display */}
-            <div className="flex items-baseline gap-2">
-              <h2 className="text-3xl font-light tracking-tight text-white">
+            <div className="flex items-baseline gap-1.5 sm:gap-2">
+              <h2 className="text-2xl sm:text-3xl font-light tracking-tight text-white">
                 {monthName}
               </h2>
-              <span className="text-lg text-zinc-500 font-light">{yearNum}</span>
+              <span className="text-base sm:text-lg text-zinc-500 font-light">{yearNum}</span>
             </div>
 
           </div>
@@ -350,16 +350,16 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
             </button>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={goToToday}
-              className="px-4 py-2 text-sm font-medium text-zinc-400 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] hover:border-white/10 rounded-xl transition-all duration-300"
+              className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-zinc-400 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] hover:border-white/10 rounded-xl transition-all duration-300"
             >
               Today
             </button>
             <button
               onClick={() => onAddBill()}
-              className="group relative flex items-center gap-2 px-5 py-2.5 text-white font-medium rounded-xl overflow-hidden transition-all duration-300 hover:opacity-90"
+              className="group relative flex items-center justify-center p-2.5 sm:gap-2 sm:px-5 sm:py-2.5 text-white font-medium rounded-xl overflow-hidden transition-all duration-300 hover:opacity-90"
               style={{
                 backgroundColor: 'var(--accent-primary)',
                 boxShadow: '0 10px 15px -3px color-mix(in srgb, var(--accent-primary) 25%, transparent)'
