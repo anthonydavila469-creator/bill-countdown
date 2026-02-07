@@ -411,7 +411,7 @@ export function DayDetailPanel({
         </div>
 
         {/* Add bill button */}
-        <div className="p-4 border-t border-white/[0.06]">
+        <div className="p-4 pb-24 lg:pb-4 border-t border-white/[0.06]">
           <button
             onClick={() => onAddBill(date)}
             className="group relative w-full flex items-center justify-center gap-3 px-5 py-4 rounded-xl overflow-hidden transition-all duration-300"
