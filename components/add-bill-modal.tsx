@@ -98,7 +98,7 @@ export function AddBillModal({
 
       {/* Modal */}
       <div className="absolute inset-0 overflow-y-auto">
-        <div className="flex min-h-full items-center justify-center p-4">
+        <div className="flex min-h-full items-start sm:items-center justify-center px-4 pt-16 pb-24 sm:py-8">
           <div
             className={cn(
               'relative w-full max-w-lg bg-[#0c0c10] border border-white/10 rounded-2xl shadow-2xl',
