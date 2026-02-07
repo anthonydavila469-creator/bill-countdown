@@ -59,9 +59,9 @@ export function MobileBottomNav() {
                     : 'text-zinc-500 active:text-zinc-300'
                 )}
               >
-                {/* Active indicator dot */}
+                {/* Active indicator dot - more visible */}
                 {isActive && (
-                  <div className="absolute -top-1 w-1 h-1 rounded-full bg-gradient-to-r from-blue-400 to-violet-400 shadow-[0_0_6px_rgba(99,102,241,0.6)]" />
+                  <div className="absolute -top-0.5 w-1.5 h-1.5 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
                 )}
 
                 <div className="relative">

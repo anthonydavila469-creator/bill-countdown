@@ -653,22 +653,22 @@ export default function SettingsPage() {
                       </div>
                     </div>
 
-                    <div className="flex gap-3">
+                    <div className="flex gap-2 sm:gap-3">
                       <button
                         onClick={() => setIsImportModalOpen(true)}
-                        className="group relative flex-1 flex items-center justify-center gap-2.5 px-5 py-3.5 overflow-hidden rounded-xl font-medium transition-all duration-300"
+                        className="group relative flex-1 flex items-center justify-center gap-2 px-3 sm:px-5 py-3 sm:py-3.5 overflow-hidden rounded-xl font-medium transition-all duration-300"
                       >
                         <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-violet-500" />
                         <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-violet-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                         <div className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700" />
-                        <Sparkles className="w-4 h-4 text-white relative z-10" />
-                        <span className="relative z-10 text-white font-semibold tracking-wide">
-                          Import Bills with AI
+                        <Sparkles className="w-4 h-4 text-white relative z-10 flex-shrink-0" />
+                        <span className="relative z-10 text-white font-semibold text-sm sm:text-base whitespace-nowrap">
+                          Import Bills
                         </span>
                       </button>
                       <button
                         onClick={handleDisconnectGmail}
-                        className="px-5 py-3.5 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/[0.15] text-zinc-400 hover:text-white font-medium rounded-xl transition-all duration-300"
+                        className="px-3 sm:px-5 py-3 sm:py-3.5 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/[0.15] text-zinc-400 hover:text-white font-medium rounded-xl transition-all duration-300 text-sm sm:text-base"
                       >
                         Disconnect
                       </button>
