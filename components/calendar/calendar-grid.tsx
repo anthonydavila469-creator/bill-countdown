@@ -261,8 +261,8 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
         {/* Header */}
         <div className="flex flex-col gap-2 sm:gap-3 mb-4 sm:mb-8">
           {/* Top row: nav + month/year + actions */}
-          <div className="flex flex-wrap items-center gap-3 sm:justify-between">
-            <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
               {/* Navigation arrows */}
               <div className="flex items-center gap-1 flex-shrink-0">
                 <button
@@ -320,9 +320,10 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
                 // Toggle filter
                 const newFilter = activeFilter === 'due-soon' ? 'all' : 'due-soon';
                 setActiveFilter(newFilter);
-                // If activating filter and there's a due-soon bill, navigate to its month
+                // If activating filter, navigate to the month but don't select the date
                 if (newFilter === 'due-soon' && earliestDueSoonDate) {
-                  goToDate(earliestDueSoonDate);
+                  setCurrentYear(earliestDueSoonDate.getFullYear());
+                  setCurrentMonth(earliestDueSoonDate.getMonth());
                 }
               }}
               className={cn(
@@ -394,8 +395,10 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
                 onClick={() => {
                   const newFilter = activeFilter === 'due-soon' ? 'all' : 'due-soon';
                   setActiveFilter(newFilter);
+                  // Navigate to month but don't select the date (don't open panel)
                   if (newFilter === 'due-soon' && earliestDueSoonDate) {
-                    goToDate(earliestDueSoonDate);
+                    setCurrentYear(earliestDueSoonDate.getFullYear());
+                    setCurrentMonth(earliestDueSoonDate.getMonth());
                   }
                 }}
                 className={cn(
