@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Plus, DollarSign, Clock, AlertTriangle } from 'lucide-react';
 import { formatCurrency, getDaysUntilDue } from '@/lib/utils';
 import { cn } from '@/lib/utils';
@@ -39,6 +39,12 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [activeFilter, setActiveFilter] = useState<CalendarFilter>('all');
+  const [mounted, setMounted] = useState(false);
+
+  // Wait for client mount to prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
 
   // Generate month grid
@@ -244,12 +250,12 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
       {/* Calendar */}
       <div className="flex-1 animate-in fade-in duration-500">
         {/* Header */}
-        <div className="flex flex-col gap-3 mb-4 sm:mb-8">
+        <div className="flex flex-col gap-2 sm:gap-3 mb-4 sm:mb-8">
           {/* Top row: nav + month/year + actions */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
               {/* Navigation arrows */}
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 flex-shrink-0">
                 <button
                   onClick={goToPreviousMonth}
                   className="group relative p-2 sm:p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] hover:border-white/10 transition-all duration-300"
@@ -265,7 +271,7 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
               </div>
 
               {/* Month/Year display */}
-              <div className="flex items-baseline gap-1.5">
+              <div className="flex items-baseline gap-1">
                 <h2 className="text-xl sm:text-3xl font-light tracking-tight text-white">
                   {monthName}
                 </h2>
@@ -372,49 +378,57 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
             </div>
           </div>
 
-          {/* Mobile summary stats - shown only on small screens */}
-          <div className="flex md:hidden items-center gap-2">
-            {/* Due Soon */}
-            <button
-              onClick={() => {
-                const newFilter = activeFilter === 'due-soon' ? 'all' : 'due-soon';
-                setActiveFilter(newFilter);
-                if (newFilter === 'due-soon' && earliestDueSoonDate) {
-                  goToDate(earliestDueSoonDate);
-                }
-              }}
-              className={cn(
-                'flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs transition-all',
-                activeFilter === 'due-soon'
-                  ? 'bg-amber-500/20 border border-amber-500/40'
-                  : 'bg-white/[0.03] border border-white/[0.06]'
-              )}
-            >
-              <Clock className="w-3.5 h-3.5 text-amber-400" />
-              <span className="text-zinc-300 font-medium">
-                {upcomingTotal > 0 ? formatCurrency(upcomingTotal) : '$0'}
-              </span>
-              {upcomingCount > 0 && (
-                <span className="text-zinc-500">({upcomingCount})</span>
-              )}
-            </button>
+          {/* Mobile summary stats - shown only on small screens, after mount */}
+          {mounted && (
+            <div className="flex md:hidden items-center gap-2">
+              {/* Due Soon */}
+              <button
+                onClick={() => {
+                  const newFilter = activeFilter === 'due-soon' ? 'all' : 'due-soon';
+                  setActiveFilter(newFilter);
+                  if (newFilter === 'due-soon' && earliestDueSoonDate) {
+                    goToDate(earliestDueSoonDate);
+                  }
+                }}
+                className={cn(
+                  'flex-1 flex flex-col items-center gap-0.5 px-2 py-2 rounded-xl text-xs transition-all',
+                  activeFilter === 'due-soon'
+                    ? 'bg-amber-500/20 border border-amber-500/40'
+                    : 'bg-white/[0.03] border border-white/[0.06]'
+                )}
+              >
+                <span className="text-[10px] text-amber-400/80 uppercase tracking-wide">Due Soon</span>
+                <div className="flex items-center gap-1">
+                  <Clock className="w-3 h-3 text-amber-400" />
+                  <span className="text-zinc-200 font-semibold">
+                    {formatCurrency(upcomingTotal)}
+                  </span>
+                  {upcomingCount > 0 && (
+                    <span className="text-zinc-500 text-[10px]">({upcomingCount})</span>
+                  )}
+                </div>
+              </button>
 
-            {/* This Month */}
-            <button
-              onClick={() => setActiveFilter('all')}
-              className={cn(
-                'flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs transition-all',
-                activeFilter === 'all'
-                  ? 'bg-blue-500/20 border border-blue-500/40'
-                  : 'bg-white/[0.03] border border-white/[0.06]'
-              )}
-            >
-              <DollarSign className="w-3.5 h-3.5 text-blue-400" />
-              <span className="text-zinc-300 font-medium">
-                {monthTotalAmount > 0 ? formatCurrency(monthTotalAmount) : '$0'}
-              </span>
-            </button>
-          </div>
+              {/* This Month */}
+              <button
+                onClick={() => setActiveFilter('all')}
+                className={cn(
+                  'flex-1 flex flex-col items-center gap-0.5 px-2 py-2 rounded-xl text-xs transition-all',
+                  activeFilter === 'all'
+                    ? 'bg-blue-500/20 border border-blue-500/40'
+                    : 'bg-white/[0.03] border border-white/[0.06]'
+                )}
+              >
+                <span className="text-[10px] text-blue-400/80 uppercase tracking-wide">This Month</span>
+                <div className="flex items-center gap-1">
+                  <DollarSign className="w-3 h-3 text-blue-400" />
+                  <span className="text-zinc-200 font-semibold">
+                    {formatCurrency(monthTotalAmount)}
+                  </span>
+                </div>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Calendar container with subtle depth */}
