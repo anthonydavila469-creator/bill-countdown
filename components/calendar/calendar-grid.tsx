@@ -244,33 +244,34 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
       {/* Calendar */}
       <div className="flex-1 animate-in fade-in duration-500">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6 sm:mb-8 gap-2">
-          <div className="flex items-center gap-2 sm:gap-4">
-            {/* Navigation arrows */}
-            <div className="flex items-center gap-1">
-              <button
-                onClick={goToPreviousMonth}
-                className="group relative p-2 sm:p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] hover:border-white/10 transition-all duration-300"
-              >
-                <ChevronLeft className="w-4 h-4 text-zinc-400 group-hover:text-white transition-colors" />
-              </button>
-              <button
-                onClick={goToNextMonth}
-                className="group relative p-2 sm:p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] hover:border-white/10 transition-all duration-300"
-              >
-                <ChevronRight className="w-4 h-4 text-zinc-400 group-hover:text-white transition-colors" />
-              </button>
-            </div>
+        <div className="flex flex-col gap-3 mb-4 sm:mb-8">
+          {/* Top row: nav + month/year + actions */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 sm:gap-4">
+              {/* Navigation arrows */}
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={goToPreviousMonth}
+                  className="group relative p-2 sm:p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] hover:border-white/10 transition-all duration-300"
+                >
+                  <ChevronLeft className="w-4 h-4 text-zinc-400 group-hover:text-white transition-colors" />
+                </button>
+                <button
+                  onClick={goToNextMonth}
+                  className="group relative p-2 sm:p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] hover:border-white/10 transition-all duration-300"
+                >
+                  <ChevronRight className="w-4 h-4 text-zinc-400 group-hover:text-white transition-colors" />
+                </button>
+              </div>
 
-            {/* Month/Year display */}
-            <div className="flex items-baseline gap-1.5 sm:gap-2">
-              <h2 className="text-2xl sm:text-3xl font-light tracking-tight text-white">
-                {monthName}
-              </h2>
-              <span className="text-base sm:text-lg text-zinc-500 font-light">{yearNum}</span>
+              {/* Month/Year display */}
+              <div className="flex items-baseline gap-1.5">
+                <h2 className="text-xl sm:text-3xl font-light tracking-tight text-white">
+                  {monthName}
+                </h2>
+                <span className="text-sm sm:text-lg text-zinc-500 font-light">{yearNum}</span>
+              </div>
             </div>
-
-          </div>
 
           {/* Summary stats - clickable to filter */}
           <div className="hidden md:flex items-center gap-3">
@@ -350,23 +351,68 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
             </button>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <button
+                onClick={goToToday}
+                className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-zinc-400 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] hover:border-white/10 rounded-xl transition-all duration-300"
+              >
+                Today
+              </button>
+              <button
+                onClick={() => onAddBill()}
+                className="group relative flex items-center justify-center p-2.5 sm:gap-2 sm:px-5 sm:py-2.5 text-white font-medium rounded-xl overflow-hidden transition-all duration-300 hover:opacity-90"
+                style={{
+                  backgroundColor: 'var(--accent-primary)',
+                  boxShadow: '0 10px 15px -3px color-mix(in srgb, var(--accent-primary) 25%, transparent)'
+                }}
+              >
+                <Plus className="w-4 h-4" />
+                <span className="hidden sm:inline">Add Bill</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile summary stats - shown only on small screens */}
+          <div className="flex md:hidden items-center gap-2">
+            {/* Due Soon */}
             <button
-              onClick={goToToday}
-              className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-zinc-400 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] hover:border-white/10 rounded-xl transition-all duration-300"
-            >
-              Today
-            </button>
-            <button
-              onClick={() => onAddBill()}
-              className="group relative flex items-center justify-center p-2.5 sm:gap-2 sm:px-5 sm:py-2.5 text-white font-medium rounded-xl overflow-hidden transition-all duration-300 hover:opacity-90"
-              style={{
-                backgroundColor: 'var(--accent-primary)',
-                boxShadow: '0 10px 15px -3px color-mix(in srgb, var(--accent-primary) 25%, transparent)'
+              onClick={() => {
+                const newFilter = activeFilter === 'due-soon' ? 'all' : 'due-soon';
+                setActiveFilter(newFilter);
+                if (newFilter === 'due-soon' && earliestDueSoonDate) {
+                  goToDate(earliestDueSoonDate);
+                }
               }}
+              className={cn(
+                'flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs transition-all',
+                activeFilter === 'due-soon'
+                  ? 'bg-amber-500/20 border border-amber-500/40'
+                  : 'bg-white/[0.03] border border-white/[0.06]'
+              )}
             >
-              <Plus className="w-4 h-4" />
-              <span className="hidden sm:inline">Add Bill</span>
+              <Clock className="w-3.5 h-3.5 text-amber-400" />
+              <span className="text-zinc-300 font-medium">
+                {upcomingTotal > 0 ? formatCurrency(upcomingTotal) : '$0'}
+              </span>
+              {upcomingCount > 0 && (
+                <span className="text-zinc-500">({upcomingCount})</span>
+              )}
+            </button>
+
+            {/* This Month */}
+            <button
+              onClick={() => setActiveFilter('all')}
+              className={cn(
+                'flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs transition-all',
+                activeFilter === 'all'
+                  ? 'bg-blue-500/20 border border-blue-500/40'
+                  : 'bg-white/[0.03] border border-white/[0.06]'
+              )}
+            >
+              <DollarSign className="w-3.5 h-3.5 text-blue-400" />
+              <span className="text-zinc-300 font-medium">
+                {monthTotalAmount > 0 ? formatCurrency(monthTotalAmount) : '$0'}
+              </span>
             </button>
           </div>
         </div>
