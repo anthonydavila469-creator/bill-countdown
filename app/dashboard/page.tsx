@@ -890,114 +890,113 @@ export default function DashboardPage() {
                     <List className="w-4 h-4" />
                   </button>
                 </div>
+
+                {/* Layout Settings Popover - moved here for better dropdown visibility */}
+                <div className="relative" ref={layoutSettingsRef}>
+                  <button
+                    onClick={() => setIsLayoutSettingsOpen(!isLayoutSettingsOpen)}
+                    className={cn(
+                      'group flex items-center justify-center w-10 h-10 rounded-xl border transition-all duration-200',
+                      isLayoutSettingsOpen
+                        ? 'bg-gradient-to-b from-white/[0.1] to-white/[0.05] border-white/[0.15] text-white'
+                        : 'bg-gradient-to-b from-white/[0.05] to-white/[0.02] border-white/[0.08] text-zinc-400 hover:from-white/[0.08] hover:to-white/[0.04] hover:border-white/[0.12] hover:text-white'
+                    )}
+                    title="Layout settings"
+                  >
+                    <SlidersHorizontal className={cn(
+                      'w-4 h-4 transition-transform duration-200',
+                      isLayoutSettingsOpen && 'rotate-180'
+                    )} />
+                  </button>
+
+                  {isLayoutSettingsOpen && (
+                    <div className="absolute top-full right-0 mt-2 z-50 w-56 animate-in fade-in slide-in-from-top-2 duration-200">
+                      <div className="absolute -inset-1 bg-gradient-to-b from-white/5 to-transparent rounded-2xl blur-xl" />
+                      <div className="relative bg-[#0a0a0e]/98 backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.8)] overflow-hidden">
+                        {/* Header */}
+                        <div className="px-4 py-3 border-b border-white/[0.06]">
+                          <p className="text-xs font-semibold text-white">Layout Settings</p>
+                        </div>
+
+                        <div className="p-2 space-y-1">
+                          {/* Card Size */}
+                          <div className="px-2 py-1.5">
+                            <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider mb-2">Card Size</p>
+                            <div className="flex gap-1">
+                              {(['compact', 'default'] as const).map((size) => (
+                                <button
+                                  key={size}
+                                  onClick={() => updateDashboardLayout({ cardSize: size })}
+                                  className={cn(
+                                    'flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200',
+                                    dashboardLayout.cardSize === size
+                                      ? 'bg-white/[0.1] text-white'
+                                      : 'text-zinc-400 hover:bg-white/[0.05] hover:text-white'
+                                  )}
+                                >
+                                  {size.charAt(0).toUpperCase() + size.slice(1)}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Cards Per Row */}
+                          <div className="px-2 py-1.5">
+                            <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider mb-2">Cards Per Row</p>
+                            <div className="flex gap-1">
+                              {[2, 3, 4].map((cols) => (
+                                <button
+                                  key={cols}
+                                  onClick={() => updateDashboardLayout({ cardsPerRow: cols as 2 | 3 | 4 })}
+                                  className={cn(
+                                    'flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200',
+                                    dashboardLayout.cardsPerRow === cols
+                                      ? 'bg-white/[0.1] text-white'
+                                      : 'text-zinc-400 hover:bg-white/[0.05] hover:text-white'
+                                  )}
+                                >
+                                  {cols}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Stats Bar Toggle */}
+                          <button
+                            onClick={() => updateDashboardLayout({ showStatsBar: !dashboardLayout.showStatsBar })}
+                            className="w-full flex items-center justify-between px-2 py-2.5 rounded-lg hover:bg-white/[0.05] transition-all duration-200"
+                          >
+                            <span className="text-xs font-medium text-zinc-300">Show Stats Bar</span>
+                            <div
+                              className={cn(
+                                'relative w-9 h-5 rounded-full transition-all duration-200',
+                                dashboardLayout.showStatsBar ? 'bg-cyan-500' : 'bg-white/10'
+                              )}
+                            >
+                              <div
+                                className={cn(
+                                  'absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all duration-200',
+                                  dashboardLayout.showStatsBar ? 'left-[18px]' : 'left-0.5'
+                                )}
+                              />
+                            </div>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* Sort, Filter & Layout Controls */}
+            {/* Sort & Filter Controls */}
             <div className="flex flex-wrap items-center gap-3 mb-6">
-              {/* Sort & Filter Bar */}
               <SortFilterBar
                 sortBy={sortBy}
                 onSortChange={handleSortChange}
                 activeFilter={quickFilter}
                 onFilterChange={setQuickFilter}
               />
-
-              {/* Layout Settings Popover */}
-              <div className="relative" ref={layoutSettingsRef}>
-                <button
-                  onClick={() => setIsLayoutSettingsOpen(!isLayoutSettingsOpen)}
-                  className={cn(
-                    'group flex items-center justify-center w-10 h-10 rounded-xl border transition-all duration-200',
-                    isLayoutSettingsOpen
-                      ? 'bg-gradient-to-b from-white/[0.1] to-white/[0.05] border-white/[0.15] text-white'
-                      : 'bg-gradient-to-b from-white/[0.05] to-white/[0.02] border-white/[0.08] text-zinc-400 hover:from-white/[0.08] hover:to-white/[0.04] hover:border-white/[0.12] hover:text-white'
-                  )}
-                  title="Layout settings"
-                >
-                  <SlidersHorizontal className={cn(
-                    'w-4 h-4 transition-transform duration-200',
-                    isLayoutSettingsOpen && 'rotate-180'
-                  )} />
-                </button>
-
-                {isLayoutSettingsOpen && (
-                  <div className="absolute bottom-full right-0 mb-2 z-50 w-56 animate-in fade-in slide-in-from-bottom-2 duration-200">
-                    <div className="absolute -inset-1 bg-gradient-to-b from-white/5 to-transparent rounded-2xl blur-xl" />
-                    <div className="relative bg-[#0a0a0e]/98 backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.8)] overflow-hidden">
-                      {/* Header */}
-                      <div className="px-4 py-3 border-b border-white/[0.06]">
-                        <p className="text-xs font-semibold text-white">Layout Settings</p>
-                      </div>
-
-                      <div className="p-2 space-y-1">
-                        {/* Card Size */}
-                        <div className="px-2 py-1.5">
-                          <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider mb-2">Card Size</p>
-                          <div className="flex gap-1">
-                            {(['compact', 'default'] as const).map((size) => (
-                              <button
-                                key={size}
-                                onClick={() => updateDashboardLayout({ cardSize: size })}
-                                className={cn(
-                                  'flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200',
-                                  dashboardLayout.cardSize === size
-                                    ? 'bg-white/[0.1] text-white'
-                                    : 'text-zinc-400 hover:bg-white/[0.05] hover:text-white'
-                                )}
-                              >
-                                {size.charAt(0).toUpperCase() + size.slice(1)}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Cards Per Row */}
-                        <div className="px-2 py-1.5">
-                          <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider mb-2">Cards Per Row</p>
-                          <div className="flex gap-1">
-                            {[2, 3, 4].map((cols) => (
-                              <button
-                                key={cols}
-                                onClick={() => updateDashboardLayout({ cardsPerRow: cols as 2 | 3 | 4 })}
-                                className={cn(
-                                  'flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200',
-                                  dashboardLayout.cardsPerRow === cols
-                                    ? 'bg-white/[0.1] text-white'
-                                    : 'text-zinc-400 hover:bg-white/[0.05] hover:text-white'
-                                )}
-                              >
-                                {cols}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Stats Bar Toggle */}
-                        <button
-                          onClick={() => updateDashboardLayout({ showStatsBar: !dashboardLayout.showStatsBar })}
-                          className="w-full flex items-center justify-between px-2 py-2.5 rounded-lg hover:bg-white/[0.05] transition-all duration-200"
-                        >
-                          <span className="text-xs font-medium text-zinc-300">Show Stats Bar</span>
-                          <div
-                            className={cn(
-                              'relative w-9 h-5 rounded-full transition-all duration-200',
-                              dashboardLayout.showStatsBar ? 'bg-cyan-500' : 'bg-white/10'
-                            )}
-                          >
-                            <div
-                              className={cn(
-                                'absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all duration-200',
-                                dashboardLayout.showStatsBar ? 'left-[18px]' : 'left-0.5'
-                              )}
-                            />
-                          </div>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
             </div>
 
             {/* Empty state */}
