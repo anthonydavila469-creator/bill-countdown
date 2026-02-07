@@ -1,0 +1,84 @@
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { LayoutGrid, Calendar, Lightbulb, History, Settings, Crown } from 'lucide-react';
+import { useSubscription } from '@/hooks/use-subscription';
+import { cn } from '@/lib/utils';
+
+const navItems = [
+  { href: '/dashboard', label: 'Home', icon: LayoutGrid },
+  { href: '/dashboard/calendar', label: 'Calendar', icon: Calendar, proFeature: 'calendar' as const },
+  { href: '/dashboard/insights', label: 'Insights', icon: Lightbulb, proFeature: 'insights' as const },
+  { href: '/dashboard/history', label: 'History', icon: History, proFeature: 'history' as const },
+  { href: '/dashboard/settings', label: 'Settings', icon: Settings },
+];
+
+export function MobileBottomNav() {
+  const pathname = usePathname();
+  const { canUseCalendar, canUseHistory } = useSubscription();
+
+  const isProLocked = (feature?: 'calendar' | 'history' | 'insights') => {
+    if (feature === 'calendar') return !canUseCalendar;
+    if (feature === 'history') return !canUseHistory;
+    if (feature === 'insights') return !canUseHistory; // Insights uses same check as history
+    return false;
+  };
+
+  return (
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50">
+      {/* Top border glow */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
+      <div className="bg-[#0a0a0e]/95 backdrop-blur-xl border-t border-white/[0.06]">
+        <div className="flex items-center justify-around px-1 h-16 max-w-lg mx-auto">
+          {navItems.map((item) => {
+            const isActive = item.href === '/dashboard'
+              ? pathname === '/dashboard'
+              : pathname.startsWith(item.href);
+            const locked = isProLocked(item.proFeature);
+            const Icon = item.icon;
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  'relative flex flex-col items-center justify-center gap-0.5 w-14 h-12 rounded-xl transition-all duration-200',
+                  isActive
+                    ? 'text-white'
+                    : 'text-zinc-500 active:text-zinc-300'
+                )}
+              >
+                {/* Active indicator dot */}
+                {isActive && (
+                  <div className="absolute -top-1 w-1 h-1 rounded-full bg-gradient-to-r from-blue-400 to-violet-400 shadow-[0_0_6px_rgba(99,102,241,0.6)]" />
+                )}
+
+                <div className="relative">
+                  <Icon className={cn(
+                    'w-5 h-5 transition-colors duration-200',
+                    isActive && 'text-blue-400'
+                  )} />
+                  {locked && (
+                    <Crown className="absolute -top-1.5 -right-2 w-3 h-3 text-amber-400" />
+                  )}
+                </div>
+
+                <span className={cn(
+                  'text-[9px] font-medium transition-colors duration-200',
+                  isActive ? 'text-blue-400' : 'text-zinc-500'
+                )}>
+                  {item.label}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+
+        {/* Safe area padding for devices with home indicator */}
+        <div className="h-[env(safe-area-inset-bottom)]" />
+      </div>
+    </nav>
+  );
+}

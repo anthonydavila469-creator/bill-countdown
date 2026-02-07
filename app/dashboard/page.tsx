@@ -770,7 +770,7 @@ export default function DashboardPage() {
 
           {/* Stats - conditionally rendered based on layout preferences */}
           {dashboardLayout.showStatsBar && (
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-8">
               <div className="relative p-6 rounded-2xl bg-gradient-to-br from-white/[0.03] to-white/[0.01] border border-white/[0.06] overflow-hidden group hover:border-white/[0.1] transition-all duration-300">
                 <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
                 <p className="text-sm text-zinc-400 mb-1 font-medium">Total Due</p>
