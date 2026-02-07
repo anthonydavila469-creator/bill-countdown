@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutGrid, Calendar, Lightbulb, History, Settings, Crown } from 'lucide-react';
@@ -15,13 +16,21 @@ const navItems = [
 ];
 
 export function MobileBottomNav() {
+  const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
   const { canUseCalendar, canUseHistory } = useSubscription();
+
+  // Only render after hydration to avoid mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
 
   const isProLocked = (feature?: 'calendar' | 'history' | 'insights') => {
     if (feature === 'calendar') return !canUseCalendar;
     if (feature === 'history') return !canUseHistory;
-    if (feature === 'insights') return !canUseHistory; // Insights uses same check as history
+    if (feature === 'insights') return !canUseHistory;
     return false;
   };
 
