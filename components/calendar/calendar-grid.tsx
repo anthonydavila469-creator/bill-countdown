@@ -245,6 +245,15 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
     });
   }, [allBills, monthGrid]);
 
+  // Show loading state until mounted to prevent hydration mismatch
+  if (!mounted) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="w-8 h-8 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col xl:flex-row gap-6 h-full">
       {/* Calendar */}
@@ -252,8 +261,8 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
         {/* Header */}
         <div className="flex flex-col gap-2 sm:gap-3 mb-4 sm:mb-8">
           {/* Top row: nav + month/year + actions */}
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
+          <div className="flex flex-wrap items-center gap-3 sm:justify-between">
+            <div className="flex items-center gap-2 sm:gap-4">
               {/* Navigation arrows */}
               <div className="flex items-center gap-1 flex-shrink-0">
                 <button
@@ -378,9 +387,8 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
             </div>
           </div>
 
-          {/* Mobile summary stats - shown only on small screens, after mount */}
-          {mounted && (
-            <div className="flex md:hidden items-center gap-2">
+          {/* Mobile summary stats - shown only on small screens */}
+          <div className="flex md:hidden items-center gap-2">
               {/* Due Soon */}
               <button
                 onClick={() => {
@@ -428,7 +436,6 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
                 </div>
               </button>
             </div>
-          )}
         </div>
 
         {/* Calendar container with subtle depth */}
