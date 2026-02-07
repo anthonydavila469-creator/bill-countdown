@@ -6,6 +6,7 @@ import {
   getDaysUntilDue,
   getUrgency,
   formatDate,
+  formatDateCompact,
   formatCurrency,
   getPriceChange,
 } from '@/lib/utils';
@@ -117,9 +118,9 @@ export function BillCard({
                   </span>
                 )}
               </div>
-              <p className="text-xs text-white/70 flex items-center gap-1 whitespace-nowrap">
+              <p className="text-xs text-white/70 flex items-center gap-1.5">
                 <Calendar className="w-3 h-3 flex-shrink-0" />
-                <span className="truncate">{formatDate(bill.due_date)}</span>
+                <span>{formatDateCompact(bill.due_date)}</span>
                 {showLatePaymentRisk && (
                   <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded bg-rose-500/30 border border-rose-400/30 flex-shrink-0">
                     <AlertCircle className="w-2 h-2 text-rose-300" />
