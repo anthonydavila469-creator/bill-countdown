@@ -121,12 +121,6 @@ export function BillCard({
               <p className="text-xs text-white/70 flex items-center gap-1.5">
                 <Calendar className="w-3 h-3 flex-shrink-0" />
                 <span>{formatDateCompact(bill.due_date)}</span>
-                {showLatePaymentRisk && (
-                  <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded bg-rose-500/30 border border-rose-400/30 flex-shrink-0">
-                    <AlertCircle className="w-2 h-2 text-rose-300" />
-                    <span className="text-[8px] font-semibold text-rose-200">Late</span>
-                  </span>
-                )}
               </p>
             </div>
           </div>
@@ -371,13 +365,6 @@ export function BillCard({
               <span className="text-sm font-medium">
                 {formatDate(bill.due_date)}
               </span>
-              {/* Late fee risk warning */}
-              {showLatePaymentRisk && (
-                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-rose-500/30 border border-rose-400/40">
-                  <AlertCircle className="w-3 h-3 text-rose-300" />
-                  <span className="text-[9px] font-semibold text-rose-200 whitespace-nowrap">Late Risk</span>
-                </span>
-              )}
             </div>
 
             <div className="flex items-center gap-2">
@@ -640,12 +627,6 @@ export function BillListItem({
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
           {formatDate(bill.due_date)}
           {formatAmount() && ` • ${formatAmount()}`}
-          {showLatePaymentRisk && (
-            <span className="inline-flex items-center gap-0.5 ml-2 px-1 py-0.5 rounded bg-rose-100 dark:bg-rose-500/20 border border-rose-200 dark:border-rose-500/30">
-              <AlertCircle className="w-2 h-2 text-rose-500 dark:text-rose-400" />
-              <span className="text-[8px] font-semibold text-rose-600 dark:text-rose-300">Late</span>
-            </span>
-          )}
         </p>
       </div>
 
