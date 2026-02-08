@@ -85,6 +85,12 @@ export default function DashboardPage() {
   const [isLayoutSettingsOpen, setIsLayoutSettingsOpen] = useState(false);
   const layoutSettingsRef = useRef<HTMLDivElement>(null);
 
+  // Mounted state for hydration-safe date calculations
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Sync view with layout preference when it changes
   useEffect(() => {
     setView(dashboardLayout.defaultView);
@@ -262,14 +268,15 @@ export default function DashboardPage() {
   const unpaidBills = bills.filter(b => !b.is_paid);
   const totalDue = unpaidBills.reduce((sum, bill) => sum + (bill.amount || 0), 0);
   // Use getDaysUntilDue for consistent calculation - includes bills due today (0 days)
-  const billsDueSoon = unpaidBills.filter((bill) => {
+  // Only calculate on client to avoid hydration mismatch
+  const billsDueSoon = mounted ? unpaidBills.filter((bill) => {
     const daysUntil = getDaysUntilDue(bill.due_date);
     return daysUntil <= 7 && daysUntil >= 0;
-  });
-  const overdueBills = unpaidBills.filter((bill) => {
+  }) : [];
+  const overdueBills = mounted ? unpaidBills.filter((bill) => {
     const daysUntil = getDaysUntilDue(bill.due_date);
     return daysUntil < 0;
-  });
+  }) : [];
   const notificationCount = billsDueSoon.length + overdueBills.length;
 
   // Handle sort change - update local state and persist to layout settings
