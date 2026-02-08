@@ -13,7 +13,8 @@ const sizes = [
   { size: 1024, scales: [1] },       // App Store
 ];
 
-const inputSvg = path.join(__dirname, '../public/app-icon.svg');
+// Use the final icon (Anthony's ChatGPT creation)
+const inputPng = path.join(__dirname, '../public/app-icon-final.png');
 const outputDir = path.join(__dirname, '../ios/App/App/Assets.xcassets/AppIcon.appiconset');
 
 async function generateIcons() {
@@ -33,7 +34,7 @@ async function generateIcons() {
       const filename = `icon-${size}@${scale}x.png`;
       const outputPath = path.join(outputDir, filename);
 
-      await sharp(inputSvg)
+      await sharp(inputPng)
         .resize(pixelSize, pixelSize)
         .png()
         .toFile(outputPath);

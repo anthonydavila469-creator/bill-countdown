@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6"/>
+      <stop offset="100%" style="stop-color:#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background rounded square -->
+  <rect width="1024" height="1024" rx="224" fill="url(#bg-gradient)"/>
+  
+  <!-- Subtle inner glow -->
+  <rect x="32" y="32" width="960" height="960" rx="192" fill="none" stroke="white" stroke-opacity="0.1" stroke-width="2"/>
+  
+  <!-- Letter D outline - thick stroke -->
+  <path 
+    d="M320 224 
+       L320 800 
+       L520 800 
+       C700 800 800 680 800 512 
+       C800 344 700 224 520 224 
+       L320 224 Z
+       M400 320 
+       L500 320 
+       C620 320 700 400 700 512 
+       C700 624 620 704 500 704 
+       L400 704 
+       L400 320 Z" 
+    fill="white"
+    fill-rule="evenodd"
+    opacity="0.95"
+  />
+  
+  <!-- Lightning bolt inside the D -->
+  <path 
+    d="M540 340 L440 520 L510 520 L470 700 L600 480 L520 480 L570 340 Z" 
+    fill="url(#bg-gradient)"
+  />
+</svg>
