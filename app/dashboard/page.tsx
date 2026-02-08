@@ -530,10 +530,12 @@ export default function DashboardPage() {
       </aside>
 
       {/* Main content */}
-      <main className="lg:ml-64">
-        {/* Header */}
-        <header className="sticky top-0 z-40">
-          <div className="flex items-center justify-between px-6 h-16 bg-[#08080c]/80 backdrop-blur-xl border-b border-white/5">
+      <main className="lg:ml-64 pt-[calc(env(safe-area-inset-top)+4rem)] h-screen overflow-y-auto overscroll-none pb-28">
+        {/* Header - fixed at top, content scrolls under */}
+        <header className="fixed top-0 left-0 right-0 z-50 lg:left-64 bg-[#08080c]">
+          {/* Safe area for notch */}
+          <div className="h-[env(safe-area-inset-top)] bg-[#08080c]" />
+          <div className="flex items-center justify-between px-6 h-16 bg-[#08080c] border-b border-white/5">
             {/* Mobile logo */}
             <div className="lg:hidden flex items-center gap-2">
               <Image

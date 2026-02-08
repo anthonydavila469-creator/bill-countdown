@@ -324,10 +324,12 @@ export default function CalendarPage() {
       </aside>
 
       {/* Main content */}
-      <main className="lg:ml-64">
+      <main className="lg:ml-64 h-screen overflow-y-auto overscroll-none pb-28 pt-[env(safe-area-inset-top)]">
         {/* Header */}
-        <header className="sticky top-0 z-40 bg-[#08080c]/80 backdrop-blur-xl border-b border-white/5">
-          <div className="flex items-center justify-between px-6 h-16">
+        <header className="sticky top-0 z-40 bg-[#08080c]">
+          {/* Safe area for notch */}
+          <div className="h-[env(safe-area-inset-top)] bg-[#08080c]" />
+          <div className="flex items-center justify-between px-6 h-16 bg-[#08080c]/80 backdrop-blur-xl border-b border-white/5">
             {/* Mobile logo */}
             <div className="lg:hidden flex items-center gap-2.5">
               <Image

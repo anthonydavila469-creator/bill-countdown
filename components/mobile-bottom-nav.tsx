@@ -35,7 +35,7 @@ export function MobileBottomNav() {
   };
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50" style={{ position: 'fixed', bottom: 0 }}>
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50" style={{ position: 'fixed', bottom: 0, transform: 'translate3d(0,0,0)', WebkitTransform: 'translate3d(0,0,0)' }}>
       {/* Top border glow */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 

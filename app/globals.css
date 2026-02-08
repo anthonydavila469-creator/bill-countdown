@@ -52,14 +52,16 @@
 }
 
 /* Base styles */
-html {
+html, body {
   scroll-behavior: smooth;
   background: #08080c;
+  height: 100%;
+  overflow: hidden;
 }
 
 body {
-  background: #08080c;
   color: var(--foreground);
+  overscroll-behavior: none;
   font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont,
     'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
