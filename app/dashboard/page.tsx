@@ -41,6 +41,7 @@ import {
   Crown,
   SlidersHorizontal,
   Check,
+  Trash2,
 } from 'lucide-react';
 import { useSubscription } from '@/hooks/use-subscription';
 import { cn } from '@/lib/utils';
@@ -1019,6 +1020,46 @@ export default function DashboardPage() {
                     {canAddBill ? 'Add Your First Bill' : 'Upgrade for More Bills'}
                   </button>
                 )}
+              </div>
+            )}
+
+            {/* Bulk Action Bar - appears when items selected */}
+            {selectedBillIds.size > 0 && (
+              <div className="flex items-center justify-between gap-4 mb-4 p-3 rounded-xl bg-gradient-to-r from-cyan-500/10 to-violet-500/10 border border-cyan-500/20 animate-in fade-in slide-in-from-top-2">
+                <span className="text-sm font-medium text-white">
+                  {selectedBillIds.size} bill{selectedBillIds.size === 1 ? '' : 's'} selected
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={async () => {
+                      const selectedBills = bills.filter(b => selectedBillIds.has(b.id) && !b.is_paid);
+                      for (const bill of selectedBills) {
+                        await markBillAsPaid(bill.id);
+                      }
+                      setSelectedBillIds(new Set());
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 transition-colors"
+                  >
+                    <Check className="w-3.5 h-3.5" />
+                    Mark Paid
+                  </button>
+                  <button
+                    onClick={() => {
+                      const firstSelected = bills.find(b => selectedBillIds.has(b.id));
+                      if (firstSelected) setDeletingBill(firstSelected);
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/30 hover:bg-rose-500/30 transition-colors"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Delete
+                  </button>
+                  <button
+                    onClick={() => setSelectedBillIds(new Set())}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/10 text-zinc-300 border border-white/10 hover:bg-white/20 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             )}
 
