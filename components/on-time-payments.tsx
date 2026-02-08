@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Bill } from '@/types';
 import { Flame, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -11,7 +11,15 @@ interface OnTimePaymentsProps {
 }
 
 export function OnTimePayments({ bills, className }: OnTimePaymentsProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const stats = useMemo(() => {
+    if (!mounted) return { onTimeCount: 0, totalPaidCount: 0, isPerfectMonth: false };
+    
     const now = new Date();
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -41,10 +49,10 @@ export function OnTimePayments({ bills, className }: OnTimePaymentsProps) {
       totalPaidCount,
       isPerfectMonth,
     };
-  }, [bills]);
+  }, [bills, mounted]);
 
-  // Hide widget entirely if no on-time bills
-  if (stats.onTimeCount === 0) {
+  // Hide widget until mounted and if no on-time bills
+  if (!mounted || stats.onTimeCount === 0) {
     return null;
   }
 
