@@ -1038,10 +1038,10 @@ export default function DashboardPage() {
                       }
                       setSelectedBillIds(new Set());
                     }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 transition-colors whitespace-nowrap"
                   >
                     <Check className="w-3.5 h-3.5" />
-                    Mark Paid
+                    Paid
                   </button>
                   <button
                     onClick={() => {
