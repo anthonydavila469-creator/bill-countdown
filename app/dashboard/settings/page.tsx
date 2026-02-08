@@ -307,7 +307,6 @@ export default function SettingsPage() {
 
   const handleImportBills = async (bills: ParsedBill[]) => {
     try {
-      console.log('Importing bills:', bills);
 
       const response = await fetch('/api/bills/import', {
         method: 'POST',
@@ -322,7 +321,6 @@ export default function SettingsPage() {
         throw new Error(result.error || 'Failed to import bills');
       }
 
-      console.log(`Successfully imported ${result.imported} bills:`, result.bills);
 
       // Refetch bills to update the context before navigating
       await refetch();
@@ -367,7 +365,6 @@ export default function SettingsPage() {
       }
 
       const result = await response.json();
-      console.log('Force rescan result:', result);
 
       // If we got suggestions, open the import modal
       if (result.suggestions && result.suggestions.length > 0) {
