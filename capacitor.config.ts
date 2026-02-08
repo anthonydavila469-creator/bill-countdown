@@ -5,9 +5,9 @@ const config: CapacitorConfig = {
   appName: 'Duezo',
   webDir: 'out',
   server: {
-    // Load the live site in production
-    url: 'https://duezo.app',
-    cleartext: false,
+    // Use local dev server for testing (change to https://duezo.app for production)
+    url: 'http://192.168.1.223:3000',
+    cleartext: true,
   },
   ios: {
     scheme: 'Duezo',
