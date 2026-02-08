@@ -1034,7 +1034,7 @@ export default function DashboardPage() {
                     onClick={async () => {
                       const selectedBills = bills.filter(b => selectedBillIds.has(b.id) && !b.is_paid);
                       for (const bill of selectedBills) {
-                        await markBillAsPaid(bill.id);
+                        await markPaid(bill);
                       }
                       setSelectedBillIds(new Set());
                     }}
