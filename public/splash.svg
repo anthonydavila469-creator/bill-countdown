@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2732 2732">
+  <defs>
+    <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6"/>
+      <stop offset="100%" style="stop-color:#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Dark background matching app theme -->
+  <rect width="2732" height="2732" fill="#08080c"/>
+  
+  <!-- Subtle ambient glow -->
+  <ellipse cx="1366" cy="1200" rx="600" ry="400" fill="#3b82f6" opacity="0.05"/>
+  <ellipse cx="1366" cy="1500" rx="500" ry="350" fill="#8b5cf6" opacity="0.05"/>
+  
+  <!-- Centered icon container -->
+  <g transform="translate(1166, 1066)">
+    <!-- Icon background -->
+    <rect width="400" height="400" rx="88" fill="url(#icon-gradient)"/>
+    
+    <!-- Lightning bolt -->
+    <path 
+      d="M212 50L112 212h75l-25 138 125-188h-75l25-112z" 
+      fill="white"
+      opacity="0.95"
+    />
+  </g>
+  
+  <!-- App name below icon -->
+  <text x="1366" y="1600" 
+        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+        font-size="72" 
+        font-weight="700" 
+        fill="white" 
+        text-anchor="middle"
+        letter-spacing="2">
+    Due<tspan fill="#60a5fa">zo</tspan>
+  </text>
+</svg>
