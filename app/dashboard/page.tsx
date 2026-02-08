@@ -789,40 +789,25 @@ export default function DashboardPage() {
 
           {/* Stats - conditionally rendered based on layout preferences */}
           {dashboardLayout.showStatsBar && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-8">
-              <div className="relative p-6 rounded-2xl bg-gradient-to-br from-white/[0.03] to-white/[0.01] border border-white/[0.06] overflow-hidden group hover:border-white/[0.1] transition-all duration-300">
-                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-                <p className="text-sm text-zinc-400 mb-1 font-medium">Total Due</p>
-                <p className="text-3xl font-bold text-white">
-                  ${totalDue.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                </p>
-              </div>
-              <div className="relative p-6 rounded-2xl bg-gradient-to-br from-orange-500/[0.04] to-white/[0.01] border border-orange-500/10 overflow-hidden group hover:border-orange-500/20 transition-all duration-300">
+            <div className="grid grid-cols-3 gap-3 mb-8">
+              <div className="relative p-4 sm:p-6 rounded-2xl bg-gradient-to-br from-orange-500/[0.04] to-white/[0.01] border border-orange-500/10 overflow-hidden group hover:border-orange-500/20 transition-all duration-300">
                 <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-orange-500/20 to-transparent" />
-                <p className="text-sm text-zinc-400 mb-1 font-medium">Bills Due Soon</p>
-                <p className="text-3xl font-bold text-orange-400">
+                <p className="text-xs sm:text-sm text-zinc-400 mb-1 font-medium">Due Soon</p>
+                <p className="text-2xl sm:text-3xl font-bold text-orange-400">
                   {billsDueSoon.length}
                 </p>
               </div>
-              <div className="relative p-6 rounded-2xl bg-gradient-to-br from-white/[0.03] to-white/[0.01] border border-white/[0.06] overflow-hidden group hover:border-white/[0.1] transition-all duration-300">
+              <div className="relative p-4 sm:p-6 rounded-2xl bg-gradient-to-br from-white/[0.03] to-white/[0.01] border border-white/[0.06] overflow-hidden group hover:border-white/[0.1] transition-all duration-300">
                 <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-                <p className="text-sm text-zinc-400 mb-1 font-medium">Active Bills</p>
-                <p className="text-3xl font-bold text-white">{unpaidBills.length}</p>
+                <p className="text-xs sm:text-sm text-zinc-400 mb-1 font-medium">Active Bills</p>
+                <p className="text-2xl sm:text-3xl font-bold text-white">{unpaidBills.length}</p>
               </div>
-              <div className="relative p-6 rounded-2xl bg-gradient-to-br from-white/[0.03] to-white/[0.01] border border-white/[0.06] overflow-hidden group hover:border-white/[0.1] transition-all duration-300">
-                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-                <p className="text-sm text-zinc-400 mb-1 font-medium">Payment Status</p>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold text-emerald-400">
-                    {unpaidBills.filter(b => b.is_autopay).length}
-                  </span>
-                  <span className="text-zinc-500 text-sm">auto</span>
-                  <span className="text-zinc-600">/</span>
-                  <span className="text-2xl font-bold text-amber-400">
-                    {unpaidBills.filter(b => !b.is_autopay).length}
-                  </span>
-                  <span className="text-zinc-500 text-sm">manual</span>
-                </div>
+              <div className="relative p-4 sm:p-6 rounded-2xl bg-gradient-to-br from-emerald-500/[0.04] to-white/[0.01] border border-emerald-500/10 overflow-hidden group hover:border-emerald-500/20 transition-all duration-300">
+                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent" />
+                <p className="text-xs sm:text-sm text-zinc-400 mb-1 font-medium">Total Due</p>
+                <p className="text-xl sm:text-2xl font-bold text-emerald-400">
+                  ${totalDue.toLocaleString('en-US', { minimumFractionDigits: 0 })}
+                </p>
               </div>
             </div>
           )}
