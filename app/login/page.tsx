@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Zap, Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 export default function LoginPage() {
@@ -90,9 +91,13 @@ export default function LoginPage() {
           {/* Logo */}
           <div className="text-center">
             <Link href="/" className="inline-flex items-center gap-2 mb-8">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center">
-                <Zap className="w-6 h-6 text-white" />
-              </div>
+              <Image
+                src="/logo-128.png"
+                alt="Duezo"
+                width={40}
+                height={40}
+                className="rounded-xl"
+              />
               <span className="text-2xl font-bold tracking-tight">
                 Due<span className="text-blue-400">zo</span>
               </span>

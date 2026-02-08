@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { BillCard } from '@/components/bill-card';
 import { Bill } from '@/types';
 import {
@@ -198,9 +199,13 @@ export default function LandingPage() {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center">
-                <Zap className="w-5 h-5 text-white" />
-              </div>
+              <Image
+                src="/logo-64.png"
+                alt="Duezo"
+                width={32}
+                height={32}
+                className="rounded-lg"
+              />
               <span className="text-xl font-bold tracking-tight">
                 Due<span className="text-blue-400">zo</span>
               </span>
@@ -613,9 +618,13 @@ export default function LandingPage() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             {/* Logo */}
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-md bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center">
-                <Zap className="w-4 h-4 text-white" />
-              </div>
+              <Image
+                src="/logo-64.png"
+                alt="Duezo"
+                width={24}
+                height={24}
+                className="rounded-md"
+              />
               <span className="font-semibold">Duezo</span>
             </div>
 
