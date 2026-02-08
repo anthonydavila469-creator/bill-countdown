@@ -1,147 +1,87 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useState } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { PushNotifications } from '@capacitor/push-notifications';
 
-const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+export function usePushNotifications() {
+  const [token, setToken] = useState<string | null>(null);
+  const [permissionStatus, setPermissionStatus] = useState<'granted' | 'denied' | 'prompt'>('prompt');
 
-function urlBase64ToUint8Array(base64String: string): Uint8Array {
-  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-  const rawData = window.atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
-  }
-  return outputArray;
-}
-
-interface UsePushNotificationsReturn {
-  isSupported: boolean;
-  isSubscribed: boolean;
-  permission: NotificationPermission | null;
-  subscribe: () => Promise<boolean>;
-  unsubscribe: () => Promise<boolean>;
-}
-
-export function usePushNotifications(): UsePushNotificationsReturn {
-  const [isSupported, setIsSupported] = useState(false);
-  const [isSubscribed, setIsSubscribed] = useState(false);
-  const [permission, setPermission] = useState<NotificationPermission | null>(null);
-
-  // Check support and current subscription status on mount
   useEffect(() => {
-    const checkSupport = async () => {
-      const supported =
-        typeof window !== 'undefined' &&
-        'serviceWorker' in navigator &&
-        'PushManager' in window &&
-        'Notification' in window &&
-        !!VAPID_PUBLIC_KEY;
+    // Only run on native platforms
+    if (!Capacitor.isNativePlatform()) {
+      return;
+    }
 
-      setIsSupported(supported);
-
-      if (!supported) return;
-
-      // Check current permission
-      setPermission(Notification.permission);
-
-      // Check if already subscribed
+    const initPushNotifications = async () => {
       try {
-        const registration = await navigator.serviceWorker.ready;
-        const subscription = await registration.pushManager.getSubscription();
-        setIsSubscribed(!!subscription);
-      } catch (err) {
-        console.error('Failed to check push subscription:', err);
+        // Check current permission status
+        const permStatus = await PushNotifications.checkPermissions();
+        setPermissionStatus(permStatus.receive);
+
+        if (permStatus.receive === 'prompt') {
+          // Request permission
+          const requestResult = await PushNotifications.requestPermissions();
+          setPermissionStatus(requestResult.receive);
+
+          if (requestResult.receive !== 'granted') {
+            console.log('Push notification permission denied');
+            return;
+          }
+        } else if (permStatus.receive !== 'granted') {
+          console.log('Push notifications not granted');
+          return;
+        }
+
+        // Register with Apple Push Notification service
+        await PushNotifications.register();
+
+        // Listen for registration success
+        PushNotifications.addListener('registration', (token) => {
+          console.log('Push registration success, token:', token.value);
+          setToken(token.value);
+          // TODO: Send token to your server to store for this user
+        });
+
+        // Listen for registration errors
+        PushNotifications.addListener('registrationError', (error) => {
+          console.error('Push registration error:', error);
+        });
+
+        // Listen for push notifications received while app is in foreground
+        PushNotifications.addListener('pushNotificationReceived', (notification) => {
+          console.log('Push notification received:', notification);
+          // Handle foreground notification (show in-app alert, update UI, etc.)
+        });
+
+        // Listen for push notification action (user tapped on notification)
+        PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
+          console.log('Push notification action performed:', notification);
+          // Navigate to relevant screen based on notification data
+          const data = notification.notification.data;
+          if (data?.billId) {
+            // Could navigate to bill detail
+            window.location.href = `/dashboard?highlight=${data.billId}`;
+          }
+        });
+
+      } catch (error) {
+        console.error('Error initializing push notifications:', error);
       }
     };
 
-    checkSupport();
+    initPushNotifications();
+
+    // Cleanup listeners on unmount
+    return () => {
+      PushNotifications.removeAllListeners();
+    };
   }, []);
 
-  const subscribe = useCallback(async (): Promise<boolean> => {
-    if (!isSupported || !VAPID_PUBLIC_KEY) return false;
-
-    try {
-      // Register service worker if not already registered
-      const registration = await navigator.serviceWorker.register('/sw.js');
-      await navigator.serviceWorker.ready;
-
-      // Request notification permission
-      const perm = await Notification.requestPermission();
-      setPermission(perm);
-
-      if (perm !== 'granted') {
-        console.log('Notification permission denied');
-        return false;
-      }
-
-      // Subscribe to push
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) as BufferSource,
-      });
-
-      // Send subscription to server
-      const res = await fetch('/api/notifications/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          endpoint: subscription.endpoint,
-          keys: {
-            p256dh: btoa(
-              String.fromCharCode(...new Uint8Array(subscription.getKey('p256dh')!))
-            ),
-            auth: btoa(
-              String.fromCharCode(...new Uint8Array(subscription.getKey('auth')!))
-            ),
-          },
-        }),
-      });
-
-      if (!res.ok) {
-        throw new Error('Failed to save subscription');
-      }
-
-      setIsSubscribed(true);
-      return true;
-    } catch (err) {
-      console.error('Failed to subscribe to push notifications:', err);
-      return false;
-    }
-  }, [isSupported]);
-
-  const unsubscribe = useCallback(async (): Promise<boolean> => {
-    if (!isSupported) return false;
-
-    try {
-      const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.getSubscription();
-
-      if (subscription) {
-        // Unsubscribe from push
-        await subscription.unsubscribe();
-
-        // Remove from server
-        await fetch('/api/notifications/unsubscribe', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ endpoint: subscription.endpoint }),
-        });
-      }
-
-      setIsSubscribed(false);
-      return true;
-    } catch (err) {
-      console.error('Failed to unsubscribe from push notifications:', err);
-      return false;
-    }
-  }, [isSupported]);
-
   return {
-    isSupported,
-    isSubscribed,
-    permission,
-    subscribe,
-    unsubscribe,
+    token,
+    permissionStatus,
+    isSupported: Capacitor.isNativePlatform(),
   };
 }
