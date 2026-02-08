@@ -418,7 +418,7 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
                   const newFilter = activeFilter === 'due-soon' ? 'all' : 'due-soon';
                   setActiveFilter(newFilter);
                   // Navigate to month but don't select the date (don't open panel)
-                  if (newFilter === 'due-soon' && earliestDueSoonDate) {
+                  if (newFilter === 'due-soon' && earliestDueSoonDate instanceof Date) {
                     setCurrentYear(earliestDueSoonDate.getFullYear());
                     setCurrentMonth(earliestDueSoonDate.getMonth());
                   }
