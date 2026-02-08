@@ -54,10 +54,11 @@
 /* Base styles */
 html {
   scroll-behavior: smooth;
+  background: #08080c;
 }
 
 body {
-  background: var(--background);
+  background: #08080c;
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont,
     'Segoe UI', Roboto, sans-serif;

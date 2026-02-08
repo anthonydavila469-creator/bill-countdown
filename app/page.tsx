@@ -200,11 +200,10 @@ export default function LandingPage() {
             {/* Logo */}
             <div className="flex items-center gap-2">
               <Image
-                src="/logo-64.png"
+                src="/logo-transparent-64.png"
                 alt="Duezo"
                 width={32}
                 height={32}
-                className="rounded-lg"
               />
               <span className="text-xl font-bold tracking-tight">
                 Due<span className="text-blue-400">zo</span>
@@ -619,11 +618,10 @@ export default function LandingPage() {
             {/* Logo */}
             <div className="flex items-center gap-2">
               <Image
-                src="/logo-64.png"
+                src="/logo-transparent-48.png"
                 alt="Duezo"
                 width={24}
                 height={24}
-                className="rounded-md"
               />
               <span className="font-semibold">Duezo</span>
             </div>

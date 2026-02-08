@@ -144,13 +144,13 @@ export default function SignupPage() {
         <div className="w-full max-w-md space-y-8">
           {/* Logo */}
           <div className="text-center">
-            <Link href="/" className="inline-flex items-center gap-2 mb-8">
+            <Link href="/" className="inline-flex items-center gap-2.5 mb-8">
               <Image
                 src="/logo-128.png"
                 alt="Duezo"
-                width={40}
-                height={40}
-                className="rounded-xl"
+                width={38}
+                height={38}
+                className="rounded-xl shadow-lg shadow-blue-500/20"
               />
               <span className="text-2xl font-bold tracking-tight">
                 Due<span className="text-blue-400">zo</span>

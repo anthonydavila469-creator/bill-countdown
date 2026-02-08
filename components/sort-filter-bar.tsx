@@ -26,6 +26,7 @@ interface SortFilterBarProps {
   activeFilter: FilterOption;
   onFilterChange: (filter: FilterOption) => void;
   className?: string;
+  hideSort?: boolean;
 }
 
 const sortOptions: { value: SortOption; label: string; icon: React.ReactNode }[] = [
@@ -88,6 +89,7 @@ export function SortFilterBar({
   activeFilter,
   onFilterChange,
   className,
+  hideSort = false,
 }: SortFilterBarProps) {
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
@@ -158,7 +160,7 @@ export function SortFilterBar({
   return (
     <div className={cn('flex flex-col sm:flex-row sm:items-center gap-4', className)}>
       {/* Sort Dropdown - Premium Pill Design */}
-      <div className="relative" ref={sortRef}>
+      {!hideSort && <div className="relative" ref={sortRef}>
         <button
           onClick={() => setIsSortOpen(!isSortOpen)}
           className={cn(
@@ -241,7 +243,7 @@ export function SortFilterBar({
             </div>
           </div>
         )}
-      </div>
+      </div>}
 
       {/* Filter Chips - Primary + More dropdown */}
       <div className="flex items-center gap-2 flex-wrap">

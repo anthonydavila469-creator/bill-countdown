@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { CalendarGrid } from '@/components/calendar/calendar-grid';
 import { AddBillModal } from '@/components/add-bill-modal';
@@ -196,10 +197,14 @@ export default function CalendarPage() {
       <aside className="fixed left-0 top-0 bottom-0 w-64 bg-[#0c0c10] border-r border-white/5 hidden lg:flex flex-col">
         {/* Logo */}
         <div className="p-6 border-b border-white/5">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center">
-              <Zap className="w-5 h-5 text-white" />
-            </div>
+          <Link href="/" className="flex items-center gap-2.5">
+            <Image
+              src="/logo-128.png"
+              alt="Duezo"
+              width={36}
+              height={36}
+              className="rounded-xl shadow-lg shadow-blue-500/20"
+            />
             <span className="text-lg font-bold text-white tracking-tight">
               Due<span className="text-blue-400">zo</span>
             </span>
@@ -324,10 +329,14 @@ export default function CalendarPage() {
         <header className="sticky top-0 z-40 bg-[#08080c]/80 backdrop-blur-xl border-b border-white/5">
           <div className="flex items-center justify-between px-6 h-16">
             {/* Mobile logo */}
-            <div className="lg:hidden flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center">
-                <Zap className="w-5 h-5 text-white" />
-              </div>
+            <div className="lg:hidden flex items-center gap-2.5">
+              <Image
+                src="/logo-128.png"
+                alt="Duezo"
+                width={32}
+                height={32}
+                className="rounded-lg shadow-lg shadow-blue-500/20"
+              />
               <span className="text-lg font-bold text-white tracking-tight">
                 Due<span className="text-blue-400">zo</span>
               </span>

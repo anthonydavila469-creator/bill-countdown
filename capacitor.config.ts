@@ -12,6 +12,7 @@ const config: CapacitorConfig = {
   ios: {
     scheme: 'Duezo',
     contentInset: 'automatic',
+    backgroundColor: '#08080c',
   },
   plugins: {
     SplashScreen: {

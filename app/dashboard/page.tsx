@@ -12,6 +12,7 @@ import { BillDetailModal } from '@/components/bill-detail-modal';
 import { PayNowModal } from '@/components/pay-now-modal';
 import { BillListView } from '@/components/bill-list-view';
 import { SortFilterBar, SortOption, FilterOption } from '@/components/sort-filter-bar';
+import { DashboardControls, CardSize } from '@/components/dashboard-controls';
 import { Bill, DashboardView } from '@/types';
 import { getDaysUntilDue } from '@/lib/utils';
 import { getBillRiskType } from '@/lib/risk-utils';
@@ -41,6 +42,7 @@ import {
   Lightbulb,
   Crown,
   SlidersHorizontal,
+  AlertTriangle,
   Check,
   Trash2,
 } from 'lucide-react';
@@ -382,11 +384,11 @@ export default function DashboardPage() {
         <div className="p-6 border-b border-white/[0.06]">
           <Link href="/" className="flex items-center gap-2.5 group">
             <Image
-              src="/logo-128.png"
+              src="/logo-transparent-96.png"
               alt="Duezo"
-              width={36}
-              height={36}
-              className="rounded-xl shadow-lg shadow-blue-500/25 group-hover:shadow-blue-500/40 transition-shadow duration-300"
+              width={40}
+              height={40}
+              className="group-hover:scale-105 transition-transform duration-300"
             />
             <span className="text-lg font-bold text-white tracking-tight">
               Due<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-violet-400">zo</span>
@@ -535,11 +537,11 @@ export default function DashboardPage() {
             {/* Mobile logo */}
             <div className="lg:hidden flex items-center gap-2">
               <Image
-                src="/logo-64.png"
+                src="/logo-transparent-96.png"
                 alt="Duezo"
-                width={32}
-                height={32}
-                className="rounded-lg"
+                width={40}
+                height={40}
+                className=""
               />
             </div>
 
@@ -841,12 +843,38 @@ export default function DashboardPage() {
             {/* Section separator */}
             <div className="mb-6 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
 
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg sm:text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-400">
-                  Your Bills
-                </h2>
+            {/* Controls Row - Dropdown + Overdue button */}
+            <div className="flex items-center gap-3 mb-4">
+              {/* Combined Sort/View/CardSize dropdown */}
+              <DashboardControls
+                sortBy={sortBy}
+                onSortChange={handleSortChange}
+                view={view}
+                onViewChange={(v) => {
+                  setView(v);
+                  setSelectedBillIds(new Set());
+                }}
+                cardSize={(dashboardLayout.cardSize || 'default') as CardSize}
+                onCardSizeChange={(size) => updateDashboardLayout({ cardSize: size as 'compact' | 'default' })}
+              />
+              
+              {/* Overdue quick filter */}
+              <button
+                onClick={() => setQuickFilter(quickFilter === 'overdue' ? 'all' : 'overdue')}
+                className={cn(
+                  'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200',
+                  quickFilter === 'overdue'
+                    ? 'bg-gradient-to-b from-rose-500/25 to-rose-600/15 border border-rose-400/50 text-rose-300 shadow-[0_0_20px_-4px_rgba(244,63,94,0.4)]'
+                    : 'bg-gradient-to-b from-white/[0.05] to-white/[0.02] border border-white/[0.08] text-zinc-400 hover:text-white hover:border-white/[0.15]'
+                )}
+              >
+                <AlertTriangle className={cn('w-4 h-4', quickFilter === 'overdue' ? 'text-rose-400' : 'text-zinc-500')} />
+                Overdue
+              </button>
+            </div>
 
-              {/* View controls */}
+            {/* View controls - REMOVED, now in DashboardControls dropdown */}
+            <div className="hidden">
               <div className="flex items-center gap-2">
                 {/* View toggle buttons */}
                 <div className="flex items-center bg-gradient-to-b from-white/[0.05] to-white/[0.02] border border-white/[0.08] rounded-xl p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
@@ -977,16 +1005,6 @@ export default function DashboardPage() {
                   )}
                 </div>
               </div>
-            </div>
-
-            {/* Sort & Filter Controls */}
-            <div className="flex flex-wrap items-center gap-3 mb-6">
-              <SortFilterBar
-                sortBy={sortBy}
-                onSortChange={handleSortChange}
-                activeFilter={quickFilter}
-                onFilterChange={setQuickFilter}
-              />
             </div>
 
             {/* Empty state */}
