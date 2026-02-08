@@ -790,22 +790,22 @@ export default function DashboardPage() {
           {/* Stats - conditionally rendered based on layout preferences */}
           {dashboardLayout.showStatsBar && (
             <div className="grid grid-cols-3 gap-3 mb-8">
-              <div className="relative p-4 sm:p-6 rounded-2xl bg-gradient-to-br from-orange-500/[0.08] to-white/[0.01] border border-orange-500/20 overflow-hidden group hover:border-orange-500/30 transition-all duration-300">
+              <div className="relative p-4 sm:p-6 rounded-2xl bg-gradient-to-br from-orange-500/[0.08] to-white/[0.01] border border-orange-500/20 overflow-hidden group hover:border-orange-500/30 transition-all duration-300 flex flex-col items-center justify-center text-center">
                 <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-orange-500/30 to-transparent" />
-                <p className="text-[10px] sm:text-xs text-zinc-400 mb-0.5 font-medium uppercase tracking-wide">Due Soon</p>
+                <p className="text-[10px] sm:text-xs text-zinc-400 mb-1 font-medium uppercase tracking-wide">Due Soon</p>
                 <p className="text-3xl sm:text-4xl font-black text-orange-400 drop-shadow-[0_0_10px_rgba(251,146,60,0.3)]">
                   {billsDueSoon.length}
                 </p>
               </div>
-              <div className="relative p-4 sm:p-6 rounded-2xl bg-gradient-to-br from-white/[0.05] to-white/[0.01] border border-white/[0.08] overflow-hidden group hover:border-white/[0.15] transition-all duration-300">
+              <div className="relative p-4 sm:p-6 rounded-2xl bg-gradient-to-br from-white/[0.05] to-white/[0.01] border border-white/[0.08] overflow-hidden group hover:border-white/[0.15] transition-all duration-300 flex flex-col items-center justify-center text-center">
                 <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
-                <p className="text-[10px] sm:text-xs text-zinc-400 mb-0.5 font-medium uppercase tracking-wide">Active</p>
+                <p className="text-[10px] sm:text-xs text-zinc-400 mb-1 font-medium uppercase tracking-wide">Active</p>
                 <p className="text-3xl sm:text-4xl font-black text-white">{unpaidBills.length}</p>
               </div>
-              <div className="relative p-4 sm:p-6 rounded-2xl bg-gradient-to-br from-emerald-500/[0.08] to-white/[0.01] border border-emerald-500/20 overflow-hidden group hover:border-emerald-500/30 transition-all duration-300">
+              <div className="relative p-4 sm:p-6 rounded-2xl bg-gradient-to-br from-emerald-500/[0.08] to-white/[0.01] border border-emerald-500/20 overflow-hidden group hover:border-emerald-500/30 transition-all duration-300 flex flex-col items-center justify-center text-center">
                 <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent" />
-                <p className="text-[10px] sm:text-xs text-zinc-400 mb-0.5 font-medium uppercase tracking-wide">Total</p>
-                <p className="text-2xl sm:text-3xl font-black text-emerald-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.3)]">
+                <p className="text-[10px] sm:text-xs text-zinc-400 mb-1 font-medium uppercase tracking-wide">Total</p>
+                <p className="text-xl sm:text-2xl font-black text-emerald-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.3)]">
                   ${totalDue.toLocaleString('en-US', { minimumFractionDigits: 0 })}
                 </p>
               </div>
