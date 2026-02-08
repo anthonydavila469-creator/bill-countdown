@@ -197,7 +197,7 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
 
   // Calculate total amount due in next 7 days INCLUDING today and overdue (unpaid only, excluding projected)
   // Also track the earliest due-soon bill's date for navigation
-  const { upcomingTotal, upcomingCount, earliestDueSoonDate } = useMemo(() => {
+  const { upcomingTotal, upcomingCount, earliestDueSoonDate } = useMemo((): { upcomingTotal: number; upcomingCount: number; earliestDueSoonDate: Date | null } => {
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
     const next7Days = new Date(todayStart);
@@ -321,7 +321,7 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
                 const newFilter = activeFilter === 'due-soon' ? 'all' : 'due-soon';
                 setActiveFilter(newFilter);
                 // If activating filter, navigate to the month but don't select the date
-                if (newFilter === 'due-soon' && earliestDueSoonDate) {
+                if (newFilter === 'due-soon' && earliestDueSoonDate instanceof Date) {
                   setCurrentYear(earliestDueSoonDate.getFullYear());
                   setCurrentMonth(earliestDueSoonDate.getMonth());
                 }
