@@ -118,7 +118,7 @@ export function CustomizationSection() {
   const themeIds = Object.keys(COLOR_THEMES) as ColorThemeId[];
 
   const resetTheme = () => {
-    // TODO: Re-enable Pro check after testing: if (!isPro) return;
+    if (!isPro) return;
     updateTheme(DEFAULT_COLOR_THEME);
   };
 
@@ -184,7 +184,7 @@ export function CustomizationSection() {
           title="Color Theme"
           description="Choose your dashboard aesthetic"
           action={
-            selectedTheme !== DEFAULT_COLOR_THEME && ( // TODO: Add isPro && back after testing
+            isPro && selectedTheme !== DEFAULT_COLOR_THEME && (
               <button
                 onClick={resetTheme}
                 className="flex items-center gap-2 px-4 py-2 text-sm text-zinc-400 hover:text-white hover:bg-white/[0.06] rounded-xl transition-all duration-200"
@@ -196,13 +196,13 @@ export function CustomizationSection() {
           }
         />
 
-        {/* Lock overlay for non-pro - TODO: Re-enable after testing */}
+        {/* Lock overlay for non-pro */}
         <div className={cn('relative')}>
-          {/* {!isPro && (
+          {!isPro && (
             <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#08080c]/70 backdrop-blur-sm rounded-2xl">
               <div className="flex flex-col items-center gap-3 text-center p-6">
                 <div className="p-4 rounded-2xl bg-white/[0.04] border border-white/[0.08]">
-                  <Lock className="w-6 h-6 text-zinc-500" />
+                  <Crown className="w-6 h-6 text-amber-500" />
                 </div>
                 <div>
                   <p className="font-medium text-zinc-400">Pro Feature</p>
@@ -210,7 +210,7 @@ export function CustomizationSection() {
                 </div>
               </div>
             </div>
-          )} */}
+          )}
 
           {/* Theme Grid - 2x3 layout */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -220,7 +220,7 @@ export function CustomizationSection() {
                 themeId={themeId}
                 isSelected={selectedTheme === themeId}
                 onSelect={() => updateTheme(themeId)}
-                disabled={false} // TODO: Change back to {!isPro} after testing
+                disabled={!isPro}
                 index={index}
               />
             ))}
