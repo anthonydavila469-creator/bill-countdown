@@ -1,19 +1,12 @@
-'use client';
+import { DashboardProviders } from '@/components/dashboard-providers';
 
-import { BillsProvider } from '@/contexts/bills-context';
-import { MobileBottomNav } from '@/components/mobile-bottom-nav';
-import { PushNotificationInit } from '@/components/push-notification-init';
+// Force dynamic rendering to prevent static generation errors with Supabase
+export const dynamic = 'force-dynamic';
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <BillsProvider>
-      <PushNotificationInit />
-      {children}
-      <MobileBottomNav />
-    </BillsProvider>
-  );
+  return <DashboardProviders>{children}</DashboardProviders>;
 }
