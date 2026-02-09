@@ -102,7 +102,7 @@ export function UpgradeModal() {
               </button>
 
               <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl">
+                <div className="p-2 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl">
                   <Sparkles className="w-6 h-6 text-white" />
                 </div>
                 <h2 className="text-xl font-bold text-white">Upgrade to Pro</h2>
@@ -123,7 +123,7 @@ export function UpgradeModal() {
                 className={cn(
                   'w-full p-4 rounded-xl border-2 transition-all text-left',
                   selectedPlan === 'monthly'
-                    ? 'border-indigo-500 bg-indigo-500/10'
+                    ? 'border-orange-500 bg-orange-500/10'
                     : 'border-white/10 hover:border-white/20'
                 )}
               >
@@ -145,7 +145,7 @@ export function UpgradeModal() {
                 className={cn(
                   'w-full p-4 rounded-xl border-2 transition-all text-left relative',
                   selectedPlan === 'yearly'
-                    ? 'border-indigo-500 bg-indigo-500/10'
+                    ? 'border-orange-500 bg-orange-500/10'
                     : 'border-white/10 hover:border-white/20'
                 )}
               >
@@ -183,7 +183,7 @@ export function UpgradeModal() {
                 disabled={isLoading}
                 className={cn(
                   'w-full py-4 rounded-xl font-semibold text-white flex items-center justify-center gap-2 transition-all',
-                  'bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700',
+                  'bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700',
                   'disabled:opacity-50 disabled:cursor-not-allowed'
                 )}
               >

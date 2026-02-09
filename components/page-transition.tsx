@@ -174,13 +174,12 @@ export function DashboardSkeleton() {
  */
 export function PulseIndicator({
   className,
-  color = 'blue',
+  color = 'orange',
 }: {
   className?: string;
-  color?: 'blue' | 'red' | 'orange' | 'green';
+  color?: 'orange' | 'red' | 'green';
 }) {
   const colorClasses = {
-    blue: 'bg-blue-500',
     red: 'bg-red-500',
     orange: 'bg-orange-500',
     green: 'bg-emerald-500',
@@ -220,8 +219,8 @@ export function Confetti({ show }: { show: boolean }) {
             left: `${Math.random() * 100}%`,
             animationDelay: `${Math.random() * 3}s`,
             backgroundColor: [
-              '#3b82f6',
-              '#8b5cf6',
+              '#f97316',
+              '#f59e0b',
               '#10b981',
               '#f59e0b',
               '#ef4444',

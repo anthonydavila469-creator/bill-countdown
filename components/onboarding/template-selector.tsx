@@ -70,7 +70,7 @@ function TemplatePill({ template, isSelected, onToggle }: TemplatePillProps) {
         'group relative flex items-center gap-2 px-4 py-2.5 rounded-full transition-all duration-200',
         'border text-sm font-medium',
         isSelected
-          ? 'bg-violet-500/20 border-violet-500/50 text-white'
+          ? 'bg-amber-500/20 border-amber-500/50 text-white'
           : 'bg-white/[0.02] border-white/10 text-white/70 hover:bg-white/[0.05] hover:border-white/20 hover:text-white'
       )}
     >
@@ -79,7 +79,7 @@ function TemplatePill({ template, isSelected, onToggle }: TemplatePillProps) {
 
       {/* Selected checkmark */}
       {isSelected && (
-        <div className="absolute -top-1 -right-1 w-4 h-4 bg-violet-500 rounded-full flex items-center justify-center">
+        <div className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 rounded-full flex items-center justify-center">
           <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
         </div>
       )}

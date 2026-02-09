@@ -173,17 +173,7 @@ export default function CalendarPage() {
     }
   };
 
-  // Loading state
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-[#08080c] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
-          <p className="text-zinc-400">Loading...</p>
-        </div>
-      </div>
-    );
-  }
+  // Skip full-page loading state to prevent flash - content loads quickly
 
   return (
     <ProFeatureGate
@@ -203,10 +193,10 @@ export default function CalendarPage() {
               alt="Duezo"
               width={36}
               height={36}
-              className="rounded-xl shadow-lg shadow-blue-500/20"
+              className="rounded-xl shadow-lg shadow-orange-500/20"
             />
             <span className="text-lg font-bold text-white tracking-tight">
-              Due<span className="text-blue-400">zo</span>
+              Due<span className="text-orange-400">zo</span>
             </span>
           </Link>
         </div>
@@ -283,9 +273,9 @@ export default function CalendarPage() {
         {/* Gmail sync status - only show if not connected */}
         {!isGmailConnected && (
           <div className="p-4 border-t border-white/5">
-            <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500/10 to-violet-500/10 border border-white/5">
+            <div className="p-4 rounded-xl bg-gradient-to-br from-orange-500/10 to-amber-500/10 border border-white/5">
               <div className="flex items-center gap-3 mb-3">
-                <Mail className="w-5 h-5 text-blue-400" />
+                <Mail className="w-5 h-5 text-orange-400" />
                 <span className="text-sm font-medium text-white">Gmail Sync</span>
               </div>
               <p className="text-xs text-zinc-400 mb-3">
@@ -337,10 +327,10 @@ export default function CalendarPage() {
                 alt="Duezo"
                 width={32}
                 height={32}
-                className="rounded-lg shadow-lg shadow-blue-500/20"
+                className="rounded-lg shadow-lg shadow-orange-500/20"
               />
               <span className="text-lg font-bold text-white tracking-tight">
-                Due<span className="text-blue-400">zo</span>
+                Due<span className="text-orange-400">zo</span>
               </span>
             </div>
 

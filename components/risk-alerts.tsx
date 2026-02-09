@@ -63,12 +63,12 @@ const riskConfig: Record<
   },
   forgot_last_month: {
     icon: History,
-    gradient: 'from-violet-500/20 via-purple-600/10 to-violet-900/20',
-    glowColor: 'shadow-[0_0_30px_rgba(139,92,246,0.15),inset_0_1px_0_rgba(255,255,255,0.05)]',
-    borderColor: 'border-violet-500/30 hover:border-violet-400/50',
-    textColor: 'text-violet-400',
-    accentColor: 'bg-violet-500',
-    pulseColor: 'bg-violet-500/50',
+    gradient: 'from-amber-500/20 via-amber-600/10 to-amber-900/20',
+    glowColor: 'shadow-[0_0_30px_rgba(245,158,11,0.15),inset_0_1px_0_rgba(255,255,255,0.05)]',
+    borderColor: 'border-amber-500/30 hover:border-amber-400/50',
+    textColor: 'text-amber-400',
+    accentColor: 'bg-amber-500',
+    pulseColor: 'bg-amber-500/50',
     label: 'Missed Pattern',
     urgencyText: 'Paid last month, not yet this month',
   },
@@ -163,13 +163,13 @@ export function RiskAlerts({
     return (
       <div className={cn('relative', className)}>
         {/* Subtle glow effect behind the banner */}
-        <div className="absolute inset-0 bg-gradient-to-r from-rose-500/10 via-orange-500/5 to-violet-500/10 rounded-2xl blur-xl opacity-60" />
+        <div className="absolute inset-0 bg-gradient-to-r from-rose-500/10 via-orange-500/5 to-amber-500/10 rounded-2xl blur-xl opacity-60" />
 
         <button
           onClick={() => setIsCollapsed(false)}
           className={cn(
             'group relative w-full flex items-center justify-between gap-4 px-5 py-4 rounded-2xl',
-            'bg-gradient-to-r from-rose-500/[0.08] via-[#0c0c10] to-violet-500/[0.08]',
+            'bg-gradient-to-r from-rose-500/[0.08] via-[#0c0c10] to-amber-500/[0.08]',
             'border border-rose-500/20 hover:border-rose-400/40',
             'transition-all duration-300',
             'hover:shadow-[0_0_30px_rgba(244,63,94,0.15)]',
@@ -177,7 +177,7 @@ export function RiskAlerts({
           )}
         >
           {/* Left accent glow line */}
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full bg-gradient-to-b from-rose-500 via-orange-500 to-violet-500 shadow-[0_0_12px_rgba(244,63,94,0.5)]" />
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full bg-gradient-to-b from-rose-500 via-orange-500 to-amber-500 shadow-[0_0_12px_rgba(244,63,94,0.5)]" />
 
           <div className="flex items-center gap-4">
             {/* Pulsing indicator with glow */}
@@ -217,7 +217,7 @@ export function RiskAlerts({
   return (
     <div className={cn('relative', className)}>
       {/* Glow effect behind the panel */}
-      <div className="absolute inset-0 bg-gradient-to-r from-rose-500/10 via-orange-500/5 to-violet-500/10 rounded-2xl blur-2xl opacity-50" />
+      <div className="absolute inset-0 bg-gradient-to-r from-rose-500/10 via-orange-500/5 to-amber-500/10 rounded-2xl blur-2xl opacity-50" />
 
       <div
         className={cn(

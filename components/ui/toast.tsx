@@ -87,7 +87,7 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: () => void }) 
       )}
     >
       {/* Outer glow */}
-      <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500/20 via-cyan-500/10 to-transparent rounded-2xl blur-xl opacity-60" />
+      <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500/20 via-orange-500/10 to-transparent rounded-2xl blur-xl opacity-60" />
 
       {/* Main container */}
       <div className="relative bg-[#0c0c10]/95 backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.8)]">
@@ -182,7 +182,7 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: () => void }) 
         {toast.type !== 'undo' && (
           <div className="h-0.5 bg-white/5">
             <div
-              className="h-full bg-gradient-to-r from-emerald-500 to-cyan-500 transition-all duration-100"
+              className="h-full bg-gradient-to-r from-emerald-500 to-orange-500 transition-all duration-100"
               style={{ width: `${progress}%` }}
             />
           </div>

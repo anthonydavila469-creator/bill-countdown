@@ -58,12 +58,12 @@ export function TrendChart({ trendData }: TrendChartProps) {
         style={{ animationDelay: '150ms', animationFillMode: 'backwards' }}
       >
         <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.02]" />
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500/60 via-cyan-500/60 to-teal-500/30" />
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500/60 via-orange-500/60 to-teal-500/30" />
 
         <div className="relative">
           <div className="flex items-center gap-3 mb-6">
-            <div className="p-2.5 rounded-xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-500/30">
-              <TrendingUp className="w-5 h-5 text-blue-400" />
+            <div className="p-2.5 rounded-xl bg-gradient-to-br from-orange-500/20 to-orange-500/20 border border-orange-500/30">
+              <TrendingUp className="w-5 h-5 text-orange-400" />
             </div>
             <div>
               <h3 className="text-lg font-semibold text-white">Spending Trends</h3>
@@ -72,8 +72,8 @@ export function TrendChart({ trendData }: TrendChartProps) {
           </div>
 
           <div className="flex flex-col items-center justify-center py-8 text-center">
-            <div className="p-3 rounded-full bg-blue-500/10 border border-blue-500/20 mb-4">
-              <Calendar className="w-6 h-6 text-blue-400" />
+            <div className="p-3 rounded-full bg-orange-500/10 border border-orange-500/20 mb-4">
+              <Calendar className="w-6 h-6 text-orange-400" />
             </div>
             <p className="text-zinc-400 font-medium">Not enough data yet</p>
             <p className="text-xs text-zinc-500 mt-1 max-w-xs">
@@ -94,12 +94,12 @@ export function TrendChart({ trendData }: TrendChartProps) {
         style={{ animationDelay: '150ms', animationFillMode: 'backwards' }}
       >
         <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.02]" />
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500/60 via-cyan-500/60 to-teal-500/30" />
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500/60 via-orange-500/60 to-teal-500/30" />
 
         <div className="relative">
           <div className="flex items-center gap-3 mb-6">
-            <div className="p-2.5 rounded-xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-500/30">
-              <TrendingUp className="w-5 h-5 text-blue-400" />
+            <div className="p-2.5 rounded-xl bg-gradient-to-br from-orange-500/20 to-orange-500/20 border border-orange-500/30">
+              <TrendingUp className="w-5 h-5 text-orange-400" />
             </div>
             <div>
               <h3 className="text-lg font-semibold text-white">Spending Trends</h3>
@@ -120,9 +120,9 @@ export function TrendChart({ trendData }: TrendChartProps) {
             <span className="text-sm text-zinc-500 mb-6">total spent</span>
 
             {/* Prompt for more data */}
-            <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
-              <Calendar className="w-4 h-4 text-blue-400" />
-              <p className="text-xs text-blue-300">
+            <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-orange-500/10 border border-orange-500/20">
+              <Calendar className="w-4 h-4 text-orange-400" />
+              <p className="text-xs text-orange-300">
                 Add another month to see spending trends
               </p>
             </div>
@@ -140,14 +140,14 @@ export function TrendChart({ trendData }: TrendChartProps) {
       <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.02]" />
 
       {/* Top accent line */}
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500/60 via-cyan-500/60 to-teal-500/30" />
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500/60 via-orange-500/60 to-teal-500/30" />
 
       <div className="relative">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-500/30">
-              <TrendingUp className="w-5 h-5 text-blue-400" />
+            <div className="p-2.5 rounded-xl bg-gradient-to-br from-orange-500/20 to-orange-500/20 border border-orange-500/30">
+              <TrendingUp className="w-5 h-5 text-orange-400" />
             </div>
             <div>
               <h3 className="text-lg font-semibold text-white">Spending Trends</h3>
@@ -164,7 +164,7 @@ export function TrendChart({ trendData }: TrendChartProps) {
               className={cn(
                 'px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200',
                 period === 3
-                  ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                  ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
                   : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
               )}
             >
@@ -175,7 +175,7 @@ export function TrendChart({ trendData }: TrendChartProps) {
               className={cn(
                 'px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200',
                 period === 6
-                  ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                  ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
                   : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
               )}
             >
@@ -190,8 +190,8 @@ export function TrendChart({ trendData }: TrendChartProps) {
             <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
               <defs>
                 <linearGradient id="trendGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.3} />
-                  <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
+                  <stop offset="0%" stopColor="#f97316" stopOpacity={0.3} />
+                  <stop offset="100%" stopColor="#f97316" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid
@@ -234,13 +234,13 @@ export function TrendChart({ trendData }: TrendChartProps) {
               <Area
                 type="monotone"
                 dataKey="total"
-                stroke="#3b82f6"
+                stroke="#f97316"
                 strokeWidth={2.5}
                 fill="url(#trendGradient)"
-                dot={{ fill: '#3b82f6', strokeWidth: 2, stroke: '#18181b', r: 4 }}
+                dot={{ fill: '#f97316', strokeWidth: 2, stroke: '#18181b', r: 4 }}
                 activeDot={{
                   r: 6,
-                  fill: '#3b82f6',
+                  fill: '#f97316',
                   stroke: '#fff',
                   strokeWidth: 2,
                 }}
@@ -252,7 +252,7 @@ export function TrendChart({ trendData }: TrendChartProps) {
         {/* Chart legend */}
         <div className="flex items-center justify-center gap-6 mt-4 pt-4 border-t border-white/[0.06]">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-blue-500" />
+            <div className="w-3 h-3 rounded-full bg-orange-500" />
             <span className="text-xs text-zinc-400">Monthly Spending</span>
           </div>
           <div className="flex items-center gap-2">

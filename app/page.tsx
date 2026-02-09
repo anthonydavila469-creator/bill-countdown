@@ -113,14 +113,14 @@ const features = [
     title: 'AI Email Sync',
     description:
       'Connect Gmail and let AI automatically detect and extract bills from your inbox.',
-    gradient: 'from-blue-500 to-cyan-500',
+    gradient: 'from-orange-500 to-orange-500',
   },
   {
     icon: Sparkles,
     title: 'Beautiful Countdowns',
     description:
       'Stunning visual cards that change color as due dates approach. Never lose track.',
-    gradient: 'from-violet-500 to-purple-500',
+    gradient: 'from-amber-500 to-amber-500',
   },
   {
     icon: Bell,
@@ -134,7 +134,7 @@ const features = [
     title: 'Recurring Bills',
     description:
       'Set up weekly, biweekly, monthly, or yearly bills that auto-generate on schedule.',
-    gradient: 'from-emerald-500 to-teal-500',
+    gradient: 'from-orange-500 to-amber-500',
   },
   {
     icon: Calendar,
@@ -148,7 +148,7 @@ const features = [
     title: 'Analytics & Insights',
     description:
       'Track spending trends, category breakdowns, and monthly comparisons at a glance.',
-    gradient: 'from-cyan-500 to-blue-500',
+    gradient: 'from-orange-500 to-orange-500',
   },
   {
     icon: Moon,
@@ -185,12 +185,12 @@ const steps = [
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-[#08080c] text-white overflow-hidden">
+    <div className="min-h-screen bg-[#08080c] text-white overflow-x-hidden overflow-y-auto">
       {/* Ambient background gradients */}
       <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[120px]" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-500/5 rounded-full blur-[150px]" />
+        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-orange-500/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-amber-500/10 rounded-full blur-[120px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-orange-500/5 rounded-full blur-[150px]" />
       </div>
 
       {/* Navigation */}
@@ -206,7 +206,7 @@ export default function LandingPage() {
                 height={32}
               />
               <span className="text-xl font-bold tracking-tight">
-                Due<span className="text-blue-400">zo</span>
+                Due<span className="text-orange-400">zo</span>
               </span>
             </div>
 
@@ -262,7 +262,7 @@ export default function LandingPage() {
                 className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-sm text-zinc-400 mb-6 animate-in fade-in slide-in-from-bottom-4"
                 style={{ animationDelay: '0ms', animationFillMode: 'backwards' }}
               >
-                <Sparkles className="w-4 h-4 text-blue-400" />
+                <Sparkles className="w-4 h-4 text-orange-400" />
                 AI-Powered Bill Tracking
               </div>
 
@@ -272,7 +272,7 @@ export default function LandingPage() {
                 style={{ animationDelay: '100ms', animationFillMode: 'backwards' }}
               >
                 Never Miss a{' '}
-                <span className="bg-gradient-to-r from-blue-400 via-violet-400 to-purple-400 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-orange-400 via-amber-400 to-amber-400 bg-clip-text text-transparent">
                   Bill Payment
                 </span>{' '}
                 Again
@@ -294,7 +294,7 @@ export default function LandingPage() {
               >
                 <Link
                   href="/signup"
-                  className="group inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold bg-gradient-to-r from-blue-500 to-violet-500 rounded-full hover:opacity-90 transition-opacity"
+                  className="group inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold bg-gradient-to-r from-orange-500 to-amber-500 rounded-full hover:opacity-90 transition-opacity"
                 >
                   Get Started Free
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -331,7 +331,7 @@ export default function LandingPage() {
               {/* Floating cards */}
               <div className="relative w-full max-w-md mx-auto">
                 {/* Glow behind cards */}
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 via-violet-500/20 to-purple-500/20 blur-3xl" />
+                <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 via-amber-500/20 to-amber-500/20 blur-3xl" />
 
                 {/* Card stack with stagger animation */}
                 <div className="relative space-y-4">
@@ -362,7 +362,7 @@ export default function LandingPage() {
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
               Everything You Need to{' '}
-              <span className="bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
                 Stay on Top
               </span>
             </h2>
@@ -404,12 +404,12 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section header */}
           <div className="text-center mb-16">
-            <span className="text-sm font-semibold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent uppercase tracking-wider">
+            <span className="text-sm font-semibold bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent uppercase tracking-wider">
               Simple Pricing
             </span>
             <h2 className="mt-3 text-3xl sm:text-4xl font-bold tracking-tight">
               Choose Your{' '}
-              <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
                 Plan
               </span>
             </h2>
@@ -432,19 +432,19 @@ export default function LandingPage() {
 
               <ul className="space-y-4 mb-8">
                 <li className="flex items-center gap-3 text-zinc-300">
-                  <Check className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-orange-400 flex-shrink-0" />
                   <span>Up to 5 bills</span>
                 </li>
                 <li className="flex items-center gap-3 text-zinc-300">
-                  <Check className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-orange-400 flex-shrink-0" />
                   <span>Bill templates for quick setup</span>
                 </li>
                 <li className="flex items-center gap-3 text-zinc-300">
-                  <Check className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-orange-400 flex-shrink-0" />
                   <span>Due date tracking & reminders</span>
                 </li>
                 <li className="flex items-center gap-3 text-zinc-300">
-                  <Check className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-orange-400 flex-shrink-0" />
                   <span>1 Gmail sync to try AI extraction</span>
                 </li>
                 <li className="flex items-center gap-3 text-zinc-500">
@@ -466,10 +466,10 @@ export default function LandingPage() {
             </div>
 
             {/* Pro Card */}
-            <div className="relative p-8 rounded-2xl bg-gradient-to-br from-blue-500/10 to-violet-500/10 border border-blue-500/30">
+            <div className="relative p-8 rounded-2xl bg-gradient-to-br from-orange-500/10 to-amber-500/10 border border-orange-500/30">
               {/* Best Value Badge */}
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <span className="px-3 py-1 text-xs font-semibold bg-gradient-to-r from-blue-500 to-violet-500 rounded-full text-white">
+                <span className="px-3 py-1 text-xs font-semibold bg-gradient-to-r from-orange-500 to-amber-500 rounded-full text-white">
                   Best Value
                 </span>
               </div>
@@ -483,41 +483,41 @@ export default function LandingPage() {
                   <span className="text-4xl font-bold text-white">$4.99</span>
                   <span className="text-zinc-400">/month</span>
                 </div>
-                <p className="text-sm text-emerald-400 mt-1">
+                <p className="text-sm text-orange-400 mt-1">
                   or $39.99/year (save 33%)
                 </p>
               </div>
 
               <ul className="space-y-4 mb-8">
                 <li className="flex items-center gap-3 text-zinc-300">
-                  <Check className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-orange-400 flex-shrink-0" />
                   <span>Unlimited bills</span>
                 </li>
                 <li className="flex items-center gap-3 text-zinc-300">
-                  <Check className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-orange-400 flex-shrink-0" />
                   <span>Unlimited Gmail syncs + daily auto-sync</span>
                 </li>
                 <li className="flex items-center gap-3 text-zinc-300">
-                  <Check className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-orange-400 flex-shrink-0" />
                   <span>Payment links ("Pay Now")</span>
                 </li>
                 <li className="flex items-center gap-3 text-zinc-300">
-                  <Check className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-orange-400 flex-shrink-0" />
                   <span>Calendar view</span>
                 </li>
                 <li className="flex items-center gap-3 text-zinc-300">
-                  <Check className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-orange-400 flex-shrink-0" />
                   <span>Analytics & insights</span>
                 </li>
                 <li className="flex items-center gap-3 text-zinc-300">
-                  <Check className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-orange-400 flex-shrink-0" />
                   <span>Full notification controls</span>
                 </li>
               </ul>
 
               <Link
                 href="/signup"
-                className="block w-full py-3 text-center font-semibold bg-gradient-to-r from-blue-500 to-violet-500 hover:opacity-90 rounded-xl transition-opacity"
+                className="block w-full py-3 text-center font-semibold bg-gradient-to-r from-orange-500 to-amber-500 hover:opacity-90 rounded-xl transition-opacity"
               >
                 Get Pro
               </Link>
@@ -561,8 +561,8 @@ export default function LandingPage() {
                   </div>
 
                   {/* Icon */}
-                  <div className="absolute top-4 left-16 w-10 h-10 rounded-full bg-gradient-to-br from-blue-500/20 to-violet-500/20 border border-white/10 flex items-center justify-center">
-                    <step.icon className="w-5 h-5 text-blue-400" />
+                  <div className="absolute top-4 left-16 w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/20 to-amber-500/20 border border-white/10 flex items-center justify-center">
+                    <step.icon className="w-5 h-5 text-orange-400" />
                   </div>
 
                   <h3 className="text-xl font-semibold mb-2">{step.title}</h3>
@@ -581,13 +581,13 @@ export default function LandingPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           {/* Glow */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="w-[500px] h-[300px] bg-gradient-to-r from-blue-500/20 via-violet-500/20 to-purple-500/20 blur-[100px]" />
+            <div className="w-[500px] h-[300px] bg-gradient-to-r from-orange-500/20 via-amber-500/20 to-amber-500/20 blur-[100px]" />
           </div>
 
           <div className="relative">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-6">
               Ready to Take Control of{' '}
-              <span className="bg-gradient-to-r from-blue-400 via-violet-400 to-purple-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-orange-400 via-amber-400 to-amber-400 bg-clip-text text-transparent">
                 Your Bills?
               </span>
             </h2>
@@ -598,7 +598,7 @@ export default function LandingPage() {
 
             <Link
               href="/signup"
-              className="group inline-flex items-center justify-center gap-2 px-8 py-4 text-lg font-semibold bg-gradient-to-r from-blue-500 to-violet-500 rounded-full hover:opacity-90 transition-opacity"
+              className="group inline-flex items-center justify-center gap-2 px-8 py-4 text-lg font-semibold bg-gradient-to-r from-orange-500 to-amber-500 rounded-full hover:opacity-90 transition-opacity"
             >
               Get Started Free
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />

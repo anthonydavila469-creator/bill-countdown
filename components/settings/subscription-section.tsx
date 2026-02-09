@@ -220,7 +220,7 @@ export function SubscriptionSection() {
                       'h-full rounded-full transition-all',
                       billsUsed >= FREE_TIER_LIMITS.MAX_BILLS
                         ? 'bg-red-500'
-                        : 'bg-blue-500'
+                        : 'bg-orange-500'
                     )}
                     style={{
                       width: `${Math.min(100, (billsUsed / FREE_TIER_LIMITS.MAX_BILLS) * 100)}%`,
@@ -242,7 +242,7 @@ export function SubscriptionSection() {
                       'h-full rounded-full transition-all',
                       gmailSyncsUsed >= FREE_TIER_LIMITS.MAX_GMAIL_SYNCS
                         ? 'bg-red-500'
-                        : 'bg-blue-500'
+                        : 'bg-orange-500'
                     )}
                     style={{
                       width: `${Math.min(100, (gmailSyncsUsed / FREE_TIER_LIMITS.MAX_GMAIL_SYNCS) * 100)}%`,
@@ -253,8 +253,8 @@ export function SubscriptionSection() {
             </div>
 
             {/* Pro features preview */}
-            <div className="p-4 rounded-xl bg-gradient-to-br from-indigo-500/5 to-purple-500/5 border border-indigo-500/10 mb-6">
-              <p className="text-sm font-medium text-indigo-300 mb-3">
+            <div className="p-4 rounded-xl bg-gradient-to-br from-orange-500/5 to-amber-500/5 border border-orange-500/10 mb-6">
+              <p className="text-sm font-medium text-orange-300 mb-3">
                 Unlock with Pro:
               </p>
               <div className="grid grid-cols-2 gap-2 text-sm">
@@ -267,7 +267,7 @@ export function SubscriptionSection() {
                   'Custom reminders',
                 ].map((feature) => (
                   <div key={feature} className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+                    <Check className="w-4 h-4 text-orange-400 flex-shrink-0" />
                     <span className="text-zinc-400">{feature}</span>
                   </div>
                 ))}
@@ -280,7 +280,7 @@ export function SubscriptionSection() {
                 <p className="text-xs text-zinc-500 mb-1">Monthly</p>
                 <p className="text-lg font-bold text-white">${PRICING.MONTHLY}<span className="text-sm font-normal text-zinc-500">/mo</span></p>
               </div>
-              <div className="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 relative">
+              <div className="p-3 rounded-xl bg-orange-500/10 border border-orange-500/20 relative">
                 <div className="absolute -top-2 right-2 px-1.5 py-0.5 bg-green-500 text-white text-[10px] font-bold rounded">
                   SAVE {PRICING.YEARLY_SAVINGS}%
                 </div>
@@ -294,8 +294,8 @@ export function SubscriptionSection() {
               onClick={() => showUpgradeModal('Pro features')}
               className="group relative w-full flex items-center justify-center gap-2.5 px-5 py-4 overflow-hidden rounded-xl font-medium transition-all duration-300"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600" />
-              <div className="absolute inset-0 bg-gradient-to-r from-indigo-400 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-600" />
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <div className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700" />
               <Crown className="w-5 h-5 text-white relative z-10" />
               <span className="relative z-10 text-white font-semibold tracking-wide">

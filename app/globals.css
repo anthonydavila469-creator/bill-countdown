@@ -9,7 +9,7 @@
   --border: #e2e8f0;
   --muted: #f1f5f9;
   --muted-foreground: #64748b;
-  --accent: #6366f1;
+  --accent: #F97316;
   --accent-foreground: #ffffff;
 }
 
@@ -22,7 +22,7 @@
     --border: #27272a;
     --muted: #27272a;
     --muted-foreground: #a1a1aa;
-    --accent: #818cf8;
+    --accent: #FB923C;
     --accent-foreground: #0f172a;
   }
 }
@@ -34,7 +34,7 @@
   --urgency-soon: #fbbf24;
   --urgency-safe: #34d399;
   --urgency-distant: #60a5fa;
-  --accent-primary: #6366f1;
+  --accent-primary: #F97316;
 }
 
 @theme inline {
@@ -56,7 +56,6 @@ html, body {
   scroll-behavior: smooth;
   background: #08080c;
   height: 100%;
-  overflow: hidden;
 }
 
 body {
@@ -276,7 +275,7 @@ body {
 
 /* Mesh gradient backgrounds */
 .bg-mesh-1 {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
 }
 
 .bg-mesh-2 {
@@ -295,9 +294,9 @@ body {
 .hero-gradient {
   background: linear-gradient(
     135deg,
-    hsl(217, 91%, 60%) 0%,
-    hsl(271, 81%, 56%) 50%,
-    hsl(339, 90%, 51%) 100%
+    hsl(25, 95%, 53%) 0%,
+    hsl(21, 90%, 48%) 50%,
+    hsl(16, 85%, 43%) 100%
   );
 }
 
@@ -305,9 +304,9 @@ body {
   .hero-gradient {
     background: linear-gradient(
       135deg,
-      hsl(217, 91%, 40%) 0%,
-      hsl(271, 81%, 36%) 50%,
-      hsl(339, 90%, 31%) 100%
+      hsl(25, 95%, 40%) 0%,
+      hsl(21, 90%, 35%) 50%,
+      hsl(16, 85%, 30%) 100%
     );
   }
 }

@@ -44,13 +44,10 @@ export function ProFeatureGate({
     setMounted(true);
   }, []);
 
-  // Show loading state until mounted and subscription loaded
-  if (!mounted || isLoading) {
-    return (
-      <div className="min-h-screen bg-[#08080c] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
-      </div>
-    );
+  // Skip loading spinner to prevent flash - just render content
+  // The subscription check happens quickly in the background
+  if (!mounted) {
+    return null;
   }
 
   // If user is Pro, show the content
@@ -74,15 +71,15 @@ export function ProFeatureGate({
         {/* Card */}
         <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0c0c10]">
           {/* Gradient background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-transparent" />
-          <div className="absolute -top-20 -right-20 w-60 h-60 bg-indigo-500/10 rounded-full blur-3xl" />
+          <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 via-amber-500/5 to-transparent" />
+          <div className="absolute -top-20 -right-20 w-60 h-60 bg-orange-500/10 rounded-full blur-3xl" />
 
           <div className="relative p-8">
             {/* Icon */}
             <div className="flex justify-center mb-6">
               <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-2xl blur-xl opacity-50" />
-                <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                <div className="absolute inset-0 bg-gradient-to-br from-orange-400 to-amber-500 rounded-2xl blur-xl opacity-50" />
+                <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center">
                   <Icon className="w-10 h-10 text-white" />
                 </div>
               </div>
@@ -106,7 +103,7 @@ export function ProFeatureGate({
               <div className="grid grid-cols-2 gap-2">
                 {PRO_FEATURES.map((f) => (
                   <div key={f} className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+                    <Check className="w-4 h-4 text-orange-400 flex-shrink-0" />
                     <span className={cn(
                       "text-sm",
                       f.toLowerCase().includes(feature.toLowerCase())
@@ -126,7 +123,7 @@ export function ProFeatureGate({
                 <p className="text-xs text-zinc-500 mb-1">Monthly</p>
                 <p className="text-lg font-bold text-white">${PRICING.MONTHLY}<span className="text-sm font-normal text-zinc-500">/mo</span></p>
               </div>
-              <div className="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-center relative">
+              <div className="p-3 rounded-xl bg-orange-500/10 border border-orange-500/20 text-center relative">
                 <div className="absolute -top-2 right-2 px-1.5 py-0.5 bg-green-500 text-white text-[10px] font-bold rounded">
                   SAVE {PRICING.YEARLY_SAVINGS}%
                 </div>
@@ -140,8 +137,8 @@ export function ProFeatureGate({
               onClick={() => showUpgradeModal(featureName)}
               className="group relative w-full flex items-center justify-center gap-2.5 px-5 py-4 overflow-hidden rounded-xl font-medium transition-all duration-300"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600" />
-              <div className="absolute inset-0 bg-gradient-to-r from-indigo-400 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-600" />
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <div className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700" />
               <Crown className="w-5 h-5 text-white relative z-10" />
               <span className="relative z-10 text-white font-semibold tracking-wide">

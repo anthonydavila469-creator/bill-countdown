@@ -118,7 +118,7 @@ function PaidBillCard({ bill, isRecent, isEven }: { bill: Bill; isRecent?: boole
             <h3 className="font-semibold text-white text-sm sm:text-base truncate max-w-[180px] sm:max-w-none">{bill.name}</h3>
             {/* Auto/Manual badge - compact on mobile */}
             {isAutoPay ? (
-              <span className="flex items-center gap-1 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 text-[10px] sm:text-xs font-medium">
+              <span className="flex items-center gap-1 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-orange-500/20 border border-orange-500/30 text-orange-400 text-[10px] sm:text-xs font-medium">
                 <CreditCard className="w-3 h-3" />
                 <span className="hidden sm:inline">Auto</span>
               </span>
@@ -159,7 +159,7 @@ function PaidBillCard({ bill, isRecent, isEven }: { bill: Bill; isRecent?: boole
                 e.stopPropagation();
                 window.open(bill.payment_url!, '_blank');
               }}
-              className="mt-1 text-blue-400 hover:text-blue-300 transition-colors"
+              className="mt-1 text-orange-400 hover:text-orange-300 transition-colors"
             >
               <ExternalLink className="w-4 h-4" />
             </button>
@@ -557,7 +557,7 @@ export default function HistoryPage() {
     return (
       <div className="min-h-screen bg-[#08080c] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+          <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
           <p className="text-zinc-400">Loading...</p>
         </div>
       </div>
@@ -582,10 +582,10 @@ export default function HistoryPage() {
               alt="Duezo"
               width={36}
               height={36}
-              className="rounded-xl shadow-lg shadow-blue-500/20"
+              className="rounded-xl shadow-lg shadow-orange-500/20"
             />
             <span className="text-lg font-bold text-white tracking-tight">
-              Due<span className="text-blue-400">zo</span>
+              Due<span className="text-orange-400">zo</span>
             </span>
           </Link>
         </div>
@@ -662,9 +662,9 @@ export default function HistoryPage() {
         {/* Gmail sync status - only show if not connected */}
         {!isGmailConnected && (
           <div className="p-4 border-t border-white/5">
-            <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500/10 to-violet-500/10 border border-white/5">
+            <div className="p-4 rounded-xl bg-gradient-to-br from-orange-500/10 to-amber-500/10 border border-white/5">
               <div className="flex items-center gap-3 mb-3">
-                <Mail className="w-5 h-5 text-blue-400" />
+                <Mail className="w-5 h-5 text-orange-400" />
                 <span className="text-sm font-medium text-white">Gmail Sync</span>
               </div>
               <p className="text-xs text-zinc-400 mb-3">
@@ -729,7 +729,7 @@ export default function HistoryPage() {
                   placeholder="Search history..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
                 />
               </div>
             </div>
@@ -797,14 +797,14 @@ export default function HistoryPage() {
             </div>
 
             {/* Bills Paid Card */}
-            <div className="relative p-6 rounded-2xl bg-gradient-to-br from-blue-500/10 via-violet-500/5 to-transparent border border-blue-500/20 overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-blue-500/10 to-transparent rounded-bl-full" />
+            <div className="relative p-6 rounded-2xl bg-gradient-to-br from-orange-500/10 via-amber-500/5 to-transparent border border-orange-500/20 overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-orange-500/10 to-transparent rounded-bl-full" />
               <div className="relative">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center">
-                    <Receipt className="w-5 h-5 text-blue-400" />
+                  <div className="w-10 h-10 rounded-xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center">
+                    <Receipt className="w-5 h-5 text-orange-400" />
                   </div>
-                  <p className="text-sm text-blue-400 font-medium">Bills Paid</p>
+                  <p className="text-sm text-orange-400 font-medium">Bills Paid</p>
                 </div>
                 <p className="text-3xl font-bold text-white mb-1">{filteredByPeriod.length}</p>
                 <p className="text-sm text-zinc-500">{periodFilterLabels[periodFilter].toLowerCase()}</p>
@@ -812,14 +812,14 @@ export default function HistoryPage() {
             </div>
 
             {/* Top Categories Card */}
-            <div className="relative p-6 rounded-2xl bg-gradient-to-br from-violet-500/10 via-purple-500/5 to-transparent border border-violet-500/20 overflow-hidden sm:col-span-2 lg:col-span-1">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-violet-500/10 to-transparent rounded-bl-full" />
+            <div className="relative p-6 rounded-2xl bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 overflow-hidden sm:col-span-2 lg:col-span-1">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-amber-500/10 to-transparent rounded-bl-full" />
               <div className="relative">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-violet-500/20 border border-violet-500/30 flex items-center justify-center">
-                    <FolderOpen className="w-5 h-5 text-violet-400" />
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center">
+                    <FolderOpen className="w-5 h-5 text-amber-400" />
                   </div>
-                  <p className="text-sm text-violet-400 font-medium">Top Categories</p>
+                  <p className="text-sm text-amber-400 font-medium">Top Categories</p>
                 </div>
                 {topCategories.length === 0 ? (
                   <p className="text-sm text-zinc-500">No category data</p>
@@ -927,7 +927,7 @@ export default function HistoryPage() {
               {!searchQuery && (
                 <Link
                   href="/dashboard"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-violet-500 text-white font-medium rounded-lg hover:opacity-90 transition-opacity"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-medium rounded-lg hover:opacity-90 transition-opacity"
                 >
                   Go to Dashboard
                 </Link>

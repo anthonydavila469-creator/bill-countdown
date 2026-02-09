@@ -61,7 +61,7 @@ function Toggle({
   enabled,
   onChange,
   disabled = false,
-  color = '#6366f1',
+  color = '#f97316',
 }: {
   enabled: boolean;
   onChange: (enabled: boolean) => void;
@@ -200,7 +200,7 @@ export function NotificationSection() {
       <section>
         <SectionHeader
           icon={Bell}
-          iconGradient="from-indigo-500/80 to-purple-500/80"
+          iconGradient="from-orange-500/80 to-amber-500/80"
           title="Notifications"
           description="Get reminded about upcoming bills"
         />
@@ -216,7 +216,7 @@ export function NotificationSection() {
     <section>
       <SectionHeader
         icon={Bell}
-        iconGradient="from-indigo-500/80 to-purple-500/80"
+        iconGradient="from-orange-500/80 to-amber-500/80"
         title="Notifications"
         description="Get reminded about upcoming bills"
       />
@@ -232,7 +232,7 @@ export function NotificationSection() {
           <Toggle
             enabled={settings.email_enabled}
             onChange={handleEmailToggle}
-            color="#6366f1"
+            color="#f97316"
           />
         </FieldRow>
 
@@ -260,7 +260,7 @@ export function NotificationSection() {
                 handlePushToggle(enabled);
               }}
               disabled={!isSupported}
-              color="#8b5cf6"
+              color="#f59e0b"
             />
           </div>
         </FieldRow>
@@ -323,7 +323,7 @@ export function NotificationSection() {
                   'bg-white/[0.04] hover:bg-white/[0.08]',
                   'border border-white/[0.08] hover:border-white/[0.15]',
                   'rounded-xl text-white text-sm font-medium tracking-wide',
-                  'focus:outline-none focus:ring-2 focus:ring-indigo-500/30',
+                  'focus:outline-none focus:ring-2 focus:ring-orange-500/30',
                   'cursor-pointer transition-all duration-200',
                   !canCustomizeReminders && 'opacity-50 cursor-not-allowed'
                 )}
@@ -341,20 +341,20 @@ export function NotificationSection() {
 
         {/* Info tip */}
         <div
-          className="relative p-4 rounded-xl bg-indigo-500/[0.03] border border-indigo-500/10 animate-in fade-in slide-in-from-bottom-2"
+          className="relative p-4 rounded-xl bg-orange-500/[0.03] border border-orange-500/10 animate-in fade-in slide-in-from-bottom-2"
           style={{ animationDelay: '375ms', animationFillMode: 'backwards' }}
         >
-          <div className="absolute top-2 left-2 w-2 h-2 border-l border-t border-indigo-400/30 rounded-tl-sm" />
-          <div className="absolute top-2 right-2 w-2 h-2 border-r border-t border-indigo-400/30 rounded-tr-sm" />
-          <div className="absolute bottom-2 left-2 w-2 h-2 border-l border-b border-indigo-400/30 rounded-bl-sm" />
-          <div className="absolute bottom-2 right-2 w-2 h-2 border-r border-b border-indigo-400/30 rounded-br-sm" />
+          <div className="absolute top-2 left-2 w-2 h-2 border-l border-t border-orange-400/30 rounded-tl-sm" />
+          <div className="absolute top-2 right-2 w-2 h-2 border-r border-t border-orange-400/30 rounded-tr-sm" />
+          <div className="absolute bottom-2 left-2 w-2 h-2 border-l border-b border-orange-400/30 rounded-bl-sm" />
+          <div className="absolute bottom-2 right-2 w-2 h-2 border-r border-b border-orange-400/30 rounded-br-sm" />
 
           <div className="flex items-start gap-3">
-            <div className="p-1.5 rounded-lg bg-indigo-500/10">
-              <Info className="w-3.5 h-3.5 text-indigo-400" />
+            <div className="p-1.5 rounded-lg bg-orange-500/10">
+              <Info className="w-3.5 h-3.5 text-orange-400" />
             </div>
             <div>
-              <p className="text-sm text-indigo-300/90 font-medium mb-1">
+              <p className="text-sm text-orange-300/90 font-medium mb-1">
                 About Notifications
               </p>
               <p className="text-xs text-zinc-400 leading-relaxed">

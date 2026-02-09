@@ -167,7 +167,7 @@ export default function InsightsPage() {
       <div className="min-h-screen bg-[#08080c] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="relative">
-            <div className="absolute inset-0 bg-violet-500/20 rounded-full blur-xl animate-pulse" />
+            <div className="absolute inset-0 bg-amber-500/20 rounded-full blur-xl animate-pulse" />
             <Spinner size="lg" variant="accent" className="relative" />
           </div>
           <p className="text-zinc-400 font-medium">Loading insights...</p>
@@ -188,10 +188,10 @@ export default function InsightsPage() {
               alt="Duezo"
               width={36}
               height={36}
-              className="rounded-xl shadow-lg shadow-blue-500/20"
+              className="rounded-xl shadow-lg shadow-orange-500/20"
             />
             <span className="text-lg font-bold text-white tracking-tight">
-              Due<span className="text-blue-400">zo</span>
+              Due<span className="text-orange-400">zo</span>
             </span>
           </Link>
         </div>
@@ -268,9 +268,9 @@ export default function InsightsPage() {
         {/* Gmail sync status - only show if not connected */}
         {!isGmailConnected && (
           <div className="p-4 border-t border-white/5">
-            <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500/10 to-violet-500/10 border border-white/5">
+            <div className="p-4 rounded-xl bg-gradient-to-br from-orange-500/10 to-amber-500/10 border border-white/5">
               <div className="flex items-center gap-3 mb-3">
-                <Mail className="w-5 h-5 text-blue-400" />
+                <Mail className="w-5 h-5 text-orange-400" />
                 <span className="text-sm font-medium text-white">Gmail Sync</span>
               </div>
               <p className="text-xs text-zinc-400 mb-3">
@@ -323,8 +323,8 @@ export default function InsightsPage() {
 
             {/* Title */}
             <div className="hidden lg:flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-violet-500/20 to-purple-500/20 border border-violet-500/30">
-                <BarChart3 className="w-5 h-5 text-violet-400" />
+              <div className="p-2 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-500/20 border border-amber-500/30">
+                <BarChart3 className="w-5 h-5 text-amber-400" />
               </div>
               <div>
                 <h1 className="text-lg font-semibold text-white">Monthly Insights</h1>
@@ -347,9 +347,9 @@ export default function InsightsPage() {
           {!hasPaidBillsEver && (
             <div className="flex flex-col items-center justify-center py-20 animate-in fade-in duration-500">
               <div className="relative mb-6">
-                <div className="absolute inset-0 bg-violet-500/20 rounded-full blur-2xl" />
-                <div className="relative p-6 rounded-full bg-gradient-to-br from-violet-500/20 to-purple-500/20 border border-violet-500/30">
-                  <BarChart3 className="w-12 h-12 text-violet-400" />
+                <div className="absolute inset-0 bg-amber-500/20 rounded-full blur-2xl" />
+                <div className="relative p-6 rounded-full bg-gradient-to-br from-amber-500/20 to-amber-500/20 border border-amber-500/30">
+                  <BarChart3 className="w-12 h-12 text-amber-400" />
                 </div>
               </div>
               <h3 className="text-2xl font-bold text-white mb-2">
@@ -363,10 +363,10 @@ export default function InsightsPage() {
                 href="/dashboard"
                 className={cn(
                   'inline-flex items-center gap-2 px-6 py-3',
-                  'bg-gradient-to-r from-violet-500 to-purple-500',
+                  'bg-gradient-to-r from-amber-500 to-amber-500',
                   'text-white font-medium rounded-xl',
                   'hover:opacity-90 transition-opacity',
-                  'shadow-lg shadow-violet-500/25'
+                  'shadow-lg shadow-amber-500/25'
                 )}
               >
                 <TrendingUp className="w-5 h-5" />

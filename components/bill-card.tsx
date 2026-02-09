@@ -49,8 +49,8 @@ const riskBadgeConfig: Record<RiskType, { icon: LucideIcon; label: string; bgCol
   forgot_last_month: {
     icon: History,
     label: 'Forgot last month',
-    bgColor: 'bg-violet-500/40',
-    textColor: 'text-violet-100',
+    bgColor: 'bg-amber-500/40',
+    textColor: 'text-amber-100',
   },
 };
 
@@ -136,8 +136,8 @@ export function BillCard({
                     onClick={handlePayNow}
                     className={cn(
                       "flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200",
-                      "bg-gradient-to-r from-blue-500 to-violet-500 hover:from-blue-400 hover:to-violet-400",
-                      "text-white shadow-lg shadow-blue-500/30",
+                      "bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400",
+                      "text-white shadow-lg shadow-orange-500/30",
                       "active:scale-95"
                     )}
                   >
@@ -394,10 +394,10 @@ export function BillCard({
                   onClick={handlePayNow}
                   className={cn(
                     "group relative flex-1 py-2.5 rounded-xl font-medium text-sm transition-all duration-200",
-                    "bg-gradient-to-r from-blue-500 to-violet-500 hover:from-blue-400 hover:to-violet-400",
+                    "bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400",
                     "active:scale-[0.98]",
                     "flex items-center justify-center gap-2",
-                    "shadow-lg shadow-blue-500/20"
+                    "shadow-lg shadow-orange-500/20"
                   )}
                 >
                   <ExternalLink className="w-4 h-4 text-white" />
@@ -512,10 +512,10 @@ export function BillListItem({
       textDark: 'dark:text-orange-400',
     },
     forgot_last_month: {
-      bgLight: 'bg-violet-100',
-      bgDark: 'dark:bg-violet-900/40',
-      textLight: 'text-violet-600',
-      textDark: 'dark:text-violet-400',
+      bgLight: 'bg-amber-100',
+      bgDark: 'dark:bg-amber-900/40',
+      textLight: 'text-amber-600',
+      textDark: 'dark:text-amber-400',
     },
   };
   const listRiskConfig = riskType ? listRiskBadgeConfig[riskType] : null;
@@ -581,7 +581,7 @@ export function BillListItem({
               listRiskConfig.textLight, listRiskConfig.textDark,
               riskType === 'overdue' && 'border-rose-200 dark:border-rose-700/50',
               riskType === 'urgent' && 'border-orange-200 dark:border-orange-700/50',
-              riskType === 'forgot_last_month' && 'border-violet-200 dark:border-violet-700/50'
+              riskType === 'forgot_last_month' && 'border-amber-200 dark:border-amber-700/50'
             )}>
               <riskConfig.icon className="w-3 h-3" />
               {riskType === 'forgot_last_month' ? 'Forgot' : riskConfig.label}
@@ -604,7 +604,7 @@ export function BillListItem({
             <RefreshCw className="w-3.5 h-3.5 text-zinc-400 flex-shrink-0" />
           )}
           {bill.payment_url && !isPaid && (
-            <ExternalLink className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
+            <ExternalLink className="w-3.5 h-3.5 text-orange-400 flex-shrink-0" />
           )}
           {priceChange && !isPaid && (
             <span
@@ -639,8 +639,8 @@ export function BillListItem({
               onClick={handlePayNow}
               className={cn(
                 "flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200",
-                "bg-gradient-to-r from-blue-500 to-violet-500 text-white",
-                "hover:from-blue-400 hover:to-violet-400",
+                "bg-gradient-to-r from-orange-500 to-amber-500 text-white",
+                "hover:from-orange-400 hover:to-amber-400",
                 "active:scale-95"
               )}
             >

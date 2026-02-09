@@ -47,7 +47,7 @@ export function OptionalSetup({ options, onChange }: OptionalSetupProps) {
       {/* Paycheck Mode - Pro feature */}
       <SetupCard
         icon={Wallet}
-        iconGradient="from-blue-500 to-indigo-500"
+        iconGradient="from-orange-500 to-orange-500"
         title="Paycheck Mode"
         description="See which bills are due before your next payday"
         enabled={options.paycheckMode && canUsePaycheckMode}
@@ -59,7 +59,7 @@ export function OptionalSetup({ options, onChange }: OptionalSetupProps) {
       {/* Email Reminders */}
       <SetupCard
         icon={Bell}
-        iconGradient="from-violet-500 to-purple-500"
+        iconGradient="from-amber-500 to-amber-500"
         title="Email Reminders"
         description="Get notified before bills are due"
         enabled={options.emailReminders}
@@ -136,11 +136,11 @@ function SetupCard({
       <div
         className={cn(
           'relative w-12 h-7 rounded-full transition-all duration-300',
-          enabled ? 'bg-violet-500' : 'bg-white/10'
+          enabled ? 'bg-amber-500' : 'bg-white/10'
         )}
       >
         {enabled && (
-          <div className="absolute inset-0 rounded-full bg-violet-500 blur-md opacity-50" />
+          <div className="absolute inset-0 rounded-full bg-amber-500 blur-md opacity-50" />
         )}
         <div
           className={cn(

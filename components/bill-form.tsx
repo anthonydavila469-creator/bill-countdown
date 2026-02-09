@@ -86,7 +86,7 @@ function DayOfMonthDropdown({
 
   return (
     <div className="animate-in fade-in slide-in-from-top-2 duration-300 overflow-visible">
-      <label className="block text-xs font-medium text-violet-300/70 uppercase tracking-wider mb-3">
+      <label className="block text-xs font-medium text-amber-300/70 uppercase tracking-wider mb-3">
         Day of Month
       </label>
       <div className="relative" ref={dropdownRef}>
@@ -96,18 +96,18 @@ function DayOfMonthDropdown({
           onClick={() => setIsOpen(!isOpen)}
           className={cn(
             "w-full flex items-center gap-3 pl-4 pr-10 py-3",
-            "bg-white/5 border border-violet-500/20 rounded-xl",
+            "bg-white/5 border border-amber-500/20 rounded-xl",
             "text-white text-left",
-            "focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/30",
+            "focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/30",
             "transition-all cursor-pointer backdrop-blur-sm",
-            isOpen && "ring-2 ring-violet-500/50 border-violet-500/30"
+            isOpen && "ring-2 ring-amber-500/50 border-amber-500/30"
           )}
         >
-          <Calendar className="w-4 h-4 text-violet-400 flex-shrink-0" />
+          <Calendar className="w-4 h-4 text-amber-400 flex-shrink-0" />
           <span>{selectedDay}{getOrdinalSuffix(selectedDay)} of each month</span>
         </button>
         <ChevronDown className={cn(
-          "absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-violet-400 pointer-events-none transition-transform duration-200",
+          "absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-400 pointer-events-none transition-transform duration-200",
           isOpen && "rotate-180"
         )} />
 
@@ -115,7 +115,7 @@ function DayOfMonthDropdown({
         {isOpen && (
           <div
             ref={listRef}
-            className="absolute z-[100] w-full bottom-full mb-2 py-2 bg-[#0a0a0f] border border-violet-500/30 rounded-xl shadow-2xl shadow-black/80 max-h-64 overflow-y-auto"
+            className="absolute z-[100] w-full bottom-full mb-2 py-2 bg-[#0a0a0f] border border-amber-500/30 rounded-xl shadow-2xl shadow-black/80 max-h-64 overflow-y-auto"
           >
             {dayOptions.map((day) => {
               const isSelected = day === selectedDay;
@@ -130,7 +130,7 @@ function DayOfMonthDropdown({
                   className={cn(
                     "w-full flex items-center justify-between px-4 py-2.5 text-left transition-all duration-200",
                     isSelected
-                      ? "bg-gradient-to-r from-violet-500/25 via-violet-500/15 to-transparent text-white border-l-2 border-violet-400 shadow-[inset_0_0_20px_rgba(139,92,246,0.1)]"
+                      ? "bg-gradient-to-r from-amber-500/25 via-amber-500/15 to-transparent text-white border-l-2 border-amber-400 shadow-[inset_0_0_20px_rgba(245,158,11,0.1)]"
                       : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200 border-l-2 border-transparent"
                   )}
                 >
@@ -139,8 +139,8 @@ function DayOfMonthDropdown({
                     isSelected && "font-medium"
                   )}>{day}{getOrdinalSuffix(day)} of each month</span>
                   {isSelected && (
-                    <div className="flex items-center justify-center w-5 h-5 rounded-full bg-violet-500/30">
-                      <Check className="w-3 h-3 text-violet-300" />
+                    <div className="flex items-center justify-center w-5 h-5 rounded-full bg-amber-500/30">
+                      <Check className="w-3 h-3 text-amber-300" />
                     </div>
                   )}
                 </button>
@@ -193,9 +193,9 @@ function CategoryDropdown({
           "w-full flex items-center gap-3 px-4 py-3",
           "bg-white/5 border border-white/10 rounded-xl",
           "text-left",
-          "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent",
+          "focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent",
           "transition-all cursor-pointer",
-          isOpen && "ring-2 ring-blue-500"
+          isOpen && "ring-2 ring-orange-500"
         )}
       >
         {selectedCategory ? (
@@ -225,7 +225,7 @@ function CategoryDropdown({
             className={cn(
               "w-full flex items-center gap-3 px-4 py-2.5 text-left transition-all duration-200",
               !value
-                ? "bg-blue-500/20 text-white"
+                ? "bg-orange-500/20 text-white"
                 : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
             )}
           >
@@ -246,7 +246,7 @@ function CategoryDropdown({
                 className={cn(
                   "w-full flex items-center justify-between px-4 py-2.5 text-left transition-all duration-200",
                   isSelected
-                    ? "bg-blue-500/20 text-white"
+                    ? "bg-orange-500/20 text-white"
                     : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
                 )}
               >
@@ -255,8 +255,8 @@ function CategoryDropdown({
                   <span className={isSelected ? "font-medium" : ""}>{cat.label}</span>
                 </div>
                 {isSelected && (
-                  <div className="flex items-center justify-center w-5 h-5 rounded-full bg-blue-500/30">
-                    <Check className="w-3 h-3 text-blue-300" />
+                  <div className="flex items-center justify-center w-5 h-5 rounded-full bg-orange-500/30">
+                    <Check className="w-3 h-3 text-orange-300" />
                   </div>
                 )}
               </button>
@@ -439,7 +439,7 @@ export function BillForm({
             onChange={(e) => handleChange('name', e.target.value)}
             placeholder="Bill name"
             className={cn(
-              'w-full px-4 py-4 bg-white/5 border rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-medium',
+              'w-full px-4 py-4 bg-white/5 border rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all font-medium',
               errors.name ? 'border-red-500' : 'border-white/10'
             )}
             style={{ fontSize: '16px' }}
@@ -472,7 +472,7 @@ export function BillForm({
                 )
               }
               placeholder="0.00"
-              className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
               style={{ fontSize: '16px' }}
             />
           </div>
@@ -490,7 +490,7 @@ export function BillForm({
               value={formData.due_date}
               onChange={(e) => handleChange('due_date', e.target.value)}
               className={cn(
-                'w-full pl-10 pr-4 py-3 bg-white/5 border rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none',
+                'w-full pl-10 pr-4 py-3 bg-white/5 border rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all appearance-none',
                 '[color-scheme:dark]',
                 errors.due_date ? 'border-red-500' : 'border-white/10'
               )}
@@ -518,13 +518,13 @@ export function BillForm({
       <div className={cn(
         "relative rounded-2xl transition-all duration-500",
         formData.is_recurring
-          ? "bg-gradient-to-br from-violet-500/10 via-indigo-500/5 to-blue-500/10 border border-violet-500/20 overflow-visible"
+          ? "bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-orange-500/10 border border-amber-500/20 overflow-visible"
           : "bg-white/[0.02] border border-white/10 overflow-hidden"
       )}>
         {/* Subtle animated gradient background when active */}
         {formData.is_recurring && (
           <div className="absolute inset-0 opacity-30">
-            <div className="absolute inset-0 bg-gradient-to-r from-violet-500/0 via-violet-500/10 to-violet-500/0 animate-[shimmer_3s_ease-in-out_infinite]" />
+            <div className="absolute inset-0 bg-gradient-to-r from-amber-500/0 via-amber-500/10 to-amber-500/0 animate-[shimmer_3s_ease-in-out_infinite]" />
           </div>
         )}
 
@@ -539,7 +539,7 @@ export function BillForm({
               <div className={cn(
                 "relative w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300",
                 formData.is_recurring
-                  ? "bg-gradient-to-br from-violet-500 to-indigo-600 shadow-lg shadow-violet-500/25"
+                  ? "bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg shadow-amber-500/25"
                   : "bg-white/5 group-hover:bg-white/10"
               )}>
                 <RefreshCw className={cn(
@@ -561,7 +561,7 @@ export function BillForm({
                 </span>
                 <p className={cn(
                   "text-xs transition-colors",
-                  formData.is_recurring ? "text-violet-300/70" : "text-zinc-500"
+                  formData.is_recurring ? "text-amber-300/70" : "text-zinc-500"
                 )}>
                   {formData.is_recurring ? "Auto-generates next due date" : "Enable for repeating bills"}
                 </p>
@@ -572,7 +572,7 @@ export function BillForm({
             <div className={cn(
               "relative w-14 h-8 rounded-full transition-all duration-300",
               formData.is_recurring
-                ? "bg-gradient-to-r from-violet-500 to-indigo-500 shadow-lg shadow-violet-500/30"
+                ? "bg-gradient-to-r from-amber-500 to-orange-500 shadow-lg shadow-amber-500/30"
                 : "bg-white/10"
             )}>
               <div className={cn(
@@ -582,7 +582,7 @@ export function BillForm({
                   : "left-1 bg-zinc-400"
               )}>
                 {formData.is_recurring && (
-                  <Sparkles className="w-3 h-3 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-violet-500" />
+                  <Sparkles className="w-3 h-3 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-amber-500" />
                 )}
               </div>
             </div>
@@ -595,7 +595,7 @@ export function BillForm({
           )}>
             {/* Interval Selector - Luxury Pills */}
             <div className="space-y-3">
-              <label className="block text-xs font-medium text-violet-300/70 uppercase tracking-wider">
+              <label className="block text-xs font-medium text-amber-300/70 uppercase tracking-wider">
                 Frequency
               </label>
               <div className="grid grid-cols-4 gap-2">
@@ -615,7 +615,7 @@ export function BillForm({
                     >
                       {/* Hover gradient effect */}
                       {!isSelected && (
-                        <div className="absolute inset-0 bg-gradient-to-br from-violet-500/0 to-indigo-500/0 group-hover/pill:from-violet-500/10 group-hover/pill:to-indigo-500/10 transition-all duration-300" />
+                        <div className="absolute inset-0 bg-gradient-to-br from-amber-500/0 to-orange-500/0 group-hover/pill:from-amber-500/10 group-hover/pill:to-orange-500/10 transition-all duration-300" />
                       )}
                       <span className="relative block text-sm font-semibold">
                         {option.label}
@@ -646,7 +646,7 @@ export function BillForm({
             {/* Next Due Date Preview */}
             {nextDueDate && (
               <div className="relative animate-in fade-in slide-in-from-bottom-2 duration-500">
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-cyan-500/10 blur-sm" />
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-orange-500/10 blur-sm" />
                 <div className="relative flex items-center justify-between p-4 rounded-xl bg-white/[0.03] border border-emerald-500/20 backdrop-blur-sm">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
@@ -724,7 +724,7 @@ export function BillForm({
               }}
               placeholder="https://pay.example.com/..."
               className={cn(
-                "w-full pl-10 pr-4 py-3 bg-white/5 border rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all",
+                "w-full pl-10 pr-4 py-3 bg-white/5 border rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all",
                 errors.payment_url ? "border-red-500" : "border-white/10"
               )}
               style={{ fontSize: '16px' }}
@@ -749,7 +749,7 @@ export function BillForm({
             className={cn(
               "flex items-center gap-2 px-4 py-3 rounded-xl font-medium text-sm transition-all",
               formData.payment_url
-                ? "bg-blue-500/20 border border-blue-500/30 text-blue-400 hover:bg-blue-500/30"
+                ? "bg-orange-500/20 border border-orange-500/30 text-orange-400 hover:bg-orange-500/30"
                 : "bg-white/5 border border-white/10 text-zinc-500 cursor-not-allowed"
             )}
           >

@@ -208,7 +208,7 @@ export function BillDetailModal({
                   <Link className="w-5 h-5 text-zinc-500 mt-0.5" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-zinc-500">Payment Link</p>
-                    <p className="font-medium text-blue-400 truncate">{bill.payment_url}</p>
+                    <p className="font-medium text-orange-400 truncate">{bill.payment_url}</p>
                   </div>
                 </div>
               )}

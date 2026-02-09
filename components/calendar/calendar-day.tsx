@@ -128,13 +128,13 @@ export function CalendarDay({
         'group relative flex flex-col p-1 md:p-2 min-h-[60px] sm:min-h-[80px] md:min-h-[110px] transition-all duration-300 cursor-pointer',
         'border-r border-b border-white/[0.04]',
         'hover:bg-white/[0.03]',
-        'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-inset',
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:ring-inset',
         // Fade out non-current month days
         !inCurrentMonth && 'opacity-30 hover:opacity-50',
         // Selected state
-        isSelected && 'bg-violet-500/15',
+        isSelected && 'bg-amber-500/15',
         // Today
-        today && !isSelected && 'bg-blue-500/[0.08]',
+        today && !isSelected && 'bg-orange-500/[0.08]',
         // Drag over state
         isDragOver && 'bg-emerald-500/20 ring-2 ring-emerald-400/50 ring-inset'
       )}
@@ -144,12 +144,12 @@ export function CalendarDay({
     >
       {/* Today indicator */}
       {today && (
-        <div className="absolute inset-1 rounded-lg border-2 border-blue-500/30 pointer-events-none" />
+        <div className="absolute inset-1 rounded-lg border-2 border-orange-500/30 pointer-events-none" />
       )}
 
       {/* Selected indicator */}
       {isSelected && (
-        <div className="absolute inset-0.5 rounded-lg border-2 border-violet-400/60 pointer-events-none" />
+        <div className="absolute inset-0.5 rounded-lg border-2 border-amber-400/60 pointer-events-none" />
       )}
 
       {/* Drop zone indicator */}
@@ -173,7 +173,7 @@ export function CalendarDay({
           className={cn(
             'text-xs sm:text-sm font-semibold transition-colors duration-200',
             today
-              ? 'text-blue-400'
+              ? 'text-orange-400'
               : isSelected
               ? 'text-white'
               : inCurrentMonth

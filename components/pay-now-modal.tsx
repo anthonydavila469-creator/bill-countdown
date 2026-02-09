@@ -27,8 +27,8 @@ const urgencyGradients = {
   overdue: 'from-rose-600/90 via-red-500/80 to-orange-500/70',
   urgent: 'from-orange-500/90 via-amber-500/80 to-yellow-500/70',
   soon: 'from-amber-500/90 via-yellow-500/80 to-lime-500/70',
-  safe: 'from-emerald-500/90 via-teal-500/80 to-cyan-500/70',
-  distant: 'from-cyan-500/90 via-blue-500/80 to-indigo-500/70',
+  safe: 'from-emerald-500/90 via-teal-500/80 to-orange-500/70',
+  distant: 'from-orange-500/90 via-orange-500/80 to-orange-500/70',
 };
 
 export function PayNowModal({ bill, isOpen, onClose, onMarkPaid }: PayNowModalProps) {
@@ -246,10 +246,10 @@ export function PayNowModal({ bill, isOpen, onClose, onMarkPaid }: PayNowModalPr
                 <div className="flex justify-center">
                   {isAutopay ? (
                     <div className="relative group">
-                      <div className="absolute inset-0 bg-cyan-500/20 rounded-full blur-lg group-hover:bg-cyan-500/30 transition-colors" />
-                      <div className="relative flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 shadow-lg">
-                        <CreditCard className="w-4 h-4 text-cyan-400" />
-                        <span className="text-sm font-medium text-cyan-300">
+                      <div className="absolute inset-0 bg-orange-500/20 rounded-full blur-lg group-hover:bg-orange-500/30 transition-colors" />
+                      <div className="relative flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-orange-500/20 to-orange-500/20 border border-orange-500/30 shadow-lg">
+                        <CreditCard className="w-4 h-4 text-orange-400" />
+                        <span className="text-sm font-medium text-orange-300">
                           Will be recorded as Autopay
                         </span>
                       </div>

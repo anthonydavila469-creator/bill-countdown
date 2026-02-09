@@ -133,10 +133,10 @@ export function GmailSyncStep({
         return (
           <div className="text-center">
             <div className="relative inline-flex mb-6">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center">
+              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
                 <Mail className="w-10 h-10 text-white" />
               </div>
-              <div className="absolute -inset-2 bg-gradient-to-br from-blue-500/30 to-violet-500/30 rounded-3xl blur-xl -z-10" />
+              <div className="absolute -inset-2 bg-gradient-to-br from-orange-500/30 to-amber-500/30 rounded-3xl blur-xl -z-10" />
             </div>
             <h2 className="text-xl font-bold text-white mb-2">
               Connect Gmail
@@ -151,7 +151,7 @@ export function GmailSyncStep({
             </p>
             <button
               onClick={handleConnect}
-              className="w-full py-4 rounded-xl font-semibold bg-gradient-to-r from-blue-500 to-violet-500 text-white hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+              className="w-full py-4 rounded-xl font-semibold bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
             >
               <Mail className="w-5 h-5" />
               Connect Gmail
@@ -162,7 +162,7 @@ export function GmailSyncStep({
       case 'connecting':
         return (
           <div className="text-center py-8">
-            <Loader2 className="w-12 h-12 text-blue-400 animate-spin mx-auto mb-4" />
+            <Loader2 className="w-12 h-12 text-orange-400 animate-spin mx-auto mb-4" />
             <h2 className="text-xl font-bold text-white mb-2">Connecting...</h2>
             <p className="text-white/50">Opening Gmail authorization...</p>
           </div>
@@ -172,8 +172,8 @@ export function GmailSyncStep({
         return (
           <div className="text-center py-8">
             <div className="relative inline-flex mb-4">
-              <RefreshCw className="w-12 h-12 text-blue-400 animate-spin" />
-              <div className="absolute inset-0 bg-blue-500/30 blur-xl rounded-full" />
+              <RefreshCw className="w-12 h-12 text-orange-400 animate-spin" />
+              <div className="absolute inset-0 bg-orange-500/30 blur-xl rounded-full" />
             </div>
             <h2 className="text-xl font-bold text-white mb-2">Scanning Inbox</h2>
             <p className="text-white/50">Looking for bill-related emails...</p>
@@ -184,8 +184,8 @@ export function GmailSyncStep({
         return (
           <div className="text-center py-8">
             <div className="relative inline-flex mb-4">
-              <Sparkles className="w-12 h-12 text-violet-400 animate-pulse" />
-              <div className="absolute inset-0 bg-violet-500/30 blur-xl rounded-full" />
+              <Sparkles className="w-12 h-12 text-amber-400 animate-pulse" />
+              <div className="absolute inset-0 bg-amber-500/30 blur-xl rounded-full" />
             </div>
             <h2 className="text-xl font-bold text-white mb-2">Analyzing Emails</h2>
             <p className="text-white/50">AI is extracting bill information...</p>
@@ -253,7 +253,7 @@ export function GmailSyncStep({
             </p>
             <button
               onClick={onSkip}
-              className="w-full py-4 rounded-xl font-semibold bg-gradient-to-r from-violet-500 to-blue-500 text-white hover:opacity-90 transition-opacity"
+              className="w-full py-4 rounded-xl font-semibold bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:opacity-90 transition-opacity"
             >
               Add Bills Manually
             </button>
@@ -279,7 +279,7 @@ export function GmailSyncStep({
               </button>
               <button
                 onClick={onSkip}
-                className="flex-1 py-3 rounded-xl font-medium bg-violet-500 text-white hover:bg-violet-600 transition-colors"
+                className="flex-1 py-3 rounded-xl font-medium bg-amber-500 text-white hover:bg-amber-600 transition-colors"
               >
                 Skip
               </button>

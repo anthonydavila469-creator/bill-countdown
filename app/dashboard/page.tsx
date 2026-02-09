@@ -391,7 +391,7 @@ export default function DashboardPage() {
               className="group-hover:scale-105 transition-transform duration-300"
             />
             <span className="text-lg font-bold text-white tracking-tight">
-              Due<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-violet-400">zo</span>
+              Due<span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400">zo</span>
             </span>
           </Link>
         </div>
@@ -407,9 +407,9 @@ export default function DashboardPage() {
                 className="group relative flex items-center gap-3 px-3 py-2.5 text-white rounded-xl bg-gradient-to-r from-white/[0.08] to-white/[0.03] border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-all duration-200"
               >
                 {/* Active indicator bar */}
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full bg-gradient-to-b from-blue-400 to-violet-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500/20 to-violet-500/20 border border-white/[0.08]">
-                  <LayoutGrid className="w-4 h-4 text-blue-400" />
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full bg-gradient-to-b from-orange-400 to-amber-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]" />
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500/20 to-amber-500/20 border border-white/[0.08]">
+                  <LayoutGrid className="w-4 h-4 text-orange-400" />
                 </div>
                 <span className="font-medium">Dashboard</span>
               </Link>
@@ -420,7 +420,7 @@ export default function DashboardPage() {
                 className="group flex items-center gap-3 px-3 py-2.5 text-zinc-400 rounded-xl hover:bg-white/[0.04] hover:text-white transition-all duration-200"
               >
                 <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.03] group-hover:bg-white/[0.06] border border-transparent group-hover:border-white/[0.06] transition-all duration-200">
-                  <Calendar className="w-4 h-4 group-hover:text-cyan-400 transition-colors duration-200" />
+                  <Calendar className="w-4 h-4 group-hover:text-orange-300 transition-colors duration-200" />
                 </div>
                 <span className="font-medium">Calendar</span>
                 {!canUseCalendar && (
@@ -437,7 +437,7 @@ export default function DashboardPage() {
                 className="group flex items-center gap-3 px-3 py-2.5 text-zinc-400 rounded-xl hover:bg-white/[0.04] hover:text-white transition-all duration-200"
               >
                 <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.03] group-hover:bg-white/[0.06] border border-transparent group-hover:border-white/[0.06] transition-all duration-200">
-                  <History className="w-4 h-4 group-hover:text-violet-400 transition-colors duration-200" />
+                  <History className="w-4 h-4 group-hover:text-orange-400 transition-colors duration-200" />
                 </div>
                 <span className="font-medium">History</span>
                 {!canUseHistory && (
@@ -482,13 +482,13 @@ export default function DashboardPage() {
         {/* Gmail sync status - only show if not connected */}
         {!isGmailConnected && (
           <div className="p-4 border-t border-white/[0.06]">
-            <div className="relative p-4 rounded-xl overflow-hidden bg-gradient-to-br from-blue-500/10 via-violet-500/5 to-blue-500/10 border border-blue-500/20">
+            <div className="relative p-4 rounded-xl overflow-hidden bg-gradient-to-br from-orange-500/10 via-amber-500/5 to-orange-500/10 border border-orange-500/20">
               {/* Decorative glow */}
-              <div className="absolute -top-10 -right-10 w-24 h-24 bg-blue-500/20 rounded-full blur-2xl" />
+              <div className="absolute -top-10 -right-10 w-24 h-24 bg-orange-500/20 rounded-full blur-2xl" />
               <div className="relative">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-500/20 border border-blue-500/30">
-                    <Mail className="w-4 h-4 text-blue-400" />
+                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-orange-500/20 border border-orange-500/30">
+                    <Mail className="w-4 h-4 text-orange-400" />
                   </div>
                   <span className="text-sm font-semibold text-white">Gmail Sync</span>
                 </div>
@@ -497,7 +497,7 @@ export default function DashboardPage() {
                 </p>
                 <Link
                   href="/dashboard/settings"
-                  className="block w-full px-3 py-2 text-sm font-semibold bg-gradient-to-r from-blue-500/20 to-violet-500/20 hover:from-blue-500/30 hover:to-violet-500/30 border border-white/10 hover:border-white/20 rounded-lg transition-all duration-200 text-white text-center"
+                  className="block w-full px-3 py-2 text-sm font-semibold bg-gradient-to-r from-orange-500/20 to-amber-500/20 hover:from-orange-500/30 hover:to-amber-500/30 border border-white/10 hover:border-white/20 rounded-lg transition-all duration-200 text-white text-center"
                 >
                   Connect Gmail
                 </Link>
@@ -556,7 +556,7 @@ export default function DashboardPage() {
                   placeholder="Search bills..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
                 />
               </div>
             </div>
@@ -610,8 +610,8 @@ export default function DashboardPage() {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <div className="relative">
-                              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center">
-                                <Bell className="w-4 h-4 text-violet-400" />
+                              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500/20 to-amber-500/20 flex items-center justify-center">
+                                <Bell className="w-4 h-4 text-orange-400" />
                               </div>
                               {notificationCount > 0 && (
                                 <span className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-orange-500 to-rose-500 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-lg shadow-orange-500/30">
@@ -989,7 +989,7 @@ export default function DashboardPage() {
                             <div
                               className={cn(
                                 'relative w-9 h-5 rounded-full transition-all duration-200',
-                                dashboardLayout.showStatsBar ? 'bg-cyan-500' : 'bg-white/10'
+                                dashboardLayout.showStatsBar ? 'bg-orange-500' : 'bg-white/10'
                               )}
                             >
                               <div
@@ -1045,7 +1045,7 @@ export default function DashboardPage() {
 
             {/* Bulk Action Bar - appears when items selected */}
             {selectedBillIds.size > 0 && (
-              <div className="flex items-center justify-between gap-4 mb-4 p-3 rounded-xl bg-gradient-to-r from-cyan-500/10 to-violet-500/10 border border-cyan-500/20 animate-in fade-in slide-in-from-top-2">
+              <div className="flex items-center justify-between gap-4 mb-4 p-3 rounded-xl bg-gradient-to-r from-orange-500/10 to-amber-500/10 border border-orange-500/20 animate-in fade-in slide-in-from-top-2">
                 <span className="text-sm font-medium text-white">
                   {selectedBillIds.size} bill{selectedBillIds.size === 1 ? '' : 's'} selected
                 </span>

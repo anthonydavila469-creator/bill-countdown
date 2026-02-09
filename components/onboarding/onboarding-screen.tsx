@@ -242,10 +242,10 @@ function WelcomeStep({ onQuickAdd, onGmailSync, onAddManually, isPro, canSyncGma
       {/* Logo */}
       <div className="flex justify-center mb-8">
         <div className="relative">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
             <Zap className="w-8 h-8 text-white" />
           </div>
-          <div className="absolute -inset-2 bg-gradient-to-br from-blue-500/30 to-violet-500/30 rounded-3xl blur-xl -z-10" />
+          <div className="absolute -inset-2 bg-gradient-to-br from-orange-500/30 to-amber-500/30 rounded-3xl blur-xl -z-10" />
         </div>
       </div>
 
@@ -267,12 +267,12 @@ function WelcomeStep({ onQuickAdd, onGmailSync, onAddManually, isPro, canSyncGma
           className={cn(
             'group w-full p-5 rounded-2xl transition-all duration-300',
             isPro
-              ? 'bg-gradient-to-br from-blue-500/15 to-violet-500/15 border border-blue-500/30 hover:border-blue-500/50 hover:from-blue-500/20 hover:to-violet-500/20'
-              : 'bg-gradient-to-br from-blue-500/10 to-violet-500/10 border border-blue-500/20 hover:border-blue-500/40'
+              ? 'bg-gradient-to-br from-orange-500/15 to-amber-500/15 border border-orange-500/30 hover:border-orange-500/50 hover:from-orange-500/20 hover:to-amber-500/20'
+              : 'bg-gradient-to-br from-orange-500/10 to-amber-500/10 border border-orange-500/20 hover:border-orange-500/40'
           )}
         >
           <div className="flex items-center gap-4">
-            <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-violet-500">
+            <div className="p-3 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500">
               <Mail className="w-5 h-5 text-white" />
             </div>
             <div className="flex-1 text-left">
@@ -299,7 +299,7 @@ function WelcomeStep({ onQuickAdd, onGmailSync, onAddManually, isPro, canSyncGma
                 }
               </p>
             </div>
-            <ArrowRight className="w-5 h-5 text-blue-400 group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className="w-5 h-5 text-orange-400 group-hover:translate-x-1 transition-transform" />
           </div>
         </button>
 
@@ -310,13 +310,13 @@ function WelcomeStep({ onQuickAdd, onGmailSync, onAddManually, isPro, canSyncGma
             'group w-full p-5 rounded-2xl transition-all duration-300',
             isPro
               ? 'bg-white/[0.02] border border-white/10 hover:bg-white/[0.04] hover:border-white/20'
-              : 'bg-gradient-to-br from-violet-500/10 to-blue-500/10 border border-violet-500/20 hover:border-violet-500/40 hover:from-violet-500/15 hover:to-blue-500/15'
+              : 'bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20 hover:border-amber-500/40 hover:from-amber-500/15 hover:to-orange-500/15'
           )}
         >
           <div className="flex items-center gap-4">
             <div className={cn(
               "p-3 rounded-xl",
-              isPro ? "bg-white/10" : "bg-gradient-to-br from-violet-500 to-blue-500"
+              isPro ? "bg-white/10" : "bg-gradient-to-br from-amber-500 to-orange-500"
             )}>
               <Sparkles className="w-5 h-5 text-white" />
             </div>
@@ -328,7 +328,7 @@ function WelcomeStep({ onQuickAdd, onGmailSync, onAddManually, isPro, canSyncGma
             </div>
             <ArrowRight className={cn(
               "w-5 h-5 group-hover:translate-x-1 transition-transform",
-              isPro ? "text-white/40" : "text-violet-400"
+              isPro ? "text-white/40" : "text-amber-400"
             )} />
           </div>
         </button>
@@ -406,7 +406,7 @@ function TemplatesStep({
           'w-full py-4 rounded-xl font-semibold transition-all duration-200',
           'flex items-center justify-center gap-2',
           selectedIds.size > 0
-            ? 'bg-gradient-to-r from-violet-500 to-blue-500 text-white hover:opacity-90'
+            ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:opacity-90'
             : 'bg-white/10 text-white/30 cursor-not-allowed'
         )}
       >
@@ -471,7 +471,7 @@ function SetupStep({
           onClick={onFinish}
           className={cn(
             'flex-1 py-4 rounded-xl font-semibold transition-all duration-200',
-            'bg-gradient-to-r from-violet-500 to-blue-500 text-white hover:opacity-90',
+            'bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:opacity-90',
             'flex items-center justify-center gap-2'
           )}
         >
@@ -492,8 +492,8 @@ function CreatingStep({ count }: CreatingStepProps) {
   return (
     <div className="animate-in fade-in duration-200 text-center py-12">
       <div className="relative inline-flex mb-6">
-        <Loader2 className="w-12 h-12 text-violet-400 animate-spin" />
-        <div className="absolute inset-0 bg-violet-500/30 blur-xl rounded-full" />
+        <Loader2 className="w-12 h-12 text-amber-400 animate-spin" />
+        <div className="absolute inset-0 bg-amber-500/30 blur-xl rounded-full" />
       </div>
       <h2 className="text-xl font-bold text-white mb-2">Creating Your Bills</h2>
       <p className="text-white/50">
