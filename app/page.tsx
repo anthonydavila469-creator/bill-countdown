@@ -548,21 +548,21 @@ export default function LandingPage() {
           {/* Steps */}
           <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
             {steps.map((step, index) => (
-              <div key={step.number} className="relative">
+              <div key={step.number} className="relative group">
                 {/* Connector line */}
                 {index < steps.length - 1 && (
-                  <div className="hidden md:block absolute top-8 left-[60%] w-full h-px bg-gradient-to-r from-white/20 to-transparent" />
+                  <div className="hidden md:block absolute top-12 left-[60%] w-full h-px bg-gradient-to-r from-blue-500/30 via-violet-500/20 to-transparent" />
                 )}
 
-                <div className="relative">
-                  {/* Step number */}
-                  <div className="text-6xl font-bold text-white/5 mb-4">
-                    {step.number}
-                  </div>
-
-                  {/* Icon */}
-                  <div className="absolute top-4 left-16 w-10 h-10 rounded-full bg-gradient-to-br from-blue-500/20 to-violet-500/20 border border-white/10 flex items-center justify-center">
-                    <step.icon className="w-5 h-5 text-blue-400" />
+                <div className="relative p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 backdrop-blur-sm transition-all duration-300 hover:bg-white/[0.04]">
+                  {/* Step number + Icon row */}
+                  <div className="flex items-center gap-4 mb-5">
+                    <div className="text-5xl font-bold bg-gradient-to-b from-white/10 to-white/[0.02] bg-clip-text text-transparent select-none">
+                      {step.number}
+                    </div>
+                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500/20 to-violet-500/20 border border-white/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <step.icon className="w-5 h-5 text-blue-400" />
+                    </div>
                   </div>
 
                   <h3 className="text-xl font-semibold mb-2">{step.title}</h3>
