@@ -95,8 +95,8 @@ export function ProFeatureGate({
             </div>
 
             {/* Feature list */}
-            <div className="mb-8 p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-              <p className="text-sm font-medium text-zinc-300 mb-3">
+            <div className="mb-8 p-4 rounded-xl bg-black/40 border border-white/[0.08]">
+              <p className="text-sm font-semibold text-white mb-3">
                 Everything included in Pro:
               </p>
               <div className="grid grid-cols-2 gap-2">
@@ -106,8 +106,8 @@ export function ProFeatureGate({
                     <span className={cn(
                       "text-sm",
                       f.toLowerCase().includes(feature.toLowerCase())
-                        ? "text-white font-medium"
-                        : "text-zinc-300"
+                        ? "text-white font-semibold"
+                        : "text-zinc-200"
                     )}>
                       {f}
                     </span>
@@ -118,7 +118,7 @@ export function ProFeatureGate({
 
             {/* Pricing */}
             <div className="grid grid-cols-2 gap-3 mb-6">
-              <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] text-center">
+              <div className="p-3 rounded-xl bg-black/40 border border-white/[0.08] text-center">
                 <p className="text-xs text-zinc-500 mb-1">Monthly</p>
                 <p className="text-lg font-bold text-white">${PRICING.MONTHLY}<span className="text-sm font-normal text-zinc-500">/mo</span></p>
               </div>
