@@ -20,7 +20,7 @@ const REMINDER_DAY_OPTIONS = [
   { value: 7, label: '7 days before' },
   { value: 3, label: '3 days before' },
   { value: 1, label: '1 day before' },
-  { value: 0, label: 'Day of (morning)' },
+  { value: 0, label: 'Day of (AM)' },
 ];
 
 // Section header with gradient icon
@@ -337,7 +337,7 @@ export function NotificationSection() {
                     handleReminderDaysToggle(opt.value);
                   }}
                   className={cn(
-                    'flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border',
+                    'flex items-center gap-2 px-3 py-2.5 h-11 rounded-xl text-sm font-medium transition-all duration-200 border',
                     isActive
                       ? 'bg-orange-500/15 border-orange-500/30 text-orange-300'
                       : 'bg-white/[0.02] border-white/[0.06] text-zinc-500 hover:text-zinc-300 hover:border-white/[0.1]',

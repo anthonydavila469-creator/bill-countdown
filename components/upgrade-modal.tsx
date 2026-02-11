@@ -15,7 +15,6 @@ const PRO_FEATURES = [
   { label: 'Calendar view', description: 'See all bills on a calendar' },
   { label: 'Payment history', description: 'Track your payment patterns' },
   { label: 'Analytics & insights', description: 'Understand your spending' },
-  { label: 'Paycheck mode', description: 'Plan bills around paydays' },
   { label: 'Variable bill tracking', description: 'Track fluctuating amounts' },
   { label: 'Custom reminders', description: 'Push notifications & quiet hours' },
 ];

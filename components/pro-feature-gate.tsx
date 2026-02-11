@@ -24,7 +24,6 @@ const PRO_FEATURES = [
   'Calendar view',
   'Payment history',
   'Analytics & insights',
-  'Paycheck mode',
   'Variable bill tracking',
   'Custom reminders',
 ];
