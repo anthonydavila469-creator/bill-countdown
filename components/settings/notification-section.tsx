@@ -6,7 +6,7 @@ import {
   Mail,
   Smartphone,
   Clock,
-  ChevronDown,
+  Check,
   Info,
   RefreshCw,
   Crown,
@@ -16,11 +16,11 @@ import { cn } from '@/lib/utils';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
 import { useSubscription } from '@/hooks/use-subscription';
 
-const LEAD_TIME_OPTIONS = [
-  { value: 0, label: 'Day of' },
-  { value: 1, label: '1 day before' },
-  { value: 3, label: '3 days before' },
+const REMINDER_DAY_OPTIONS = [
   { value: 7, label: '7 days before' },
+  { value: 3, label: '3 days before' },
+  { value: 1, label: '1 day before' },
+  { value: 0, label: 'Day of (morning)' },
 ];
 
 // Section header with gradient icon
@@ -187,8 +187,14 @@ export function NotificationSection() {
     }
   }, [settings, updateSettings, subscribe, unsubscribe]);
 
-  const handleLeadDaysChange = useCallback(async (value: number) => {
-    await updateSettings({ ...settings, lead_days: value });
+  const handleReminderDaysToggle = useCallback(async (day: number) => {
+    const current = settings.reminder_days ?? [settings.lead_days];
+    const updated = current.includes(day)
+      ? current.filter((d) => d !== day)
+      : [...current, day].sort((a, b) => b - a);
+    // Keep at least one selected
+    if (updated.length === 0) return;
+    await updateSettings({ ...settings, reminder_days: updated, lead_days: Math.min(...updated) });
   }, [settings, updateSettings]);
 
   const handleAutoSyncToggle = useCallback(async (enabled: boolean) => {
@@ -293,51 +299,67 @@ export function NotificationSection() {
           </div>
         </FieldRow>
 
-        {/* Lead Time - Pro Feature */}
-        <FieldRow
-          icon={Clock}
-          label="Reminder Timing"
-          description="When to send reminders"
-          index={3}
+        {/* Reminder Timing - Multi-select - Pro Feature */}
+        <div
+          className="group p-4 bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.06] hover:border-white/[0.1] rounded-2xl transition-all duration-300 animate-in fade-in slide-in-from-bottom-2"
+          style={{ animationDelay: '225ms', animationFillMode: 'backwards' }}
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-4">
+              <div className="p-2.5 rounded-xl bg-white/[0.04] group-hover:bg-white/[0.06] transition-colors">
+                <Clock className="w-4 h-4 text-zinc-400" />
+              </div>
+              <div>
+                <p className="font-medium text-white tracking-wide">Reminder Timing</p>
+                <p className="text-sm text-zinc-500">When to send reminders</p>
+              </div>
+            </div>
             {!canCustomizeReminders && (
               <span className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-500/20 border border-amber-500/30">
                 <Crown className="w-3 h-3 text-amber-400" />
                 <span className="text-[10px] font-semibold text-amber-300">Pro</span>
               </span>
             )}
-            <div className="relative">
-              <select
-                value={settings.lead_days}
-                onChange={(e) => {
-                  if (!canCustomizeReminders) {
-                    showUpgradeModal('custom reminders');
-                    return;
-                  }
-                  handleLeadDaysChange(parseInt(e.target.value));
-                }}
-                disabled={!canCustomizeReminders}
-                className={cn(
-                  'appearance-none pl-4 pr-10 py-2.5 min-w-[160px]',
-                  'bg-white/[0.04] hover:bg-white/[0.08]',
-                  'border border-white/[0.08] hover:border-white/[0.15]',
-                  'rounded-xl text-white text-sm font-medium tracking-wide',
-                  'focus:outline-none focus:ring-2 focus:ring-orange-500/30',
-                  'cursor-pointer transition-all duration-200',
-                  !canCustomizeReminders && 'opacity-50 cursor-not-allowed'
-                )}
-              >
-                {LEAD_TIME_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value} className="bg-zinc-900 text-white">
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
-            </div>
           </div>
-        </FieldRow>
+          <div className="grid grid-cols-2 gap-2 ml-14">
+            {REMINDER_DAY_OPTIONS.map((opt) => {
+              const activeDays = settings.reminder_days ?? [settings.lead_days];
+              const isActive = activeDays.includes(opt.value);
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => {
+                    if (!canCustomizeReminders) {
+                      showUpgradeModal('custom reminders');
+                      return;
+                    }
+                    handleReminderDaysToggle(opt.value);
+                  }}
+                  className={cn(
+                    'flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border',
+                    isActive
+                      ? 'bg-orange-500/15 border-orange-500/30 text-orange-300'
+                      : 'bg-white/[0.02] border-white/[0.06] text-zinc-500 hover:text-zinc-300 hover:border-white/[0.1]',
+                    !canCustomizeReminders && 'opacity-50 cursor-not-allowed'
+                  )}
+                >
+                  <div
+                    className={cn(
+                      'w-4 h-4 rounded border flex items-center justify-center transition-all',
+                      isActive
+                        ? 'bg-orange-500 border-orange-500'
+                        : 'border-white/20'
+                    )}
+                  >
+                    {isActive && <Check className="w-3 h-3 text-white" />}
+                  </div>
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         {/* Info tip */}
         <div

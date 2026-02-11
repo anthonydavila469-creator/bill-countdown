@@ -25,7 +25,8 @@ export async function GET() {
         subscription_plan,
         subscription_current_period_end,
         subscription_cancel_at_period_end,
-        gmail_syncs_used
+        gmail_syncs_used,
+        trial_ends_at
       `)
       .eq('user_id', user.id)
       .single();
@@ -38,8 +39,23 @@ export async function GET() {
       );
     }
 
-    // Return defaults if no preferences exist
+    // Count user's bills for limit tracking
+    const { count: billCount } = await supabase
+      .from('bills')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id);
+
+    // If no preferences exist, create with trial
     if (!preferences) {
+      const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+      // Try to insert preferences with trial — may already exist via trigger
+      await supabase
+        .from('user_preferences')
+        .upsert({
+          user_id: user.id,
+          trial_ends_at: trialEndsAt,
+        }, { onConflict: 'user_id' });
+
       return NextResponse.json({
         isPro: false,
         subscriptionStatus: 'free',
@@ -47,14 +63,27 @@ export async function GET() {
         currentPeriodEnd: null,
         cancelAtPeriodEnd: false,
         gmailSyncsUsed: 0,
+        billsUsed: billCount ?? 0,
+        trialEndsAt,
+        isTrialing: true,
+        trialDaysLeft: 14,
       });
     }
 
-    // Count user's bills for limit tracking
-    const { count: billCount } = await supabase
-      .from('bills')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id);
+    // Auto-start trial if user has no subscription and no trial
+    let trialEndsAt = preferences.trial_ends_at;
+    if (!trialEndsAt && !preferences.is_pro && (!preferences.subscription_status || preferences.subscription_status === 'free')) {
+      trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+      await supabase
+        .from('user_preferences')
+        .update({ trial_ends_at: trialEndsAt })
+        .eq('user_id', user.id);
+    }
+
+    const now = new Date();
+    const trialEnd = trialEndsAt ? new Date(trialEndsAt) : null;
+    const isTrialing = trialEnd ? trialEnd > now : false;
+    const trialDaysLeft = trialEnd ? Math.max(0, Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))) : 0;
 
     return NextResponse.json({
       isPro: preferences.is_pro ?? false,
@@ -64,6 +93,9 @@ export async function GET() {
       cancelAtPeriodEnd: preferences.subscription_cancel_at_period_end ?? false,
       gmailSyncsUsed: preferences.gmail_syncs_used ?? 0,
       billsUsed: billCount ?? 0,
+      trialEndsAt,
+      isTrialing,
+      trialDaysLeft,
     });
   } catch (error) {
     console.error('Error fetching subscription status:', error);

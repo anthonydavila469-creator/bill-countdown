@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { processAllBillsRateLimited } from '@/lib/ai/process-bills';
 import { EmailInput } from '@/lib/ai/types';
 import { ParsedBill } from '@/types';
+import { isRateLimited } from '@/lib/rate-limit';
 
 // POST /api/ai/parse-bills - Parse emails to extract bill information
 export async function POST(request: Request) {
@@ -17,6 +18,14 @@ export async function POST(request: Request) {
 
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Rate limit: 10 AI parse requests per minute per user
+    if (isRateLimited(`ai-parse:${user.id}`, 10, 60_000)) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please wait a moment.' },
+        { status: 429 }
+      );
     }
 
     // Get emails from request body

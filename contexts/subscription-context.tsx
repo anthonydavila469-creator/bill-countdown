@@ -31,6 +31,11 @@ export interface SubscriptionState {
   currentPeriodEnd: string | null;
   cancelAtPeriodEnd: boolean;
 
+  // Trial
+  trialEndsAt: string | null;
+  isTrialing: boolean;
+  trialDaysLeft: number;
+
   // Usage tracking
   billsUsed: number;
   gmailSyncsUsed: number;
@@ -81,6 +86,11 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   const [currentPeriodEnd, setCurrentPeriodEnd] = useState<string | null>(null);
   const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
 
+  // Trial
+  const [trialEndsAt, setTrialEndsAt] = useState<string | null>(null);
+  const [isTrialing, setIsTrialing] = useState(false);
+  const [trialDaysLeft, setTrialDaysLeft] = useState(0);
+
   // Usage tracking
   const [billsUsed, setBillsUsed] = useState(0);
   const [gmailSyncsUsed, setGmailSyncsUsed] = useState(0);
@@ -95,7 +105,6 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     try {
       const response = await fetch('/api/stripe/status');
       if (!response.ok) {
-        // User might not be logged in
         return;
       }
 
@@ -107,6 +116,9 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
       setCancelAtPeriodEnd(data.cancelAtPeriodEnd ?? false);
       setBillsUsed(data.billsUsed ?? 0);
       setGmailSyncsUsed(data.gmailSyncsUsed ?? 0);
+      setTrialEndsAt(data.trialEndsAt ?? null);
+      setIsTrialing(data.isTrialing ?? false);
+      setTrialDaysLeft(data.trialDaysLeft ?? 0);
     } catch (error) {
       console.error('Failed to fetch subscription status:', error);
     } finally {
@@ -143,36 +155,37 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     setUpgradeModalFeature(null);
   }, []);
 
-  // TODO: Remove this override after testing
-  const isProOverride = true; // Temporary override for testing
-
-  // Computed values (using override)
-  const effectiveIsPro = isProOverride || isPro;
+  // Computed values — trial counts as pro
+  const effectiveIsPro = isPro || isTrialing;
   const billLimit = effectiveIsPro ? Infinity : FREE_TIER_LIMITS.MAX_BILLS;
   const canAddBill = effectiveIsPro || billsUsed < FREE_TIER_LIMITS.MAX_BILLS;
   const gmailSyncsAllowed = effectiveIsPro ? Infinity : FREE_TIER_LIMITS.MAX_GMAIL_SYNCS;
   const canSyncGmail = effectiveIsPro || gmailSyncsUsed < FREE_TIER_LIMITS.MAX_GMAIL_SYNCS;
 
-  // Feature flags
-  // TODO: Re-enable isPro checks after testing
-  const canUseCalendar = true; // isPro
-  const canUsePaymentLinks = true; // isPro
-  const canUsePaycheckMode = true; // isPro
-  const canUseHistory = true; // isPro
-  const canUseVariableBills = true; // isPro
-  const canCustomizeReminders = true; // isPro
-  const canUsePushNotifications = true; // isPro
-  const canUseDailyAutoSync = true; // isPro
+  // Feature flags — gated by effectiveIsPro (paid OR trialing)
+  const canUseCalendar = effectiveIsPro;
+  const canUsePaymentLinks = effectiveIsPro;
+  const canUsePaycheckMode = effectiveIsPro;
+  const canUseHistory = effectiveIsPro;
+  const canUseVariableBills = effectiveIsPro;
+  const canCustomizeReminders = effectiveIsPro;
+  const canUsePushNotifications = effectiveIsPro;
+  const canUseDailyAutoSync = effectiveIsPro;
 
   return (
     <SubscriptionContext.Provider
       value={{
         // Core status
-        isPro: effectiveIsPro, // TODO: Change back to isPro after testing
+        isPro: effectiveIsPro,
         subscriptionStatus,
         subscriptionPlan,
         currentPeriodEnd,
         cancelAtPeriodEnd,
+
+        // Trial
+        trialEndsAt,
+        isTrialing,
+        trialDaysLeft,
 
         // Usage tracking
         billsUsed,

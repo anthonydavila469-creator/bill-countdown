@@ -413,6 +413,7 @@ export interface UserPreferences {
   subscription_current_period_end: string | null;
   subscription_cancel_at_period_end: boolean;
   gmail_syncs_used: number;
+  trial_ends_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -440,13 +441,14 @@ export const DEFAULT_DASHBOARD_LAYOUT: DashboardLayout = {
 };
 
 // Notification Types
-export type NotificationChannel = 'email' | 'push';
+export type NotificationChannel = 'email' | 'push' | 'in_app';
 export type NotificationStatus = 'pending' | 'sent' | 'failed' | 'skipped';
 
 export interface NotificationSettings {
   email_enabled: boolean;
   push_enabled: boolean;
-  lead_days: number; // Days before due date to send reminder
+  lead_days: number; // Days before due date to send reminder (legacy, single value)
+  reminder_days: number[]; // Days before due date to send reminders (multi-select)
   timezone: string; // IANA timezone
   auto_sync_enabled: boolean; // Auto-sync Gmail daily
 }
@@ -469,6 +471,8 @@ export interface BillNotification {
   status: NotificationStatus;
   sent_at: string | null;
   error_message: string | null;
+  read_at: string | null;
+  message: string | null;
   created_at: string;
 }
 
@@ -476,6 +480,7 @@ export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
   email_enabled: true,
   push_enabled: false,
   lead_days: 3,
+  reminder_days: [3],
   timezone: 'America/New_York',
   auto_sync_enabled: true,
 };

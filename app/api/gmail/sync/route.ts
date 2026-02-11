@@ -7,6 +7,7 @@ import {
   GmailMessage,
 } from '@/lib/gmail/client';
 import { NextResponse } from 'next/server';
+import { isRateLimited } from '@/lib/rate-limit';
 
 interface EmailData {
   id: string;
@@ -29,6 +30,14 @@ export async function POST() {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
+      );
+    }
+
+    // Rate limit: 10 syncs per minute per user
+    if (isRateLimited(`gmail-sync:${user.id}`, 10, 60_000)) {
+      return NextResponse.json(
+        { error: 'Too many sync requests. Please wait a moment.' },
+        { status: 429 }
       );
     }
 

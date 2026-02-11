@@ -78,6 +78,20 @@ export async function PUT(request: Request) {
       );
     }
 
+    // Validate reminder_days if provided
+    if (newSettings.reminder_days !== undefined) {
+      if (!Array.isArray(newSettings.reminder_days) || newSettings.reminder_days.some((d: number) => typeof d !== 'number' || d < 0 || d > 30)) {
+        return NextResponse.json(
+          { error: 'Invalid reminder_days value' },
+          { status: 400 }
+        );
+      }
+      // Keep lead_days in sync with the smallest reminder_days value for backward compat
+      if (newSettings.reminder_days.length > 0) {
+        newSettings.lead_days = Math.min(...newSettings.reminder_days);
+      }
+    }
+
     // Upsert preferences with new notification settings
     const { data: preferences, error } = await supabase
       .from('user_preferences')

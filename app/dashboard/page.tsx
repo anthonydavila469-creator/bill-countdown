@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { BillCard } from '@/components/bill-card';
 import { AddBillModal } from '@/components/add-bill-modal';
 import { OnboardingScreen } from '@/components/onboarding/onboarding-screen';
+import { OnboardingModal, useOnboardingComplete } from '@/components/onboarding-modal';
 import { DeleteBillModal } from '@/components/delete-bill-modal';
 import { BillDetailModal } from '@/components/bill-detail-modal';
 import { PayNowModal } from '@/components/pay-now-modal';
@@ -18,11 +19,14 @@ import { getDaysUntilDue } from '@/lib/utils';
 import { getBillRiskType } from '@/lib/risk-utils';
 import { getBillIcon } from '@/lib/get-bill-icon';
 import { RiskAlerts } from '@/components/risk-alerts';
+import { NotificationBell } from '@/components/notification-bell';
 import { OnTimePayments } from '@/components/on-time-payments';
 import { createClient } from '@/lib/supabase/client';
 import { useTheme } from '@/contexts/theme-context';
 import { useBillMutations } from '@/hooks/use-bill-mutations';
 import { Spinner } from '@/components/ui/animated-list';
+import { DashboardSkeleton } from '@/components/skeleton-loader';
+import { hapticSuccess, hapticLight } from '@/lib/haptics';
 import {
   Zap,
   Plus,
@@ -78,6 +82,8 @@ export default function DashboardPage() {
   // Onboarding state
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [hasCheckedOnboarding, setHasCheckedOnboarding] = useState(false);
+  const onboardingComplete = useOnboardingComplete();
+  const [showOnboardingModal, setShowOnboardingModal] = useState(false);
 
   // List view state
   const [selectedBillIds, setSelectedBillIds] = useState<Set<string>>(new Set());
@@ -129,25 +135,7 @@ export default function DashboardPage() {
   const [deletingBill, setDeletingBill] = useState<Bill | null>(null);
   const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
   const [payingBill, setPayingBill] = useState<Bill | null>(null);
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const notificationsRef = useRef<HTMLDivElement>(null);
-
-  // Close notifications dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
-        setIsNotificationsOpen(false);
-      }
-    };
-
-    if (isNotificationsOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isNotificationsOpen]);
+  // Notification dropdown moved to NotificationBell component
 
   // Check authentication and Gmail connection
   useEffect(() => {
@@ -180,11 +168,15 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!billsLoading && !hasCheckedOnboarding) {
       if (bills.length === 0) {
-        setShowOnboarding(true);
+        if (!onboardingComplete) {
+          setShowOnboardingModal(true);
+        } else {
+          setShowOnboarding(true);
+        }
       }
       setHasCheckedOnboarding(true);
     }
-  }, [bills, billsLoading, hasCheckedOnboarding]);
+  }, [bills, billsLoading, hasCheckedOnboarding, onboardingComplete]);
 
   // Handle sign out
   const handleSignOut = async () => {
@@ -209,6 +201,7 @@ export default function DashboardPage() {
   // Handle Add Bill button click - checks bill limit
   const handleAddBillClick = () => {
     if (canAddBill) {
+      hapticLight();
       setEditingBill(null);
       setIsAddModalOpen(true);
     } else {
@@ -280,7 +273,7 @@ export default function DashboardPage() {
     const daysUntil = getDaysUntilDue(bill.due_date);
     return daysUntil < 0;
   }) : [];
-  const notificationCount = billsDueSoon.length + overdueBills.length;
+  // notificationCount moved to NotificationBell component
 
   // Handle sort change - update local state and persist to layout settings
   const handleSortChange = (newSort: SortOption) => {
@@ -329,6 +322,7 @@ export default function DashboardPage() {
 
   // Handle marking a bill as paid with undo support
   const handleMarkAsPaid = async (bill: Bill) => {
+    hapticSuccess();
     await markPaid(bill);
     setSelectedBill(null);
   };
@@ -356,11 +350,8 @@ export default function DashboardPage() {
   // Loading state
   if (isLoading || billsLoading) {
     return (
-      <div className="min-h-screen bg-[#08080c] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Spinner size="lg" variant="accent" />
-          <p className="text-zinc-400">Loading...</p>
-        </div>
+      <div className="min-h-screen bg-[#08080c]">
+        <DashboardSkeleton />
       </div>
     );
   }
@@ -581,203 +572,9 @@ export default function DashboardPage() {
                 )}
               </button>
 
-              {/* Notification Bell */}
-              <div className="relative" ref={notificationsRef}>
-                <button
-                  onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                  className="p-2 text-zinc-400 hover:text-white transition-colors relative"
-                >
-                  <Bell className="w-5 h-5" />
-                  {notificationCount > 0 && (
-                    <span className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full" />
-                  )}
-                </button>
+              {/* Notification Bell - In-app feed */}
+              <NotificationBell />
 
-                {/* Notifications Dropdown - Premium Glass Design */}
-                {isNotificationsOpen && (
-                  <div
-                    className="absolute right-0 top-full mt-3 w-96 z-50 animate-in fade-in slide-in-from-top-2 duration-200"
-                  >
-                    {/* Glow effect behind dropdown */}
-                    <div className="absolute -inset-1 bg-gradient-to-b from-white/5 to-transparent rounded-2xl blur-xl" />
-
-                    <div className="relative bg-[#0a0a0e]/95 backdrop-blur-xl border border-white/[0.08] rounded-2xl shadow-2xl overflow-hidden">
-                      {/* Decorative top gradient line */}
-                      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-
-                      {/* Header */}
-                      <div className="relative px-5 py-4 border-b border-white/[0.06]">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="relative">
-                              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500/20 to-amber-500/20 flex items-center justify-center">
-                                <Bell className="w-4 h-4 text-orange-400" />
-                              </div>
-                              {notificationCount > 0 && (
-                                <span className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-orange-500 to-rose-500 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-lg shadow-orange-500/30">
-                                  {notificationCount}
-                                </span>
-                              )}
-                            </div>
-                            <div>
-                              <h3 className="font-semibold text-white text-sm">Notifications</h3>
-                              <p className="text-[11px] text-zinc-500">
-                                {notificationCount === 0 ? 'All clear' : `${notificationCount} item${notificationCount === 1 ? '' : 's'} need attention`}
-                              </p>
-                            </div>
-                          </div>
-                          <button
-                            onClick={() => setIsNotificationsOpen(false)}
-                            className="p-1.5 text-zinc-500 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Content */}
-                      <div className="max-h-[400px] overflow-y-auto">
-                        {notificationCount === 0 ? (
-                          /* Premium Empty State */
-                          <div className="px-5 py-10 text-center relative">
-                            {/* Decorative background circles */}
-                            <div className="absolute inset-0 flex items-center justify-center opacity-30">
-                              <div className="w-32 h-32 rounded-full border border-dashed border-zinc-700" />
-                              <div className="absolute w-24 h-24 rounded-full border border-dashed border-zinc-700" />
-                              <div className="absolute w-16 h-16 rounded-full border border-dashed border-zinc-700" />
-                            </div>
-                            <div className="relative">
-                              <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-emerald-500/10 to-green-500/10 flex items-center justify-center border border-emerald-500/20">
-                                <Bell className="w-6 h-6 text-emerald-400" />
-                              </div>
-                              <p className="text-sm font-medium text-white mb-1">You're all caught up!</p>
-                              <p className="text-xs text-zinc-500 max-w-[200px] mx-auto">No bills need your attention right now. Enjoy your day!</p>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="p-3 space-y-3">
-                            {/* Overdue Bills Section */}
-                            {overdueBills.length > 0 && (
-                              <div>
-                                <div className="flex items-center gap-2 px-2 mb-2">
-                                  <div className="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-lg shadow-rose-500/50 animate-pulse" />
-                                  <p className="text-[11px] font-semibold text-rose-400 uppercase tracking-wider">
-                                    Overdue
-                                  </p>
-                                  <span className="text-[10px] text-rose-400/60 font-medium">
-                                    ({overdueBills.length})
-                                  </span>
-                                </div>
-                                <div className="space-y-1">
-                                  {overdueBills.slice(0, 3).map((bill) => {
-                                    const daysOverdue = Math.abs(getDaysUntilDue(bill.due_date));
-                                    const { icon: BillIcon, colorClass } = getBillIcon(bill);
-                                    return (
-                                      <button
-                                        key={bill.id}
-                                        onClick={() => {
-                                          setSelectedBill(bill);
-                                          setIsNotificationsOpen(false);
-                                        }}
-                                        className="group w-full flex items-center gap-3 p-3 rounded-xl bg-rose-500/[0.05] hover:bg-rose-500/10 border border-rose-500/10 hover:border-rose-500/20 transition-all duration-200 text-left"
-                                      >
-                                        {/* Urgency indicator bar */}
-                                        <div
-                                          className="w-1 self-stretch rounded-full"
-                                          style={{
-                                            backgroundColor: 'var(--urgency-overdue)',
-                                            boxShadow: '0 0 8px var(--urgency-overdue)'
-                                          }}
-                                        />
-                                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-                                          <BillIcon className={cn("w-5 h-5", colorClass)} />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                          <p className="text-sm font-medium text-white truncate group-hover:text-rose-200 transition-colors">{bill.name}</p>
-                                          <p className="text-xs text-rose-400/80 mt-0.5">
-                                            {daysOverdue} day{daysOverdue === 1 ? '' : 's'} overdue
-                                          </p>
-                                        </div>
-                                        <div className="text-right">
-                                          <p className="text-sm font-semibold text-white">{bill.amount ? `$${bill.amount.toFixed(0)}` : ''}</p>
-                                        </div>
-                                      </button>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Due Soon Section */}
-                            {billsDueSoon.length > 0 && (
-                              <div>
-                                <div className="flex items-center gap-2 px-2 mb-2">
-                                  <div className="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-lg shadow-orange-500/50" />
-                                  <p className="text-[11px] font-semibold text-orange-400 uppercase tracking-wider">
-                                    Due Soon
-                                  </p>
-                                  <span className="text-[10px] text-orange-400/60 font-medium">
-                                    ({billsDueSoon.length})
-                                  </span>
-                                </div>
-                                <div className="space-y-1">
-                                  {billsDueSoon.slice(0, 3).map((bill) => {
-                                    const daysUntil = getDaysUntilDue(bill.due_date);
-                                    const { icon: BillIcon, colorClass } = getBillIcon(bill);
-                                    return (
-                                      <button
-                                        key={bill.id}
-                                        onClick={() => {
-                                          setSelectedBill(bill);
-                                          setIsNotificationsOpen(false);
-                                        }}
-                                        className="group w-full flex items-center gap-3 p-3 rounded-xl bg-orange-500/[0.03] hover:bg-orange-500/[0.08] border border-orange-500/10 hover:border-orange-500/20 transition-all duration-200 text-left"
-                                      >
-                                        {/* Urgency indicator bar */}
-                                        <div
-                                          className="w-1 self-stretch rounded-full"
-                                          style={{
-                                            backgroundColor: daysUntil <= 3 ? 'var(--urgency-urgent)' : 'var(--urgency-soon)',
-                                            boxShadow: `0 0 6px ${daysUntil <= 3 ? 'var(--urgency-urgent)' : 'var(--urgency-soon)'}`
-                                          }}
-                                        />
-                                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-                                          <BillIcon className={cn("w-5 h-5", colorClass)} />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                          <p className="text-sm font-medium text-white truncate group-hover:text-orange-200 transition-colors">{bill.name}</p>
-                                          <p className="text-xs text-orange-400/80 mt-0.5">
-                                            {daysUntil === 0 ? 'Due today!' : daysUntil === 1 ? 'Due tomorrow' : `${daysUntil} days left`}
-                                          </p>
-                                        </div>
-                                        <div className="text-right">
-                                          <p className="text-sm font-semibold text-white">{bill.amount ? `$${bill.amount.toFixed(0)}` : ''}</p>
-                                        </div>
-                                      </button>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Footer */}
-                      {notificationCount > 0 && (
-                        <div className="px-4 py-3 border-t border-white/[0.06] bg-white/[0.02]">
-                          <button
-                            onClick={() => setIsNotificationsOpen(false)}
-                            className="w-full py-2 text-center text-sm font-medium text-white/70 hover:text-white rounded-lg hover:bg-white/5 transition-all duration-200"
-                          >
-                            View all bills →
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
               <button
                 onClick={handleAddBillClick}
                 className={cn(
@@ -1187,6 +984,23 @@ export default function DashboardPage() {
           isOpen={!!payingBill}
           onClose={() => setPayingBill(null)}
           onMarkPaid={handleMarkPaidFromPayNow}
+        />
+      )}
+
+      {/* Onboarding Modal for first-time users */}
+      {showOnboardingModal && (
+        <OnboardingModal
+          isGmailConnected={isGmailConnected}
+          onComplete={() => {
+            setShowOnboardingModal(false);
+            setShowOnboarding(true);
+          }}
+          onConnectGmail={() => {
+            window.location.href = '/api/gmail/connect';
+          }}
+          onSkip={() => {
+            // Continue to next step in modal
+          }}
         />
       )}
     </div>

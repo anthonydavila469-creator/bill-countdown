@@ -29,25 +29,12 @@ export async function scheduleNotificationsForBill(
     return result;
   }
 
-  // Calculate scheduled time: due_date - lead_days at 9AM in user's timezone
+  // Use reminder_days (multi) if available, otherwise fall back to lead_days (single)
+  const reminderDays = settings.reminder_days && settings.reminder_days.length > 0
+    ? settings.reminder_days
+    : [settings.lead_days];
+
   const dueDate = new Date(bill.due_date + 'T00:00:00');
-  const scheduledDate = new Date(dueDate);
-  scheduledDate.setDate(scheduledDate.getDate() - settings.lead_days);
-
-  // Set to 9AM in user's timezone
-  const scheduledFor = getScheduledTimeInTimezone(scheduledDate, settings.timezone, 9, 0);
-
-  // Skip if scheduled time is in the past
-  if (scheduledFor <= new Date()) {
-    result.skipped.push('Scheduled time is in the past');
-    return result;
-  }
-
-  // Skip if scheduled time is after due date
-  if (scheduledFor >= dueDate) {
-    result.skipped.push('Scheduled time is after due date');
-    return result;
-  }
 
   // Delete any existing pending notifications for this bill
   await supabase
@@ -61,31 +48,52 @@ export async function scheduleNotificationsForBill(
   if (settings.email_enabled) channels.push('email');
   if (settings.push_enabled) channels.push('push');
 
-  // Get the date portion for the unique constraint
-  const scheduledDateStr = scheduledFor.toISOString().split('T')[0];
+  for (const leadDays of reminderDays) {
+    // Calculate scheduled time: due_date - leadDays at 9AM in user's timezone
+    const scheduledDate = new Date(dueDate);
+    scheduledDate.setDate(scheduledDate.getDate() - leadDays);
 
-  for (const channel of channels) {
-    const { error } = await supabase
-      .from('bill_notifications_queue')
-      .insert({
-        user_id: bill.user_id,
-        bill_id: bill.id,
-        scheduled_for: scheduledFor.toISOString(),
-        scheduled_date: scheduledDateStr,
-        channel,
-        status: 'pending',
-      });
+    // Set to 9AM in user's timezone
+    const scheduledFor = getScheduledTimeInTimezone(scheduledDate, settings.timezone, 9, 0);
 
-    if (error) {
-      // Unique constraint violation means notification already exists for this day
-      if (error.code === '23505') {
-        result.skipped.push(`${channel} notification already scheduled for this day`);
+    // Skip if scheduled time is in the past
+    if (scheduledFor <= new Date()) {
+      result.skipped.push(`Scheduled time for ${leadDays}-day reminder is in the past`);
+      continue;
+    }
+
+    // Skip if scheduled time is after due date
+    if (scheduledFor >= dueDate) {
+      result.skipped.push(`Scheduled time for ${leadDays}-day reminder is after due date`);
+      continue;
+    }
+
+    // Get the date portion for the unique constraint
+    const scheduledDateStr = scheduledFor.toISOString().split('T')[0];
+
+    for (const channel of channels) {
+      const { error } = await supabase
+        .from('bill_notifications_queue')
+        .insert({
+          user_id: bill.user_id,
+          bill_id: bill.id,
+          scheduled_for: scheduledFor.toISOString(),
+          scheduled_date: scheduledDateStr,
+          channel,
+          status: 'pending',
+        });
+
+      if (error) {
+        // Unique constraint violation means notification already exists for this day
+        if (error.code === '23505') {
+          result.skipped.push(`${channel} notification already scheduled for this day`);
+        } else {
+          console.error(`Failed to schedule ${channel} notification:`, error);
+          result.skipped.push(`Failed to schedule ${channel}: ${error.message}`);
+        }
       } else {
-        console.error(`Failed to schedule ${channel} notification:`, error);
-        result.skipped.push(`Failed to schedule ${channel}: ${error.message}`);
+        result.scheduled++;
       }
-    } else {
-      result.scheduled++;
     }
   }
 
