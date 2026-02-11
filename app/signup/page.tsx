@@ -120,21 +120,14 @@ export default function SignupPage() {
             ))}
           </ul>
 
-          {/* Testimonial */}
-          <div className="mt-12 p-6 rounded-2xl bg-white/5 border border-white/10">
-            <p className="text-zinc-300 italic mb-4">
-              &ldquo;This app has saved me from so many late fees. The colorful
-              cards make it actually fun to check my bills!&rdquo;
+          {/* Social proof */}
+          <div className="mt-12 p-6 rounded-2xl bg-white/5 border border-white/10 text-center">
+            <p className="text-2xl font-bold bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
+              Join thousands of people
             </p>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-lg">
-                S
-              </div>
-              <div>
-                <p className="font-medium">Sarah M.</p>
-                <p className="text-sm text-zinc-500">Freelance Designer</p>
-              </div>
-            </div>
+            <p className="text-zinc-400 mt-1">
+              who never miss a bill again
+            </p>
           </div>
         </div>
       </div>
