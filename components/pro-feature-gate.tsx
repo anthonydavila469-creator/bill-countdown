@@ -56,7 +56,7 @@ export function ProFeatureGate({
 
   // Show upgrade prompt for free users
   return (
-    <div className="min-h-screen bg-[#08080c] flex items-center justify-center p-6">
+    <div className="min-h-screen bg-[#08080c] flex items-center justify-center p-6 pb-24">
       <div className="max-w-lg w-full">
         {/* Back link */}
         <Link
