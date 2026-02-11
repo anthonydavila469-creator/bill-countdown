@@ -107,7 +107,7 @@ export function ProFeatureGate({
                       "text-sm",
                       f.toLowerCase().includes(feature.toLowerCase())
                         ? "text-white font-medium"
-                        : "text-zinc-400"
+                        : "text-zinc-300"
                     )}>
                       {f}
                     </span>

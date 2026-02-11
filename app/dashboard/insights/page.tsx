@@ -45,11 +45,12 @@ import { CategoryBreakdown } from '@/components/insights/category-breakdown';
 import { CategoryChanges } from '@/components/insights/category-changes';
 import { NewBillsList } from '@/components/insights/new-bills-list';
 import { TrendChart } from '@/components/insights/trend-chart';
+import { ProFeatureGate } from '@/components/pro-feature-gate';
 
 export default function InsightsPage() {
   const router = useRouter();
   const supabase = createClient();
-  const { canUseCalendar, canUseHistory } = useSubscription();
+  const { canUseCalendar, canUseHistory, isPro } = useSubscription();
 
   // Auth state
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
@@ -177,6 +178,12 @@ export default function InsightsPage() {
   }
 
   return (
+    <ProFeatureGate
+      feature="analytics"
+      featureName="Analytics & Insights"
+      featureDescription="Get detailed analytics and spending insights to understand your finances better."
+      icon={Lightbulb}
+    >
     <div className="min-h-screen bg-[#08080c]">
       {/* Sidebar */}
       <aside className="fixed left-0 top-0 bottom-0 w-64 bg-[#0c0c10] border-r border-white/5 hidden lg:flex flex-col">
@@ -433,5 +440,6 @@ export default function InsightsPage() {
         </div>
       </main>
     </div>
+    </ProFeatureGate>
   );
 }
