@@ -53,7 +53,7 @@ export function CategoryChanges({ increases, decreases, isFirstMonth }: Category
       className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-5 animate-in fade-in slide-in-from-bottom-4 duration-500"
       style={{ animationDelay: '300ms', animationFillMode: 'backwards' }}
     >
-      {/* Spent More */}
+      {/* 📈 Increased from last month */}
       <div className="relative p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06] overflow-hidden group hover:border-rose-500/20 transition-colors duration-300">
         <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.02]" />
 
@@ -69,7 +69,7 @@ export function CategoryChanges({ increases, decreases, isFirstMonth }: Category
               <TrendingUp className="w-5 h-5 text-rose-400" />
             </div>
             <div>
-              <h3 className="text-base font-semibold text-white">Spent More</h3>
+              <h3 className="text-base font-semibold text-white">📈 Increased from last month</h3>
               <p className="text-xs text-zinc-500">vs. last month</p>
             </div>
           </div>
@@ -131,7 +131,7 @@ export function CategoryChanges({ increases, decreases, isFirstMonth }: Category
         </div>
       </div>
 
-      {/* Spent Less */}
+      {/* 📉 Decreased from last month */}
       <div className="relative p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06] overflow-hidden group hover:border-emerald-500/20 transition-colors duration-300">
         <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.02]" />
 
@@ -147,7 +147,7 @@ export function CategoryChanges({ increases, decreases, isFirstMonth }: Category
               <TrendingDown className="w-5 h-5 text-emerald-400" />
             </div>
             <div>
-              <h3 className="text-base font-semibold text-white">Spent Less</h3>
+              <h3 className="text-base font-semibold text-white">📉 Decreased from last month</h3>
               <p className="text-xs text-zinc-500">vs. last month</p>
             </div>
           </div>
