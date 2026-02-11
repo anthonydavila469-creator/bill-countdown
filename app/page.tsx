@@ -184,8 +184,37 @@ const steps = [
 ];
 
 export default function LandingPage() {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'Duezo',
+    applicationCategory: 'FinanceApplication',
+    operatingSystem: 'iOS, Web',
+    offers: [
+      {
+        '@type': 'Offer',
+        price: '0',
+        priceCurrency: 'USD',
+        description: 'Free plan — up to 5 bills',
+      },
+      {
+        '@type': 'Offer',
+        price: '4.99',
+        priceCurrency: 'USD',
+        description: 'Pro monthly — unlimited bills',
+      },
+    ],
+    description:
+      'Track every bill with beautiful countdown cards and AI-powered email sync. Never miss a payment again.',
+    url: 'https://duezo.app',
+  };
+
   return (
     <div className="min-h-screen bg-[#08080c] text-white overflow-x-hidden overflow-y-auto">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Ambient background gradients */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-orange-500/10 rounded-full blur-[120px]" />
@@ -271,11 +300,10 @@ export default function LandingPage() {
                 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1] mb-6 animate-in fade-in slide-in-from-bottom-4"
                 style={{ animationDelay: '100ms', animationFillMode: 'backwards' }}
               >
-                Never Miss a{' '}
+                Your Bills,{' '}
                 <span className="bg-gradient-to-r from-orange-400 via-amber-400 to-amber-400 bg-clip-text text-transparent">
-                  Bill Payment
-                </span>{' '}
-                Again
+                  On Autopilot
+                </span>
               </h1>
 
               {/* Subheadline */}
@@ -283,8 +311,8 @@ export default function LandingPage() {
                 className="text-lg text-zinc-400 mb-8 max-w-lg mx-auto lg:mx-0 animate-in fade-in slide-in-from-bottom-4"
                 style={{ animationDelay: '200ms', animationFillMode: 'backwards' }}
               >
-                Connect your email and let AI automatically track your bills.
-                Beautiful countdown cards show exactly when each payment is due.
+                AI scans your email and builds your bill dashboard automatically.
+                Beautiful countdown cards turn red as due dates approach — so you never pay late again.
               </p>
 
               {/* CTAs */}
@@ -592,8 +620,7 @@ export default function LandingPage() {
               </span>
             </h2>
             <p className="text-lg text-zinc-400 mb-8 max-w-2xl mx-auto">
-              Join thousands of users who never miss a payment. Start for free,
-              upgrade when you need more.
+              Set up in under 2 minutes. Track up to 5 bills completely free — no credit card, no catch.
             </p>
 
             <Link

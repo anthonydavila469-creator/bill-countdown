@@ -17,10 +17,15 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Duezo - Never Miss a Bill Payment",
-  description: "Track bill due dates with beautiful countdown cards and AI-powered email sync. Never miss a payment again.",
-  keywords: ["bills", "payments", "finance", "countdown", "reminders", "budget"],
+  title: {
+    default: "Duezo — Never Miss a Bill Payment Again",
+    template: "%s | Duezo",
+  },
+  description: "Track every bill with beautiful countdown cards and AI-powered email sync. Smart reminders, calendar view, and spending analytics. Free to start.",
+  keywords: ["bill tracker", "bill reminders", "payment due dates", "bill countdown", "finance app", "budget tracker", "recurring bills", "autopay tracker"],
   authors: [{ name: "Duezo" }],
+  creator: "Duezo",
+  metadataBase: new URL("https://duezo.app"),
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -32,14 +37,31 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    title: "Duezo - Never Miss a Bill Payment",
-    description: "Track bill due dates with beautiful countdown cards and AI-powered email sync.",
+    url: "https://duezo.app",
+    title: "Duezo — Never Miss a Bill Payment Again",
+    description: "Beautiful countdown cards + AI email sync. Track every bill, get smart reminders, and never pay late again.",
     siteName: "Duezo",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Duezo — Bill Tracking Made Beautiful",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Duezo - Never Miss a Bill Payment",
-    description: "Track bill due dates with beautiful countdown cards and AI-powered email sync.",
+    title: "Duezo — Never Miss a Bill Payment Again",
+    description: "Beautiful countdown cards + AI email sync. Track every bill, get smart reminders, and never pay late again.",
+    images: ["/og-image.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  alternates: {
+    canonical: "https://duezo.app",
   },
 };
 
@@ -50,7 +72,7 @@ export const viewport: Viewport = {
   userScalable: false,
   themeColor: [
     { media: "(prefers-color-scheme: dark)", color: "#08080c" },
-    { media: "(prefers-color-scheme: light)", color: "#3b82f6" },
+    { media: "(prefers-color-scheme: light)", color: "#f97316" },
   ],
 };
 
