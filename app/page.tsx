@@ -582,14 +582,14 @@ export default function LandingPage() {
                   <div className="hidden md:block absolute top-8 left-[60%] w-full h-px bg-gradient-to-r from-white/20 to-transparent" />
                 )}
 
-                <div className="relative">
+                <div className="group relative rounded-2xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-xl p-8 transition-all duration-300 hover:bg-white/[0.06] hover:border-white/[0.10]">
                   {/* Step number */}
                   <div className="text-6xl font-bold text-white/5 mb-4">
                     {step.number}
                   </div>
 
                   {/* Icon */}
-                  <div className="absolute top-4 left-16 w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/20 to-amber-500/20 border border-white/10 flex items-center justify-center">
+                  <div className="absolute top-8 left-8 w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/20 to-amber-500/20 border border-white/10 flex items-center justify-center">
                     <step.icon className="w-5 h-5 text-orange-400" />
                   </div>
 
