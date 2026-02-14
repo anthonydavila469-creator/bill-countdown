@@ -16,7 +16,18 @@ export function usePushNotifications(): UsePushNotificationsReturn {
   const [token, setToken] = useState<string | null>(null);
   const [permissionStatus, setPermissionStatus] = useState<'granted' | 'denied' | 'prompt'>('prompt');
   const [isSubscribed, setIsSubscribed] = useState(false);
-  const isNative = typeof window !== 'undefined' && Capacitor.isNativePlatform();
+  const [isNative, setIsNative] = useState(false);
+
+  // Detect native platform after mount (Capacitor bridge may not be ready during SSR)
+  useEffect(() => {
+    try {
+      const native = Capacitor.isNativePlatform();
+      console.log('[Push] isNativePlatform:', native);
+      setIsNative(native);
+    } catch {
+      setIsNative(false);
+    }
+  }, []);
 
   useEffect(() => {
     // Check for existing subscription on mount

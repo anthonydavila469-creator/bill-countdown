@@ -230,7 +230,7 @@ export default function NotificationsSettingsPage() {
               <div>
                 <p className="font-medium text-white">Push Notifications</p>
                 <p className="text-sm text-zinc-500">
-                  {!isSupported ? 'Not supported in this browser' : 'Get notified in your browser'}
+                  {!isSupported ? 'Not supported on this device' : 'Get notified when bills are due'}
                 </p>
               </div>
             </div>
