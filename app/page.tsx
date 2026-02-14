@@ -557,49 +557,122 @@ export default function LandingPage() {
       {/* How it Works Section */}
       <section
         id="how-it-works"
-        className="relative py-24 border-t border-white/5"
+        className="relative py-32 border-t border-white/5 overflow-hidden"
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Section background glow */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[500px] bg-gradient-to-r from-orange-500/[0.07] via-amber-500/[0.05] to-orange-500/[0.07] blur-[100px] rounded-full" />
+        </div>
+
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section header */}
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
-              Get Started in{' '}
+          <div className="text-center mb-20">
+            <span className="inline-block text-sm font-semibold bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent uppercase tracking-wider mb-3">
+              How it Works
+            </span>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-5">
+              Set Up in{' '}
               <span className="bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
-                3 Simple Steps
+                Under 2 Minutes
               </span>
             </h2>
-            <p className="text-zinc-400 max-w-2xl mx-auto">
-              From signup to peace of mind in under 5 minutes.
+            <p className="text-lg text-zinc-400 max-w-2xl mx-auto">
+              Three simple steps to never miss a bill again.
             </p>
           </div>
 
-          {/* Steps */}
-          <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
-            {steps.map((step, index) => (
-              <div key={step.number} className="relative">
-                {/* Connector line */}
-                {index < steps.length - 1 && (
-                  <div className="hidden md:block absolute top-8 left-[60%] w-full h-px bg-gradient-to-r from-white/20 to-transparent" />
-                )}
+          {/* Steps with connecting timeline */}
+          <div className="relative">
+            {/* Horizontal connector line (desktop) */}
+            <div className="hidden md:block absolute top-[72px] left-[16%] right-[16%] h-px">
+              <div className="w-full h-full bg-gradient-to-r from-orange-500/40 via-amber-500/40 to-green-500/40" />
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-500/40 via-amber-500/40 to-green-500/40 blur-sm" />
+            </div>
 
-                <div className="group relative rounded-2xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-xl p-8 transition-all duration-300 hover:bg-white/[0.06] hover:border-white/[0.10]">
-                  {/* Step number */}
-                  <div className="text-6xl font-bold text-white/5 mb-4">
-                    {step.number}
+            <div className="grid md:grid-cols-3 gap-10 lg:gap-16">
+              {/* Step 1: Connect Your Email */}
+              <div className="group relative text-center">
+                <div className="relative w-36 h-36 mx-auto mb-8">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-orange-500/20 to-amber-500/10 animate-pulse" style={{ animationDuration: '3s' }} />
+                  <div className="absolute inset-3 rounded-full bg-gradient-to-br from-orange-500/10 to-amber-500/5 border border-orange-500/20 backdrop-blur-sm flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
+                    <div className="relative">
+                      <div className="w-16 h-12 rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-lg shadow-orange-500/25 group-hover:shadow-orange-500/40 transition-shadow">
+                        <Mail className="w-8 h-8 text-white" />
+                      </div>
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-green-500 border-2 border-[#08080c] flex items-center justify-center">
+                        <Check className="w-3 h-3 text-white" />
+                      </div>
+                    </div>
                   </div>
-
-                  {/* Icon */}
-                  <div className="absolute top-8 left-8 w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/20 to-amber-500/20 border border-white/10 flex items-center justify-center">
-                    <step.icon className="w-5 h-5 text-orange-400" />
+                  <div className="absolute -top-1 -right-1 w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-sm font-bold shadow-lg shadow-orange-500/30">
+                    1
                   </div>
-
-                  <h3 className="text-xl font-semibold mb-2">{step.title}</h3>
-                  <p className="text-zinc-400 text-sm leading-relaxed">
-                    {step.description}
-                  </p>
                 </div>
+                <h3 className="text-xl font-bold mb-3">Connect Your Email</h3>
+                <p className="text-zinc-400 leading-relaxed max-w-xs mx-auto">
+                  One-click Gmail connect. We only read bill-related emails \u2014 your data stays private and encrypted.
+                </p>
               </div>
-            ))}
+
+              {/* Step 2: AI Finds Your Bills */}
+              <div className="group relative text-center">
+                <div className="relative w-36 h-36 mx-auto mb-8">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-amber-500/20 to-orange-500/10 animate-pulse" style={{ animationDuration: '3s', animationDelay: '1s' }} />
+                  <div className="absolute inset-3 rounded-full bg-gradient-to-br from-amber-500/10 to-orange-500/5 border border-amber-500/20 backdrop-blur-sm flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
+                    <div className="relative">
+                      <div className="w-16 h-12 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/25 group-hover:shadow-amber-500/40 transition-shadow">
+                        <Sparkles className="w-8 h-8 text-white" />
+                      </div>
+                      <div className="absolute -top-2 -left-3 w-2 h-2 rounded-full bg-amber-400 animate-ping" style={{ animationDuration: '2s' }} />
+                      <div className="absolute -top-1 -right-3 w-2 h-2 rounded-full bg-orange-400 animate-ping" style={{ animationDuration: '2s', animationDelay: '0.5s' }} />
+                      <div className="absolute -bottom-2 left-1/2 w-2 h-2 rounded-full bg-amber-400 animate-ping" style={{ animationDuration: '2s', animationDelay: '1s' }} />
+                    </div>
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-8 h-8 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-sm font-bold shadow-lg shadow-amber-500/30">
+                    2
+                  </div>
+                </div>
+                <h3 className="text-xl font-bold mb-3">AI Finds Your Bills</h3>
+                <p className="text-zinc-400 leading-relaxed max-w-xs mx-auto">
+                  Our AI scans your inbox and automatically extracts bill names, amounts, and due dates.
+                </p>
+              </div>
+
+              {/* Step 3: Never Miss a Due Date */}
+              <div className="group relative text-center">
+                <div className="relative w-36 h-36 mx-auto mb-8">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-green-500/20 to-emerald-500/10 animate-pulse" style={{ animationDuration: '3s', animationDelay: '2s' }} />
+                  <div className="absolute inset-3 rounded-full bg-gradient-to-br from-green-500/10 to-emerald-500/5 border border-green-500/20 backdrop-blur-sm flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
+                    <div className="relative">
+                      <div className="w-16 h-12 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center shadow-lg shadow-green-500/25 group-hover:shadow-green-500/40 transition-shadow">
+                        <Bell className="w-8 h-8 text-white" />
+                      </div>
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-green-500 border-2 border-[#08080c] flex items-center justify-center">
+                        <CheckCircle2 className="w-3 h-3 text-white" />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center text-sm font-bold shadow-lg shadow-green-500/30">
+                    3
+                  </div>
+                </div>
+                <h3 className="text-xl font-bold mb-3">Never Miss a Due Date</h3>
+                <p className="text-zinc-400 leading-relaxed max-w-xs mx-auto">
+                  Beautiful countdown cards and smart reminders keep you on track. Pay on time, every time.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom CTA */}
+          <div className="text-center mt-16">
+            <Link
+              href="/signup"
+              className="group inline-flex items-center gap-2 px-6 py-3 text-base font-semibold bg-gradient-to-r from-orange-500 to-amber-500 rounded-full hover:opacity-90 transition-opacity"
+            >
+              Try It Free
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
           </div>
         </div>
       </section>
