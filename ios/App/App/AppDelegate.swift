@@ -1,5 +1,6 @@
 import UIKit
 import Capacitor
+import WidgetKit
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -8,6 +9,27 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+
+        NSLog("[Duezo] AppDelegate didFinishLaunching CALLED")
+        // TODO: Remove before release — loads test data for widget preview
+        let json = """
+        {"version":1,"generatedAt":\(Int(Date().timeIntervalSince1970)),"currencyCode":"USD","totals":{"totalDue":1634.99,"deltaVsLastMonth":127.0},"nextBill":{"id":"test-1","vendor":"Netflix","amount":19.99,"dueDate":"2026-02-16","daysLeft":2},"upcoming":[{"id":"test-1","vendor":"Netflix","amount":19.99,"dueDate":"2026-02-16","daysLeft":2,"urgency":"critical"},{"id":"test-2","vendor":"Electric","amount":88.5,"dueDate":"2026-02-19","daysLeft":5,"urgency":"soon"},{"id":"test-3","vendor":"Rent","amount":1200.0,"dueDate":"2026-03-02","daysLeft":16,"urgency":"later"},{"id":"test-4","vendor":"Car Insurance","amount":272.5,"dueDate":"2026-03-06","daysLeft":20,"urgency":"later"}]}
+        """
+        if let defaults = UserDefaults(suiteName: "group.app.duezo") {
+            defaults.set(json.trimmingCharacters(in: .whitespacesAndNewlines), forKey: "duezo_widget_payload_v1")
+            // Only set theme if none exists — let the JS app sync the real theme
+            if defaults.string(forKey: "duezo_theme") == nil {
+                defaults.set("emerald", forKey: "duezo_theme")
+            }
+            defaults.set(Date().timeIntervalSince1970, forKey: "duezo_widget_last_updated")
+            defaults.synchronize()
+            WidgetCenter.shared.reloadAllTimelines()
+            NSLog("[Duezo] ✅ Test widget data loaded successfully")
+            NSLog("[Duezo] Payload: %@", json.trimmingCharacters(in: .whitespacesAndNewlines).prefix(100).description)
+        } else {
+            print("[Duezo] ❌ Failed to access App Group")
+        }
+
         return true
     }
 

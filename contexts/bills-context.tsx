@@ -191,6 +191,17 @@ export function BillsProvider({ children }: BillsProviderProps) {
             new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
         );
         dispatch({ type: 'SET_BILLS', bills: sortedBills });
+
+        // Sync bills to iOS widget with user's actual theme
+        Promise.all([
+          import('../lib/capacitor-plugins/sync-widget'),
+          fetch('/api/preferences').then(r => r.ok ? r.json() : null).catch(() => null)
+        ]).then(([{ syncWidgetPayload }, prefs]) => {
+          const theme = prefs?.color_theme || 'onyx';
+          console.log('[Duezo] syncWidgetPayload (bills-context) theme:', theme);
+          // Map app theme IDs to widget theme IDs
+          syncWidgetPayload(sortedBills, theme);
+        }).catch((e) => console.warn('[Duezo] syncWidgetPayload (bills-context) failed:', e));
       }
     } catch (error) {
       console.error('Failed to fetch bills:', error);
