@@ -578,7 +578,7 @@ export function tryRegexOnly(request: AIExtractionRequest): AIExtractionResult |
     name: topName.value,
     amount: bestAmount.value,
     dueDate: bestDate.value,
-    category: topName.category,
+    category: topName.category ?? null,
     evidence: [
       {
         field: 'amount',
