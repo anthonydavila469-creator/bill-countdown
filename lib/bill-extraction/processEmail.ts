@@ -16,7 +16,7 @@ import {
 } from './types';
 import { preprocessEmail } from './preprocessEmail';
 import { extractCandidates } from './extractCandidates';
-import { extractWithClaude, createMockExtraction } from './anthropicExtract';
+import { extractWithClaude, extractTiered, createMockExtraction, TieredExtractionResult } from './anthropicExtract';
 import { classifyBillEmail, BillAIResult } from './classifyBillEmail';
 import { BillPromptEmailInput } from './claudePrompts';
 import { validateExtraction, determineRoute } from './validateExtraction';
@@ -534,11 +534,11 @@ export async function processEmail(
         candidateNames: candidates.names,
       };
 
-      const aiResult = skipAI
-        ? createMockExtraction(aiRequest)
-        : await extractWithClaude(aiRequest);
+      const aiResult: TieredExtractionResult = skipAI
+        ? { ...createMockExtraction(aiRequest), tier: 3 as const, tierName: 'sonnet' as const, processingTimeMs: 0 }
+        : await extractTiered(aiRequest);
 
-      console.log(`[Stage] AI Extract (UNCERTAIN) "${email.subject.substring(0, 40)}" - name=${aiResult.name}, amount=${aiResult.amount}, dueDate=${aiResult.dueDate}`);
+      console.log(`[Stage] AI Extract (UNCERTAIN) "${email.subject.substring(0, 40)}" - tier=${aiResult.tier} (${aiResult.tierName}), name=${aiResult.name}, amount=${aiResult.amount}, dueDate=${aiResult.dueDate}`);
 
       // Use extracted data, falling back to classifier data, then rule-based
       const extractedName = aiResult.name || classification.vendorName || fallbackName;
@@ -577,6 +577,9 @@ export async function processEmail(
 
       console.log(`[Pipeline] UNCERTAIN "${email.subject.substring(0, 40)}" - confidence=${validation.adjustedConfidence.overall.toFixed(2)}, route=${route}, status=${finalStatus}`);
 
+      // Log tier analytics
+      console.log(`[Analytics] UNCERTAIN path - tier=${aiResult.tier}, model=${aiResult.tierName}, confidence=${validation.adjustedConfidence.overall.toFixed(2)}, tokens=${aiResult.tokensUsed || 0}, timeMs=${aiResult.processingTimeMs}`);
+
       // Store with validated confidence and proper status
       const extraction = await storeExtraction(userId, rawEmail?.id || null, {
         status: finalStatus,
@@ -591,8 +594,8 @@ export async function processEmail(
         evidence_snippets: aiResult.evidence,
         candidate_amounts: candidates.amounts,
         candidate_dates: candidates.dates,
-        ai_model_used: skipAI ? 'mock' : AI_CONFIG.model,
-        ai_raw_response: JSON.stringify({ classification, extraction: aiResult }), // Store FULL JSON
+        ai_model_used: skipAI ? 'mock' : `tier-${aiResult.tier}-${aiResult.tierName}`,
+        ai_raw_response: JSON.stringify({ classification, extraction: aiResult, tier: aiResult.tier, tierName: aiResult.tierName, processingTimeMs: aiResult.processingTimeMs }), // Store FULL JSON with tier info
         ai_tokens_used: aiResult.tokensUsed || null,
         is_duplicate: validation.isDuplicate,
         payment_url: classification.paymentLink,
@@ -621,7 +624,7 @@ export async function processEmail(
     // decision === 'BILL' - continue with existing extraction pipeline
     console.log(`[Pipeline] Classifier approved "${email.subject}" as BILL - continuing extraction`);
 
-    // Stage 3+4: Claude AI extraction (or mock if skipAI)
+    // Stage 3+4: Tiered AI extraction (regex → Haiku → Sonnet, or mock if skipAI)
     const aiRequest = {
       emailId: rawEmail?.id || email.gmail_message_id,
       subject: email.subject,
@@ -632,10 +635,10 @@ export async function processEmail(
       candidateNames: candidates.names,
     };
 
-    const aiResult = skipAI
-      ? createMockExtraction(aiRequest)
-      : await extractWithClaude(aiRequest);
-    console.log(`[Stage] AI Extract "${email.subject.substring(0, 40)}" - name=${aiResult.name}, amount=${aiResult.amount}, dueDate=${aiResult.dueDate}`);
+    const aiResult: TieredExtractionResult = skipAI
+      ? { ...createMockExtraction(aiRequest), tier: 3 as const, tierName: 'sonnet' as const, processingTimeMs: 0 }
+      : await extractTiered(aiRequest);
+    console.log(`[Stage] AI Extract "${email.subject.substring(0, 40)}" - tier=${aiResult.tier} (${aiResult.tierName}), name=${aiResult.name}, amount=${aiResult.amount}, dueDate=${aiResult.dueDate}`);
 
     // Note: isBill check removed - classifier already approved this email as BILL
     // Use classification data to augment extraction if AI extraction is missing data
@@ -703,6 +706,9 @@ export async function processEmail(
       paymentLinkResult.confidence
     );
 
+    // Log tier analytics
+    console.log(`[Analytics] BILL path - tier=${aiResult.tier}, model=${aiResult.tierName}, confidence=${validation.adjustedConfidence.overall.toFixed(2)}, tokens=${aiResult.tokensUsed || 0}, timeMs=${aiResult.processingTimeMs}`);
+
     console.log(`[Pipeline] Creating extraction for "${email.subject}" - route: ${route}`);
 
     // Determine clean status using ExtractionStatus type:
@@ -737,8 +743,14 @@ export async function processEmail(
       evidence_snippets: aiResult.evidence,
       candidate_amounts: candidates.amounts,
       candidate_dates: candidates.dates,
-      ai_model_used: skipAI ? 'mock' : AI_CONFIG.model,
-      ai_raw_response: JSON.stringify({ classification, extraction: aiResult }), // Store FULL JSON
+      ai_model_used: skipAI ? 'mock' : `tier-${aiResult.tier}-${aiResult.tierName}`,
+      ai_raw_response: JSON.stringify({ 
+        classification, 
+        extraction: aiResult, 
+        tier: aiResult.tier, 
+        tierName: aiResult.tierName, 
+        processingTimeMs: aiResult.processingTimeMs 
+      }), // Store FULL JSON with tier info
       ai_tokens_used: aiResult.tokensUsed || null,
       is_duplicate: validation.isDuplicate,
       // Payment link fields - prefer classifier's link if extraction didn't find one

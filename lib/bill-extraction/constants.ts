@@ -471,6 +471,27 @@ export const AI_CONFIG = {
   maxBodyLength: 3000, // Truncate email body to this length
 };
 
+export const AI_CONFIG_HAIKU = {
+  model: 'claude-haiku-4-5-20241022',
+  maxTokens: 2048,
+  maxBodyLength: 3000, // Same truncation as Sonnet
+};
+
+// ============================================================================
+// TIERED PARSING CONFIGURATION
+// ============================================================================
+
+export const TIER_CONFIG = {
+  // Tier 1: Regex-only threshold (known biller + high keyword scores)
+  tier1KeywordThreshold: 3,  // Both amount and date must have score > 3
+  tier1Confidence: 0.90,     // Confidence for regex-only matches
+
+  // Tier 2: Haiku acceptance threshold
+  tier2ConfidenceThreshold: 0.85,  // If Haiku confidence >= 0.85, accept it
+
+  // Tier 3: Sonnet is always used as fallback (no threshold needed)
+};
+
 // ============================================================================
 // PAYMENT LINK EXTRACTION CONSTANTS
 // ============================================================================

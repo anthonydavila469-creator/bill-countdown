@@ -79,7 +79,14 @@ export {
 } from './extractCandidates';
 
 // AI Extraction
-export { extractWithClaude, createMockExtraction } from './anthropicExtract';
+export { 
+  extractWithClaude, 
+  extractWithHaiku,
+  tryRegexOnly,
+  extractTiered,
+  createMockExtraction 
+} from './anthropicExtract';
+export type { TieredExtractionResult } from './anthropicExtract';
 
 // Bill Classification
 export { classifyBillEmail } from './classifyBillEmail';
