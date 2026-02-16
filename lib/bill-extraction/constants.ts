@@ -472,7 +472,7 @@ export const AI_CONFIG = {
 };
 
 export const AI_CONFIG_HAIKU = {
-  model: 'claude-haiku-4-5-20241022',
+  model: 'claude-3-5-haiku-20241022',
   maxTokens: 2048,
   maxBodyLength: 3000, // Same truncation as Sonnet
 };
