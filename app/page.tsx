@@ -610,7 +610,7 @@ export default function LandingPage() {
                 </div>
                 <h3 className="text-xl font-bold mb-3">Connect Your Email</h3>
                 <p className="text-zinc-400 leading-relaxed max-w-xs mx-auto">
-                  One-click Gmail connect. We only read bill-related emails \u2014 your data stays private and encrypted.
+                  One-click Gmail connection. We only read bill-related emails \u2014 your data stays private and encrypted.
                 </p>
               </div>
 
@@ -634,7 +634,7 @@ export default function LandingPage() {
                 </div>
                 <h3 className="text-xl font-bold mb-3">AI Finds Your Bills</h3>
                 <p className="text-zinc-400 leading-relaxed max-w-xs mx-auto">
-                  Our AI scans your inbox and automatically extracts bill names, amounts, and due dates.
+                  Our AI scans your inbox and automatically detects bills, extracting names, amounts, and due dates.
                 </p>
               </div>
 
@@ -658,7 +658,7 @@ export default function LandingPage() {
                 </div>
                 <h3 className="text-xl font-bold mb-3">Never Miss a Due Date</h3>
                 <p className="text-zinc-400 leading-relaxed max-w-xs mx-auto">
-                  Beautiful countdown cards and smart reminders keep you on track. Pay on time, every time.
+                  Countdown cards shift from amber to red as due dates approach, plus reminder notifications so you never miss a bill.
                 </p>
               </div>
             </div>
