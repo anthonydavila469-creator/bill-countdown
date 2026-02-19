@@ -33,7 +33,6 @@ import { BillImportModal } from '@/components/bill-import-modal';
 import { CustomizationSection } from '@/components/settings/customization-section';
 import { NotificationSection } from '@/components/settings/notification-section';
 import { SubscriptionSection } from '@/components/settings/subscription-section';
-import { WidgetSection } from '@/components/settings/widget-section';
 import { DeleteAccountModal } from '@/components/settings/delete-account-modal';
 import { ParsedBill } from '@/types';
 import { useBillsContext } from '@/contexts/bills-context';
@@ -745,11 +744,6 @@ export default function SettingsPage() {
           {/* Customization Section */}
           <section>
             <CustomizationSection />
-          </section>
-
-          {/* Widget Section */}
-          <section>
-            <WidgetSection />
           </section>
 
           {/* Subscription */}
