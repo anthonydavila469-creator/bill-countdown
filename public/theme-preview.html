@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Duezo — Theme Preview</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+      background: #000;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── THEME PICKER ── */
+    .picker {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(0,0,0,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding: 12px 16px;
+    }
+    .picker-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+      margin-bottom: 10px;
+    }
+    .picker-row {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-bottom: 2px;
+    }
+    .picker-row::-webkit-scrollbar { display: none; }
+    .theme-btn {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      padding: 4px;
+    }
+    .theme-swatch {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      border: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .theme-btn.active .theme-swatch {
+      border-color: #fff;
+      transform: scale(1.1);
+    }
+    .theme-name {
+      font-size: 9px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.4);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .theme-btn.active .theme-name { color: #fff; }
+
+    /* ── PHONE MOCK ── */
+    .phone-wrap {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 100px 0 20px;
+    }
+    .phone {
+      width: 100%;
+      max-width: 390px;
+      min-height: calc(100vh - 120px);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── MOCK UI ── */
+    .screen {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: 72px;
+      overflow-y: auto;
+    }
+
+    /* Header */
+    .header {
+      padding: 20px 20px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header-left {}
+    .greeting {
+      font-size: 13px;
+      font-weight: 400;
+      margin-bottom: 2px;
+    }
+    .app-title {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+    .header-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    /* Hero card */
+    .hero-card {
+      margin: 0 16px 20px;
+      border-radius: 20px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      opacity: 0.7;
+    }
+    .hero-amount {
+      font-size: 38px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .hero-sub {
+      font-size: 12px;
+      opacity: 0.6;
+    }
+    .hero-badge {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    /* Section */
+    .section-header {
+      padding: 0 20px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .section-title {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+    }
+    .section-action {
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* Bill cards */
+    .bills-list {
+      padding: 0 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .bill-card {
+      border-radius: 16px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      border: 1px solid transparent;
+    }
+    .bill-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .bill-info { flex: 1; min-width: 0; }
+    .bill-name {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    .bill-due {
+      font-size: 11px;
+      opacity: 0.5;
+    }
+    .bill-right { text-align: right; }
+    .bill-amount {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .bill-countdown {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+
+    /* Add button */
+    .add-btn {
+      margin: 0 16px 20px;
+      padding: 15px;
+      border-radius: 16px;
+      border: 2px dashed transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      background: none;
+    }
+    .add-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 300;
+    }
+
+    /* Primary CTA */
+    .cta-btn {
+      margin: 0 16px 20px;
+      padding: 16px;
+      border-radius: 16px;
+      border: none;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+    }
+
+    /* Bottom nav */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      max-width: 390px;
+      margin: 0 auto;
+      height: 72px;
+      border-top: 1px solid transparent;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 0 8px;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 8px 12px;
+      border-radius: 12px;
+      min-width: 56px;
+    }
+    .nav-item.active {
+      position: relative;
+    }
+    .nav-icon { font-size: 20px; line-height: 1; }
+    .nav-label { font-size: 9px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+
+    /* ───────────────────────────────────────
+       THEMES
+    ─────────────────────────────────────── */
+
+    /* 1. Current (Orange) */
+    body.t-orange .screen { background: #08080c; }
+    body.t-orange .greeting { color: rgba(255,255,255,0.45); }
+    body.t-orange .app-title { color: #fff; }
+    body.t-orange .header-avatar { background: #1a1a22; color: #ff6b00; }
+    body.t-orange .hero-card { background: linear-gradient(135deg, #1a0f00 0%, #2a1500 100%); }
+    body.t-orange .hero-label { color: #ff9a4d; }
+    body.t-orange .hero-amount { color: #fff; }
+    body.t-orange .hero-sub { color: rgba(255,255,255,0.5); }
+    body.t-orange .hero-badge { background: rgba(255,107,0,0.2); color: #ff6b00; }
+    body.t-orange .section-title { color: #fff; }
+    body.t-orange .section-action { color: #ff6b00; }
+    body.t-orange .bill-card { background: #0f0f16; border-color: rgba(255,255,255,0.06); }
+    body.t-orange .bill-name { color: #fff; }
+    body.t-orange .bill-due { color: rgba(255,255,255,0.4); }
+    body.t-orange .bill-amount { color: #fff; }
+    body.t-orange .add-btn { border-color: rgba(255,107,0,0.3); color: #ff6b00; }
+    body.t-orange .add-icon { background: rgba(255,107,0,0.15); color: #ff6b00; }
+    body.t-orange .cta-btn { background: #ff6b00; color: #fff; }
+    body.t-orange .bottom-nav { background: #0a0a0e; border-color: rgba(255,255,255,0.06); }
+    body.t-orange .nav-item { color: rgba(255,255,255,0.35); }
+    body.t-orange .nav-item.active { background: rgba(255,107,0,0.12); color: #ff6b00; }
+
+    /* 2. Frost (Black & White) */
+    body.t-frost .screen { background: #0a0a0a; }
+    body.t-frost .greeting { color: rgba(255,255,255,0.4); }
+    body.t-frost .app-title { color: #fff; }
+    body.t-frost .header-avatar { background: #1a1a1a; color: #fff; }
+    body.t-frost .hero-card { background: #141414; border: 1px solid rgba(255,255,255,0.1); }
+    body.t-frost .hero-label { color: rgba(255,255,255,0.5); }
+    body.t-frost .hero-amount { color: #fff; }
+    body.t-frost .hero-sub { color: rgba(255,255,255,0.4); }
+    body.t-frost .hero-badge { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); }
+    body.t-frost .section-title { color: #fff; }
+    body.t-frost .section-action { color: rgba(255,255,255,0.5); }
+    body.t-frost .bill-card { background: #111; border-color: rgba(255,255,255,0.07); }
+    body.t-frost .bill-name { color: #fff; }
+    body.t-frost .bill-due { color: rgba(255,255,255,0.35); }
+    body.t-frost .bill-amount { color: #fff; }
+    body.t-frost .add-btn { border-color: rgba(255,255,255,0.15); color: rgba(255,255,255,0.5); }
+    body.t-frost .add-icon { background: rgba(255,255,255,0.08); color: #fff; }
+    body.t-frost .cta-btn { background: #fff; color: #000; }
+    body.t-frost .bottom-nav { background: #0a0a0a; border-color: rgba(255,255,255,0.07); }
+    body.t-frost .nav-item { color: rgba(255,255,255,0.3); }
+    body.t-frost .nav-item.active { background: rgba(255,255,255,0.08); color: #fff; }
+
+    /* 3. Violet */
+    body.t-violet .screen { background: #080810; }
+    body.t-violet .greeting { color: rgba(255,255,255,0.4); }
+    body.t-violet .app-title { color: #fff; }
+    body.t-violet .header-avatar { background: #13102a; color: #a78bfa; }
+    body.t-violet .hero-card { background: linear-gradient(135deg, #130d2e 0%, #1a1040 100%); }
+    body.t-violet .hero-label { color: #c4b5fd; }
+    body.t-violet .hero-amount { color: #fff; }
+    body.t-violet .hero-sub { color: rgba(255,255,255,0.45); }
+    body.t-violet .hero-badge { background: rgba(139,92,246,0.2); color: #a78bfa; }
+    body.t-violet .section-title { color: #fff; }
+    body.t-violet .section-action { color: #a78bfa; }
+    body.t-violet .bill-card { background: #0e0e1a; border-color: rgba(255,255,255,0.06); }
+    body.t-violet .bill-name { color: #fff; }
+    body.t-violet .bill-due { color: rgba(255,255,255,0.35); }
+    body.t-violet .bill-amount { color: #fff; }
+    body.t-violet .add-btn { border-color: rgba(139,92,246,0.3); color: #a78bfa; }
+    body.t-violet .add-icon { background: rgba(139,92,246,0.15); color: #a78bfa; }
+    body.t-violet .cta-btn { background: #7c3aed; color: #fff; }
+    body.t-violet .bottom-nav { background: #080810; border-color: rgba(255,255,255,0.06); }
+    body.t-violet .nav-item { color: rgba(255,255,255,0.3); }
+    body.t-violet .nav-item.active { background: rgba(139,92,246,0.12); color: #a78bfa; }
+
+    /* 4. Sapphire (Blue) */
+    body.t-sapphire .screen { background: #080c14; }
+    body.t-sapphire .greeting { color: rgba(255,255,255,0.4); }
+    body.t-sapphire .app-title { color: #fff; }
+    body.t-sapphire .header-avatar { background: #0d1628; color: #60a5fa; }
+    body.t-sapphire .hero-card { background: linear-gradient(135deg, #0a1628 0%, #0d1e3a 100%); }
+    body.t-sapphire .hero-label { color: #93c5fd; }
+    body.t-sapphire .hero-amount { color: #fff; }
+    body.t-sapphire .hero-sub { color: rgba(255,255,255,0.45); }
+    body.t-sapphire .hero-badge { background: rgba(59,130,246,0.2); color: #60a5fa; }
+    body.t-sapphire .section-title { color: #fff; }
+    body.t-sapphire .section-action { color: #60a5fa; }
+    body.t-sapphire .bill-card { background: #0c1018; border-color: rgba(255,255,255,0.06); }
+    body.t-sapphire .bill-name { color: #fff; }
+    body.t-sapphire .bill-due { color: rgba(255,255,255,0.35); }
+    body.t-sapphire .bill-amount { color: #fff; }
+    body.t-sapphire .add-btn { border-color: rgba(59,130,246,0.3); color: #60a5fa; }
+    body.t-sapphire .add-icon { background: rgba(59,130,246,0.15); color: #60a5fa; }
+    body.t-sapphire .cta-btn { background: #2563eb; color: #fff; }
+    body.t-sapphire .bottom-nav { background: #080c14; border-color: rgba(255,255,255,0.06); }
+    body.t-sapphire .nav-item { color: rgba(255,255,255,0.3); }
+    body.t-sapphire .nav-item.active { background: rgba(59,130,246,0.12); color: #60a5fa; }
+
+    /* 5. Emerald */
+    body.t-emerald .screen { background: #060e0a; }
+    body.t-emerald .greeting { color: rgba(255,255,255,0.4); }
+    body.t-emerald .app-title { color: #fff; }
+    body.t-emerald .header-avatar { background: #0a1e12; color: #34d399; }
+    body.t-emerald .hero-card { background: linear-gradient(135deg, #061810 0%, #0a2018 100%); }
+    body.t-emerald .hero-label { color: #6ee7b7; }
+    body.t-emerald .hero-amount { color: #fff; }
+    body.t-emerald .hero-sub { color: rgba(255,255,255,0.45); }
+    body.t-emerald .hero-badge { background: rgba(16,185,129,0.2); color: #34d399; }
+    body.t-emerald .section-title { color: #fff; }
+    body.t-emerald .section-action { color: #34d399; }
+    body.t-emerald .bill-card { background: #0a120c; border-color: rgba(255,255,255,0.06); }
+    body.t-emerald .bill-name { color: #fff; }
+    body.t-emerald .bill-due { color: rgba(255,255,255,0.35); }
+    body.t-emerald .bill-amount { color: #fff; }
+    body.t-emerald .add-btn { border-color: rgba(16,185,129,0.3); color: #34d399; }
+    body.t-emerald .add-icon { background: rgba(16,185,129,0.15); color: #34d399; }
+    body.t-emerald .cta-btn { background: #059669; color: #fff; }
+    body.t-emerald .bottom-nav { background: #060e0a; border-color: rgba(255,255,255,0.06); }
+    body.t-emerald .nav-item { color: rgba(255,255,255,0.3); }
+    body.t-emerald .nav-item.active { background: rgba(16,185,129,0.12); color: #34d399; }
+
+    /* 6. Crimson */
+    body.t-crimson .screen { background: #0c0808; }
+    body.t-crimson .greeting { color: rgba(255,255,255,0.4); }
+    body.t-crimson .app-title { color: #fff; }
+    body.t-crimson .header-avatar { background: #1e0c0c; color: #f87171; }
+    body.t-crimson .hero-card { background: linear-gradient(135deg, #1a0808 0%, #240c0c 100%); }
+    body.t-crimson .hero-label { color: #fca5a5; }
+    body.t-crimson .hero-amount { color: #fff; }
+    body.t-crimson .hero-sub { color: rgba(255,255,255,0.45); }
+    body.t-crimson .hero-badge { background: rgba(239,68,68,0.2); color: #f87171; }
+    body.t-crimson .section-title { color: #fff; }
+    body.t-crimson .section-action { color: #f87171; }
+    body.t-crimson .bill-card { background: #100c0c; border-color: rgba(255,255,255,0.06); }
+    body.t-crimson .bill-name { color: #fff; }
+    body.t-crimson .bill-due { color: rgba(255,255,255,0.35); }
+    body.t-crimson .bill-amount { color: #fff; }
+    body.t-crimson .add-btn { border-color: rgba(239,68,68,0.3); color: #f87171; }
+    body.t-crimson .add-icon { background: rgba(239,68,68,0.15); color: #f87171; }
+    body.t-crimson .cta-btn { background: #dc2626; color: #fff; }
+    body.t-crimson .bottom-nav { background: #0c0808; border-color: rgba(255,255,255,0.06); }
+    body.t-crimson .nav-item { color: rgba(255,255,255,0.3); }
+    body.t-crimson .nav-item.active { background: rgba(239,68,68,0.12); color: #f87171; }
+
+    /* Bill countdown badge colors (consistent across all themes) */
+    .badge-red { background: rgba(239,68,68,0.15); color: #f87171; }
+    .badge-yellow { background: rgba(234,179,8,0.15); color: #facc15; }
+    .badge-green { background: rgba(34,197,94,0.15); color: #4ade80; }
+    .badge-blue { background: rgba(59,130,246,0.12); color: #93c5fd; }
+  </style>
+</head>
+<body class="t-frost">
+
+  <!-- Theme Picker -->
+  <div class="picker">
+    <div class="picker-label">Pick a theme</div>
+    <div class="picker-row">
+      <button class="theme-btn" data-theme="t-orange" onclick="setTheme('t-orange', this)">
+        <div class="theme-swatch" style="background: linear-gradient(135deg,#ff6b00,#ff9a4d)"></div>
+        <span class="theme-name">Orange</span>
+      </button>
+      <button class="theme-btn active" data-theme="t-frost" onclick="setTheme('t-frost', this)">
+        <div class="theme-swatch" style="background: linear-gradient(135deg,#1a1a1a,#333)"></div>
+        <span class="theme-name">Frost</span>
+      </button>
+      <button class="theme-btn" data-theme="t-violet" onclick="setTheme('t-violet', this)">
+        <div class="theme-swatch" style="background: linear-gradient(135deg,#7c3aed,#a78bfa)"></div>
+        <span class="theme-name">Violet</span>
+      </button>
+      <button class="theme-btn" data-theme="t-sapphire" onclick="setTheme('t-sapphire', this)">
+        <div class="theme-swatch" style="background: linear-gradient(135deg,#1d4ed8,#60a5fa)"></div>
+        <span class="theme-name">Sapphire</span>
+      </button>
+      <button class="theme-btn" data-theme="t-emerald" onclick="setTheme('t-emerald', this)">
+        <div class="theme-swatch" style="background: linear-gradient(135deg,#059669,#34d399)"></div>
+        <span class="theme-name">Emerald</span>
+      </button>
+      <button class="theme-btn" data-theme="t-crimson" onclick="setTheme('t-crimson', this)">
+        <div class="theme-swatch" style="background: linear-gradient(135deg,#b91c1c,#f87171)"></div>
+        <span class="theme-name">Crimson</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Phone -->
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="screen">
+
+        <!-- Header -->
+        <div class="header">
+          <div class="header-left">
+            <div class="greeting">Good afternoon,</div>
+            <div class="app-title">Due<span id="accent-title">zo</span></div>
+          </div>
+          <div class="header-avatar">A</div>
+        </div>
+
+        <!-- Hero Card -->
+        <div class="hero-card">
+          <div class="hero-label">Due This Month</div>
+          <div class="hero-amount">$847<span style="font-size:22px;opacity:.6">.50</span></div>
+          <div class="hero-sub">3 bills · next due in 4 days</div>
+          <div class="hero-badge">Pro</div>
+        </div>
+
+        <!-- Bills Section -->
+        <div class="section-header">
+          <div class="section-title">Upcoming Bills</div>
+          <div class="section-action">See all</div>
+        </div>
+
+        <div class="bills-list">
+
+          <!-- Overdue -->
+          <div class="bill-card">
+            <div class="bill-icon" style="background:rgba(239,68,68,0.12)">⚡</div>
+            <div class="bill-info">
+              <div class="bill-name">Electric Bill</div>
+              <div class="bill-due">Due Feb 15 · Overdue</div>
+            </div>
+            <div class="bill-right">
+              <div class="bill-amount">$124.00</div>
+              <div class="bill-countdown badge-red">2 days late</div>
+            </div>
+          </div>
+
+          <!-- Due soon -->
+          <div class="bill-card">
+            <div class="bill-icon" style="background:rgba(99,102,241,0.12)">📱</div>
+            <div class="bill-info">
+              <div class="bill-name">Phone Plan</div>
+              <div class="bill-due">Due Feb 23 · T-Mobile</div>
+            </div>
+            <div class="bill-right">
+              <div class="bill-amount">$65.00</div>
+              <div class="bill-countdown badge-yellow">4 days</div>
+            </div>
+          </div>
+
+          <!-- Coming up -->
+          <div class="bill-card">
+            <div class="bill-icon" style="background:rgba(16,185,129,0.1)">🎵</div>
+            <div class="bill-info">
+              <div class="bill-name">Spotify</div>
+              <div class="bill-due">Due Mar 1 · Monthly</div>
+            </div>
+            <div class="bill-right">
+              <div class="bill-amount">$11.99</div>
+              <div class="bill-countdown badge-green">10 days</div>
+            </div>
+          </div>
+
+          <!-- Further out -->
+          <div class="bill-card">
+            <div class="bill-icon" style="background:rgba(59,130,246,0.1)">🌐</div>
+            <div class="bill-info">
+              <div class="bill-name">Internet</div>
+              <div class="bill-due">Due Mar 5 · Xfinity</div>
+            </div>
+            <div class="bill-right">
+              <div class="bill-amount">$89.99</div>
+              <div class="bill-countdown badge-blue">14 days</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Add Bill -->
+        <button class="add-btn">
+          <div class="add-icon">+</div>
+          Add a bill
+        </button>
+
+        <!-- CTA -->
+        <button class="cta-btn">Sync Gmail Bills</button>
+
+      </div>
+
+      <!-- Bottom Nav -->
+      <nav class="bottom-nav">
+        <div class="nav-item active">
+          <div class="nav-icon">⊞</div>
+          <div class="nav-label">Home</div>
+        </div>
+        <div class="nav-item">
+          <div class="nav-icon">📅</div>
+          <div class="nav-label">Calendar</div>
+        </div>
+        <div class="nav-item">
+          <div class="nav-icon">💡</div>
+          <div class="nav-label">Insights</div>
+        </div>
+        <div class="nav-item">
+          <div class="nav-icon">📋</div>
+          <div class="nav-label">History</div>
+        </div>
+        <div class="nav-item">
+          <div class="nav-icon">⚙️</div>
+          <div class="nav-label">Settings</div>
+        </div>
+      </nav>
+    </div>
+  </div>
+
+  <script>
+    function setTheme(theme, btn) {
+      // Remove all theme classes
+      document.body.className = theme;
+      // Update active button
+      document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      // Save preference
+      localStorage.setItem('duezo-theme-preview', theme);
+    }
+    // Restore last pick
+    const saved = localStorage.getItem('duezo-theme-preview');
+    if (saved) {
+      const btn = document.querySelector('[data-theme="' + saved + '"]');
+      if (btn) setTheme(saved, btn);
+    }
+  </script>
+</body>
+</html>
