@@ -8,6 +8,7 @@ import {
   useCallback,
   ReactNode,
 } from 'react';
+import { Capacitor } from '@capacitor/core';
 import {
   DashboardLayout,
   ColorThemeId,
@@ -128,15 +129,44 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   // Update theme
   // TODO: Re-enable Pro check after testing: if (!isPro) return;
   const updateTheme = useCallback(async (themeId: ColorThemeId) => {
-    setSelectedTheme(themeId);
-    applyCSSVariables(themeId);
+    const validThemeId = getValidThemeId(themeId);
+    console.log('[Duezo] updateTheme requested:', themeId, '->', validThemeId);
+    setSelectedTheme(validThemeId);
+    applyCSSVariables(validThemeId);
 
     try {
       await fetch('/api/preferences', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ color_theme: themeId }),
+        body: JSON.stringify({ color_theme: validThemeId }),
       });
+
+      // Sync theme to iOS widget via App Groups — direct call, no dependency on bills
+      if (Capacitor.isNativePlatform()) {
+        import('../lib/capacitor-plugins/widget-bridge').then(({ default: DuezoWidgetBridge }) => {
+          DuezoWidgetBridge.setTheme({ theme: validThemeId })
+            .then(() => console.log('[Duezo] Widget theme set to:', validThemeId))
+            .catch((e) => console.warn('[Duezo] setTheme failed:', e));
+        }).catch((e) => console.warn('[Duezo] setTheme import failed:', e));
+      } else {
+        console.log('[Duezo] Skipping setTheme (not native)');
+      }
+
+      // Also re-sync the full payload so widget data refreshes with new theme
+      if (Capacitor.isNativePlatform()) {
+        import('../lib/capacitor-plugins/sync-widget').then(({ syncWidgetPayload }) => {
+          fetch('/api/bills').then(r => r.ok ? r.json() : null).then(data => {
+            if (data?.bills) {
+              const sortedBills = [...data.bills]
+                .filter((b: any) => !b.is_paid)
+                .sort((a: any, b: any) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
+              syncWidgetPayload(sortedBills, validThemeId);
+            }
+          }).catch((e) => console.warn('[Duezo] syncWidgetPayload bills fetch failed:', e));
+        }).catch((e) => console.warn('[Duezo] syncWidgetPayload import failed:', e));
+      } else {
+        console.log('[Duezo] Skipping syncWidgetPayload (not native)');
+      }
     } catch (error) {
       console.error('Failed to save theme:', error);
     }

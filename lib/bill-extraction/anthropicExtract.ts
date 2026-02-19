@@ -10,7 +10,8 @@ import {
   AIExtractionResult,
   EvidenceSnippet,
 } from './types';
-import { AI_CONFIG } from './constants';
+import { AI_CONFIG, AI_CONFIG_HAIKU, TIER_CONFIG } from './constants';
+import { KNOWN_BILLER_DOMAINS } from '../sync/known-billers';
 
 // ============================================================================
 // System Prompt
@@ -341,6 +342,118 @@ export async function extractWithClaude(
 }
 
 /**
+ * Extract bill information using Claude Haiku (cheaper model)
+ * Same logic as extractWithClaude but uses Haiku model
+ */
+export async function extractWithHaiku(
+  request: AIExtractionRequest
+): Promise<AIExtractionResult> {
+  const client = getAnthropicClient();
+
+  console.log('[Tier-2 Haiku] Processing:', {
+    subject: request.subject.substring(0, 60),
+    amounts: request.candidateAmounts.length,
+    dates: request.candidateDates.length,
+  });
+
+  try {
+    const userPrompt = buildExtractionPrompt(request);
+
+    const message = await client.messages.create({
+      model: AI_CONFIG_HAIKU.model,
+      max_tokens: AI_CONFIG_HAIKU.maxTokens,
+      system: SYSTEM_PROMPT,
+      messages: [
+        {
+          role: 'user',
+          content: userPrompt,
+        },
+      ],
+    });
+
+    // Extract text from response
+    const responseText = message.content
+      .filter((block): block is Anthropic.TextBlock => block.type === 'text')
+      .map(block => block.text)
+      .join('');
+
+    const tokensUsed = (message.usage?.input_tokens || 0) + (message.usage?.output_tokens || 0);
+
+    // Parse the response
+    const parsed = parseAIResponse(responseText);
+
+    if (!parsed) {
+      console.log('[Tier-2 Haiku] Parse failed');
+      return {
+        isBill: false,
+        name: null,
+        amount: null,
+        dueDate: null,
+        category: null,
+        evidence: [],
+        confidence: {
+          overall: 0,
+          name: 0,
+          amount: 0,
+          dueDate: 0,
+        },
+        reasoning: 'Failed to parse Haiku response',
+        tokensUsed,
+      };
+    }
+
+    // Convert evidence to proper format
+    const evidence: EvidenceSnippet[] = (parsed.evidence || []).map(e => ({
+      field: e.field as 'name' | 'amount' | 'due_date' | 'category',
+      snippet: e.snippet,
+      source: e.source as 'email_subject' | 'email_body' | 'sender' | 'ai_extraction',
+    }));
+
+    const result = {
+      isBill: parsed.isBill,
+      name: parsed.name,
+      amount: parsed.amount,
+      dueDate: parsed.dueDate,
+      category: normalizeCategory(parsed.category),
+      evidence,
+      confidence: {
+        overall: Math.min(1, Math.max(0, parsed.confidence?.overall || 0)),
+        name: Math.min(1, Math.max(0, parsed.confidence?.name || 0)),
+        amount: Math.min(1, Math.max(0, parsed.confidence?.amount || 0)),
+        dueDate: Math.min(1, Math.max(0, parsed.confidence?.dueDate || 0)),
+      },
+      reasoning: parsed.reasoning || '',
+      tokensUsed,
+    };
+
+    console.log('[Tier-2 Haiku] Result:', {
+      confidence: result.confidence.overall,
+      name: result.name,
+      amount: result.amount,
+    });
+
+    return result;
+  } catch (error) {
+    console.error('[Tier-2 Haiku] Error:', error instanceof Error ? error.message : 'Unknown');
+    return {
+      isBill: false,
+      name: null,
+      amount: null,
+      dueDate: null,
+      category: null,
+      evidence: [],
+      confidence: {
+        overall: 0,
+        name: 0,
+        amount: 0,
+        dueDate: 0,
+      },
+      reasoning: `Haiku API error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    };
+  }
+}
+
+/**
  * Create a mock extraction result for testing without API calls
  */
 export function createMockExtraction(
@@ -385,4 +498,210 @@ export function createMockExtraction(
     },
     reasoning: 'Mock extraction for testing',
   };
+}
+
+// ============================================================================
+// TIER 1: Regex-Only Extraction (FREE)
+// ============================================================================
+
+/**
+ * Check if sender email is from a known biller domain
+ */
+function isKnownBiller(email: string): boolean {
+  const domainMatch = email.toLowerCase().match(/@([a-z0-9.-]+)$/);
+  if (!domainMatch) return false;
+
+  const domain = domainMatch[1];
+
+  // Direct match
+  if (KNOWN_BILLER_DOMAINS.has(domain)) return true;
+
+  // Check if it's a subdomain of a known biller
+  for (const knownDomain of KNOWN_BILLER_DOMAINS) {
+    if (domain.endsWith('.' + knownDomain)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Tier 1: Try to extract using ONLY regex + known billers (no AI)
+ * Returns extraction result if confident enough, null otherwise
+ */
+export function tryRegexOnly(request: AIExtractionRequest): AIExtractionResult | null {
+  const { from, candidateAmounts, candidateDates, candidateNames } = request;
+
+  // Must be from a known biller domain
+  if (!isKnownBiller(from)) {
+    return null;
+  }
+
+  // Must have a name from regex patterns
+  const topName = candidateNames[0];
+  if (!topName) {
+    return null;
+  }
+
+  // Must have high-confidence amount (score > 3, not minimum)
+  const goodAmounts = candidateAmounts.filter(
+    a => a.keywordScore > TIER_CONFIG.tier1KeywordThreshold && !a.isMinimum
+  );
+  if (goodAmounts.length === 0) {
+    return null;
+  }
+
+  // Must have high-confidence date (score > 3)
+  const goodDates = candidateDates.filter(
+    d => d.keywordScore > TIER_CONFIG.tier1KeywordThreshold
+  );
+  if (goodDates.length === 0) {
+    return null;
+  }
+
+  // All conditions met - return regex extraction with high confidence
+  const bestAmount = goodAmounts[0];
+  const bestDate = goodDates[0];
+
+  console.log('[Tier-1 Regex] SUCCESS - Known biller + high keyword scores:', {
+    from: from.substring(0, 40),
+    name: topName.value,
+    amount: bestAmount.value,
+    amountScore: bestAmount.keywordScore,
+    dueDate: bestDate.value,
+    dateScore: bestDate.keywordScore,
+  });
+
+  return {
+    isBill: true,
+    name: topName.value,
+    amount: bestAmount.value,
+    dueDate: bestDate.value,
+    category: topName.category ?? null,
+    evidence: [
+      {
+        field: 'amount',
+        snippet: bestAmount.context,
+        source: 'email_body',
+      },
+      {
+        field: 'due_date',
+        snippet: bestDate.context,
+        source: 'email_body',
+      },
+      {
+        field: 'name',
+        snippet: `Known biller: ${topName.value}`,
+        source: 'sender',
+      },
+    ],
+    confidence: {
+      overall: TIER_CONFIG.tier1Confidence,
+      name: topName.confidence,
+      amount: 0.90,
+      dueDate: 0.90,
+    },
+    reasoning: 'Tier 1: Known biller with high-confidence regex extraction (no AI used)',
+    tokensUsed: 0, // No API call
+  };
+}
+
+// ============================================================================
+// TIERED EXTRACTION ORCHESTRATOR
+// ============================================================================
+
+export interface TieredExtractionResult extends AIExtractionResult {
+  tier: 1 | 2 | 3;
+  tierName: 'regex' | 'haiku' | 'sonnet';
+  processingTimeMs: number;
+}
+
+/**
+ * Tiered extraction: Try regex → Haiku → Sonnet in order
+ * Falls back to more expensive tiers only when needed
+ */
+export async function extractTiered(
+  request: AIExtractionRequest
+): Promise<TieredExtractionResult> {
+  const startTime = Date.now();
+
+  // TIER 1: Try regex-only extraction (FREE)
+  const tier1Result = tryRegexOnly(request);
+  if (tier1Result) {
+    const processingTimeMs = Date.now() - startTime;
+    console.log(`[Tier-1 Regex] ✓ Used for "${request.subject.substring(0, 50)}" (${processingTimeMs}ms, $0)`);
+    return {
+      ...tier1Result,
+      tier: 1,
+      tierName: 'regex',
+      processingTimeMs,
+    };
+  }
+
+  console.log('[Tier-1 Regex] ✗ Conditions not met, trying Haiku...');
+
+  // TIER 2: Try Haiku (cheap, fast)
+  try {
+    const tier2StartTime = Date.now();
+    const tier2Result = await extractWithHaiku(request);
+    const tier2ProcessingMs = Date.now() - tier2StartTime;
+
+    // Accept Haiku result if confidence is high enough
+    if (tier2Result.confidence.overall >= TIER_CONFIG.tier2ConfidenceThreshold) {
+      const totalProcessingMs = Date.now() - startTime;
+      console.log(`[Tier-2 Haiku] ✓ Used for "${request.subject.substring(0, 50)}" (${tier2ProcessingMs}ms, ~${tier2Result.tokensUsed} tokens)`);
+      return {
+        ...tier2Result,
+        tier: 2,
+        tierName: 'haiku',
+        processingTimeMs: totalProcessingMs,
+      };
+    }
+
+    console.log(`[Tier-2 Haiku] ✗ Confidence ${tier2Result.confidence.overall.toFixed(2)} < ${TIER_CONFIG.tier2ConfidenceThreshold}, falling back to Sonnet...`);
+  } catch (error) {
+    console.error('[Tier-2 Haiku] Error, falling back to Sonnet:', error instanceof Error ? error.message : 'Unknown');
+  }
+
+  // TIER 3: Sonnet (expensive, smart) - always used as final fallback
+  try {
+    const tier3StartTime = Date.now();
+    const tier3Result = await extractWithClaude(request);
+    const tier3ProcessingMs = Date.now() - tier3StartTime;
+    const totalProcessingMs = Date.now() - startTime;
+
+    console.log(`[Tier-3 Sonnet] ✓ Used for "${request.subject.substring(0, 50)}" (${tier3ProcessingMs}ms, ~${tier3Result.tokensUsed} tokens)`);
+
+    return {
+      ...tier3Result,
+      tier: 3,
+      tierName: 'sonnet',
+      processingTimeMs: totalProcessingMs,
+    };
+  } catch (error) {
+    // If Sonnet fails, return a failure result
+    console.error('[Tier-3 Sonnet] FAILED:', error instanceof Error ? error.message : 'Unknown');
+    const totalProcessingMs = Date.now() - startTime;
+
+    return {
+      isBill: false,
+      name: null,
+      amount: null,
+      dueDate: null,
+      category: null,
+      evidence: [],
+      confidence: {
+        overall: 0,
+        name: 0,
+        amount: 0,
+        dueDate: 0,
+      },
+      reasoning: `All tiers failed. Final error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      tokensUsed: 0,
+      tier: 3,
+      tierName: 'sonnet',
+      processingTimeMs: totalProcessingMs,
+    };
+  }
 }

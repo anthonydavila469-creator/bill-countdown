@@ -74,6 +74,9 @@ export function useBillMutations() {
           await undoPaid(bill, paidBill, nextBill?.id);
         });
 
+        // Sync widget with latest data
+        refetch();
+
         return { success: true, paidBill, nextBill };
       } catch (error) {
         console.error('Failed to mark bill as paid:', error);
@@ -93,7 +96,7 @@ export function useBillMutations() {
         dispatch({ type: 'END_MUTATION', billId: bill.id });
       }
     },
-    [getMutationState, dispatch, showPaidToast, addToast]
+    [getMutationState, dispatch, showPaidToast, addToast, refetch]
   );
 
   /**

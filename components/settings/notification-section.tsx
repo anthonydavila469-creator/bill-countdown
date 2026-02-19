@@ -246,7 +246,7 @@ export function NotificationSection() {
         <FieldRow
           icon={Smartphone}
           label="Push Notifications"
-          description={!isSupported ? 'Not supported in this browser' : 'Get notified in your browser'}
+          description={!isSupported ? 'Not supported on this device' : 'Get notified when bills are due'}
           index={1}
         >
           <div className="flex items-center gap-3">

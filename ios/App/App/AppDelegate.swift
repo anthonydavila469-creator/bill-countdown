@@ -1,5 +1,6 @@
 import UIKit
 import Capacitor
+import WidgetKit
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -8,6 +9,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+
+        NSLog("[Duezo] AppDelegate didFinishLaunching CALLED")
+
+        // Set default theme if none exists (first launch only)
+        if let defaults = UserDefaults(suiteName: "group.app.duezo") {
+            if defaults.string(forKey: "duezo_theme") == nil {
+                defaults.set("onyx", forKey: "duezo_theme")
+                defaults.synchronize()
+            }
+        }
+
         return true
     }
 
