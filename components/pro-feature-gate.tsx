@@ -36,6 +36,7 @@ export function ProFeatureGate({
   icon: Icon = Sparkles,
 }: ProFeatureGateProps) {
   const [mounted, setMounted] = useState(false);
+  const [loadingTimedOut, setLoadingTimedOut] = useState(false);
   const { isPro, showUpgradeModal, isLoading } = useSubscription();
 
   // Wait for client-side mount to prevent hydration mismatch
@@ -43,10 +44,16 @@ export function ProFeatureGate({
     setMounted(true);
   }, []);
 
-  // Skip loading spinner to prevent flash - just render content
-  // The subscription check happens quickly in the background
-  if (!mounted) {
-    return null;
+  // Safety timeout — if subscription takes >3s, stop waiting and show content
+  useEffect(() => {
+    if (!isLoading) return;
+    const timer = setTimeout(() => setLoadingTimedOut(true), 3000);
+    return () => clearTimeout(timer);
+  }, [isLoading]);
+
+  // Show nothing while loading (prevents paywall flash), but don't wait forever
+  if (!mounted || (isLoading && !loadingTimedOut)) {
+    return <div className="min-h-screen bg-[#08080c]" />;
   }
 
   // If user is Pro, show the content

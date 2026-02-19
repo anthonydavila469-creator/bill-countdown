@@ -78,7 +78,7 @@ export function BillDetailModal({
 
       {/* Modal */}
       <div className="absolute inset-0 overflow-y-auto">
-        <div className="flex min-h-full items-center justify-center p-4">
+        <div className="flex min-h-full items-end sm:items-center justify-center p-4 pb-28 sm:pb-4">
           <div
             className={cn(
               'relative w-full max-w-md bg-[#0c0c10] border border-white/10 rounded-2xl shadow-2xl overflow-hidden',
