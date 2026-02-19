@@ -104,11 +104,18 @@ function getNextDueDate(currentDate: Date, interval: RecurrenceInterval): Date {
     case 'weekly':
       next.setDate(next.getDate() + 7);
       break;
+    case 'biweekly':
+      next.setDate(next.getDate() + 14);
+      break;
     case 'monthly':
       next.setMonth(next.getMonth() + 1);
       break;
     case 'yearly':
       next.setFullYear(next.getFullYear() + 1);
+      break;
+    default:
+      // Unknown interval — advance by 30 days to prevent infinite loop
+      next.setDate(next.getDate() + 30);
       break;
   }
 
