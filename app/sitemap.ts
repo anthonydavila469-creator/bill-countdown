@@ -32,5 +32,49 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'yearly',
       priority: 0.3,
     },
+    // SEO landing pages
+    {
+      url: 'https://duezo.app/prism-alternative',
+      lastModified: new Date('2026-02-11'),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+    },
+    {
+      url: 'https://duezo.app/finovera-alternative',
+      lastModified: new Date('2026-02-19'),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+    },
+    {
+      url: 'https://duezo.app/vs/rocket-money',
+      lastModified: new Date('2026-02-11'),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
+      url: 'https://duezo.app/vs/ynab',
+      lastModified: new Date('2026-02-11'),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    // Blog
+    {
+      url: 'https://duezo.app/blog',
+      lastModified: new Date('2026-02-19'),
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    },
+    {
+      url: 'https://duezo.app/blog/best-prism-alternatives-2026',
+      lastModified: new Date('2026-02-11'),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
+      url: 'https://duezo.app/blog/bill-tracker-no-bank-account',
+      lastModified: new Date('2026-02-19'),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
   ];
 }

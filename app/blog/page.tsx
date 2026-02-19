@@ -18,6 +18,14 @@ export const metadata: Metadata = {
 
 const posts = [
   {
+    slug: 'bill-tracker-no-bank-account',
+    title: "Best Bill Tracker Apps That Don't Require a Bank Account (2026)",
+    excerpt:
+      "Most bill tracking apps want your bank login. You don't have to give it. Here are the best alternatives that work without linking a bank account.",
+    date: '2026-02-19',
+    readTime: '6 min read',
+  },
+  {
     slug: 'best-prism-alternatives-2026',
     title: 'Best Prism Alternatives in 2026',
     excerpt:
