@@ -223,7 +223,7 @@ export function BillDetailModal({
             </div>
 
             {/* Actions */}
-            <div className="p-6 pt-0 space-y-3">
+            <div className="p-6 pt-0 pb-28 space-y-3">
               {/* Pay Now button - only show if payment URL exists */}
               {bill.payment_url && canUsePaymentLinks && (
                 <a
