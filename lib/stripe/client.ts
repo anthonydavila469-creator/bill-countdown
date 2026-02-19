@@ -210,6 +210,18 @@ export async function syncSubscriptionToDatabase(
 ): Promise<void> {
   const supabase = createAdminClient();
 
+  // 🔒 Owner protection: never downgrade accounts with a locked Pro period (year 2090+)
+  const { data: existing } = await supabase
+    .from('user_preferences')
+    .select('subscription_current_period_end')
+    .eq('user_id', userId)
+    .single();
+  const periodEnd = existing?.subscription_current_period_end;
+  if (periodEnd && new Date(periodEnd).getFullYear() >= 2090) {
+    console.log(`Skipping subscription sync for owner/locked account: ${userId}`);
+    return;
+  }
+
   if (!subscription) {
     // No subscription - revert to free
     await supabase
