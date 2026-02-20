@@ -29,4 +29,8 @@ echo "✅ Node $(node --version), npm $(npm --version)"
 echo "📦 Running npm install..."
 npm install
 
-echo "✅ node_modules ready — Capacitor plugins available for SPM resolution"
+# Sync Capacitor — copies web assets to ios/App/App/public/ and generates config.xml
+echo "🔄 Running npx cap sync ios..."
+npx cap sync ios
+
+echo "✅ Capacitor synced — public/ and config.xml ready for Xcode build"
