@@ -5,25 +5,24 @@ import { Capacitor } from '@capacitor/core';
 
 /**
  * Initializes push notifications when running as a native app.
- * This component should be included once at the app root level.
+ * Registers the device token with the server so we can send bill reminders.
  */
 export function PushNotificationInit() {
   useEffect(() => {
-    // Only initialize on native platforms
+    // Only initialize on native platforms (iOS/Android)
     if (!Capacitor.isNativePlatform()) {
       return;
     }
 
     const initPush = async () => {
       try {
-        // Dynamically import to avoid issues on web
         const { PushNotifications } = await import('@capacitor/push-notifications');
+        const { Device } = await import('@capacitor/device');
 
-        // Check permissions
+        // Check/request permissions
         const permStatus = await PushNotifications.checkPermissions();
 
         if (permStatus.receive === 'prompt') {
-          // Request permission
           const result = await PushNotifications.requestPermissions();
           if (result.receive !== 'granted') {
             console.log('Push notifications not granted');
@@ -33,33 +32,61 @@ export function PushNotificationInit() {
           return;
         }
 
-        // Register for push
+        // Register for push with APNs
         await PushNotifications.register();
 
-        // Handle registration
-        PushNotifications.addListener('registration', (token) => {
-          console.log('Push token:', token.value);
-          // Store token for sending notifications later
+        // Handle APNs token — send to our backend
+        PushNotifications.addListener('registration', async (token) => {
+          console.log('APNs token received:', token.value.slice(0, 8) + '...');
+
+          // Cache locally
           localStorage.setItem('pushToken', token.value);
+
+          // Get device ID for deduplication
+          let deviceId: string | undefined;
+          try {
+            const info = await Device.getId();
+            deviceId = info.identifier;
+          } catch {
+            // Device ID is optional — continue without it
+          }
+
+          // Register with our server
+          try {
+            const response = await fetch('/api/notifications/register-device', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ token: token.value, deviceId }),
+            });
+
+            if (!response.ok) {
+              const err = await response.json();
+              console.error('Failed to register push token:', err);
+            } else {
+              console.log('Push token registered with server ✅');
+            }
+          } catch (err) {
+            console.error('Error sending token to server:', err);
+          }
         });
 
-        // Handle errors
+        // Handle registration errors
         PushNotifications.addListener('registrationError', (err) => {
           console.error('Push registration error:', err);
         });
 
-        // Handle notifications received in foreground
+        // Handle notifications received while app is in foreground
         PushNotifications.addListener('pushNotificationReceived', (notification) => {
-          console.log('Notification received:', notification);
+          console.log('Notification received in foreground:', notification.title);
         });
 
-        // Handle notification tap
+        // Handle notification tap — navigate to relevant screen
         PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
-          console.log('Notification action:', action);
-          // Navigate based on notification data
           const data = action.notification.data;
-          if (data?.route) {
-            window.location.href = data.route;
+          if (data?.url) {
+            window.location.href = data.url;
+          } else if (data?.billId) {
+            window.location.href = `/dashboard?bill=${data.billId}`;
           }
         });
 
@@ -71,6 +98,5 @@ export function PushNotificationInit() {
     initPush();
   }, []);
 
-  // This component doesn't render anything
   return null;
 }

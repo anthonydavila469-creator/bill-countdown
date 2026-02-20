@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import { sendBillReminderEmail } from '@/lib/notifications/email-sender';
 import { sendBillReminderPushToAll } from '@/lib/notifications/push-sender';
+import { sendBillReminderAPNs } from '@/lib/notifications/apns-sender';
 import { NextResponse } from 'next/server';
 import { DEFAULT_NOTIFICATION_SETTINGS } from '@/types';
 import type { Bill, NotificationSettings, PushSubscription, BillNotification } from '@/types';
@@ -61,7 +62,7 @@ export async function POST(request: Request) {
     // Process each user's notifications
     for (const [userId, userNotifications] of notificationsByUser) {
       // Fetch user data, settings, and push subscriptions
-      const [userResult, prefsResult, subsResult] = await Promise.all([
+      const [userResult, prefsResult, subsResult, apnsResult] = await Promise.all([
         supabase.auth.admin.getUserById(userId),
         supabase
           .from('user_preferences')
@@ -72,11 +73,16 @@ export async function POST(request: Request) {
           .from('push_subscriptions')
           .select('*')
           .eq('user_id', userId),
+        supabase
+          .from('apns_tokens')
+          .select('token')
+          .eq('user_id', userId),
       ]);
 
       const userEmail = userResult.data?.user?.email;
       const settings: NotificationSettings = prefsResult.data?.notification_settings ?? DEFAULT_NOTIFICATION_SETTINGS;
       const pushSubscriptions: PushSubscription[] = (subsResult.data as PushSubscription[]) ?? [];
+      const apnsTokens: string[] = (apnsResult.data ?? []).map((r: { token: string }) => r.token);
 
       // Process each notification for this user
       for (const notification of userNotifications) {
@@ -125,7 +131,10 @@ export async function POST(request: Request) {
 
           sendResult = await sendBillReminderEmail(userEmail, bill as Bill, daysUntilDue);
         } else if (notification.channel === 'push') {
-          if (pushSubscriptions.length === 0) {
+          const hasVapid = pushSubscriptions.length > 0;
+          const hasApns = apnsTokens.length > 0;
+
+          if (!hasVapid && !hasApns) {
             await updateNotificationStatus(supabase, notification.id, 'skipped', 'No push subscriptions');
             results.skipped++;
             continue;
@@ -137,24 +146,54 @@ export async function POST(request: Request) {
             continue;
           }
 
-          const pushResult = await sendBillReminderPushToAll(
-            pushSubscriptions,
-            bill as Bill,
-            daysUntilDue
-          );
+          let totalSent = 0;
+          let totalFailed = 0;
 
-          // Clean up expired subscriptions
-          if (pushResult.expiredEndpoints.length > 0) {
-            await supabase
-              .from('push_subscriptions')
-              .delete()
-              .eq('user_id', userId)
-              .in('endpoint', pushResult.expiredEndpoints);
+          // Send via Web Push (VAPID) for browser subscribers
+          if (hasVapid) {
+            const pushResult = await sendBillReminderPushToAll(
+              pushSubscriptions,
+              bill as Bill,
+              daysUntilDue
+            );
+
+            totalSent += pushResult.sent;
+            totalFailed += pushResult.failed;
+
+            // Clean up expired VAPID subscriptions
+            if (pushResult.expiredEndpoints.length > 0) {
+              await supabase
+                .from('push_subscriptions')
+                .delete()
+                .eq('user_id', userId)
+                .in('endpoint', pushResult.expiredEndpoints);
+            }
+          }
+
+          // Send via APNs for iOS devices
+          if (hasApns) {
+            const apnsResult = await sendBillReminderAPNs(
+              apnsTokens,
+              bill as Bill,
+              daysUntilDue
+            );
+
+            totalSent += apnsResult.sent;
+            totalFailed += apnsResult.failed;
+
+            // Clean up expired APNs tokens
+            if (apnsResult.expiredTokens.length > 0) {
+              await supabase
+                .from('apns_tokens')
+                .delete()
+                .eq('user_id', userId)
+                .in('token', apnsResult.expiredTokens);
+            }
           }
 
           sendResult = {
-            success: pushResult.sent > 0,
-            error: pushResult.failed > 0 ? `${pushResult.failed} failed` : undefined,
+            success: totalSent > 0,
+            error: totalFailed > 0 ? `${totalFailed} failed` : undefined,
           };
         }
 
