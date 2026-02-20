@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'Duezo',
   webDir: 'out',
   server: {
-    url: 'https://duezo.app',
+    url: 'https://www.duezo.app',
     cleartext: false,
   },
   ios: {
@@ -15,9 +15,11 @@ const config: CapacitorConfig = {
   },
   plugins: {
     SplashScreen: {
-      launchShowDuration: 2000,
+      launchShowDuration: 3000,
+      launchAutoHide: true,
       backgroundColor: '#08080c',
-      showSpinner: false,
+      showSpinner: true,
+      spinnerColor: '#FF6B00',
     },
     PushNotifications: {
       presentationOptions: ['badge', 'sound', 'alert'],
