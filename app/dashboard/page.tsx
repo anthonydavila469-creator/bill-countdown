@@ -14,6 +14,7 @@ import { PayNowModal } from '@/components/pay-now-modal';
 import { BillListView } from '@/components/bill-list-view';
 import { SortFilterBar, SortOption, FilterOption } from '@/components/sort-filter-bar';
 import { DashboardControls, CardSize } from '@/components/dashboard-controls';
+import { ExportButton } from '@/components/export-button';
 import { Bill, DashboardView } from '@/types';
 import { getDaysUntilDue } from '@/lib/utils';
 import { getBillRiskType } from '@/lib/risk-utils';
@@ -656,7 +657,10 @@ export default function DashboardPage() {
                 cardSize={(dashboardLayout.cardSize || 'default') as CardSize}
                 onCardSizeChange={(size) => updateDashboardLayout({ cardSize: size as 'compact' | 'default' })}
               />
-              
+
+              {/* Export CSV */}
+              <ExportButton bills={bills} />
+
               {/* Overdue quick filter */}
               <button
                 onClick={() => setQuickFilter(quickFilter === 'overdue' ? 'all' : 'overdue')}
