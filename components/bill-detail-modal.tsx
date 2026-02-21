@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Check, Pencil, Trash2, Calendar, DollarSign, RefreshCw, FileText, ExternalLink, Link, CreditCard, TrendingUp, TrendingDown, AlertTriangle, Crown } from 'lucide-react';
+import { X, Check, Pencil, Trash2, Calendar, DollarSign, RefreshCw, FileText, ExternalLink, Link, CreditCard, TrendingUp, TrendingDown, AlertTriangle, Crown, StickyNote } from 'lucide-react';
 import { Bill } from '@/types';
 import { cn, formatDate, formatCurrency, getDaysUntilDue, getUrgency, formatCountdown, getPriceChange } from '@/lib/utils';
 import { getBillIcon } from '@/lib/get-bill-icon';
@@ -210,6 +210,17 @@ export function BillDetailModal({
                     <p className="text-sm text-zinc-500">Payment Link</p>
                     <p className="font-medium text-orange-400 truncate">{bill.payment_url}</p>
                   </div>
+                </div>
+              )}
+
+              {/* Notes */}
+              {bill.notes && (
+                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                  <div className="flex items-center gap-2 mb-2">
+                    <StickyNote className="w-4 h-4 text-white/60" />
+                    <span className="text-sm font-medium text-white/60">Notes</span>
+                  </div>
+                  <p className="text-sm text-white/80 leading-relaxed whitespace-pre-wrap">{bill.notes}</p>
                 </div>
               )}
 

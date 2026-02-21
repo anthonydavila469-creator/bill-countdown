@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { BillFormData, BillCategory, RecurrenceInterval, categoryEmojis, categoryIconKeys, BillIconKey } from '@/types';
 import { cn, formatDateForInput, getNextDueDate, formatNextDueDate } from '@/lib/utils';
 import { applyAutoCategorization } from '@/lib/auto-categorize';
-import { Calendar, DollarSign, RefreshCw, ChevronDown, Link, CreditCard, Sparkles, Check, ExternalLink, AlertCircle } from 'lucide-react';
+import { Calendar, DollarSign, RefreshCw, ChevronDown, Link, CreditCard, Sparkles, Check, ExternalLink, AlertCircle, StickyNote } from 'lucide-react';
 
 interface BillFormProps {
   initialData?: Partial<BillFormData>;
@@ -287,6 +287,7 @@ export function BillForm({
     recurrence_weekday: initialData?.recurrence_weekday || null,
     payment_url: initialData?.payment_url || null,
     is_autopay: initialData?.is_autopay || false,
+    notes: initialData?.notes || null,
   });
 
   // Track if user has manually changed category to prevent auto-override
@@ -767,6 +768,31 @@ export function BillForm({
             Add a direct link to pay this bill online (must start with https://)
           </p>
         )}
+      </div>
+
+      {/* Notes */}
+      <div>
+        <label className="flex items-center gap-2 text-sm font-medium text-zinc-400 mb-2">
+          <StickyNote className="w-4 h-4" />
+          Notes (optional)
+        </label>
+        <div className="relative">
+          <textarea
+            value={formData.notes || ''}
+            onChange={(e) => {
+              const value = e.target.value.slice(0, 200);
+              handleChange('notes', value || null);
+            }}
+            placeholder="Account #, payment instructions, login info..."
+            rows={3}
+            maxLength={200}
+            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:border-white/30 focus:ring-1 focus:ring-white/20 focus:outline-none transition-all resize-none text-sm leading-relaxed"
+            style={{ fontSize: '16px' }}
+          />
+          <span className="absolute bottom-2 right-3 text-xs text-zinc-500">
+            {(formData.notes || '').length}/200
+          </span>
+        </div>
       </div>
 
       {/* Actions */}

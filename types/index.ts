@@ -217,6 +217,7 @@ export interface Bill {
   is_autopay: boolean; // Whether bill is on automatic payment
   previous_amount: number | null; // Previous amount for price change detection
   icon_key: BillIconKey | null; // Icon identifier for display
+  notes: string | null; // User notes/memo for the bill
   created_at: string;
   updated_at: string;
 }
@@ -233,6 +234,7 @@ export interface BillFormData {
   recurrence_weekday: number | null;
   payment_url: string | null;
   is_autopay: boolean;
+  notes: string | null;
 }
 
 // Price change detection result

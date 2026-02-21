@@ -139,6 +139,7 @@ export function AddBillModal({
                         recurrence_weekday: editBill.recurrence_weekday,
                         payment_url: editBill.payment_url,
                         is_autopay: editBill.is_autopay,
+                        notes: editBill.notes,
                       }
                     : initialData
                     ? initialData
