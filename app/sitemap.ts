@@ -112,5 +112,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 0.8,
     },
+    {
+      url: 'https://duezo.app/blog/best-mint-alternatives-2026',
+      lastModified: new Date('2026-02-22'),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+    },
   ];
 }

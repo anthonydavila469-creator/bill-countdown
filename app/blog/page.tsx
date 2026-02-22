@@ -18,6 +18,14 @@ export const metadata: Metadata = {
 
 const posts = [
   {
+    slug: 'best-mint-alternatives-2026',
+    title: 'Best Mint Alternatives in 2026 — What Actually Replaced Mint?',
+    excerpt:
+      "Mint shut down in March 2024. Credit Karma is not a real replacement. Here are the apps that actually fill the gap — compared honestly.",
+    date: '2026-02-22',
+    readTime: '9 min read',
+  },
+  {
     slug: 'bill-tracker-no-bank-account',
     title: "Best Bill Tracker Apps That Don't Require a Bank Account (2026)",
     excerpt:
