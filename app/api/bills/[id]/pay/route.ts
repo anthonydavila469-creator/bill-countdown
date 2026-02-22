@@ -103,6 +103,22 @@ export async function POST(request: Request, { params }: RouteParams) {
       );
     }
 
+    // Log payment in history (fire and forget — don't block the response)
+    supabase
+      .from('payment_history')
+      .insert({
+        user_id: user.id,
+        bill_id: id,
+        amount: paidAmount,
+        paid_method: bill.is_autopay ? 'autopay' : 'manual',
+        paid_at: updateData.paid_at,
+      })
+      .then(({ error: historyError }) => {
+        if (historyError) {
+          console.error('Error logging payment history:', historyError);
+        }
+      });
+
     // If the bill is recurring, create the next occurrence
     let nextBill = null;
     if (bill.is_recurring && bill.recurrence_interval) {
@@ -262,6 +278,23 @@ export async function DELETE(request: Request, { params }: RouteParams) {
         { error: 'Failed to undo payment' },
         { status: 500 }
       );
+    }
+
+    // Remove the most recent payment history entry for this bill
+    const { data: lastEntry } = await supabase
+      .from('payment_history')
+      .select('id')
+      .eq('bill_id', id)
+      .eq('user_id', user.id)
+      .order('paid_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (lastEntry) {
+      await supabase
+        .from('payment_history')
+        .delete()
+        .eq('id', lastEntry.id);
     }
 
     // If the bill was recurring and a next bill was created, we need to delete it

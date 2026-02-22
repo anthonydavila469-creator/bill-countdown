@@ -305,6 +305,18 @@ export const urgencyBgColors: Record<BillUrgency, string> = {
   distant: 'bg-gradient-to-br from-blue-400 to-indigo-500',
 };
 
+// Payment history entry
+export interface PaymentHistoryEntry {
+  id: string;
+  user_id: string;
+  bill_id: string;
+  paid_at: string;
+  amount: number | null;
+  paid_method: PaidMethod | null;
+  notes: string | null;
+  created_at: string;
+}
+
 // Gmail connection status
 export interface GmailStatus {
   connected: boolean;

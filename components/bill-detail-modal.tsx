@@ -9,6 +9,7 @@ import { GradientCard } from './ui/gradient-card';
 import { CountdownDisplay } from './countdown-display';
 import { useSubscription } from '@/hooks/use-subscription';
 import { useTheme } from '@/contexts/theme-context';
+import { PaymentHistoryPanel } from './payment-history-panel';
 
 interface BillDetailModalProps {
   isOpen: boolean;
@@ -290,6 +291,9 @@ export function BillDetailModal({
                   Delete
                 </button>
               </div>
+
+              {/* Payment History */}
+              <PaymentHistoryPanel billId={bill.id} />
             </div>
           </div>
         </div>
