@@ -287,6 +287,21 @@ export const categoryLabels: Record<BillCategory, string> = {
   other: 'Other',
 };
 
+// Category colors for filter chips and badges
+export const CATEGORY_COLORS: Record<BillCategory, { bg: string; text: string; border: string; glow: string }> = {
+  utilities:    { bg: 'rgba(251,191,36,0.18)',  text: '#fbbf24', border: 'rgba(251,191,36,0.35)',  glow: 'rgba(251,191,36,0.25)' },   // amber
+  subscription: { bg: 'rgba(167,139,250,0.18)', text: '#a78bfa', border: 'rgba(167,139,250,0.35)', glow: 'rgba(167,139,250,0.25)' },  // violet
+  rent:         { bg: 'rgba(52,211,153,0.18)',  text: '#34d399', border: 'rgba(52,211,153,0.35)',  glow: 'rgba(52,211,153,0.25)' },   // emerald
+  housing:      { bg: 'rgba(52,211,153,0.18)',  text: '#34d399', border: 'rgba(52,211,153,0.35)',  glow: 'rgba(52,211,153,0.25)' },   // emerald (same as rent)
+  insurance:    { bg: 'rgba(96,165,250,0.18)',  text: '#60a5fa', border: 'rgba(96,165,250,0.35)',  glow: 'rgba(96,165,250,0.25)' },   // blue
+  phone:        { bg: 'rgba(45,212,191,0.18)',  text: '#2dd4bf', border: 'rgba(45,212,191,0.35)',  glow: 'rgba(45,212,191,0.25)' },   // teal
+  internet:     { bg: 'rgba(56,189,248,0.18)',  text: '#38bdf8', border: 'rgba(56,189,248,0.35)',  glow: 'rgba(56,189,248,0.25)' },   // sky
+  credit_card:  { bg: 'rgba(251,113,133,0.18)', text: '#fb7185', border: 'rgba(251,113,133,0.35)', glow: 'rgba(251,113,133,0.25)' },  // rose
+  loan:         { bg: 'rgba(249,115,22,0.18)',  text: '#f97316', border: 'rgba(249,115,22,0.35)',  glow: 'rgba(249,115,22,0.25)' },   // orange
+  health:       { bg: 'rgba(244,114,182,0.18)', text: '#f472b6', border: 'rgba(244,114,182,0.35)', glow: 'rgba(244,114,182,0.25)' },  // pink
+  other:        { bg: 'rgba(148,163,184,0.18)', text: '#94a3b8', border: 'rgba(148,163,184,0.35)', glow: 'rgba(148,163,184,0.25)' },  // slate
+};
+
 // Urgency gradient mapping
 export const urgencyGradients: Record<BillUrgency, string> = {
   overdue: 'from-red-500 to-rose-600',

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { BillCard } from '@/components/bill-card';
+import { CategoryFilterBar } from '@/components/category-filter-bar';
 import { AddBillModal } from '@/components/add-bill-modal';
 import { OnboardingScreen } from '@/components/onboarding/onboarding-screen';
 import { OnboardingModal, useOnboardingComplete } from '@/components/onboarding-modal';
@@ -14,7 +15,7 @@ import { PayNowModal } from '@/components/pay-now-modal';
 import { BillListView } from '@/components/bill-list-view';
 import { SortFilterBar, SortOption, FilterOption } from '@/components/sort-filter-bar';
 import { DashboardControls, CardSize } from '@/components/dashboard-controls';
-import { Bill, DashboardView } from '@/types';
+import { Bill, BillCategory, DashboardView } from '@/types';
 import { getDaysUntilDue } from '@/lib/utils';
 import { getBillRiskType } from '@/lib/risk-utils';
 import { getBillIcon } from '@/lib/get-bill-icon';
@@ -89,6 +90,7 @@ export default function DashboardPage() {
   const [selectedBillIds, setSelectedBillIds] = useState<Set<string>>(new Set());
   const [sortBy, setSortBy] = useState<SortOption>(dashboardLayout.sortBy || 'due_date');
   const [quickFilter, setQuickFilter] = useState<FilterOption>('all');
+  const [activeCategory, setActiveCategory] = useState<BillCategory | null>(null);
 
   // Layout settings popover state
   const [isLayoutSettingsOpen, setIsLayoutSettingsOpen] = useState(false);
@@ -236,6 +238,11 @@ export default function DashboardPage() {
       });
     }
 
+    // Apply category filter
+    if (activeCategory !== null) {
+      filtered = filtered.filter((bill) => bill.category === activeCategory);
+    }
+
     // Sort - always keep overdue at top, then sort by selected criteria
     return filtered.sort((a, b) => {
       const aDaysLeft = getDaysUntilDue(a.due_date);
@@ -258,7 +265,7 @@ export default function DashboardPage() {
           return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
       }
     });
-  }, [bills, searchQuery, sortBy, quickFilter]);
+  }, [bills, searchQuery, sortBy, quickFilter, activeCategory]);
 
   // Calculate stats (only unpaid bills)
   const unpaidBills = bills.filter(b => !b.is_paid);
@@ -671,6 +678,13 @@ export default function DashboardPage() {
                 Overdue
               </button>
             </div>
+
+            {/* Category filter chips */}
+            <CategoryFilterBar
+              bills={bills}
+              activeCategory={activeCategory}
+              onCategoryChange={setActiveCategory}
+            />
 
             {/* View controls - REMOVED, now in DashboardControls dropdown */}
             <div className="hidden">

@@ -1,6 +1,6 @@
 'use client';
 
-import { Bill } from '@/types';
+import { Bill, CATEGORY_COLORS, categoryLabels } from '@/types';
 import {
   cn,
   getDaysUntilDue,
@@ -121,6 +121,24 @@ export function BillCard({
               <p className="text-xs text-white/70 flex items-center gap-1.5">
                 <Calendar className="w-3 h-3 flex-shrink-0" />
                 <span>{formatDateCompact(bill.due_date)}</span>
+                {/* Category badge */}
+                {bill.category && (
+                  <>
+                    <span className="text-white/30">·</span>
+                    <span
+                      className="flex items-center gap-1"
+                      style={{ color: CATEGORY_COLORS[bill.category].text }}
+                    >
+                      <span
+                        className="w-1.5 h-1.5 rounded-full"
+                        style={{ backgroundColor: CATEGORY_COLORS[bill.category].text }}
+                      />
+                      <span className="text-[10px] font-medium">
+                        {categoryLabels[bill.category].slice(0, 8)}
+                      </span>
+                    </span>
+                  </>
+                )}
               </p>
             </div>
           </div>
@@ -290,6 +308,28 @@ export function BillCard({
                 <CreditCard className="w-3.5 h-3.5 text-emerald-200" />
                 <span className="text-xs font-medium text-emerald-100">
                   Autopay
+                </span>
+              </div>
+            )}
+
+            {/* Category badge */}
+            {bill.category && !isPaid && (
+              <div
+                className="flex items-center gap-1 px-2 py-0.5 rounded-full backdrop-blur-sm"
+                style={{
+                  backgroundColor: CATEGORY_COLORS[bill.category].bg,
+                  border: `1px solid ${CATEGORY_COLORS[bill.category].border}`,
+                }}
+              >
+                <span
+                  className="w-1.5 h-1.5 rounded-full"
+                  style={{ backgroundColor: CATEGORY_COLORS[bill.category].text }}
+                />
+                <span
+                  className="text-[10px] font-medium"
+                  style={{ color: CATEGORY_COLORS[bill.category].text }}
+                >
+                  {categoryLabels[bill.category]}
                 </span>
               </div>
             )}
@@ -592,6 +632,26 @@ export function BillListItem({
             <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-700/50">
               <Check className="w-3 h-3" />
               <span className="text-[10px] font-semibold">Paid</span>
+            </span>
+          )}
+          {bill.category && !isPaid && (
+            <span
+              className="flex items-center gap-1 px-1.5 py-0.5 rounded-full"
+              style={{
+                backgroundColor: CATEGORY_COLORS[bill.category].bg,
+                border: `1px solid ${CATEGORY_COLORS[bill.category].border}`,
+              }}
+            >
+              <span
+                className="w-1.5 h-1.5 rounded-full"
+                style={{ backgroundColor: CATEGORY_COLORS[bill.category].text }}
+              />
+              <span
+                className="text-[10px] font-medium"
+                style={{ color: CATEGORY_COLORS[bill.category].text }}
+              >
+                {categoryLabels[bill.category].slice(0, 6)}
+              </span>
             </span>
           )}
           {bill.is_autopay && !isPaid && (
