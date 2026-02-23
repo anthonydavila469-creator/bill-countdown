@@ -13,6 +13,7 @@ What counts as a BILL (return BILL):
 - Upcoming payment reminder / AutoPay scheduled notice
 - Past due / payment due reminder
 - Utility bill, rent, credit card statement, loan payment, insurance premium, subscription renewal payment required
+- Utility company notifications (water, gas, electric) that say your bill or statement is ready to view online — even if the amount is not in the email body itself
 
 Even if amount/date is missing, still return BILL if intent is clearly billing.
 
@@ -47,9 +48,11 @@ Confidence:
 Provide confidence 0.00–1.00.
 
 Extraction rules:
-- Prefer "Amount Due / Total Due / Minimum Payment" over random amounts.
+- For CREDIT CARD emails: always extract the "New Balance" or "Statement Balance" as the primary amount — NOT the "Minimum Payment Due". The minimum payment is secondary and should be ignored when a statement balance is present.
+- Prefer "Amount Due / Total Due / Statement Balance / New Balance" over random amounts.
 - Prefer a due date in the FUTURE if multiple dates exist.
 - If autopay scheduled, store the scheduled charge date as dueDate if no other due date exists.
+- If this is a utility bill notification with no amount in the email body, set amount to null. Still extract the due date if visible.
 - If you can't find amount/date, set them to null (do NOT fail).
 `.trim();
 
