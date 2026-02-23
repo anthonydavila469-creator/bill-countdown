@@ -85,8 +85,8 @@ export function DashboardControls({
         )}
       >
         {/* Icon */}
-        <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-gradient-to-b from-orange-500/20 to-orange-600/10">
-          <Settings2 className="w-4 h-4 text-orange-400" />
+        <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-gradient-to-b from-violet-500/20 to-violet-600/10">
+          <Settings2 className="w-4 h-4 text-violet-400" />
         </div>
 
         {/* Label */}
@@ -97,7 +97,7 @@ export function DashboardControls({
           <ChevronDown
             className={cn(
               'w-3.5 h-3.5 text-zinc-500 transition-transform duration-300',
-              isOpen && 'rotate-180 text-orange-400'
+              isOpen && 'rotate-180 text-violet-400'
             )}
           />
         </div>
@@ -106,7 +106,7 @@ export function DashboardControls({
       {/* Dropdown Menu */}
       {isOpen && (
         <div className="absolute top-full left-0 mt-2 z-50 min-w-[220px] animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className="absolute -inset-1 bg-gradient-to-b from-orange-500/10 to-transparent rounded-2xl blur-xl" />
+          <div className="absolute -inset-1 bg-gradient-to-b from-violet-500/10 to-transparent rounded-2xl blur-xl" />
           <div className="relative bg-[#0a0a0e]/98 backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.8)] overflow-hidden">
             
             {/* Sort Section */}
@@ -124,13 +124,13 @@ export function DashboardControls({
                     className={cn(
                       'w-full flex items-center gap-3 px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200',
                       isActive
-                        ? 'bg-orange-500/10 text-orange-300'
+                        ? 'bg-violet-500/10 text-violet-300'
                         : 'text-zinc-400 hover:bg-white/[0.05] hover:text-white'
                     )}
                   >
-                    <Icon className={cn('w-4 h-4', isActive ? 'text-orange-400' : 'text-zinc-500')} />
+                    <Icon className={cn('w-4 h-4', isActive ? 'text-violet-400' : 'text-zinc-500')} />
                     <span className="flex-1 text-left">{option.label}</span>
-                    {isActive && <Check className="w-4 h-4 text-orange-400" />}
+                    {isActive && <Check className="w-4 h-4 text-violet-400" />}
                   </button>
                 );
               })}
@@ -150,7 +150,7 @@ export function DashboardControls({
                       className={cn(
                         'flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200',
                         isActive
-                          ? 'bg-orange-500/15 text-orange-300 border border-orange-500/30'
+                          ? 'bg-violet-500/15 text-violet-300 border border-violet-500/30'
                           : 'bg-white/[0.03] text-zinc-400 border border-white/[0.06] hover:bg-white/[0.06] hover:text-white'
                       )}
                     >
@@ -177,13 +177,13 @@ export function DashboardControls({
                     className={cn(
                       'w-full flex items-center gap-3 px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200',
                       isActive
-                        ? 'bg-amber-500/10 text-amber-300'
+                        ? 'bg-violet-400/10 text-violet-200'
                         : 'text-zinc-400 hover:bg-white/[0.05] hover:text-white'
                     )}
                   >
-                    <Icon className={cn('w-4 h-4', isActive ? 'text-amber-400' : 'text-zinc-500')} />
+                    <Icon className={cn('w-4 h-4', isActive ? 'text-violet-300' : 'text-zinc-500')} />
                     <span className="flex-1 text-left">{option.label}</span>
-                    {isActive && <Check className="w-4 h-4 text-amber-400" />}
+                    {isActive && <Check className="w-4 h-4 text-violet-300" />}
                   </button>
                 );
               })}

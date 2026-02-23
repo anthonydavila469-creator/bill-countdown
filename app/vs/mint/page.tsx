@@ -46,7 +46,7 @@ const rows: Row[] = [
 
 function Cell({ value }: { value: string | boolean }) {
   if (typeof value === 'string') return <span className="text-zinc-300 text-sm">{value}</span>;
-  if (value) return <Check className="w-5 h-5 text-orange-400 mx-auto" />;
+  if (value) return <Check className="w-5 h-5 text-violet-400 mx-auto" />;
   return <X className="w-5 h-5 text-zinc-700 mx-auto" />;
 }
 
@@ -68,7 +68,7 @@ export default function VsMintPage() {
       <section className="max-w-4xl mx-auto px-6 pt-24 pb-16 text-center">
         <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
           Duezo vs{' '}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-orange-600">
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-violet-600">
             Mint
           </span>
         </h1>
@@ -84,7 +84,7 @@ export default function VsMintPage() {
             <thead>
               <tr className="border-b border-zinc-800">
                 <th className="text-left py-4 px-4 text-zinc-400 font-medium">Feature</th>
-                <th className="text-center py-4 px-4 text-orange-400 font-medium">Duezo</th>
+                <th className="text-center py-4 px-4 text-violet-400 font-medium">Duezo</th>
                 <th className="text-center py-4 px-4 text-zinc-400 font-medium">Mint (RIP)</th>
               </tr>
             </thead>
@@ -166,19 +166,19 @@ export default function VsMintPage() {
           </p>
           <ol className="space-y-4 text-zinc-300 text-lg">
             <li className="flex gap-3">
-              <span className="text-orange-400 font-bold">1.</span>
+              <span className="text-violet-400 font-bold">1.</span>
               <span>Sign up for Duezo (2 minutes)</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-orange-400 font-bold">2.</span>
+              <span className="text-violet-400 font-bold">2.</span>
               <span>Connect your Gmail account</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-orange-400 font-bold">3.</span>
+              <span className="text-violet-400 font-bold">3.</span>
               <span>Duezo automatically scans for bill notifications — no manual entry needed</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-orange-400 font-bold">4.</span>
+              <span className="text-violet-400 font-bold">4.</span>
               <span>You&apos;re done. Bills appear with countdown timers.</span>
             </li>
           </ol>
@@ -191,8 +191,8 @@ export default function VsMintPage() {
       {/* When to choose each */}
       <section className="max-w-4xl mx-auto px-6 py-16">
         <div className="grid md:grid-cols-2 gap-8">
-          <div className="bg-orange-500/5 border border-orange-500/20 rounded-2xl p-8">
-            <h2 className="text-xl font-bold mb-4 text-orange-400">Choose Duezo if you…</h2>
+          <div className="bg-violet-500/5 border border-violet-500/20 rounded-2xl p-8">
+            <h2 className="text-xl font-bold mb-4 text-violet-400">Choose Duezo if you…</h2>
             <ul className="space-y-3 text-zinc-300">
               {[
                 'Only used Mint for bill tracking',
@@ -203,7 +203,7 @@ export default function VsMintPage() {
                 'Don\'t mind paying $5/mo for privacy',
               ].map((item, i) => (
                 <li key={i} className="flex items-start gap-2">
-                  <Check className="w-4 h-4 text-orange-400 mt-1 flex-shrink-0" />
+                  <Check className="w-4 h-4 text-violet-400 mt-1 flex-shrink-0" />
                   {item}
                 </li>
               ))}
@@ -255,7 +255,7 @@ export default function VsMintPage() {
         </p>
         <Link
           href="/signup"
-          className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-10 py-4 rounded-xl text-lg transition-colors"
+          className="inline-flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-semibold px-10 py-4 rounded-xl text-lg transition-colors"
         >
           Start Free Trial <ArrowRight className="w-5 h-5" />
         </Link>

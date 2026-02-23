@@ -14,11 +14,11 @@ export default function PrivacyPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-violet-400 flex items-center justify-center">
                 <Zap className="w-5 h-5 text-white" />
               </div>
               <span className="text-xl font-bold tracking-tight">
-                Due<span className="text-orange-400">zo</span>
+                Due<span className="text-violet-400">zo</span>
               </span>
             </Link>
             <Link
@@ -256,7 +256,7 @@ export default function PrivacyPage() {
               contact us at{' '}
               <a
                 href="mailto:support@duezo.app"
-                className="text-orange-400 hover:text-orange-300 transition-colors"
+                className="text-violet-400 hover:text-violet-300 transition-colors"
               >
                 support@duezo.app
               </a>
@@ -271,7 +271,7 @@ export default function PrivacyPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-md bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
+              <div className="w-6 h-6 rounded-md bg-gradient-to-br from-violet-500 to-violet-400 flex items-center justify-center">
                 <Zap className="w-4 h-4 text-white" />
               </div>
               <span className="font-semibold text-sm">Duezo</span>

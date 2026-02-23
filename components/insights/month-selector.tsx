@@ -26,7 +26,7 @@ export function MonthSelector({ months, selectedMonth, onChange }: MonthSelector
           'bg-white/[0.03] hover:bg-white/[0.06]',
           'border border-white/[0.08] hover:border-white/[0.15]',
           'rounded-xl text-white text-sm font-medium tracking-wide',
-          'focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500/40',
+          'focus:outline-none focus:ring-2 focus:ring-violet-400/40 focus:border-violet-400/40',
           'cursor-pointer transition-all duration-200'
         )}
       >

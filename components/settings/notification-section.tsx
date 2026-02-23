@@ -61,7 +61,7 @@ function Toggle({
   enabled,
   onChange,
   disabled = false,
-  color = '#f97316',
+  color = '#8B5CF6',
 }: {
   enabled: boolean;
   onChange: (enabled: boolean) => void;
@@ -206,7 +206,7 @@ export function NotificationSection() {
       <section>
         <SectionHeader
           icon={Bell}
-          iconGradient="from-orange-500/80 to-amber-500/80"
+          iconGradient="from-violet-500/80 to-violet-400/80"
           title="Notifications"
           description="Get reminded about upcoming bills"
         />
@@ -222,7 +222,7 @@ export function NotificationSection() {
     <section>
       <SectionHeader
         icon={Bell}
-        iconGradient="from-orange-500/80 to-amber-500/80"
+        iconGradient="from-violet-500/80 to-violet-400/80"
         title="Notifications"
         description="Get reminded about upcoming bills"
       />
@@ -238,7 +238,7 @@ export function NotificationSection() {
           <Toggle
             enabled={settings.email_enabled}
             onChange={handleEmailToggle}
-            color="#f97316"
+            color="#8B5CF6"
           />
         </FieldRow>
 
@@ -251,9 +251,9 @@ export function NotificationSection() {
         >
           <div className="flex items-center gap-3">
             {!canUsePushNotifications && (
-              <span className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-500/20 border border-amber-500/30">
-                <Crown className="w-3 h-3 text-amber-400" />
-                <span className="text-[10px] font-semibold text-amber-300">Pro</span>
+              <span className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-violet-400/20 border border-violet-400/30">
+                <Crown className="w-3 h-3 text-violet-300" />
+                <span className="text-[10px] font-semibold text-violet-200">Pro</span>
               </span>
             )}
             <Toggle
@@ -266,7 +266,7 @@ export function NotificationSection() {
                 handlePushToggle(enabled);
               }}
               disabled={!isSupported}
-              color="#f59e0b"
+              color="#8B5CF6"
             />
           </div>
         </FieldRow>
@@ -280,9 +280,9 @@ export function NotificationSection() {
         >
           <div className="flex items-center gap-3">
             {!canUseDailyAutoSync && (
-              <span className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-500/20 border border-amber-500/30">
-                <Crown className="w-3 h-3 text-amber-400" />
-                <span className="text-[10px] font-semibold text-amber-300">Pro</span>
+              <span className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-violet-400/20 border border-violet-400/30">
+                <Crown className="w-3 h-3 text-violet-300" />
+                <span className="text-[10px] font-semibold text-violet-200">Pro</span>
               </span>
             )}
             <Toggle
@@ -315,9 +315,9 @@ export function NotificationSection() {
               </div>
             </div>
             {!canCustomizeReminders && (
-              <span className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-500/20 border border-amber-500/30">
-                <Crown className="w-3 h-3 text-amber-400" />
-                <span className="text-[10px] font-semibold text-amber-300">Pro</span>
+              <span className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-violet-400/20 border border-violet-400/30">
+                <Crown className="w-3 h-3 text-violet-300" />
+                <span className="text-[10px] font-semibold text-violet-200">Pro</span>
               </span>
             )}
           </div>
@@ -339,7 +339,7 @@ export function NotificationSection() {
                   className={cn(
                     'flex items-center gap-2 px-3 py-2.5 h-11 rounded-xl text-sm font-medium transition-all duration-200 border',
                     isActive
-                      ? 'bg-orange-500/15 border-orange-500/30 text-orange-300'
+                      ? 'bg-violet-500/15 border-violet-500/30 text-violet-300'
                       : 'bg-white/[0.02] border-white/[0.06] text-zinc-500 hover:text-zinc-300 hover:border-white/[0.1]',
                     !canCustomizeReminders && 'opacity-50 cursor-not-allowed'
                   )}
@@ -348,7 +348,7 @@ export function NotificationSection() {
                     className={cn(
                       'w-4 h-4 rounded border flex items-center justify-center transition-all',
                       isActive
-                        ? 'bg-orange-500 border-orange-500'
+                        ? 'bg-violet-500 border-violet-500'
                         : 'border-white/20'
                     )}
                   >
@@ -363,20 +363,20 @@ export function NotificationSection() {
 
         {/* Info tip */}
         <div
-          className="relative p-4 rounded-xl bg-orange-500/[0.03] border border-orange-500/10 animate-in fade-in slide-in-from-bottom-2"
+          className="relative p-4 rounded-xl bg-violet-500/[0.03] border border-violet-500/10 animate-in fade-in slide-in-from-bottom-2"
           style={{ animationDelay: '375ms', animationFillMode: 'backwards' }}
         >
-          <div className="absolute top-2 left-2 w-2 h-2 border-l border-t border-orange-400/30 rounded-tl-sm" />
-          <div className="absolute top-2 right-2 w-2 h-2 border-r border-t border-orange-400/30 rounded-tr-sm" />
-          <div className="absolute bottom-2 left-2 w-2 h-2 border-l border-b border-orange-400/30 rounded-bl-sm" />
-          <div className="absolute bottom-2 right-2 w-2 h-2 border-r border-b border-orange-400/30 rounded-br-sm" />
+          <div className="absolute top-2 left-2 w-2 h-2 border-l border-t border-violet-400/30 rounded-tl-sm" />
+          <div className="absolute top-2 right-2 w-2 h-2 border-r border-t border-violet-400/30 rounded-tr-sm" />
+          <div className="absolute bottom-2 left-2 w-2 h-2 border-l border-b border-violet-400/30 rounded-bl-sm" />
+          <div className="absolute bottom-2 right-2 w-2 h-2 border-r border-b border-violet-400/30 rounded-br-sm" />
 
           <div className="flex items-start gap-3">
-            <div className="p-1.5 rounded-lg bg-orange-500/10">
-              <Info className="w-3.5 h-3.5 text-orange-400" />
+            <div className="p-1.5 rounded-lg bg-violet-500/10">
+              <Info className="w-3.5 h-3.5 text-violet-400" />
             </div>
             <div>
-              <p className="text-sm text-orange-300/90 font-medium mb-1">
+              <p className="text-sm text-violet-300/90 font-medium mb-1">
                 About Notifications
               </p>
               <p className="text-xs text-zinc-400 leading-relaxed">

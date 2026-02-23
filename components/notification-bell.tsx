@@ -99,7 +99,7 @@ export function NotificationBell() {
       >
         <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full" />
+          <span className="absolute top-1 right-1 w-2 h-2 bg-violet-500 rounded-full" />
         )}
       </button>
 
@@ -117,11 +117,11 @@ export function NotificationBell() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="relative">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500/20 to-amber-500/20 flex items-center justify-center">
-                      <Bell className="w-4 h-4 text-orange-400" />
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500/20 to-violet-400/20 flex items-center justify-center">
+                      <Bell className="w-4 h-4 text-violet-400" />
                     </div>
                     {unreadCount > 0 && (
-                      <span className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-orange-500 to-rose-500 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-lg shadow-orange-500/30">
+                      <span className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-violet-500 to-rose-500 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-lg shadow-violet-500/30">
                         {unreadCount}
                       </span>
                     )}
@@ -138,7 +138,7 @@ export function NotificationBell() {
                     <button
                       onClick={markAllRead}
                       disabled={loading}
-                      className="p-1.5 text-zinc-500 hover:text-orange-400 hover:bg-white/10 rounded-lg transition-all duration-200 text-xs flex items-center gap-1"
+                      className="p-1.5 text-zinc-500 hover:text-violet-400 hover:bg-white/10 rounded-lg transition-all duration-200 text-xs flex items-center gap-1"
                       title="Mark all as read"
                     >
                       <Check className="w-3.5 h-3.5" />
@@ -164,7 +164,7 @@ export function NotificationBell() {
                     <div className="absolute w-16 h-16 rounded-full border border-dashed border-zinc-700" />
                   </div>
                   <div className="relative">
-                    <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-emerald-500/10 to-green-500/10 flex items-center justify-center border border-emerald-500/20">
+                    <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-emerald-500/10 to-greeviolet-500/10 flex items-center justify-center border border-emerald-500/20">
                       <Bell className="w-6 h-6 text-emerald-400" />
                     </div>
                     <p className="text-sm font-medium text-white mb-1">No notifications yet</p>
@@ -197,7 +197,7 @@ export function NotificationBell() {
                         </p>
                       </div>
                       {!n.read_at && (
-                        <div className="w-2 h-2 mt-2 rounded-full bg-orange-500 shrink-0" />
+                        <div className="w-2 h-2 mt-2 rounded-full bg-violet-500 shrink-0" />
                       )}
                     </div>
                   ))}

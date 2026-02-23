@@ -36,7 +36,7 @@ export function OptionalSetup({ options, onChange }: OptionalSetupProps) {
       {/* Autopay Tracking */}
       <SetupCard
         icon={CreditCard}
-        iconGradient="from-emerald-500 to-green-500"
+        iconGradient="from-emerald-500 to-greeviolet-500"
         title="Autopay Tracking"
         description="Mark bills as autopay to track which ones pay themselves"
         enabled={options.autopayTracking}
@@ -47,7 +47,7 @@ export function OptionalSetup({ options, onChange }: OptionalSetupProps) {
       {/* Paycheck Mode - Pro feature */}
       <SetupCard
         icon={Wallet}
-        iconGradient="from-orange-500 to-orange-500"
+        iconGradient="from-violet-500 to-violet-500"
         title="Paycheck Mode"
         description="See which bills are due before your next payday"
         enabled={options.paycheckMode && canUsePaycheckMode}
@@ -59,7 +59,7 @@ export function OptionalSetup({ options, onChange }: OptionalSetupProps) {
       {/* Email Reminders */}
       <SetupCard
         icon={Bell}
-        iconGradient="from-amber-500 to-amber-500"
+        iconGradient="from-violet-400 to-violet-400"
         title="Email Reminders"
         description="Get notified before bills are due"
         enabled={options.emailReminders}
@@ -123,9 +123,9 @@ function SetupCard({
         <div className="flex items-center gap-2">
           <h4 className="text-sm font-semibold text-white">{title}</h4>
           {isPro && (
-            <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30">
-              <Crown className="w-3 h-3 text-amber-400" />
-              <span className="text-[10px] font-semibold text-amber-300">Pro</span>
+            <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-violet-400/20 border border-violet-400/30">
+              <Crown className="w-3 h-3 text-violet-300" />
+              <span className="text-[10px] font-semibold text-violet-200">Pro</span>
             </span>
           )}
         </div>
@@ -136,11 +136,11 @@ function SetupCard({
       <div
         className={cn(
           'relative w-12 h-7 rounded-full transition-all duration-300',
-          enabled ? 'bg-amber-500' : 'bg-white/10'
+          enabled ? 'bg-violet-400' : 'bg-white/10'
         )}
       >
         {enabled && (
-          <div className="absolute inset-0 rounded-full bg-amber-500 blur-md opacity-50" />
+          <div className="absolute inset-0 rounded-full bg-violet-400 blur-md opacity-50" />
         )}
         <div
           className={cn(

@@ -193,10 +193,10 @@ export default function CalendarPage() {
               alt="Duezo"
               width={36}
               height={36}
-              className="rounded-xl shadow-lg shadow-orange-500/20"
+              className="rounded-xl shadow-lg shadow-violet-500/20"
             />
             <span className="text-lg font-bold text-white tracking-tight">
-              Due<span className="text-orange-400">zo</span>
+              Due<span className="text-violet-400">zo</span>
             </span>
           </Link>
         </div>
@@ -221,9 +221,9 @@ export default function CalendarPage() {
                 <Calendar className="w-5 h-5" />
                 Calendar
                 {!canUseCalendar && (
-                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30 ml-auto">
-                    <Crown className="w-3 h-3 text-amber-400" />
-                    <span className="text-[10px] font-semibold text-amber-300">Pro</span>
+                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-violet-400/20 border border-violet-400/30 ml-auto">
+                    <Crown className="w-3 h-3 text-violet-300" />
+                    <span className="text-[10px] font-semibold text-violet-200">Pro</span>
                   </span>
                 )}
               </Link>
@@ -236,9 +236,9 @@ export default function CalendarPage() {
                 <History className="w-5 h-5" />
                 History
                 {!canUseHistory && (
-                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30 ml-auto">
-                    <Crown className="w-3 h-3 text-amber-400" />
-                    <span className="text-[10px] font-semibold text-amber-300">Pro</span>
+                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-violet-400/20 border border-violet-400/30 ml-auto">
+                    <Crown className="w-3 h-3 text-violet-300" />
+                    <span className="text-[10px] font-semibold text-violet-200">Pro</span>
                   </span>
                 )}
               </Link>
@@ -251,9 +251,9 @@ export default function CalendarPage() {
                 <Lightbulb className="w-5 h-5" />
                 Insights
                 {!canUseHistory && (
-                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30 ml-auto">
-                    <Crown className="w-3 h-3 text-amber-400" />
-                    <span className="text-[10px] font-semibold text-amber-300">Pro</span>
+                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-violet-400/20 border border-violet-400/30 ml-auto">
+                    <Crown className="w-3 h-3 text-violet-300" />
+                    <span className="text-[10px] font-semibold text-violet-200">Pro</span>
                   </span>
                 )}
               </Link>
@@ -273,9 +273,9 @@ export default function CalendarPage() {
         {/* Gmail sync status - only show if not connected */}
         {!isGmailConnected && (
           <div className="p-4 border-t border-white/5">
-            <div className="p-4 rounded-xl bg-gradient-to-br from-orange-500/10 to-amber-500/10 border border-white/5">
+            <div className="p-4 rounded-xl bg-gradient-to-br from-violet-500/10 to-violet-400/10 border border-white/5">
               <div className="flex items-center gap-3 mb-3">
-                <Mail className="w-5 h-5 text-orange-400" />
+                <Mail className="w-5 h-5 text-violet-400" />
                 <span className="text-sm font-medium text-white">Gmail Sync</span>
               </div>
               <p className="text-xs text-zinc-400 mb-3">
@@ -294,7 +294,7 @@ export default function CalendarPage() {
         {/* User */}
         <div className="p-4 border-t border-white/5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white font-medium">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-400 to-pink-500 flex items-center justify-center text-white font-medium">
               {user?.email?.[0]?.toUpperCase() || 'U'}
             </div>
             <div className="flex-1 min-w-0">
@@ -327,10 +327,10 @@ export default function CalendarPage() {
                 alt="Duezo"
                 width={32}
                 height={32}
-                className="rounded-lg shadow-lg shadow-orange-500/20"
+                className="rounded-lg shadow-lg shadow-violet-500/20"
               />
               <span className="text-lg font-bold text-white tracking-tight">
-                Due<span className="text-orange-400">zo</span>
+                Due<span className="text-violet-400">zo</span>
               </span>
             </div>
 

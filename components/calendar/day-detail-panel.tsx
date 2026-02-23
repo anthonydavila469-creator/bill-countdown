@@ -86,8 +86,8 @@ export function DayDetailPanel({
         {/* Decorative background elements */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl">
           {/* Ambient glow */}
-          <div className="absolute -top-32 -right-32 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl" />
-          <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-orange-500/8 rounded-full blur-3xl" />
+          <div className="absolute -top-32 -right-32 w-64 h-64 bg-violet-400/10 rounded-full blur-3xl" />
+          <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-violet-500/8 rounded-full blur-3xl" />
           {/* Subtle grid pattern */}
           <div
             className="absolute inset-0 opacity-[0.015]"
@@ -116,11 +116,11 @@ export function DayDetailPanel({
               'relative w-20 h-20 rounded-2xl flex items-center justify-center',
               'bg-gradient-to-br from-white/[0.08] to-white/[0.02]',
               'border border-white/[0.08]',
-              isToday && 'ring-2 ring-orange-500/50 ring-offset-2 ring-offset-[#09090d]'
+              isToday && 'ring-2 ring-violet-500/50 ring-offset-2 ring-offset-[#09090d]'
             )}>
               <span className="text-4xl font-light text-white tracking-tight">{dayNum}</span>
               {isToday && (
-                <span className="absolute -top-2 -right-2 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider bg-orange-500 text-white rounded-full">
+                <span className="absolute -top-2 -right-2 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider bg-violet-500 text-white rounded-full">
                   Today
                 </span>
               )}
@@ -128,7 +128,7 @@ export function DayDetailPanel({
 
             {/* Date info */}
             <div className="flex-1 pt-1">
-              <p className="text-sm font-medium text-amber-400 tracking-wide">{dayOfWeek}</p>
+              <p className="text-sm font-medium text-violet-300 tracking-wide">{dayOfWeek}</p>
               <h3 className="text-xl font-medium text-white mt-0.5">{monthDay}</h3>
               <p className="text-sm text-zinc-500 mt-1">{year}</p>
             </div>
@@ -141,7 +141,7 @@ export function DayDetailPanel({
             ) : (
               <>
                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.05] border border-white/[0.08]">
-                  <div className="w-2 h-2 rounded-full bg-amber-400" />
+                  <div className="w-2 h-2 rounded-full bg-violet-300" />
                   <span className="text-sm text-zinc-300">
                     <span className="font-semibold text-white">{actualCount}</span> {actualCount === 1 ? 'bill' : 'bills'} due
                   </span>
@@ -162,14 +162,14 @@ export function DayDetailPanel({
           <div className="mx-6 mb-4">
             <div className="relative p-4 rounded-xl overflow-hidden">
               {/* Card background */}
-              <div className="absolute inset-0 bg-gradient-to-br from-amber-500/15 via-orange-500/10 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-br from-violet-400/15 via-violet-500/10 to-transparent" />
               <div className="absolute inset-0 bg-white/[0.02]" />
               <div className="absolute inset-[1px] rounded-[11px] border border-white/[0.08]" />
 
               <div className="relative flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500/30 to-orange-500/20 flex items-center justify-center border border-white/10">
-                    <Sparkles className="w-5 h-5 text-amber-300" />
+                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-violet-400/30 to-violet-500/20 flex items-center justify-center border border-white/10">
+                    <Sparkles className="w-5 h-5 text-violet-200" />
                   </div>
                   <div>
                     <p className="text-[11px] text-zinc-400 uppercase tracking-widest font-medium">Total Due</p>
@@ -194,7 +194,7 @@ export function DayDetailPanel({
                 <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-white/[0.06] to-white/[0.02] border border-white/[0.08] flex items-center justify-center mb-5">
                   <Calendar className="w-9 h-9 text-zinc-600" />
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-br from-amber-500/20 to-transparent rounded-2xl blur-xl opacity-50" />
+                <div className="absolute inset-0 bg-gradient-to-br from-violet-400/20 to-transparent rounded-2xl blur-xl opacity-50" />
               </div>
               <p className="text-zinc-400 font-medium mb-1">No bills on this day</p>
               <p className="text-sm text-zinc-600 max-w-[200px]">Click below to schedule a bill for this date</p>
@@ -312,12 +312,12 @@ export function DayDetailPanel({
                           </span>
                         )}
                         {!bill.is_autopay && !isProjected && !bill.is_paid && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 font-medium border border-amber-500/20">
+                          <span className="text-[10px] px-2 py-0.5 rounded-md bg-violet-400/10 text-violet-300 font-medium border border-violet-400/20">
                             Manual
                           </span>
                         )}
                         {bill.is_recurring && !isProjected && (
-                          <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-md bg-orange-500/10 text-orange-400 font-medium border border-orange-500/20 capitalize">
+                          <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-md bg-violet-500/10 text-violet-400 font-medium border border-violet-500/20 capitalize">
                             <RefreshCw className="w-2.5 h-2.5" />
                             {bill.recurrence_interval}
                           </span>
@@ -361,7 +361,7 @@ export function DayDetailPanel({
                           href={bill.payment_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex-1 flex items-center justify-center gap-1.5 px-3.5 py-2.5 text-xs font-semibold rounded-lg bg-orange-500/20 text-orange-400 border border-orange-500/30 hover:bg-orange-500/30 hover:border-orange-400/50 transition-all duration-200"
+                          className="flex-1 flex items-center justify-center gap-1.5 px-3.5 py-2.5 text-xs font-semibold rounded-lg bg-violet-500/20 text-violet-400 border border-violet-500/30 hover:bg-violet-500/30 hover:border-violet-400/50 transition-all duration-200"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <ExternalLink className="w-3.5 h-3.5" />

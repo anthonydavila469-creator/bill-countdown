@@ -35,12 +35,12 @@ export function TrialBanner() {
   if (trialEndsAt && !isPro) {
     return (
       <div className="flex items-center justify-center gap-2 px-3 py-1.5 text-xs font-medium">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-500/15 border border-orange-500/30 px-3 py-1 text-orange-300">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-500/15 border border-violet-500/30 px-3 py-1 text-violet-300">
           Trial ended
         </span>
         <Link
           href="/dashboard/settings#subscription"
-          className="text-orange-400 hover:text-orange-300 underline underline-offset-2 transition-colors"
+          className="text-violet-400 hover:text-violet-300 underline underline-offset-2 transition-colors"
         >
           Upgrade to Pro
         </Link>

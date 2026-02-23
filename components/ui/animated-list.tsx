@@ -136,8 +136,8 @@ export function Spinner({ className, size = 'sm', variant = 'default' }: Spinner
       spinner: 'stroke-black/60',
     },
     accent: {
-      track: 'stroke-orange-500/20',
-      spinner: 'stroke-orange-400',
+      track: 'stroke-violet-500/20',
+      spinner: 'stroke-violet-400',
     },
   };
 
@@ -196,7 +196,7 @@ export function PulseLoader({ className, size = 'sm' }: PulseLoaderProps) {
           key={i}
           className={cn(
             dotSize,
-            'rounded-full bg-gradient-to-br from-orange-400 to-amber-400',
+            'rounded-full bg-gradient-to-br from-violet-400 to-violet-300',
             'animate-pulse'
           )}
           style={{

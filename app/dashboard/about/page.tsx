@@ -13,7 +13,7 @@ export default function AboutPage() {
           className="mx-auto mb-4"
         />
         <h1 className="text-2xl font-bold text-white mb-1">
-          Due<span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400">zo</span>
+          Due<span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-violet-300">zo</span>
         </h1>
         <p className="text-sm text-zinc-400 mb-1">Version 1.0.0</p>
         <p className="text-sm text-zinc-500 mb-8">Never miss a bill again.</p>

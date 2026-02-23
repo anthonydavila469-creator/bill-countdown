@@ -389,7 +389,7 @@ export default function DashboardPage() {
               className="group-hover:scale-105 transition-transform duration-300"
             />
             <span className="text-lg font-bold text-white tracking-tight">
-              Due<span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400">zo</span>
+              Due<span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-violet-300">zo</span>
             </span>
           </Link>
         </div>
@@ -405,9 +405,9 @@ export default function DashboardPage() {
                 className="group relative flex items-center gap-3 px-3 py-2.5 text-white rounded-xl bg-gradient-to-r from-white/[0.08] to-white/[0.03] border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-all duration-200"
               >
                 {/* Active indicator bar */}
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full bg-gradient-to-b from-orange-400 to-amber-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]" />
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500/20 to-amber-500/20 border border-white/[0.08]">
-                  <LayoutGrid className="w-4 h-4 text-orange-400" />
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full bg-gradient-to-b from-violet-400 to-violet-400 shadow-[0_0_8px_rgba(249,115,22,0.5)]" />
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500/20 to-violet-400/20 border border-white/[0.08]">
+                  <LayoutGrid className="w-4 h-4 text-violet-400" />
                 </div>
                 <span className="font-medium">Dashboard</span>
               </Link>
@@ -418,13 +418,13 @@ export default function DashboardPage() {
                 className="group flex items-center gap-3 px-3 py-2.5 text-zinc-400 rounded-xl hover:bg-white/[0.04] hover:text-white transition-all duration-200"
               >
                 <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.03] group-hover:bg-white/[0.06] border border-transparent group-hover:border-white/[0.06] transition-all duration-200">
-                  <Calendar className="w-4 h-4 group-hover:text-orange-300 transition-colors duration-200" />
+                  <Calendar className="w-4 h-4 group-hover:text-violet-300 transition-colors duration-200" />
                 </div>
                 <span className="font-medium">Calendar</span>
                 {!canUseCalendar && (
-                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30">
-                    <Crown className="w-3 h-3 text-amber-400" />
-                    <span className="text-[10px] font-semibold text-amber-300">Pro</span>
+                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-violet-400/20 border border-violet-400/30">
+                    <Crown className="w-3 h-3 text-violet-300" />
+                    <span className="text-[10px] font-semibold text-violet-200">Pro</span>
                   </span>
                 )}
               </Link>
@@ -435,13 +435,13 @@ export default function DashboardPage() {
                 className="group flex items-center gap-3 px-3 py-2.5 text-zinc-400 rounded-xl hover:bg-white/[0.04] hover:text-white transition-all duration-200"
               >
                 <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.03] group-hover:bg-white/[0.06] border border-transparent group-hover:border-white/[0.06] transition-all duration-200">
-                  <History className="w-4 h-4 group-hover:text-orange-400 transition-colors duration-200" />
+                  <History className="w-4 h-4 group-hover:text-violet-400 transition-colors duration-200" />
                 </div>
                 <span className="font-medium">History</span>
                 {!canUseHistory && (
-                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30">
-                    <Crown className="w-3 h-3 text-amber-400" />
-                    <span className="text-[10px] font-semibold text-amber-300">Pro</span>
+                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-violet-400/20 border border-violet-400/30">
+                    <Crown className="w-3 h-3 text-violet-300" />
+                    <span className="text-[10px] font-semibold text-violet-200">Pro</span>
                   </span>
                 )}
               </Link>
@@ -452,13 +452,13 @@ export default function DashboardPage() {
                 className="group flex items-center gap-3 px-3 py-2.5 text-zinc-400 rounded-xl hover:bg-white/[0.04] hover:text-white transition-all duration-200"
               >
                 <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.03] group-hover:bg-white/[0.06] border border-transparent group-hover:border-white/[0.06] transition-all duration-200">
-                  <Lightbulb className="w-4 h-4 group-hover:text-amber-400 transition-colors duration-200" />
+                  <Lightbulb className="w-4 h-4 group-hover:text-violet-300 transition-colors duration-200" />
                 </div>
                 <span className="font-medium">Insights</span>
                 {!canUseHistory && (
-                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30">
-                    <Crown className="w-3 h-3 text-amber-400" />
-                    <span className="text-[10px] font-semibold text-amber-300">Pro</span>
+                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-violet-400/20 border border-violet-400/30">
+                    <Crown className="w-3 h-3 text-violet-300" />
+                    <span className="text-[10px] font-semibold text-violet-200">Pro</span>
                   </span>
                 )}
               </Link>
@@ -480,13 +480,13 @@ export default function DashboardPage() {
         {/* Gmail sync status - only show if not connected */}
         {!isGmailConnected && (
           <div className="p-4 border-t border-white/[0.06]">
-            <div className="relative p-4 rounded-xl overflow-hidden bg-gradient-to-br from-orange-500/10 via-amber-500/5 to-orange-500/10 border border-orange-500/20">
+            <div className="relative p-4 rounded-xl overflow-hidden bg-gradient-to-br from-violet-500/10 via-violet-400/5 to-violet-500/10 border border-violet-500/20">
               {/* Decorative glow */}
-              <div className="absolute -top-10 -right-10 w-24 h-24 bg-orange-500/20 rounded-full blur-2xl" />
+              <div className="absolute -top-10 -right-10 w-24 h-24 bg-violet-500/20 rounded-full blur-2xl" />
               <div className="relative">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-orange-500/20 border border-orange-500/30">
-                    <Mail className="w-4 h-4 text-orange-400" />
+                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-violet-500/20 border border-violet-500/30">
+                    <Mail className="w-4 h-4 text-violet-400" />
                   </div>
                   <span className="text-sm font-semibold text-white">Gmail Sync</span>
                 </div>
@@ -495,7 +495,7 @@ export default function DashboardPage() {
                 </p>
                 <Link
                   href="/dashboard/settings"
-                  className="block w-full px-3 py-2 text-sm font-semibold bg-gradient-to-r from-orange-500/20 to-amber-500/20 hover:from-orange-500/30 hover:to-amber-500/30 border border-white/10 hover:border-white/20 rounded-lg transition-all duration-200 text-white text-center"
+                  className="block w-full px-3 py-2 text-sm font-semibold bg-gradient-to-r from-violet-500/20 to-violet-400/20 hover:from-violet-500/30 hover:to-violet-400/30 border border-white/10 hover:border-white/20 rounded-lg transition-all duration-200 text-white text-center"
                 >
                   Connect Gmail
                 </Link>
@@ -507,7 +507,7 @@ export default function DashboardPage() {
         {/* User */}
         <div className="p-4 border-t border-white/[0.06]">
           <div className="flex items-center gap-3 p-2 -m-2 rounded-xl hover:bg-white/[0.03] transition-colors duration-200">
-            <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white font-semibold shadow-lg shadow-orange-500/20">
+            <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-violet-400 to-pink-500 flex items-center justify-center text-white font-semibold shadow-lg shadow-violet-500/20">
               {user?.email?.[0]?.toUpperCase() || 'U'}
             </div>
             <div className="flex-1 min-w-0">
@@ -554,7 +554,7 @@ export default function DashboardPage() {
                   placeholder="Search bills..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+                  className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm"
                 />
               </div>
             </div>
@@ -568,7 +568,7 @@ export default function DashboardPage() {
                   "p-2 rounded-lg transition-all duration-200",
                   canAddBill
                     ? "text-zinc-400 hover:text-white hover:bg-white/10"
-                    : "text-amber-400 hover:bg-amber-500/10"
+                    : "text-violet-300 hover:bg-violet-400/10"
                 )}
                 title={canAddBill ? "Add Bill" : "Upgrade for more bills"}
               >
@@ -588,7 +588,7 @@ export default function DashboardPage() {
                   "hidden sm:flex items-center gap-2 px-4 py-2 font-medium rounded-lg transition-opacity",
                   canAddBill
                     ? "text-white hover:opacity-90"
-                    : "text-amber-200 border border-amber-500/30"
+                    : "text-violet-200 border border-violet-400/30"
                 )}
                 style={canAddBill ? { backgroundColor: 'var(--accent-primary)' } : { backgroundColor: 'rgba(245, 158, 11, 0.2)' }}
               >
@@ -613,10 +613,10 @@ export default function DashboardPage() {
           {/* Stats - conditionally rendered based on layout preferences */}
           {dashboardLayout.showStatsBar && (
             <div className="grid grid-cols-3 gap-3 mb-8">
-              <div className="relative p-4 sm:p-6 rounded-2xl bg-gradient-to-br from-orange-500/[0.08] to-white/[0.01] border border-orange-500/20 overflow-hidden group hover:border-orange-500/30 transition-all duration-300 flex flex-col items-center justify-center text-center">
-                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-orange-500/30 to-transparent" />
+              <div className="relative p-4 sm:p-6 rounded-2xl bg-gradient-to-br from-violet-500/[0.08] to-white/[0.01] border border-violet-500/20 overflow-hidden group hover:border-violet-500/30 transition-all duration-300 flex flex-col items-center justify-center text-center">
+                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-violet-500/30 to-transparent" />
                 <p className="text-[10px] sm:text-xs text-zinc-400 mb-1 font-medium uppercase tracking-wide">Due Soon</p>
-                <p className="text-3xl sm:text-4xl font-black text-orange-400 drop-shadow-[0_0_10px_rgba(251,146,60,0.3)]">
+                <p className="text-3xl sm:text-4xl font-black text-violet-400 drop-shadow-[0_0_10px_rgba(251,146,60,0.3)]">
                   {billsDueSoon.length}
                 </p>
               </div>
@@ -800,7 +800,7 @@ export default function DashboardPage() {
                             <div
                               className={cn(
                                 'relative w-9 h-5 rounded-full transition-all duration-200',
-                                dashboardLayout.showStatsBar ? 'bg-orange-500' : 'bg-white/10'
+                                dashboardLayout.showStatsBar ? 'bg-violet-500' : 'bg-white/10'
                               )}
                             >
                               <div
@@ -839,7 +839,7 @@ export default function DashboardPage() {
                       "inline-flex items-center gap-2 px-6 py-3 font-medium rounded-lg transition-opacity",
                       canAddBill
                         ? "text-white hover:opacity-90"
-                        : "text-amber-200 border border-amber-500/30"
+                        : "text-violet-200 border border-violet-400/30"
                     )}
                     style={canAddBill ? { backgroundColor: 'var(--accent-primary)' } : { backgroundColor: 'rgba(245, 158, 11, 0.2)' }}
                   >
@@ -856,7 +856,7 @@ export default function DashboardPage() {
 
             {/* Bulk Action Bar - appears when items selected */}
             {selectedBillIds.size > 0 && (
-              <div className="flex items-center justify-between gap-4 mb-4 p-3 rounded-xl bg-gradient-to-r from-orange-500/10 to-amber-500/10 border border-orange-500/20 animate-in fade-in slide-in-from-top-2">
+              <div className="flex items-center justify-between gap-4 mb-4 p-3 rounded-xl bg-gradient-to-r from-violet-500/10 to-violet-400/10 border border-violet-500/20 animate-in fade-in slide-in-from-top-2">
                 <span className="text-sm font-medium text-white">
                   {selectedBillIds.size} bill{selectedBillIds.size === 1 ? '' : 's'} selected
                 </span>

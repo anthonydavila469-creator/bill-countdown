@@ -61,22 +61,22 @@ export function MobileBottomNav() {
               >
                 {/* Active indicator - background highlight */}
                 {isActive && (
-                  <div className="absolute inset-0 bg-orange-500/10 rounded-xl border border-orange-500/20" />
+                  <div className="absolute inset-0 bg-violet-500/10 rounded-xl border border-violet-500/20" />
                 )}
 
                 <div className="relative">
                   <Icon className={cn(
                     'w-5 h-5 transition-colors duration-200',
-                    isActive && 'text-orange-400'
+                    isActive && 'text-violet-400'
                   )} />
                   {locked && (
-                    <Crown className="absolute -top-1.5 -right-2 w-3 h-3 text-amber-400" />
+                    <Crown className="absolute -top-1.5 -right-2 w-3 h-3 text-violet-300" />
                   )}
                 </div>
 
                 <span className={cn(
                   'text-[9px] font-medium transition-colors duration-200',
-                  isActive ? 'text-orange-400' : 'text-zinc-500'
+                  isActive ? 'text-violet-400' : 'text-zinc-500'
                 )}>
                   {item.label}
                 </span>

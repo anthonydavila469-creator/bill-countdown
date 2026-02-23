@@ -385,7 +385,7 @@ export default function SettingsPage() {
     return (
       <div className="min-h-screen bg-[#08080c] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
+          <Loader2 className="w-8 h-8 text-violet-500 animate-spin" />
           <p className="text-zinc-400">Loading...</p>
         </div>
       </div>
@@ -404,10 +404,10 @@ export default function SettingsPage() {
               alt="Duezo"
               width={36}
               height={36}
-              className="rounded-xl shadow-lg shadow-orange-500/20"
+              className="rounded-xl shadow-lg shadow-violet-500/20"
             />
             <span className="text-lg font-bold text-white tracking-tight">
-              Due<span className="text-orange-400">zo</span>
+              Due<span className="text-violet-400">zo</span>
             </span>
           </Link>
         </div>
@@ -432,9 +432,9 @@ export default function SettingsPage() {
                 <Calendar className="w-5 h-5" />
                 Calendar
                 {!canUseCalendar && (
-                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30 ml-auto">
-                    <Crown className="w-3 h-3 text-amber-400" />
-                    <span className="text-[10px] font-semibold text-amber-300">Pro</span>
+                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-violet-400/20 border border-violet-400/30 ml-auto">
+                    <Crown className="w-3 h-3 text-violet-300" />
+                    <span className="text-[10px] font-semibold text-violet-200">Pro</span>
                   </span>
                 )}
               </Link>
@@ -447,9 +447,9 @@ export default function SettingsPage() {
                 <History className="w-5 h-5" />
                 History
                 {!canUseHistory && (
-                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30 ml-auto">
-                    <Crown className="w-3 h-3 text-amber-400" />
-                    <span className="text-[10px] font-semibold text-amber-300">Pro</span>
+                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-violet-400/20 border border-violet-400/30 ml-auto">
+                    <Crown className="w-3 h-3 text-violet-300" />
+                    <span className="text-[10px] font-semibold text-violet-200">Pro</span>
                   </span>
                 )}
               </Link>
@@ -462,9 +462,9 @@ export default function SettingsPage() {
                 <Lightbulb className="w-5 h-5" />
                 Insights
                 {!canUseHistory && (
-                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30 ml-auto">
-                    <Crown className="w-3 h-3 text-amber-400" />
-                    <span className="text-[10px] font-semibold text-amber-300">Pro</span>
+                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-violet-400/20 border border-violet-400/30 ml-auto">
+                    <Crown className="w-3 h-3 text-violet-300" />
+                    <span className="text-[10px] font-semibold text-violet-200">Pro</span>
                   </span>
                 )}
               </Link>
@@ -484,9 +484,9 @@ export default function SettingsPage() {
         {/* Gmail sync status - only show if not connected */}
         {!isGmailConnected && (
           <div className="p-4 border-t border-white/5">
-            <div className="p-4 rounded-xl bg-gradient-to-br from-orange-500/10 to-amber-500/10 border border-white/5">
+            <div className="p-4 rounded-xl bg-gradient-to-br from-violet-500/10 to-violet-400/10 border border-white/5">
               <div className="flex items-center gap-3 mb-3">
-                <Mail className="w-5 h-5 text-orange-400" />
+                <Mail className="w-5 h-5 text-violet-400" />
                 <span className="text-sm font-medium text-white">Gmail Sync</span>
               </div>
               <p className="text-xs text-zinc-400 mb-3">
@@ -505,7 +505,7 @@ export default function SettingsPage() {
         {/* User */}
         <div className="p-4 border-t border-white/5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white font-medium">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-400 to-pink-500 flex items-center justify-center text-white font-medium">
               {user?.email?.[0]?.toUpperCase() || 'U'}
             </div>
             <div className="flex-1 min-w-0">
@@ -549,7 +549,7 @@ export default function SettingsPage() {
           <section>
             <SectionHeader
               icon={Mail}
-              iconGradient="from-red-500/80 to-orange-500/80"
+              iconGradient="from-red-500/80 to-violet-500/80"
               title="Gmail Connection"
               description="Automatically detect bills from your inbox"
               index={0}
@@ -586,32 +586,32 @@ export default function SettingsPage() {
                     </div>
 
                     {/* Privacy notice with decorative border */}
-                    <div className="relative p-5 rounded-xl bg-orange-500/[0.03] border border-orange-500/10 mb-6">
+                    <div className="relative p-5 rounded-xl bg-violet-500/[0.03] border border-violet-500/10 mb-6">
                       {/* Corner accents */}
-                      <div className="absolute top-2 left-2 w-2 h-2 border-l border-t border-orange-400/30 rounded-tl-sm" />
-                      <div className="absolute top-2 right-2 w-2 h-2 border-r border-t border-orange-400/30 rounded-tr-sm" />
-                      <div className="absolute bottom-2 left-2 w-2 h-2 border-l border-b border-orange-400/30 rounded-bl-sm" />
-                      <div className="absolute bottom-2 right-2 w-2 h-2 border-r border-b border-orange-400/30 rounded-br-sm" />
+                      <div className="absolute top-2 left-2 w-2 h-2 border-l border-t border-violet-400/30 rounded-tl-sm" />
+                      <div className="absolute top-2 right-2 w-2 h-2 border-r border-t border-violet-400/30 rounded-tr-sm" />
+                      <div className="absolute bottom-2 left-2 w-2 h-2 border-l border-b border-violet-400/30 rounded-bl-sm" />
+                      <div className="absolute bottom-2 right-2 w-2 h-2 border-r border-b border-violet-400/30 rounded-br-sm" />
 
                       <div className="flex items-start gap-4">
-                        <div className="p-2 rounded-lg bg-orange-500/10">
-                          <Shield className="w-4 h-4 text-orange-400" />
+                        <div className="p-2 rounded-lg bg-violet-500/10">
+                          <Shield className="w-4 h-4 text-violet-400" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-orange-300 mb-2 tracking-wide">
+                          <p className="text-sm font-medium text-violet-300 mb-2 tracking-wide">
                             Your privacy is protected
                           </p>
                           <ul className="text-sm text-zinc-400 space-y-1.5">
                             <li className="flex items-center gap-2">
-                              <div className="w-1 h-1 rounded-full bg-orange-400/60" />
+                              <div className="w-1 h-1 rounded-full bg-violet-400/60" />
                               Read-only access to emails
                             </li>
                             <li className="flex items-center gap-2">
-                              <div className="w-1 h-1 rounded-full bg-orange-400/60" />
+                              <div className="w-1 h-1 rounded-full bg-violet-400/60" />
                               Only bill-related emails are processed
                             </li>
                             <li className="flex items-center gap-2">
-                              <div className="w-1 h-1 rounded-full bg-orange-400/60" />
+                              <div className="w-1 h-1 rounded-full bg-violet-400/60" />
                               You can disconnect anytime
                             </li>
                           </ul>
@@ -662,8 +662,8 @@ export default function SettingsPage() {
                         onClick={() => setIsImportModalOpen(true)}
                         className="group relative flex-1 flex items-center justify-center gap-2 px-3 sm:px-5 py-3 sm:py-3.5 overflow-hidden rounded-xl font-medium transition-all duration-300"
                       >
-                        <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500" />
-                        <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-violet-500 to-violet-400" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-violet-400 to-violet-300 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                         <div className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700" />
                         <Sparkles className="w-4 h-4 text-white relative z-10 flex-shrink-0" />
                         <span className="relative z-10 text-white font-semibold text-sm sm:text-base whitespace-nowrap">
@@ -690,11 +690,11 @@ export default function SettingsPage() {
                           <span>No bills found? Force rescan all emails</span>
                         </button>
                       ) : (
-                        <div className="p-4 rounded-xl bg-amber-500/[0.05] border border-amber-500/20">
+                        <div className="p-4 rounded-xl bg-violet-400/[0.05] border border-violet-400/20">
                           <div className="flex items-start gap-3 mb-3">
-                            <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+                            <AlertTriangle className="w-4 h-4 text-violet-300 flex-shrink-0 mt-0.5" />
                             <div>
-                              <p className="text-sm text-amber-200 font-medium">Force Rescan</p>
+                              <p className="text-sm text-violet-200 font-medium">Force Rescan</p>
                               <p className="text-xs text-zinc-400 mt-1">
                                 This will clear all previously processed emails (except accepted bills)
                                 and rescan everything. Use this if bills aren&apos;t appearing after the normal scan.
@@ -705,7 +705,7 @@ export default function SettingsPage() {
                             <button
                               onClick={handleForceRescan}
                               disabled={isForceRescanning}
-                              className="flex items-center gap-2 px-4 py-2 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/30 rounded-lg text-sm font-medium text-amber-200 transition-colors"
+                              className="flex items-center gap-2 px-4 py-2 bg-violet-400/20 hover:bg-violet-400/30 border border-violet-400/30 rounded-lg text-sm font-medium text-violet-200 transition-colors"
                             >
                               {isForceRescanning ? (
                                 <>
@@ -755,7 +755,7 @@ export default function SettingsPage() {
           <section>
             <SectionHeader
               icon={User}
-              iconGradient="from-orange-500/80 to-amber-500/80"
+              iconGradient="from-violet-500/80 to-violet-400/80"
               title="Account"
               description="Manage your account settings"
               index={2}
@@ -766,14 +766,14 @@ export default function SettingsPage() {
               style={{ animationDelay: '200ms', animationFillMode: 'backwards' }}
             >
               {/* Subtle gradient accent */}
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-500/5 to-amber-500/5 rounded-full blur-2xl" />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-violet-500/5 to-violet-400/5 rounded-full blur-2xl" />
 
               <div className="relative flex items-center justify-between mb-6">
                 <div className="flex items-center gap-4">
                   {/* Premium avatar with glow */}
                   <div className="relative">
-                    <div className="absolute inset-0 bg-gradient-to-br from-orange-400 to-pink-500 rounded-2xl blur-lg opacity-40" />
-                    <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-gradient-to-br from-violet-400 to-pink-500 rounded-2xl blur-lg opacity-40" />
+                    <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-400 to-pink-500 flex items-center justify-center">
                       <span className="text-white font-bold text-xl">
                         {user?.email?.[0]?.toUpperCase() || 'U'}
                       </span>
@@ -793,16 +793,16 @@ export default function SettingsPage() {
                 <div className={cn(
                   "hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full border",
                   isPro
-                    ? "bg-amber-500/10 border-amber-500/20"
+                    ? "bg-violet-400/10 border-violet-400/20"
                     : "bg-white/[0.04] border-white/[0.08]"
                 )}>
                   <div className={cn(
                     "w-1.5 h-1.5 rounded-full",
-                    isPro ? "bg-amber-400" : "bg-orange-400"
+                    isPro ? "bg-violet-300" : "bg-violet-400"
                   )} />
                   <span className={cn(
                     "text-xs font-medium uppercase tracking-wider",
-                    isPro ? "text-amber-400" : "text-zinc-400"
+                    isPro ? "text-violet-300" : "text-zinc-400"
                   )}>
                     {isPro ? "Pro Plan" : "Free Plan"}
                   </span>
@@ -825,7 +825,7 @@ export default function SettingsPage() {
           <section>
             <SectionHeader
               icon={Mail}
-              iconGradient="from-orange-500/80 to-orange-500/80"
+              iconGradient="from-violet-500/80 to-violet-500/80"
               title="Customer Support"
               description="Get help when you need it"
               index={3}
@@ -835,7 +835,7 @@ export default function SettingsPage() {
               className="relative overflow-hidden rounded-2xl animate-in fade-in slide-in-from-bottom-2 duration-500"
               style={{ animationDelay: '300ms', animationFillMode: 'backwards' }}
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-orange-500/[0.02] to-orange-500/[0.01]" />
+              <div className="absolute inset-0 bg-gradient-to-br from-violet-500/[0.02] to-violet-500/[0.01]" />
               <div className="absolute inset-0 border border-white/[0.06] rounded-2xl" />
 
               <div className="relative p-4 sm:p-6 space-y-4">
@@ -844,8 +844,8 @@ export default function SettingsPage() {
                   href="mailto:support@duezo.app"
                   className="flex items-center gap-4 p-4 bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.06] hover:border-white/[0.12] rounded-xl transition-all duration-200"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center flex-shrink-0">
-                    <Mail className="w-5 h-5 text-orange-400" />
+                  <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center flex-shrink-0">
+                    <Mail className="w-5 h-5 text-violet-400" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="font-medium text-white">Email Support</p>
@@ -858,8 +858,8 @@ export default function SettingsPage() {
                   href="mailto:feedback@duezo.app?subject=Feature Request"
                   className="flex items-center gap-4 p-4 bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.06] hover:border-white/[0.12] rounded-xl transition-all duration-200"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center flex-shrink-0">
-                    <Lightbulb className="w-5 h-5 text-amber-400" />
+                  <div className="w-10 h-10 rounded-xl bg-violet-400/10 flex items-center justify-center flex-shrink-0">
+                    <Lightbulb className="w-5 h-5 text-violet-300" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="font-medium text-white">Request a Feature</p>

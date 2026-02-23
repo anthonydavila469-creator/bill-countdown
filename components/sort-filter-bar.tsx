@@ -52,14 +52,14 @@ const secondaryFilters: { value: FilterOption; label: string; icon: React.ReactN
 // Color mappings for filter chips
 const filterColors: Record<string, { active: string; glow: string; icon: string }> = {
   cyan: {
-    active: 'from-orange-500/25 to-orange-600/15 border-orange-400/50 text-orange-300',
+    active: 'from-violet-500/25 to-violet-600/15 border-violet-400/50 text-violet-300',
     glow: 'shadow-[0_0_20px_-4px_rgba(251,146,60,0.4),inset_0_1px_0_rgba(255,255,255,0.1)]',
-    icon: 'text-orange-400',
+    icon: 'text-violet-400',
   },
   amber: {
-    active: 'from-amber-500/25 to-amber-600/15 border-amber-400/50 text-amber-300',
+    active: 'from-violet-400/25 to-violet-500/15 border-violet-300/50 text-violet-200',
     glow: 'shadow-[0_0_20px_-4px_rgba(251,191,36,0.4),inset_0_1px_0_rgba(255,255,255,0.1)]',
-    icon: 'text-amber-400',
+    icon: 'text-violet-300',
   },
   rose: {
     active: 'from-rose-500/25 to-rose-600/15 border-rose-400/50 text-rose-300',
@@ -72,14 +72,14 @@ const filterColors: Record<string, { active: string; glow: string; icon: string 
     icon: 'text-emerald-400',
   },
   orange: {
-    active: 'from-orange-500/25 to-orange-600/15 border-orange-400/50 text-orange-300',
+    active: 'from-violet-500/25 to-violet-600/15 border-violet-400/50 text-violet-300',
     glow: 'shadow-[0_0_20px_-4px_rgba(251,146,60,0.4),inset_0_1px_0_rgba(255,255,255,0.1)]',
-    icon: 'text-orange-400',
+    icon: 'text-violet-400',
   },
   violet: {
-    active: 'from-amber-500/25 to-amber-600/15 border-amber-400/50 text-amber-300',
+    active: 'from-violet-400/25 to-violet-500/15 border-violet-300/50 text-violet-200',
     glow: 'shadow-[0_0_20px_-4px_rgba(251,191,36,0.4),inset_0_1px_0_rgba(255,255,255,0.1)]',
-    icon: 'text-amber-400',
+    icon: 'text-violet-300',
   },
 };
 
@@ -175,11 +175,11 @@ export function SortFilterBar({
           {/* Icon container with subtle glow */}
           <div className={cn(
             'flex items-center justify-center w-6 h-6 rounded-lg transition-all duration-300',
-            'bg-gradient-to-b from-orange-500/20 to-orange-600/10',
-            'group-hover:from-orange-500/30 group-hover:to-orange-600/15'
+            'bg-gradient-to-b from-violet-500/20 to-violet-600/10',
+            'group-hover:from-violet-500/30 group-hover:to-violet-600/15'
           )}>
             {currentSort?.icon && (
-              <span className="text-orange-400">{currentSort.icon}</span>
+              <span className="text-violet-400">{currentSort.icon}</span>
             )}
           </div>
 
@@ -193,7 +193,7 @@ export function SortFilterBar({
             <ChevronDown
               className={cn(
                 'w-3.5 h-3.5 text-zinc-500 transition-transform duration-300',
-                isSortOpen && 'rotate-180 text-orange-400'
+                isSortOpen && 'rotate-180 text-violet-400'
               )}
             />
           </div>
@@ -202,9 +202,9 @@ export function SortFilterBar({
         {/* Sort Dropdown menu */}
         {isSortOpen && (
           <div className="absolute top-full left-0 mt-2 z-50 min-w-[200px] animate-in fade-in slide-in-from-top-2 duration-200">
-            <div className="absolute -inset-1 bg-gradient-to-b from-orange-500/10 to-transparent rounded-2xl blur-xl" />
+            <div className="absolute -inset-1 bg-gradient-to-b from-violet-500/10 to-transparent rounded-2xl blur-xl" />
             <div className="relative py-1.5 bg-[#0a0a0e]/98 backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.8)]">
-              <div className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-orange-500/40 to-transparent" />
+              <div className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-violet-500/40 to-transparent" />
               {sortOptions.map((option) => {
                 const isActive = sortBy === option.value;
                 return (
@@ -218,7 +218,7 @@ export function SortFilterBar({
                       'w-full flex items-center gap-3 px-3 py-2.5 mx-1.5 rounded-lg text-sm transition-all duration-200',
                       'first:mt-1 last:mb-1',
                       isActive
-                        ? 'bg-gradient-to-r from-orange-500/15 to-transparent text-white'
+                        ? 'bg-gradient-to-r from-violet-500/15 to-transparent text-white'
                         : 'text-zinc-400 hover:bg-white/[0.05] hover:text-white'
                     )}
                     style={{ width: 'calc(100% - 12px)' }}
@@ -226,15 +226,15 @@ export function SortFilterBar({
                     <span className={cn(
                       'flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-200',
                       isActive
-                        ? 'bg-orange-500/20 text-orange-400'
+                        ? 'bg-violet-500/20 text-violet-400'
                         : 'bg-white/[0.03] text-zinc-500'
                     )}>
                       {option.icon}
                     </span>
                     <span className="flex-1 text-left">{option.label}</span>
                     {isActive && (
-                      <div className="flex items-center justify-center w-5 h-5 rounded-full bg-orange-500/20">
-                        <Check className="w-3 h-3 text-orange-400" />
+                      <div className="flex items-center justify-center w-5 h-5 rounded-full bg-violet-500/20">
+                        <Check className="w-3 h-3 text-violet-400" />
                       </div>
                     )}
                   </button>
@@ -296,9 +296,9 @@ export function SortFilterBar({
           {/* More dropdown menu */}
           {isMoreOpen && (
             <div className="absolute top-full right-0 mt-2 z-50 min-w-[160px] animate-in fade-in slide-in-from-top-2 duration-200">
-              <div className="absolute -inset-1 bg-gradient-to-b from-amber-500/10 to-transparent rounded-2xl blur-xl" />
+              <div className="absolute -inset-1 bg-gradient-to-b from-violet-400/10 to-transparent rounded-2xl blur-xl" />
               <div className="relative py-1.5 bg-[#0a0a0e]/98 backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.8)]">
-                <div className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-amber-500/40 to-transparent" />
+                <div className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-violet-400/40 to-transparent" />
                 {secondaryFilters.map((filter) => {
                   const isActive = activeFilter === filter.value;
                   const colors = filterColors[filter.color];
@@ -313,7 +313,7 @@ export function SortFilterBar({
                         'w-full flex items-center gap-3 px-3 py-2.5 mx-1.5 rounded-lg text-sm transition-all duration-200',
                         'first:mt-1 last:mb-1',
                         isActive
-                          ? 'bg-gradient-to-r from-amber-500/15 to-transparent text-white'
+                          ? 'bg-gradient-to-r from-violet-400/15 to-transparent text-white'
                           : 'text-zinc-400 hover:bg-white/[0.05] hover:text-white'
                       )}
                       style={{ width: 'calc(100% - 12px)' }}
@@ -326,8 +326,8 @@ export function SortFilterBar({
                       </span>
                       <span className="flex-1 text-left">{filter.label}</span>
                       {isActive && (
-                        <div className="flex items-center justify-center w-5 h-5 rounded-full bg-amber-500/20">
-                          <Check className="w-3 h-3 text-amber-400" />
+                        <div className="flex items-center justify-center w-5 h-5 rounded-full bg-violet-400/20">
+                          <Check className="w-3 h-3 text-violet-300" />
                         </div>
                       )}
                     </button>

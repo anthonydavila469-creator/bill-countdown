@@ -68,10 +68,10 @@ export default function BestPrismAlternativesPage() {
           <hr className="border-zinc-800 my-10" />
 
           {/* #1 Duezo */}
-          <div className="bg-orange-500/5 border border-orange-500/20 rounded-2xl p-6 md:p-8">
+          <div className="bg-violet-500/5 border border-violet-500/20 rounded-2xl p-6 md:p-8">
             <div className="flex items-center gap-3 mb-4">
-              <div className="flex items-center gap-1 text-orange-400">
-                <Star className="w-5 h-5 fill-orange-400" />
+              <div className="flex items-center gap-1 text-violet-400">
+                <Star className="w-5 h-5 fill-violet-400" />
                 <span className="font-bold text-lg">#1 Pick</span>
               </div>
             </div>
@@ -98,7 +98,7 @@ export default function BestPrismAlternativesPage() {
                 'Most affordable option at $4.99/mo',
               ].map((item, i) => (
                 <li key={i} className="flex items-start gap-2">
-                  <Check className="w-4 h-4 text-orange-400 mt-1 flex-shrink-0" />
+                  <Check className="w-4 h-4 text-violet-400 mt-1 flex-shrink-0" />
                   {item}
                 </li>
               ))}
@@ -110,7 +110,7 @@ export default function BestPrismAlternativesPage() {
             </ul>
             <Link
               href="/signup"
-              className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3 rounded-xl transition-colors"
+              className="inline-flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-semibold px-6 py-3 rounded-xl transition-colors"
             >
               Try Duezo Free <ArrowRight className="w-4 h-4" />
             </Link>
@@ -131,7 +131,7 @@ export default function BestPrismAlternativesPage() {
           <h3 className="font-semibold text-lg mb-2">Best for:</h3>
           <p className="text-zinc-400 mb-2">People who want budgeting + bill tracking + subscription management in one app and don&apos;t mind bank linking.</p>
           <p className="text-zinc-400">
-            <Link href="/vs/rocket-money" className="text-orange-400 hover:underline">Read our full Duezo vs Rocket Money comparison →</Link>
+            <Link href="/vs/rocket-money" className="text-violet-400 hover:underline">Read our full Duezo vs Rocket Money comparison →</Link>
           </p>
 
           <hr className="border-zinc-800 my-10" />
@@ -149,7 +149,7 @@ export default function BestPrismAlternativesPage() {
           <h3 className="font-semibold text-lg mb-2">Best for:</h3>
           <p className="text-zinc-400 mb-2">People who want a full zero-based budgeting system and are willing to invest time learning it.</p>
           <p className="text-zinc-400">
-            <Link href="/vs/ynab" className="text-orange-400 hover:underline">Read our full Duezo vs YNAB comparison →</Link>
+            <Link href="/vs/ynab" className="text-violet-400 hover:underline">Read our full Duezo vs YNAB comparison →</Link>
           </p>
 
           <hr className="border-zinc-800 my-10" />
@@ -189,7 +189,7 @@ export default function BestPrismAlternativesPage() {
                   ['Monarch Money', '$9.99/mo', 'Couples', 'Yes'],
                 ].map(([app, price, best, bank], i) => (
                   <tr key={i} className="border-b border-zinc-800/50">
-                    <td className={`py-3 px-3 font-medium ${i === 0 ? 'text-orange-400' : 'text-zinc-300'}`}>{app}</td>
+                    <td className={`py-3 px-3 font-medium ${i === 0 ? 'text-violet-400' : 'text-zinc-300'}`}>{app}</td>
                     <td className="py-3 px-3 text-zinc-400">{price}</td>
                     <td className="py-3 px-3 text-zinc-400">{best}</td>
                     <td className="py-3 px-3 text-center text-zinc-400">{bank}</td>
@@ -210,7 +210,7 @@ export default function BestPrismAlternativesPage() {
           <p className="text-zinc-400 mb-6">Start your free trial. No bank linking. No credit card required.</p>
           <Link
             href="/signup"
-            className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-8 py-3.5 rounded-xl transition-colors"
+            className="inline-flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-semibold px-8 py-3.5 rounded-xl transition-colors"
           >
             Start Free Trial <ArrowRight className="w-4 h-4" />
           </Link>
@@ -220,9 +220,9 @@ export default function BestPrismAlternativesPage() {
         <div className="mt-12 pt-8 border-t border-zinc-800">
           <h3 className="font-semibold mb-4 text-zinc-400">Related Pages</h3>
           <div className="flex flex-wrap gap-4 text-sm">
-            <Link href="/prism-alternative" className="text-orange-400 hover:underline">Prism Alternative</Link>
-            <Link href="/vs/rocket-money" className="text-orange-400 hover:underline">Duezo vs Rocket Money</Link>
-            <Link href="/vs/ynab" className="text-orange-400 hover:underline">Duezo vs YNAB</Link>
+            <Link href="/prism-alternative" className="text-violet-400 hover:underline">Prism Alternative</Link>
+            <Link href="/vs/rocket-money" className="text-violet-400 hover:underline">Duezo vs Rocket Money</Link>
+            <Link href="/vs/ynab" className="text-violet-400 hover:underline">Duezo vs YNAB</Link>
           </div>
         </div>
       </article>

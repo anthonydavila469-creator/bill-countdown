@@ -157,7 +157,7 @@ export function BillDetailModal({
                   <p className="text-sm text-zinc-500">Payment Method</p>
                   <p className={cn(
                     "font-medium",
-                    bill.is_autopay ? "text-emerald-400" : "text-amber-400"
+                    bill.is_autopay ? "text-emerald-400" : "text-violet-300"
                   )}>
                     {bill.is_autopay ? "Autopay Enabled" : "Manual Payment Required"}
                   </p>
@@ -208,7 +208,7 @@ export function BillDetailModal({
                   <Link className="w-5 h-5 text-zinc-500 mt-0.5" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-zinc-500">Payment Link</p>
-                    <p className="font-medium text-orange-400 truncate">{bill.payment_url}</p>
+                    <p className="font-medium text-violet-400 truncate">{bill.payment_url}</p>
                   </div>
                 </div>
               )}
@@ -242,7 +242,7 @@ export function BillDetailModal({
               {bill.payment_url && !canUsePaymentLinks && (
                 <button
                   onClick={() => showUpgradeModal('payment links')}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 text-amber-200 font-semibold rounded-xl hover:from-amber-500/30 hover:to-orange-500/30 transition-colors"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-violet-400/20 to-violet-500/20 border border-violet-400/30 text-violet-200 font-semibold rounded-xl hover:from-violet-400/30 hover:to-violet-500/30 transition-colors"
                 >
                   <Crown className="w-5 h-5" />
                   Upgrade for Pay Now
@@ -253,7 +253,7 @@ export function BillDetailModal({
               <button
                 onClick={handleMarkPaid}
                 disabled={isMarkingPaid}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-emerald-500 to-green-500 text-white font-semibold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-emerald-500 to-greeviolet-500 text-white font-semibold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isMarkingPaid ? (
                   'Marking as Paid...'

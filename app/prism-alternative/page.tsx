@@ -103,14 +103,14 @@ export default function PrismAlternativePage() {
 
       {/* Hero */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-orange-500/5 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-violet-500/5 via-transparent to-transparent" />
         <div className="relative max-w-4xl mx-auto px-6 pt-24 pb-16 text-center">
-          <div className="inline-block mb-6 px-4 py-1.5 rounded-full border border-orange-500/30 bg-orange-500/10 text-orange-400 text-sm font-medium">
+          <div className="inline-block mb-6 px-4 py-1.5 rounded-full border border-violet-500/30 bg-violet-500/10 text-violet-400 text-sm font-medium">
             Prism shut down in December 2023
           </div>
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
             The Best{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-orange-600">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-violet-600">
               Prism Alternative
             </span>{' '}
             for Bill Tracking
@@ -123,7 +123,7 @@ export default function PrismAlternativePage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/signup"
-              className="inline-flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-8 py-3.5 rounded-xl transition-colors"
+              className="inline-flex items-center justify-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-semibold px-8 py-3.5 rounded-xl transition-colors"
             >
               Try Duezo Free <ArrowRight className="w-4 h-4" />
             </Link>
@@ -170,7 +170,7 @@ export default function PrismAlternativePage() {
               <p className="text-zinc-300 italic mb-3">&ldquo;{item.quote}&rdquo;</p>
               <p className="text-zinc-500 text-sm mb-4">— {item.source}</p>
               <div className="mt-auto pt-4 border-t border-zinc-800">
-                <p className="text-orange-400 text-sm font-medium flex items-center gap-2">
+                <p className="text-violet-400 text-sm font-medium flex items-center gap-2">
                   <Check className="w-4 h-4" /> {item.duezo}
                 </p>
               </div>
@@ -193,7 +193,7 @@ export default function PrismAlternativePage() {
               <tr className="border-b border-zinc-800">
                 <th className="text-left py-4 px-4 text-zinc-400 font-medium">Feature</th>
                 <th className="text-center py-4 px-4 text-zinc-500 font-medium">Prism <span className="text-xs">(discontinued)</span></th>
-                <th className="text-center py-4 px-4 text-orange-400 font-medium">Duezo</th>
+                <th className="text-center py-4 px-4 text-violet-400 font-medium">Duezo</th>
               </tr>
             </thead>
             <tbody className="text-sm">
@@ -221,7 +221,7 @@ export default function PrismAlternativePage() {
                   </td>
                   <td className="py-3 px-4 text-center">
                     {duezo ? (
-                      <Check className="w-5 h-5 text-orange-400 mx-auto" />
+                      <Check className="w-5 h-5 text-violet-400 mx-auto" />
                     ) : (
                       <X className="w-5 h-5 text-zinc-700 mx-auto" />
                     )}
@@ -262,8 +262,8 @@ export default function PrismAlternativePage() {
             },
           ].map((item, i) => (
             <div key={i} className="flex gap-4">
-              <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center">
-                <item.icon className="w-6 h-6 text-orange-400" />
+              <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-violet-500/10 flex items-center justify-center">
+                <item.icon className="w-6 h-6 text-violet-400" />
               </div>
               <div>
                 <h3 className="font-semibold text-lg mb-1">{item.title}</h3>
@@ -300,7 +300,7 @@ export default function PrismAlternativePage() {
         </p>
         <Link
           href="/signup"
-          className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-10 py-4 rounded-xl text-lg transition-colors"
+          className="inline-flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-semibold px-10 py-4 rounded-xl text-lg transition-colors"
         >
           Start Free Trial <ArrowRight className="w-5 h-5" />
         </Link>

@@ -325,12 +325,12 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
               className={cn(
                 'flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-200',
                 activeFilter === 'due-soon'
-                  ? 'bg-amber-500/15 border-2 border-amber-500/40 ring-2 ring-amber-500/20'
+                  ? 'bg-violet-400/15 border-2 border-violet-400/40 ring-2 ring-violet-400/20'
                   : 'bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] hover:border-white/10'
               )}
             >
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center">
-                <Clock className="w-4 h-4 text-amber-400" />
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-400/20 to-violet-500/20 flex items-center justify-center">
+                <Clock className="w-4 h-4 text-violet-300" />
               </div>
               <div className="text-left">
                 <p className="text-[10px] text-zinc-500 uppercase tracking-wide">Due Soon</p>
@@ -347,12 +347,12 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
               className={cn(
                 'flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-200',
                 activeFilter === 'all'
-                  ? 'bg-orange-500/10 border-2 border-orange-500/30 ring-2 ring-orange-500/20'
+                  ? 'bg-violet-500/10 border-2 border-violet-500/30 ring-2 ring-violet-500/20'
                   : 'bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] hover:border-white/10'
               )}
             >
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500/20 to-amber-500/20 flex items-center justify-center">
-                <DollarSign className="w-4 h-4 text-orange-400" />
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500/20 to-violet-400/20 flex items-center justify-center">
+                <DollarSign className="w-4 h-4 text-violet-400" />
               </div>
               <div className="text-left">
                 <p className="text-[10px] text-zinc-500 uppercase tracking-wide">This Month</p>
@@ -422,13 +422,13 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
                 className={cn(
                   'flex-1 flex flex-col items-center gap-0.5 px-2 py-2 rounded-xl text-xs transition-all',
                   activeFilter === 'due-soon'
-                    ? 'bg-amber-500/20 border border-amber-500/40'
+                    ? 'bg-violet-400/20 border border-violet-400/40'
                     : 'bg-white/[0.03] border border-white/[0.06]'
                 )}
               >
-                <span className="text-[10px] text-amber-400/80 uppercase tracking-wide">Due Soon</span>
+                <span className="text-[10px] text-violet-300/80 uppercase tracking-wide">Due Soon</span>
                 <div className="flex items-center gap-1">
-                  <Clock className="w-3 h-3 text-amber-400" />
+                  <Clock className="w-3 h-3 text-violet-300" />
                   <span className="text-zinc-200 font-semibold">
                     {formatCurrency(upcomingTotal)}
                   </span>
@@ -444,13 +444,13 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
                 className={cn(
                   'flex-1 flex flex-col items-center gap-0.5 px-2 py-2 rounded-xl text-xs transition-all',
                   activeFilter === 'all'
-                    ? 'bg-orange-500/20 border border-orange-500/40'
+                    ? 'bg-violet-500/20 border border-violet-500/40'
                     : 'bg-white/[0.03] border border-white/[0.06]'
                 )}
               >
-                <span className="text-[10px] text-orange-400/80 uppercase tracking-wide">This Month</span>
+                <span className="text-[10px] text-violet-400/80 uppercase tracking-wide">This Month</span>
                 <div className="flex items-center gap-1">
-                  <DollarSign className="w-3 h-3 text-orange-400" />
+                  <DollarSign className="w-3 h-3 text-violet-400" />
                   <span className="text-zinc-200 font-semibold">
                     {formatCurrency(monthTotalAmount)}
                   </span>
@@ -462,7 +462,7 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
         {/* Calendar container with subtle depth */}
         <div className="relative">
           {/* Subtle glow effect behind calendar */}
-          <div className="absolute -inset-1 bg-gradient-to-b from-orange-500/5 to-amber-500/5 rounded-3xl blur-xl opacity-50" />
+          <div className="absolute -inset-1 bg-gradient-to-b from-violet-500/5 to-violet-400/5 rounded-3xl blur-xl opacity-50" />
 
           <div className="relative bg-[#0a0a0f]/80 backdrop-blur-xl rounded-2xl border border-white/[0.06] overflow-hidden">
             {/* Day names header */}
@@ -526,8 +526,8 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
           {billsThisMonth === 0 && (
             <div className="absolute inset-0 flex items-center justify-center bg-[#0a0a0f]/60 backdrop-blur-sm rounded-2xl">
               <div className="flex flex-col items-center text-center p-8">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500/20 to-amber-500/20 flex items-center justify-center mb-4 border border-white/10">
-                  <Plus className="w-8 h-8 text-orange-400" />
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500/20 to-violet-400/20 flex items-center justify-center mb-4 border border-white/10">
+                  <Plus className="w-8 h-8 text-violet-400" />
                 </div>
                 <h3 className="text-lg font-medium text-white mb-2">
                   No bills in {monthName}

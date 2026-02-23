@@ -96,12 +96,12 @@ export default function FioveraAlternativePage() {
 
       {/* Hero */}
       <section className="max-w-5xl mx-auto px-6 pt-24 pb-16 text-center">
-        <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 rounded-full px-4 py-2 text-sm text-orange-400 mb-8">
+        <div className="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/20 rounded-full px-4 py-2 text-sm text-violet-400 mb-8">
           Finovera shut down June 2024 · Here&apos;s what&apos;s next
         </div>
         <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 leading-tight">
           The Best Finovera Alternative <br />
-          <span className="text-orange-400">in 2026</span>
+          <span className="text-violet-400">in 2026</span>
         </h1>
         <p className="text-xl text-zinc-400 max-w-2xl mx-auto mb-10">
           Finovera went dark. But you still need to track bills without logging into 10 different websites.
@@ -110,7 +110,7 @@ export default function FioveraAlternativePage() {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link
             href="/signup"
-            className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-8 py-4 rounded-2xl text-lg transition-colors"
+            className="inline-flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-semibold px-8 py-4 rounded-2xl text-lg transition-colors"
           >
             Try Duezo Free <ArrowRight className="w-5 h-5" />
           </Link>
@@ -125,7 +125,7 @@ export default function FioveraAlternativePage() {
           <p className="text-zinc-400 leading-relaxed mb-4">
             In June 2024, Finovera sent its users a notice: the service was shutting down permanently on June 25, 2024.
             After years of helping people automatically aggregate e-bills in one place, Finovera joined a growing list of
-            bill tracking services — including <Link href="/prism-alternative" className="text-orange-400 hover:underline">Prism (shut down Dec 2023)</Link> — that couldn&apos;t stay alive.
+            bill tracking services — including <Link href="/prism-alternative" className="text-violet-400 hover:underline">Prism (shut down Dec 2023)</Link> — that couldn&apos;t stay alive.
           </p>
           <p className="text-zinc-400 leading-relaxed">
             The market clearly wants automatic bill tracking without the hassle of manual entry or bank linking.
@@ -144,7 +144,7 @@ export default function FioveraAlternativePage() {
               <tr className="border-b border-zinc-800">
                 <th className="text-left py-4 px-6 text-zinc-400 font-medium">Feature</th>
                 <th className="text-center py-4 px-6 text-zinc-500 font-medium">Finovera</th>
-                <th className="text-center py-4 px-6 text-orange-400 font-semibold">Duezo</th>
+                <th className="text-center py-4 px-6 text-violet-400 font-semibold">Duezo</th>
               </tr>
             </thead>
             <tbody>
@@ -170,7 +170,7 @@ export default function FioveraAlternativePage() {
                   </td>
                   <td className="py-4 px-6 text-center">
                     {duezo ? (
-                      <Check className="w-5 h-5 text-orange-400 mx-auto" />
+                      <Check className="w-5 h-5 text-violet-400 mx-auto" />
                     ) : (
                       <X className="w-5 h-5 text-red-500/60 mx-auto" />
                     )}
@@ -207,8 +207,8 @@ export default function FioveraAlternativePage() {
             },
           ].map(({ icon: Icon, title, desc }, i) => (
             <div key={i} className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6">
-              <div className="w-12 h-12 bg-orange-500/10 rounded-xl flex items-center justify-center mb-4">
-                <Icon className="w-6 h-6 text-orange-400" />
+              <div className="w-12 h-12 bg-violet-500/10 rounded-xl flex items-center justify-center mb-4">
+                <Icon className="w-6 h-6 text-violet-400" />
               </div>
               <h3 className="font-semibold text-lg mb-2">{title}</h3>
               <p className="text-zinc-400 leading-relaxed">{desc}</p>
@@ -221,8 +221,8 @@ export default function FioveraAlternativePage() {
       <section className="max-w-3xl mx-auto px-6 py-16">
         <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-8 flex gap-6">
           <div className="flex-shrink-0">
-            <div className="w-12 h-12 bg-orange-500/10 rounded-xl flex items-center justify-center">
-              <Shield className="w-6 h-6 text-orange-400" />
+            <div className="w-12 h-12 bg-violet-500/10 rounded-xl flex items-center justify-center">
+              <Shield className="w-6 h-6 text-violet-400" />
             </div>
           </div>
           <div>
@@ -254,14 +254,14 @@ export default function FioveraAlternativePage() {
 
       {/* CTA */}
       <section className="max-w-3xl mx-auto px-6 py-16">
-        <div className="bg-gradient-to-br from-orange-500/10 to-purple-500/10 border border-orange-500/20 rounded-2xl p-10 text-center">
+        <div className="bg-gradient-to-br from-violet-500/10 to-purple-500/10 border border-violet-500/20 rounded-2xl p-10 text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to Replace Finovera?</h2>
           <p className="text-zinc-400 mb-8 max-w-md mx-auto">
             Start your free trial. Connect Gmail in 30 seconds. Your bills show up automatically.
           </p>
           <Link
             href="/signup"
-            className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-8 py-4 rounded-2xl text-lg transition-colors"
+            className="inline-flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-semibold px-8 py-4 rounded-2xl text-lg transition-colors"
           >
             Start Free — No Bank Account Required <ArrowRight className="w-5 h-5" />
           </Link>
@@ -274,10 +274,10 @@ export default function FioveraAlternativePage() {
         <div className="border-t border-zinc-800 pt-8">
           <h3 className="font-semibold text-zinc-400 mb-4">See Also</h3>
           <div className="flex flex-wrap gap-4 text-sm">
-            <Link href="/prism-alternative" className="text-orange-400 hover:underline">Prism App Alternative</Link>
-            <Link href="/vs/rocket-money" className="text-orange-400 hover:underline">Duezo vs Rocket Money</Link>
-            <Link href="/vs/ynab" className="text-orange-400 hover:underline">Duezo vs YNAB</Link>
-            <Link href="/blog/best-prism-alternatives-2026" className="text-orange-400 hover:underline">Best Prism Alternatives in 2026</Link>
+            <Link href="/prism-alternative" className="text-violet-400 hover:underline">Prism App Alternative</Link>
+            <Link href="/vs/rocket-money" className="text-violet-400 hover:underline">Duezo vs Rocket Money</Link>
+            <Link href="/vs/ynab" className="text-violet-400 hover:underline">Duezo vs YNAB</Link>
+            <Link href="/blog/best-prism-alternatives-2026" className="text-violet-400 hover:underline">Best Prism Alternatives in 2026</Link>
           </div>
         </div>
       </section>

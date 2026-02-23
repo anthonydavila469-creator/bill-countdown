@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Duezo — Color Comparison</title>
+<style>
+  @font-face { font-family: 'SF Pro'; src: local('SF Pro Display'), local('.SF NS Display'), local('Helvetica Neue'); }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'SF Pro', -apple-system, sans-serif; background: #000; color: #f5f5f7; -webkit-font-smoothing: antialiased; }
+
+  .header { text-align: center; padding: 60px 24px 20px; }
+  .header h1 { font-size: 48px; font-weight: 700; letter-spacing: -0.04em; }
+  .header p { font-size: 18px; color: #86868b; margin-top: 8px; }
+
+  .phones { display: flex; justify-content: center; gap: 40px; padding: 40px 24px 80px; flex-wrap: wrap; }
+
+  .phone-col { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+  .phone-label { font-size: 20px; font-weight: 600; letter-spacing: -0.02em; }
+  .phone-sub { font-size: 13px; color: #86868b; margin-top: 2px; }
+
+  .phone {
+    width: 280px;
+    height: 606px;
+    border-radius: 38px;
+    overflow: hidden;
+    position: relative;
+  }
+  .phone-orange { box-shadow: 0 0 0 0.5px rgba(255,255,255,0.08), 0 30px 60px -15px rgba(0,0,0,0.7), 0 0 80px -20px rgba(255,107,0,0.12); }
+  .phone-violet { box-shadow: 0 0 0 0.5px rgba(255,255,255,0.08), 0 30px 60px -15px rgba(0,0,0,0.7), 0 0 80px -20px rgba(139,92,246,0.12); }
+  .phone-emerald { box-shadow: 0 0 0 0.5px rgba(255,255,255,0.08), 0 30px 60px -15px rgba(0,0,0,0.7), 0 0 80px -20px rgba(16,185,129,0.12); }
+
+  .di { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 110px; height: 30px; background: #000; border-radius: 18px; z-index: 10; }
+
+  .app { width: 100%; height: 100%; overflow-y: auto; position: relative; padding-bottom: 70px; }
+  .app::-webkit-scrollbar { display: none; }
+
+  /* ═══ SHARED STRUCTURE ═══ */
+  .ag { position: absolute; top: 0; left: 0; right: 0; height: 240px; pointer-events: none; }
+  .sb { padding: 50px 18px 0; font-size: 12px; font-weight: 600; display: flex; justify-content: space-between; position: relative; z-index: 2; }
+  .hd { padding: 18px 18px 0; position: relative; z-index: 2; }
+  .hd-g { font-size: 12px; }
+  .hd-t { font-size: 22px; font-weight: 700; letter-spacing: -0.03em; margin-top: 2px; }
+  .hd-a { position: absolute; right: 18px; top: 18px; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; }
+  .sc { margin: 14px 18px 0; padding: 14px; border-radius: 13px; position: relative; z-index: 2; }
+  .sc-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+  .sc-l { font-size: 9px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+  .sc-b { font-size: 8px; font-weight: 700; padding: 2px 6px; border-radius: 4px; letter-spacing: 0.04em; }
+  .sc-a { font-size: 30px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+  .sc-a span { font-size: 16px; font-weight: 500; }
+  .sc-s { font-size: 11px; margin-top: 3px; }
+  .sh { display: flex; justify-content: space-between; align-items: center; padding: 18px 18px 8px; }
+  .sh-t { font-size: 14px; font-weight: 600; }
+  .sh-l { font-size: 11px; font-weight: 500; }
+  .bl { padding: 0 18px; display: flex; flex-direction: column; gap: 5px; }
+  .bc { display: flex; align-items: center; padding: 10px 12px; border-radius: 11px; gap: 10px; }
+  .bi { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+  .bw { flex: 1; min-width: 0; }
+  .bn { font-size: 12px; font-weight: 500; }
+  .bd { font-size: 10px; margin-top: 1px; }
+  .br { text-align: right; flex-shrink: 0; }
+  .ba { font-size: 13px; font-weight: 500; }
+  .bb { font-size: 8px; font-weight: 600; padding: 2px 5px; border-radius: 4px; margin-top: 2px; display: inline-block; }
+  .ab { margin: 8px 18px; padding: 10px; border-radius: 11px; text-align: center; font-size: 11px; font-weight: 500; }
+  .sb-btn { margin: 5px 18px 0; padding: 10px; border-radius: 11px; border: none; text-align: center; font-size: 12px; font-weight: 600; width: calc(100% - 36px); }
+  .nb { position: absolute; bottom: 0; left: 0; right: 0; display: flex; justify-content: space-around; padding: 7px 0 22px; backdrop-filter: blur(20px); }
+  .ni { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 8px; font-weight: 500; }
+  .ni-ic { font-size: 15px; }
+
+  /* ═══ ORANGE THEME ═══ */
+  .t-orange .app { background: #0c0c0e; }
+  .t-orange .ag { background: radial-gradient(ellipse at 50% -20%, rgba(255,107,0,0.07) 0%, transparent 70%); }
+  .t-orange .sb { color: #fff; }
+  .t-orange .hd-g { color: #71717a; }
+  .t-orange .hd-t { color: #fafafa; }
+  .t-orange .hd-a { background: rgba(255,255,255,0.06); color: #a1a1aa; }
+  .t-orange .sc { background: linear-gradient(135deg, rgba(255,107,0,0.06), rgba(255,107,0,0.02)); border: 0.5px solid rgba(255,107,0,0.12); }
+  .t-orange .sc-l { color: #a1a1aa; }
+  .t-orange .sc-b { background: linear-gradient(135deg, #FF6B00, #FF8A3D); color: #fff; }
+  .t-orange .sc-a { color: #fafafa; }
+  .t-orange .sc-a span { color: #52525b; }
+  .t-orange .sc-s { color: #3f3f46; }
+  .t-orange .sh-t { color: #e4e4e7; }
+  .t-orange .sh-l { color: #FF6B00; }
+  .t-orange .bc { background: rgba(255,255,255,0.02); border: 0.5px solid rgba(255,255,255,0.05); }
+  .t-orange .bi { background: rgba(255,255,255,0.04); border: 0.5px solid rgba(255,255,255,0.06); }
+  .t-orange .bn { color: #e4e4e7; }
+  .t-orange .bd { color: #3f3f46; }
+  .t-orange .ba { color: #fafafa; }
+  .t-orange .bb-r { background: rgba(239,68,68,0.1); color: #f87171; }
+  .t-orange .bb-y { background: rgba(255,107,0,0.1); color: #FF8A3D; }
+  .t-orange .bb-g { background: rgba(34,197,94,0.08); color: #4ade80; }
+  .t-orange .ab { border: 1px dashed rgba(255,255,255,0.06); color: #3f3f46; }
+  .t-orange .sb-btn { background: #FF6B00; color: #fff; }
+  .t-orange .nb { background: rgba(12,12,14,0.92); border-top: 0.5px solid rgba(255,255,255,0.04); }
+  .t-orange .ni { color: #3f3f46; }
+  .t-orange .ni.act { color: #FF6B00; }
+
+  /* ═══ VIOLET THEME ═══ */
+  .t-violet .app { background: #0b0b0f; }
+  .t-violet .ag { background: radial-gradient(ellipse at 50% -20%, rgba(139,92,246,0.07) 0%, transparent 70%); }
+  .t-violet .sb { color: #fff; }
+  .t-violet .hd-g { color: #6b6b80; }
+  .t-violet .hd-t { color: #f0f0f5; }
+  .t-violet .hd-a { background: rgba(139,92,246,0.08); color: #A78BFA; }
+  .t-violet .sc { background: linear-gradient(135deg, rgba(139,92,246,0.07), rgba(139,92,246,0.02)); border: 0.5px solid rgba(139,92,246,0.15); }
+  .t-violet .sc-l { color: #9898aa; }
+  .t-violet .sc-b { background: linear-gradient(135deg, #8B5CF6, #A78BFA); color: #fff; }
+  .t-violet .sc-a { color: #f0f0f5; }
+  .t-violet .sc-a span { color: #4a4a5a; }
+  .t-violet .sc-s { color: #3a3a48; }
+  .t-violet .sh-t { color: #dddde5; }
+  .t-violet .sh-l { color: #A78BFA; }
+  .t-violet .bc { background: rgba(255,255,255,0.015); border: 0.5px solid rgba(255,255,255,0.04); }
+  .t-violet .bi { background: rgba(139,92,246,0.06); border: 0.5px solid rgba(139,92,246,0.1); }
+  .t-violet .bn { color: #dddde5; }
+  .t-violet .bd { color: #3a3a48; }
+  .t-violet .ba { color: #f0f0f5; }
+  .t-violet .bb-r { background: rgba(239,68,68,0.1); color: #f87171; }
+  .t-violet .bb-y { background: rgba(139,92,246,0.1); color: #A78BFA; }
+  .t-violet .bb-g { background: rgba(34,197,94,0.08); color: #4ade80; }
+  .t-violet .ab { border: 1px dashed rgba(139,92,246,0.08); color: #3a3a48; }
+  .t-violet .sb-btn { background: #8B5CF6; color: #fff; }
+  .t-violet .nb { background: rgba(11,11,15,0.92); border-top: 0.5px solid rgba(255,255,255,0.04); }
+  .t-violet .ni { color: #3a3a48; }
+  .t-violet .ni.act { color: #A78BFA; }
+
+  /* ═══ EMERALD THEME ═══ */
+  .t-emerald .app { background: #0a0c0b; }
+  .t-emerald .ag { background: radial-gradient(ellipse at 50% -20%, rgba(16,185,129,0.06) 0%, transparent 70%); }
+  .t-emerald .sb { color: #fff; }
+  .t-emerald .hd-g { color: #5a6b62; }
+  .t-emerald .hd-t { color: #e8f0ec; }
+  .t-emerald .hd-a { background: rgba(16,185,129,0.08); color: #34D399; }
+  .t-emerald .sc { background: linear-gradient(135deg, rgba(16,185,129,0.06), rgba(16,185,129,0.02)); border: 0.5px solid rgba(16,185,129,0.12); }
+  .t-emerald .sc-l { color: #8a9a90; }
+  .t-emerald .sc-b { background: linear-gradient(135deg, #10B981, #34D399); color: #fff; }
+  .t-emerald .sc-a { color: #e8f0ec; }
+  .t-emerald .sc-a span { color: #4a5a50; }
+  .t-emerald .sc-s { color: #3a4a40; }
+  .t-emerald .sh-t { color: #d0ddd5; }
+  .t-emerald .sh-l { color: #34D399; }
+  .t-emerald .bc { background: rgba(255,255,255,0.015); border: 0.5px solid rgba(255,255,255,0.04); }
+  .t-emerald .bi { background: rgba(16,185,129,0.06); border: 0.5px solid rgba(16,185,129,0.1); }
+  .t-emerald .bn { color: #d0ddd5; }
+  .t-emerald .bd { color: #3a4a40; }
+  .t-emerald .ba { color: #e8f0ec; }
+  .t-emerald .bb-r { background: rgba(239,68,68,0.1); color: #f87171; }
+  .t-emerald .bb-y { background: rgba(16,185,129,0.1); color: #34D399; }
+  .t-emerald .bb-g { background: rgba(16,185,129,0.08); color: #6EE7B7; }
+  .t-emerald .ab { border: 1px dashed rgba(16,185,129,0.08); color: #3a4a40; }
+  .t-emerald .sb-btn { background: #10B981; color: #fff; }
+  .t-emerald .nb { background: rgba(10,12,11,0.92); border-top: 0.5px solid rgba(255,255,255,0.04); }
+  .t-emerald .ni { color: #3a4a40; }
+  .t-emerald .ni.act { color: #34D399; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Pick your color.</h1>
+  <p>Same app. Different energy.</p>
+</div>
+
+<div class="phones">
+
+  <!-- ORANGE -->
+  <div class="phone-col">
+    <div>
+      <div class="phone-label" style="color:#FF6B00">Orange</div>
+      <div class="phone-sub">#FF6B00 — Current</div>
+    </div>
+    <div class="phone phone-orange t-orange">
+      <div class="di"></div>
+      <div class="app">
+        <div class="ag"></div>
+        <div class="sb"><span>2:00</span><span style="font-size:10px">☰</span></div>
+        <div class="hd"><div class="hd-g">Good afternoon,</div><div class="hd-t">Duezo</div><div class="hd-a">A</div></div>
+        <div class="sc"><div class="sc-top"><span class="sc-l">Due this month</span><span class="sc-b">PRO</span></div><div class="sc-a">$847<span>.50</span></div><div class="sc-s">3 bills · next due in 4 days</div></div>
+        <div class="sh"><span class="sh-t">Upcoming Bills</span><span class="sh-l">See all</span></div>
+        <div class="bl">
+          <div class="bc"><div class="bi">⚡</div><div class="bw"><div class="bn">Electric Bill</div><div class="bd">Due Feb 16 · Overdue</div></div><div class="br"><div class="ba">$124.00</div><span class="bb bb-r">2 days late</span></div></div>
+          <div class="bc"><div class="bi">📱</div><div class="bw"><div class="bn">Phone Plan</div><div class="bd">Due Feb 23 · T-Mobile</div></div><div class="br"><div class="ba">$65.00</div><span class="bb bb-y">4 days</span></div></div>
+          <div class="bc"><div class="bi">🎵</div><div class="bw"><div class="bn">Spotify</div><div class="bd">Due Mar 1 · Monthly</div></div><div class="br"><div class="ba">$11.99</div><span class="bb bb-g">10 days</span></div></div>
+          <div class="bc"><div class="bi">🌐</div><div class="bw"><div class="bn">Internet</div><div class="bd">Due Mar 5 · Xfinity</div></div><div class="br"><div class="ba">$89.99</div><span class="bb bb-g">14 days</span></div></div>
+        </div>
+        <div class="ab">+ Add a bill</div>
+        <button class="sb-btn">Sync Gmail Bills</button>
+        <div style="height:80px"></div>
+        <div class="nb"><div class="ni act"><span class="ni-ic">⊞</span>HOME</div><div class="ni"><span class="ni-ic">📅</span>CAL</div><div class="ni"><span class="ni-ic">💡</span>INSIGHTS</div><div class="ni"><span class="ni-ic">📋</span>HISTORY</div><div class="ni"><span class="ni-ic">⚙</span>SETTINGS</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIOLET -->
+  <div class="phone-col">
+    <div>
+      <div class="phone-label" style="color:#A78BFA">Electric Violet</div>
+      <div class="phone-sub">#8B5CF6 — Premium</div>
+    </div>
+    <div class="phone phone-violet t-violet">
+      <div class="di"></div>
+      <div class="app">
+        <div class="ag"></div>
+        <div class="sb"><span>2:00</span><span style="font-size:10px">☰</span></div>
+        <div class="hd"><div class="hd-g">Good afternoon,</div><div class="hd-t">Duezo</div><div class="hd-a">A</div></div>
+        <div class="sc"><div class="sc-top"><span class="sc-l">Due this month</span><span class="sc-b">PRO</span></div><div class="sc-a">$847<span>.50</span></div><div class="sc-s">3 bills · next due in 4 days</div></div>
+        <div class="sh"><span class="sh-t">Upcoming Bills</span><span class="sh-l">See all</span></div>
+        <div class="bl">
+          <div class="bc"><div class="bi">⚡</div><div class="bw"><div class="bn">Electric Bill</div><div class="bd">Due Feb 16 · Overdue</div></div><div class="br"><div class="ba">$124.00</div><span class="bb bb-r">2 days late</span></div></div>
+          <div class="bc"><div class="bi">📱</div><div class="bw"><div class="bn">Phone Plan</div><div class="bd">Due Feb 23 · T-Mobile</div></div><div class="br"><div class="ba">$65.00</div><span class="bb bb-y">4 days</span></div></div>
+          <div class="bc"><div class="bi">🎵</div><div class="bw"><div class="bn">Spotify</div><div class="bd">Due Mar 1 · Monthly</div></div><div class="br"><div class="ba">$11.99</div><span class="bb bb-g">10 days</span></div></div>
+          <div class="bc"><div class="bi">🌐</div><div class="bw"><div class="bn">Internet</div><div class="bd">Due Mar 5 · Xfinity</div></div><div class="br"><div class="ba">$89.99</div><span class="bb bb-g">14 days</span></div></div>
+        </div>
+        <div class="ab">+ Add a bill</div>
+        <button class="sb-btn">Sync Gmail Bills</button>
+        <div style="height:80px"></div>
+        <div class="nb"><div class="ni act"><span class="ni-ic">⊞</span>HOME</div><div class="ni"><span class="ni-ic">📅</span>CAL</div><div class="ni"><span class="ni-ic">💡</span>INSIGHTS</div><div class="ni"><span class="ni-ic">📋</span>HISTORY</div><div class="ni"><span class="ni-ic">⚙</span>SETTINGS</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMERALD -->
+  <div class="phone-col">
+    <div>
+      <div class="phone-label" style="color:#34D399">Emerald</div>
+      <div class="phone-sub">#10B981 — Money</div>
+    </div>
+    <div class="phone phone-emerald t-emerald">
+      <div class="di"></div>
+      <div class="app">
+        <div class="ag"></div>
+        <div class="sb"><span>2:00</span><span style="font-size:10px">☰</span></div>
+        <div class="hd"><div class="hd-g">Good afternoon,</div><div class="hd-t">Duezo</div><div class="hd-a">A</div></div>
+        <div class="sc"><div class="sc-top"><span class="sc-l">Due this month</span><span class="sc-b">PRO</span></div><div class="sc-a">$847<span>.50</span></div><div class="sc-s">3 bills · next due in 4 days</div></div>
+        <div class="sh"><span class="sh-t">Upcoming Bills</span><span class="sh-l">See all</span></div>
+        <div class="bl">
+          <div class="bc"><div class="bi">⚡</div><div class="bw"><div class="bn">Electric Bill</div><div class="bd">Due Feb 16 · Overdue</div></div><div class="br"><div class="ba">$124.00</div><span class="bb bb-r">2 days late</span></div></div>
+          <div class="bc"><div class="bi">📱</div><div class="bw"><div class="bn">Phone Plan</div><div class="bd">Due Feb 23 · T-Mobile</div></div><div class="br"><div class="ba">$65.00</div><span class="bb bb-y">4 days</span></div></div>
+          <div class="bc"><div class="bi">🎵</div><div class="bw"><div class="bn">Spotify</div><div class="bd">Due Mar 1 · Monthly</div></div><div class="br"><div class="ba">$11.99</div><span class="bb bb-g">10 days</span></div></div>
+          <div class="bc"><div class="bi">🌐</div><div class="bw"><div class="bn">Internet</div><div class="bd">Due Mar 5 · Xfinity</div></div><div class="br"><div class="ba">$89.99</div><span class="bb bb-g">14 days</span></div></div>
+        </div>
+        <div class="ab">+ Add a bill</div>
+        <button class="sb-btn">Sync Gmail Bills</button>
+        <div style="height:80px"></div>
+        <div class="nb"><div class="ni act"><span class="ni-ic">⊞</span>HOME</div><div class="ni"><span class="ni-ic">📅</span>CAL</div><div class="ni"><span class="ni-ic">💡</span>INSIGHTS</div><div class="ni"><span class="ni-ic">📋</span>HISTORY</div><div class="ni"><span class="ni-ic">⚙</span>SETTINGS</div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

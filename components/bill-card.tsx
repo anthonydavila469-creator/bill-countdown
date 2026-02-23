@@ -43,14 +43,14 @@ const riskBadgeConfig: Record<RiskType, { icon: LucideIcon; label: string; bgCol
   urgent: {
     icon: Clock,
     label: 'Urgent',
-    bgColor: 'bg-orange-500/40',
-    textColor: 'text-orange-100',
+    bgColor: 'bg-violet-500/40',
+    textColor: 'text-violet-100',
   },
   forgot_last_month: {
     icon: History,
     label: 'Forgot last month',
-    bgColor: 'bg-amber-500/40',
-    textColor: 'text-amber-100',
+    bgColor: 'bg-violet-400/40',
+    textColor: 'text-violet-100',
   },
 };
 
@@ -154,8 +154,8 @@ export function BillCard({
                     onClick={handlePayNow}
                     className={cn(
                       "flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200",
-                      "bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400",
-                      "text-white shadow-lg shadow-orange-500/30",
+                      "bg-gradient-to-r from-violet-500 to-violet-400 hover:from-violet-400 hover:to-violet-300",
+                      "text-white shadow-lg shadow-violet-500/30",
                       "active:scale-95"
                     )}
                   >
@@ -170,8 +170,8 @@ export function BillCard({
                     }}
                     className={cn(
                       "flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium",
-                      "bg-gradient-to-r from-amber-500/30 to-orange-500/30",
-                      "text-amber-200 border border-amber-500/30"
+                      "bg-gradient-to-r from-violet-400/30 to-violet-500/30",
+                      "text-violet-200 border border-violet-400/30"
                     )}
                     title="Upgrade to Pro for payment links"
                   >
@@ -434,10 +434,10 @@ export function BillCard({
                   onClick={handlePayNow}
                   className={cn(
                     "group relative flex-1 py-2.5 rounded-xl font-medium text-sm transition-all duration-200",
-                    "bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400",
+                    "bg-gradient-to-r from-violet-500 to-violet-400 hover:from-violet-400 hover:to-violet-300",
                     "active:scale-[0.98]",
                     "flex items-center justify-center gap-2",
-                    "shadow-lg shadow-orange-500/20"
+                    "shadow-lg shadow-violet-500/20"
                   )}
                 >
                   <ExternalLink className="w-4 h-4 text-white" />
@@ -451,14 +451,14 @@ export function BillCard({
                   }}
                   className={cn(
                     "group relative flex-1 py-2.5 rounded-xl font-medium text-sm transition-all duration-200",
-                    "bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30",
+                    "bg-gradient-to-r from-violet-400/20 to-violet-500/20 hover:from-violet-400/30 hover:to-violet-500/30",
                     "active:scale-[0.98]",
                     "flex items-center justify-center gap-2",
-                    "border border-amber-500/30"
+                    "border border-violet-400/30"
                   )}
                 >
-                  <Crown className="w-4 h-4 text-amber-300" />
-                  <span className="text-amber-200 font-semibold">Upgrade for Pay Now</span>
+                  <Crown className="w-4 h-4 text-violet-200" />
+                  <span className="text-violet-200 font-semibold">Upgrade for Pay Now</span>
                 </button>
               ) : (
                 <div className="flex-1 relative">
@@ -546,16 +546,16 @@ export function BillListItem({
       textDark: 'dark:text-rose-400',
     },
     urgent: {
-      bgLight: 'bg-orange-100',
-      bgDark: 'dark:bg-orange-900/40',
-      textLight: 'text-orange-600',
-      textDark: 'dark:text-orange-400',
+      bgLight: 'bg-violet-100',
+      bgDark: 'dark:bg-violet-900/40',
+      textLight: 'text-violet-600',
+      textDark: 'dark:text-violet-400',
     },
     forgot_last_month: {
-      bgLight: 'bg-amber-100',
-      bgDark: 'dark:bg-amber-900/40',
-      textLight: 'text-amber-600',
-      textDark: 'dark:text-amber-400',
+      bgLight: 'bg-violet-100',
+      bgDark: 'dark:bg-violet-900/40',
+      textLight: 'text-violet-500',
+      textDark: 'dark:text-violet-300',
     },
   };
   const listRiskConfig = riskType ? listRiskBadgeConfig[riskType] : null;
@@ -620,8 +620,8 @@ export function BillListItem({
               listRiskConfig.bgLight, listRiskConfig.bgDark,
               listRiskConfig.textLight, listRiskConfig.textDark,
               riskType === 'overdue' && 'border-rose-200 dark:border-rose-700/50',
-              riskType === 'urgent' && 'border-orange-200 dark:border-orange-700/50',
-              riskType === 'forgot_last_month' && 'border-amber-200 dark:border-amber-700/50'
+              riskType === 'urgent' && 'border-violet-200 dark:border-violet-700/50',
+              riskType === 'forgot_last_month' && 'border-violet-200 dark:border-violet-700/50'
             )}>
               <riskConfig.icon className="w-3 h-3" />
               {riskType === 'forgot_last_month' ? 'Forgot' : riskConfig.label}
@@ -664,7 +664,7 @@ export function BillListItem({
             <RefreshCw className="w-3.5 h-3.5 text-zinc-400 flex-shrink-0" />
           )}
           {bill.payment_url && !isPaid && (
-            <ExternalLink className="w-3.5 h-3.5 text-orange-400 flex-shrink-0" />
+            <ExternalLink className="w-3.5 h-3.5 text-violet-400 flex-shrink-0" />
           )}
           {priceChange && !isPaid && (
             <span
@@ -699,8 +699,8 @@ export function BillListItem({
               onClick={handlePayNow}
               className={cn(
                 "flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200",
-                "bg-gradient-to-r from-orange-500 to-amber-500 text-white",
-                "hover:from-orange-400 hover:to-amber-400",
+                "bg-gradient-to-r from-violet-500 to-violet-400 text-white",
+                "hover:from-violet-400 hover:to-violet-300",
                 "active:scale-95"
               )}
             >
@@ -715,8 +715,8 @@ export function BillListItem({
               }}
               className={cn(
                 "flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200",
-                "bg-amber-500/20 text-amber-500 dark:text-amber-400",
-                "border border-amber-500/30 hover:bg-amber-500/30"
+                "bg-violet-400/20 text-violet-400 dark:text-violet-300",
+                "border border-violet-400/30 hover:bg-violet-400/30"
               )}
               title="Upgrade to Pro for payment links"
             >

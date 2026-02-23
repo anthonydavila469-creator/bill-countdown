@@ -80,8 +80,8 @@ export function CashFlowTimeline({ bills, periodDays }: CashFlowTimelineProps) {
         <AreaChart data={cumulativeData}>
           <defs>
             <linearGradient id="cashFlowGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#f97316" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
+              <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.3} />
+              <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0} />
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
@@ -119,7 +119,7 @@ export function CashFlowTimeline({ bills, periodDays }: CashFlowTimelineProps) {
           <Area
             type="monotone"
             dataKey="cumulative"
-            stroke="#f97316"
+            stroke="#8B5CF6"
             strokeWidth={2}
             fill="url(#cashFlowGradient)"
           />

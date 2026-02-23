@@ -9,7 +9,7 @@
   --border: #e2e8f0;
   --muted: #f1f5f9;
   --muted-foreground: #64748b;
-  --accent: #F97316;
+  --accent: #8B5CF6;
   --accent-foreground: #ffffff;
 }
 
@@ -22,7 +22,7 @@
     --border: #27272a;
     --muted: #27272a;
     --muted-foreground: #a1a1aa;
-    --accent: #FB923C;
+    --accent: #A78BFA;
     --accent-foreground: #0f172a;
   }
 }
@@ -30,11 +30,11 @@
 /* Custom urgency and accent colors (overridden by ThemeProvider) */
 :root {
   --urgency-overdue: #f43f5e;
-  --urgency-urgent: #f97316;
+  --urgency-urgent: #8B5CF6;
   --urgency-soon: #fbbf24;
   --urgency-safe: #34d399;
   --urgency-distant: #60a5fa;
-  --accent-primary: #F97316;
+  --accent-primary: #8B5CF6;
 }
 
 @theme inline {

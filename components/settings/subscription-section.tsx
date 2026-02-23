@@ -84,7 +84,7 @@ export function SubscriptionSection() {
       <section>
         <SectionHeader
           icon={Crown}
-          iconGradient="from-amber-500/80 to-orange-500/80"
+          iconGradient="from-violet-400/80 to-violet-500/80"
           title="Subscription"
           description="Manage your plan and billing"
         />
@@ -108,7 +108,7 @@ export function SubscriptionSection() {
     <section>
       <SectionHeader
         icon={Crown}
-        iconGradient="from-amber-500/80 to-orange-500/80"
+        iconGradient="from-violet-400/80 to-violet-500/80"
         title="Subscription"
         description="Manage your plan and billing"
       />
@@ -127,8 +127,8 @@ export function SubscriptionSection() {
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-4">
                 <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl blur-lg opacity-40" />
-                  <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
+                  <div className="absolute inset-0 bg-gradient-to-br from-violet-300 to-violet-500 rounded-2xl blur-lg opacity-40" />
+                  <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-300 to-violet-500 flex items-center justify-center">
                     <Crown className="w-7 h-7 text-white" />
                   </div>
                 </div>
@@ -136,7 +136,7 @@ export function SubscriptionSection() {
                   <div className="flex items-center gap-2">
                     <p className="font-semibold text-white tracking-wide">Pro Plan</p>
                     {cancelAtPeriodEnd && (
-                      <span className="text-xs px-2 py-0.5 bg-amber-500/20 text-amber-400 rounded-full">
+                      <span className="text-xs px-2 py-0.5 bg-violet-400/20 text-violet-300 rounded-full">
                         Canceling
                       </span>
                     )}
@@ -220,7 +220,7 @@ export function SubscriptionSection() {
                       'h-full rounded-full transition-all',
                       billsUsed >= FREE_TIER_LIMITS.MAX_BILLS
                         ? 'bg-red-500'
-                        : 'bg-orange-500'
+                        : 'bg-violet-500'
                     )}
                     style={{
                       width: `${Math.min(100, (billsUsed / FREE_TIER_LIMITS.MAX_BILLS) * 100)}%`,
@@ -242,7 +242,7 @@ export function SubscriptionSection() {
                       'h-full rounded-full transition-all',
                       gmailSyncsUsed >= FREE_TIER_LIMITS.MAX_GMAIL_SYNCS
                         ? 'bg-red-500'
-                        : 'bg-orange-500'
+                        : 'bg-violet-500'
                     )}
                     style={{
                       width: `${Math.min(100, (gmailSyncsUsed / FREE_TIER_LIMITS.MAX_GMAIL_SYNCS) * 100)}%`,
@@ -253,8 +253,8 @@ export function SubscriptionSection() {
             </div>
 
             {/* Pro features preview */}
-            <div className="p-4 rounded-xl bg-gradient-to-br from-orange-500/5 to-amber-500/5 border border-orange-500/10 mb-6">
-              <p className="text-sm font-medium text-orange-300 mb-3">
+            <div className="p-4 rounded-xl bg-gradient-to-br from-violet-500/5 to-violet-400/5 border border-violet-500/10 mb-6">
+              <p className="text-sm font-medium text-violet-300 mb-3">
                 Unlock with Pro:
               </p>
               <div className="grid grid-cols-2 gap-2 text-sm">
@@ -267,7 +267,7 @@ export function SubscriptionSection() {
                   'Custom reminders',
                 ].map((feature) => (
                   <div key={feature} className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-orange-400 flex-shrink-0" />
+                    <Check className="w-4 h-4 text-violet-400 flex-shrink-0" />
                     <span className="text-zinc-400">{feature}</span>
                   </div>
                 ))}
@@ -280,8 +280,8 @@ export function SubscriptionSection() {
                 <p className="text-xs text-zinc-500 mb-1">Monthly</p>
                 <p className="text-lg font-bold text-white">${PRICING.MONTHLY}<span className="text-sm font-normal text-zinc-500">/mo</span></p>
               </div>
-              <div className="p-3 rounded-xl bg-orange-500/10 border border-orange-500/20 relative">
-                <div className="absolute -top-2 right-2 px-1.5 py-0.5 bg-green-500 text-white text-[10px] font-bold rounded">
+              <div className="p-3 rounded-xl bg-violet-500/10 border border-violet-500/20 relative">
+                <div className="absolute -top-2 right-2 px-1.5 py-0.5 bg-greeviolet-500 text-white text-[10px] font-bold rounded">
                   SAVE {PRICING.YEARLY_SAVINGS}%
                 </div>
                 <p className="text-xs text-zinc-500 mb-1">Yearly</p>
@@ -294,8 +294,8 @@ export function SubscriptionSection() {
               onClick={() => showUpgradeModal('Pro features')}
               className="group relative w-full flex items-center justify-center gap-2.5 px-5 py-4 overflow-hidden rounded-xl font-medium transition-all duration-300"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-600" />
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute inset-0 bg-gradient-to-r from-violet-500 to-violet-500" />
+              <div className="absolute inset-0 bg-gradient-to-r from-violet-400 to-violet-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <div className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700" />
               <Crown className="w-5 h-5 text-white relative z-10" />
               <span className="relative z-10 text-white font-semibold tracking-wide">

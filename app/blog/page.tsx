@@ -49,7 +49,7 @@ export default function BlogPage() {
             <Link
               key={post.slug}
               href={`/blog/${post.slug}`}
-              className="block bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6 hover:border-orange-500/30 transition-colors group"
+              className="block bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6 hover:border-violet-500/30 transition-colors group"
             >
               <div className="flex items-center gap-3 text-sm text-zinc-500 mb-3">
                 <Calendar className="w-4 h-4" />
@@ -63,11 +63,11 @@ export default function BlogPage() {
                 <span>·</span>
                 <span>{post.readTime}</span>
               </div>
-              <h2 className="text-xl font-semibold mb-2 group-hover:text-orange-400 transition-colors">
+              <h2 className="text-xl font-semibold mb-2 group-hover:text-violet-400 transition-colors">
                 {post.title}
               </h2>
               <p className="text-zinc-400 mb-4">{post.excerpt}</p>
-              <span className="inline-flex items-center gap-1 text-orange-400 text-sm font-medium">
+              <span className="inline-flex items-center gap-1 text-violet-400 text-sm font-medium">
                 Read more <ArrowRight className="w-4 h-4" />
               </span>
             </Link>

@@ -52,23 +52,23 @@ const riskConfig: Record<
   },
   urgent: {
     icon: Clock,
-    gradient: 'from-orange-500/20 via-amber-600/10 to-orange-900/20',
+    gradient: 'from-violet-500/20 via-violet-500/10 to-violet-900/20',
     glowColor: 'shadow-[0_0_30px_rgba(249,115,22,0.15),inset_0_1px_0_rgba(255,255,255,0.05)]',
-    borderColor: 'border-orange-500/30 hover:border-orange-400/50',
-    textColor: 'text-orange-400',
-    accentColor: 'bg-orange-500',
-    pulseColor: 'bg-orange-500/50',
+    borderColor: 'border-violet-500/30 hover:border-violet-400/50',
+    textColor: 'text-violet-400',
+    accentColor: 'bg-violet-500',
+    pulseColor: 'bg-violet-500/50',
     label: 'Due Soon',
     urgencyText: 'Pay within 3 days',
   },
   forgot_last_month: {
     icon: History,
-    gradient: 'from-amber-500/20 via-amber-600/10 to-amber-900/20',
+    gradient: 'from-violet-400/20 via-violet-500/10 to-violet-900/20',
     glowColor: 'shadow-[0_0_30px_rgba(245,158,11,0.15),inset_0_1px_0_rgba(255,255,255,0.05)]',
-    borderColor: 'border-amber-500/30 hover:border-amber-400/50',
-    textColor: 'text-amber-400',
-    accentColor: 'bg-amber-500',
-    pulseColor: 'bg-amber-500/50',
+    borderColor: 'border-violet-400/30 hover:border-violet-300/50',
+    textColor: 'text-violet-300',
+    accentColor: 'bg-violet-400',
+    pulseColor: 'bg-violet-400/50',
     label: 'Missed Pattern',
     urgencyText: 'Paid last month, not yet this month',
   },
@@ -150,9 +150,9 @@ export function RiskAlerts({
         current.daysLeft < closest.daysLeft ? current : closest
       );
       if (soonest.daysLeft === 0) {
-        return { text: 'Due today', color: 'text-orange-400' };
+        return { text: 'Due today', color: 'text-violet-400' };
       }
-      return { text: `Due in ${soonest.daysLeft}d`, color: 'text-orange-400' };
+      return { text: `Due in ${soonest.daysLeft}d`, color: 'text-violet-400' };
     }
 
     return { text: 'Bills need attention', color: 'text-zinc-400' };
@@ -163,13 +163,13 @@ export function RiskAlerts({
     return (
       <div className={cn('relative', className)}>
         {/* Subtle glow effect behind the banner */}
-        <div className="absolute inset-0 bg-gradient-to-r from-rose-500/10 via-orange-500/5 to-amber-500/10 rounded-2xl blur-xl opacity-60" />
+        <div className="absolute inset-0 bg-gradient-to-r from-rose-500/10 via-violet-500/5 to-violet-400/10 rounded-2xl blur-xl opacity-60" />
 
         <button
           onClick={() => setIsCollapsed(false)}
           className={cn(
             'group relative w-full flex items-center justify-between gap-4 px-5 py-4 rounded-2xl',
-            'bg-gradient-to-r from-rose-500/[0.08] via-[#0c0c10] to-amber-500/[0.08]',
+            'bg-gradient-to-r from-rose-500/[0.08] via-[#0c0c10] to-violet-400/[0.08]',
             'border border-rose-500/20 hover:border-rose-400/40',
             'transition-all duration-300',
             'hover:shadow-[0_0_30px_rgba(244,63,94,0.15)]',
@@ -177,7 +177,7 @@ export function RiskAlerts({
           )}
         >
           {/* Left accent glow line */}
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full bg-gradient-to-b from-rose-500 via-orange-500 to-amber-500 shadow-[0_0_12px_rgba(244,63,94,0.5)]" />
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full bg-gradient-to-b from-rose-500 via-violet-500 to-violet-400 shadow-[0_0_12px_rgba(244,63,94,0.5)]" />
 
           <div className="flex items-center gap-4">
             {/* Pulsing indicator with glow */}
@@ -188,7 +188,7 @@ export function RiskAlerts({
 
             {/* Alert info with icon container */}
             <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-rose-500/20 to-orange-500/10 border border-rose-500/30">
+              <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-rose-500/20 to-violet-500/10 border border-rose-500/30">
                 <AlertTriangle className="w-4 h-4 text-rose-400" />
               </div>
               <div>
@@ -217,7 +217,7 @@ export function RiskAlerts({
   return (
     <div className={cn('relative', className)}>
       {/* Glow effect behind the panel */}
-      <div className="absolute inset-0 bg-gradient-to-r from-rose-500/10 via-orange-500/5 to-amber-500/10 rounded-2xl blur-2xl opacity-50" />
+      <div className="absolute inset-0 bg-gradient-to-r from-rose-500/10 via-violet-500/5 to-violet-400/10 rounded-2xl blur-2xl opacity-50" />
 
       <div
         className={cn(
@@ -243,7 +243,7 @@ export function RiskAlerts({
             {/* Pulsing alert icon */}
             <div className="relative">
               <div className="absolute inset-0 rounded-xl bg-rose-500/30 animate-ping opacity-75" style={{ animationDuration: '2s' }} />
-              <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500/25 to-orange-500/15 border border-rose-500/30 flex items-center justify-center shadow-[0_0_20px_rgba(244,63,94,0.2)]">
+              <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500/25 to-violet-500/15 border border-rose-500/30 flex items-center justify-center shadow-[0_0_20px_rgba(244,63,94,0.2)]">
                 <AlertTriangle className="w-5 h-5 text-rose-400" />
               </div>
             </div>
@@ -260,7 +260,7 @@ export function RiskAlerts({
                     )}
                     {overdueCount > 0 && urgentCount > 0 && ', '}
                     {urgentCount > 0 && (
-                      <span className="text-orange-400">{urgentCount} due soon</span>
+                      <span className="text-violet-400">{urgentCount} due soon</span>
                     )}
                   </span>
                 )}
@@ -313,29 +313,29 @@ function ClusterAlert({ cluster, onDismiss }: ClusterAlertProps) {
   return (
     <div className={cn(
       'group relative flex items-stretch gap-0 rounded-xl overflow-hidden',
-      'bg-gradient-to-r from-amber-500/15 via-yellow-500/10 to-amber-500/15',
-      'border border-amber-500/25 hover:border-amber-400/40',
+      'bg-gradient-to-r from-violet-400/15 via-yellow-500/10 to-violet-400/15',
+      'border border-violet-400/25 hover:border-violet-300/40',
       'shadow-[0_0_20px_rgba(245,158,11,0.1)]',
       'transition-all duration-300',
       'animate-in fade-in slide-in-from-top-2'
     )}>
       {/* Left accent bar */}
       <div className="relative w-1 sm:w-1.5 flex-shrink-0">
-        <div className="absolute inset-0 bg-amber-500" />
+        <div className="absolute inset-0 bg-violet-400" />
       </div>
 
       {/* Main content - compact */}
       <div className="flex-1 flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3">
         {/* Icon - smaller on mobile */}
-        <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 bg-amber-500/20 border border-amber-500/30">
-          <CalendarDays className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" />
+        <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 bg-violet-400/20 border border-violet-400/30">
+          <CalendarDays className="w-4 h-4 sm:w-5 sm:h-5 text-violet-300" />
         </div>
 
         {/* Content - inline on mobile */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-semibold text-amber-200 text-sm">Busy Week</span>
-            <span className="text-xs text-amber-300/80">
+            <span className="font-semibold text-violet-200 text-sm">Busy Week</span>
+            <span className="text-xs text-violet-200/80">
               {cluster.bills.length} bills · {formatCurrency(cluster.totalAmount)} · {cluster.dateRange}
             </span>
           </div>
@@ -346,9 +346,9 @@ function ClusterAlert({ cluster, onDismiss }: ClusterAlertProps) {
           href="/dashboard/calendar"
           className={cn(
             'flex items-center justify-center gap-1.5 px-2.5 sm:px-3.5 py-2 rounded-lg text-xs font-bold transition-all duration-200',
-            'bg-gradient-to-r from-amber-500/30 to-yellow-500/20',
-            'hover:from-amber-500/40 hover:to-yellow-500/30',
-            'text-amber-200 border border-amber-500/30',
+            'bg-gradient-to-r from-violet-400/30 to-yellow-500/20',
+            'hover:from-violet-400/40 hover:to-yellow-500/30',
+            'text-violet-200 border border-violet-400/30',
             'active:scale-95'
           )}
         >

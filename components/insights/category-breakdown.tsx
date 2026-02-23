@@ -43,16 +43,16 @@ interface CategoryBreakdownProps {
 
 // Category-specific colors for progress bars
 const categoryColors: Record<BillCategory | 'other', { bar: string; text: string; bg: string }> = {
-  rent: { bar: 'from-orange-500 to-amber-400', text: 'text-orange-400', bg: 'bg-orange-500/10' },
-  housing: { bar: 'from-amber-500 to-amber-400', text: 'text-amber-400', bg: 'bg-amber-500/10' },
+  rent: { bar: 'from-violet-500 to-violet-300', text: 'text-violet-400', bg: 'bg-violet-500/10' },
+  housing: { bar: 'from-violet-400 to-violet-300', text: 'text-violet-300', bg: 'bg-violet-400/10' },
   utilities: { bar: 'from-yellow-500 to-lime-400', text: 'text-yellow-400', bg: 'bg-yellow-500/10' },
-  subscription: { bar: 'from-amber-500 to-amber-400', text: 'text-amber-400', bg: 'bg-amber-500/10' },
-  insurance: { bar: 'from-orange-500 to-orange-400', text: 'text-orange-400', bg: 'bg-orange-500/10' },
+  subscription: { bar: 'from-violet-400 to-violet-300', text: 'text-violet-300', bg: 'bg-violet-400/10' },
+  insurance: { bar: 'from-violet-500 to-violet-400', text: 'text-violet-400', bg: 'bg-violet-500/10' },
   phone: { bar: 'from-pink-500 to-rose-400', text: 'text-pink-400', bg: 'bg-pink-500/10' },
-  internet: { bar: 'from-orange-500 to-amber-400', text: 'text-orange-400', bg: 'bg-orange-500/10' },
-  credit_card: { bar: 'from-emerald-500 to-green-400', text: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-  loan: { bar: 'from-red-500 to-orange-400', text: 'text-red-400', bg: 'bg-red-500/10' },
-  health: { bar: 'from-green-500 to-emerald-400', text: 'text-green-400', bg: 'bg-green-500/10' },
+  internet: { bar: 'from-violet-500 to-violet-300', text: 'text-violet-400', bg: 'bg-violet-500/10' },
+  credit_card: { bar: 'from-emerald-500 to-greeviolet-400', text: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+  loan: { bar: 'from-red-500 to-violet-400', text: 'text-red-400', bg: 'bg-red-500/10' },
+  health: { bar: 'from-greeviolet-500 to-emerald-400', text: 'text-greeviolet-400', bg: 'bg-greeviolet-500/10' },
   other: { bar: 'from-zinc-400 to-zinc-300', text: 'text-zinc-400', bg: 'bg-zinc-500/10' },
 };
 
@@ -97,12 +97,12 @@ export function CategoryBreakdown({ breakdown, bills }: CategoryBreakdownProps) 
       <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.02]" />
 
       {/* Decorative gradient */}
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-500/50 via-orange-500/50 to-pink-500/50" />
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-violet-400/50 via-violet-500/50 to-pink-500/50" />
 
       <div className="relative">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2.5 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/30">
-            <PieChart className="w-5 h-5 text-amber-400" />
+          <div className="p-2.5 rounded-xl bg-gradient-to-br from-violet-400/20 to-violet-500/20 border border-violet-400/30">
+            <PieChart className="w-5 h-5 text-violet-300" />
           </div>
           <div>
             <h3 className="text-lg font-semibold text-white">Spending by Category</h3>

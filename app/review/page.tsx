@@ -204,7 +204,7 @@ export default function ReviewQueuePage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#08080c] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
+        <Loader2 className="w-8 h-8 text-violet-500 animate-spin" />
       </div>
     );
   }
@@ -216,11 +216,11 @@ export default function ReviewQueuePage() {
         {/* Logo */}
         <div className="p-6 border-b border-white/5">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-violet-400 flex items-center justify-center">
               <Zap className="w-5 h-5 text-white" />
             </div>
             <span className="text-lg font-bold text-white tracking-tight">
-              Bill<span className="text-orange-400">Countdown</span>
+              Bill<span className="text-violet-400">Countdown</span>
             </span>
           </Link>
         </div>
@@ -245,7 +245,7 @@ export default function ReviewQueuePage() {
                 <ClipboardCheck className="w-5 h-5" />
                 Review Queue
                 {items.length > 0 && (
-                  <span className="ml-auto px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 text-xs font-medium">
+                  <span className="ml-auto px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-400 text-xs font-medium">
                     {items.length}
                   </span>
                 )}
@@ -259,9 +259,9 @@ export default function ReviewQueuePage() {
                 <Calendar className="w-5 h-5" />
                 Calendar
                 {!canUseCalendar && (
-                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30 ml-auto">
-                    <Crown className="w-3 h-3 text-amber-400" />
-                    <span className="text-[10px] font-semibold text-amber-300">Pro</span>
+                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-violet-400/20 border border-violet-400/30 ml-auto">
+                    <Crown className="w-3 h-3 text-violet-300" />
+                    <span className="text-[10px] font-semibold text-violet-200">Pro</span>
                   </span>
                 )}
               </Link>
@@ -274,9 +274,9 @@ export default function ReviewQueuePage() {
                 <History className="w-5 h-5" />
                 History
                 {!canUseHistory && (
-                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30 ml-auto">
-                    <Crown className="w-3 h-3 text-amber-400" />
-                    <span className="text-[10px] font-semibold text-amber-300">Pro</span>
+                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-violet-400/20 border border-violet-400/30 ml-auto">
+                    <Crown className="w-3 h-3 text-violet-300" />
+                    <span className="text-[10px] font-semibold text-violet-200">Pro</span>
                   </span>
                 )}
               </Link>
@@ -289,9 +289,9 @@ export default function ReviewQueuePage() {
                 <Lightbulb className="w-5 h-5" />
                 Insights
                 {!canUseHistory && (
-                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30 ml-auto">
-                    <Crown className="w-3 h-3 text-amber-400" />
-                    <span className="text-[10px] font-semibold text-amber-300">Pro</span>
+                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-violet-400/20 border border-violet-400/30 ml-auto">
+                    <Crown className="w-3 h-3 text-violet-300" />
+                    <span className="text-[10px] font-semibold text-violet-200">Pro</span>
                   </span>
                 )}
               </Link>
@@ -311,7 +311,7 @@ export default function ReviewQueuePage() {
         {/* User */}
         <div className="p-4 border-t border-white/5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white font-medium">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-400 to-pink-500 flex items-center justify-center text-white font-medium">
               {user?.email?.[0]?.toUpperCase() || 'U'}
             </div>
             <div className="flex-1 min-w-0">
@@ -347,7 +347,7 @@ export default function ReviewQueuePage() {
             <div className="flex items-center gap-3">
               <h1 className="text-xl font-bold text-white">Review Queue</h1>
               {items.length > 0 && (
-                <span className="px-2.5 py-1 rounded-full bg-orange-500/20 text-orange-400 text-sm font-medium">
+                <span className="px-2.5 py-1 rounded-full bg-violet-500/20 text-violet-400 text-sm font-medium">
                   {items.length} pending
                 </span>
               )}
@@ -381,8 +381,8 @@ export default function ReviewQueuePage() {
           {/* Loading state */}
           {isRefreshing && items.length === 0 && (
             <div className="flex flex-col items-center justify-center py-16 px-4">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-orange-500/20 to-amber-500/20 flex items-center justify-center mb-6 animate-pulse">
-                <RefreshCw className="w-10 h-10 text-orange-400 animate-spin" />
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-violet-500/20 to-violet-400/20 flex items-center justify-center mb-6 animate-pulse">
+                <RefreshCw className="w-10 h-10 text-violet-400 animate-spin" />
               </div>
               <h2 className="text-xl font-bold text-white mb-2">
                 Loading Review Queue

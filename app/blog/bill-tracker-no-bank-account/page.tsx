@@ -76,11 +76,11 @@ export default function BillTrackerNoBankAccountPage() {
           <p className="text-zinc-400 leading-relaxed">
             Most bill tracking apps use your bank transactions to identify recurring charges. It works — banks see every payment — but it means you&apos;re sharing read access to all your financial activity, typically through a service like Plaid that serves as the middleman.
           </p>
-          <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-6">
+          <div className="bg-violet-400/5 border border-violet-400/20 rounded-2xl p-6">
             <div className="flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 text-amber-400 mt-0.5 flex-shrink-0" />
+              <AlertTriangle className="w-5 h-5 text-violet-300 mt-0.5 flex-shrink-0" />
               <div>
-                <p className="font-semibold text-amber-300 mb-1">What bank linking actually means</p>
+                <p className="font-semibold text-violet-200 mb-1">What bank linking actually means</p>
                 <p className="text-zinc-400 text-sm leading-relaxed">
                   When you &quot;link your bank&quot; to a personal finance app, you&apos;re typically granting read access to your account balance, transaction history, and routing/account numbers — often through Plaid or a similar data broker.
                   The app can see every transaction you make, not just bills. This data is also shared with Plaid and its partners, which has led to class-action lawsuits over data practices.
@@ -92,7 +92,7 @@ export default function BillTrackerNoBankAccountPage() {
           <hr className="border-zinc-800 my-10" />
 
           {/* #1 Duezo */}
-          <div className="bg-orange-500/5 border border-orange-500/20 rounded-2xl p-6 md:p-8">
+          <div className="bg-violet-500/5 border border-violet-500/20 rounded-2xl p-6 md:p-8">
             <h2 className="text-2xl font-bold mb-2">1. Duezo — Best Overall (No Bank Required)</h2>
             <p className="text-zinc-400 mb-1"><strong className="text-white">Price:</strong> Free trial · $4.99/mo or $39.99/yr</p>
             <p className="text-zinc-400 mb-4"><strong className="text-white">Platforms:</strong> iOS, Web</p>
@@ -112,14 +112,14 @@ export default function BillTrackerNoBankAccountPage() {
                 'Works for bills that vary each month (utilities, phone) — not just subscriptions',
               ].map((item, i) => (
                 <li key={i} className="flex items-start gap-2">
-                  <Check className="w-4 h-4 text-orange-400 mt-1 flex-shrink-0" />
+                  <Check className="w-4 h-4 text-violet-400 mt-1 flex-shrink-0" />
                   {item}
                 </li>
               ))}
             </ul>
             <Link
               href="/signup"
-              className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3 rounded-xl transition-colors"
+              className="inline-flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-semibold px-6 py-3 rounded-xl transition-colors"
             >
               Try Duezo Free <ArrowRight className="w-4 h-4" />
             </Link>
@@ -177,7 +177,7 @@ export default function BillTrackerNoBankAccountPage() {
           <h2 className="text-2xl font-bold mb-4">The Privacy Case for Not Linking Your Bank</h2>
           <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6">
             <div className="flex items-start gap-4">
-              <Shield className="w-6 h-6 text-orange-400 flex-shrink-0 mt-1" />
+              <Shield className="w-6 h-6 text-violet-400 flex-shrink-0 mt-1" />
               <div className="space-y-3 text-zinc-400">
                 <p className="leading-relaxed">
                   In 2022, Plaid (the service that powers bank linking in most finance apps) settled a $58 million class-action lawsuit over collecting more financial data than users consented to. This isn&apos;t a fringe concern.
@@ -213,7 +213,7 @@ export default function BillTrackerNoBankAccountPage() {
           <p className="text-zinc-400 mb-6">Connect Gmail. Bills detected automatically. Free to start.</p>
           <Link
             href="/signup"
-            className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-8 py-3.5 rounded-xl transition-colors"
+            className="inline-flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-semibold px-8 py-3.5 rounded-xl transition-colors"
           >
             Start Free Trial <ArrowRight className="w-4 h-4" />
           </Link>
@@ -223,10 +223,10 @@ export default function BillTrackerNoBankAccountPage() {
         <div className="mt-12 pt-8 border-t border-zinc-800">
           <h3 className="font-semibold mb-4 text-zinc-400">Related Reading</h3>
           <div className="flex flex-wrap gap-4 text-sm">
-            <Link href="/prism-alternative" className="text-orange-400 hover:underline">Best Prism App Alternative</Link>
-            <Link href="/finovera-alternative" className="text-orange-400 hover:underline">Best Finovera Alternative</Link>
-            <Link href="/vs/rocket-money" className="text-orange-400 hover:underline">Duezo vs Rocket Money</Link>
-            <Link href="/blog/best-prism-alternatives-2026" className="text-orange-400 hover:underline">Best Prism Alternatives in 2026</Link>
+            <Link href="/prism-alternative" className="text-violet-400 hover:underline">Best Prism App Alternative</Link>
+            <Link href="/finovera-alternative" className="text-violet-400 hover:underline">Best Finovera Alternative</Link>
+            <Link href="/vs/rocket-money" className="text-violet-400 hover:underline">Duezo vs Rocket Money</Link>
+            <Link href="/blog/best-prism-alternatives-2026" className="text-violet-400 hover:underline">Best Prism Alternatives in 2026</Link>
           </div>
         </div>
       </article>

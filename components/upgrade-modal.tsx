@@ -101,7 +101,7 @@ export function UpgradeModal() {
               </button>
 
               <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl">
+                <div className="p-2 bg-gradient-to-br from-violet-500 to-violet-500 rounded-xl">
                   <Sparkles className="w-6 h-6 text-white" />
                 </div>
                 <h2 className="text-xl font-bold text-white">Upgrade to Pro</h2>
@@ -122,7 +122,7 @@ export function UpgradeModal() {
                 className={cn(
                   'w-full p-4 rounded-xl border-2 transition-all text-left',
                   selectedPlan === 'monthly'
-                    ? 'border-orange-500 bg-orange-500/10'
+                    ? 'border-violet-500 bg-violet-500/10'
                     : 'border-white/10 hover:border-white/20'
                 )}
               >
@@ -144,11 +144,11 @@ export function UpgradeModal() {
                 className={cn(
                   'w-full p-4 rounded-xl border-2 transition-all text-left relative',
                   selectedPlan === 'yearly'
-                    ? 'border-orange-500 bg-orange-500/10'
+                    ? 'border-violet-500 bg-violet-500/10'
                     : 'border-white/10 hover:border-white/20'
                 )}
               >
-                <div className="absolute -top-3 left-4 px-2 py-0.5 bg-green-500 text-white text-xs font-bold rounded-full">
+                <div className="absolute -top-3 left-4 px-2 py-0.5 bg-greeviolet-500 text-white text-xs font-bold rounded-full">
                   SAVE {PRICING.YEARLY_SAVINGS}%
                 </div>
                 <div className="flex items-center justify-between">
@@ -169,7 +169,7 @@ export function UpgradeModal() {
                 <div className="grid grid-cols-2 gap-2">
                   {PRO_FEATURES.map((feature) => (
                     <div key={feature.label} className="flex items-center gap-2">
-                      <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      <Check className="w-4 h-4 text-greeviolet-500 flex-shrink-0" />
                       <span className="text-sm text-zinc-300">{feature.label}</span>
                     </div>
                   ))}
@@ -182,7 +182,7 @@ export function UpgradeModal() {
                 disabled={isLoading}
                 className={cn(
                   'w-full py-4 rounded-xl font-semibold text-white flex items-center justify-center gap-2 transition-all',
-                  'bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700',
+                  'bg-gradient-to-r from-violet-500 to-violet-500 hover:from-violet-600 hover:to-violet-700',
                   'disabled:opacity-50 disabled:cursor-not-allowed'
                 )}
               >

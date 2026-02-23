@@ -113,28 +113,28 @@ const features = [
     title: 'AI Email Sync',
     description:
       'Connect Gmail and let AI automatically detect and extract bills from your inbox.',
-    gradient: 'from-orange-500 to-orange-500',
+    gradient: 'from-violet-500 to-violet-500',
   },
   {
     icon: Sparkles,
     title: 'Beautiful Countdowns',
     description:
       'Stunning visual cards that change color as due dates approach. Never lose track.',
-    gradient: 'from-amber-500 to-amber-500',
+    gradient: 'from-violet-400 to-violet-400',
   },
   {
     icon: Bell,
     title: 'Smart Reminders',
     description:
       'Get notified 7 days, 3 days, and 1 day before each bill is due.',
-    gradient: 'from-orange-500 to-amber-500',
+    gradient: 'from-violet-500 to-violet-400',
   },
   {
     icon: Repeat,
     title: 'Recurring Bills',
     description:
       'Set up weekly, biweekly, monthly, or yearly bills that auto-generate on schedule.',
-    gradient: 'from-orange-500 to-amber-500',
+    gradient: 'from-violet-500 to-violet-400',
   },
   {
     icon: Calendar,
@@ -148,7 +148,7 @@ const features = [
     title: 'Analytics & Insights',
     description:
       'Track spending trends, category breakdowns, and monthly comparisons at a glance.',
-    gradient: 'from-orange-500 to-orange-500',
+    gradient: 'from-violet-500 to-violet-500',
   },
   {
     icon: Moon,
@@ -217,9 +217,9 @@ export default function LandingPage() {
       />
       {/* Ambient background gradients */}
       <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-orange-500/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-amber-500/10 rounded-full blur-[120px]" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-orange-500/5 rounded-full blur-[150px]" />
+        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-violet-500/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-violet-400/10 rounded-full blur-[120px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-violet-500/5 rounded-full blur-[150px]" />
       </div>
 
       {/* Navigation */}
@@ -235,7 +235,7 @@ export default function LandingPage() {
                 height={32}
               />
               <span className="text-xl font-bold tracking-tight">
-                Due<span className="text-orange-400">zo</span>
+                Due<span className="text-violet-400">zo</span>
               </span>
             </div>
 
@@ -291,7 +291,7 @@ export default function LandingPage() {
                 className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-sm text-zinc-400 mb-6 animate-in fade-in slide-in-from-bottom-4"
                 style={{ animationDelay: '0ms', animationFillMode: 'backwards' }}
               >
-                <Sparkles className="w-4 h-4 text-orange-400" />
+                <Sparkles className="w-4 h-4 text-violet-400" />
                 AI-Powered Bill Tracking
               </div>
 
@@ -301,7 +301,7 @@ export default function LandingPage() {
                 style={{ animationDelay: '100ms', animationFillMode: 'backwards' }}
               >
                 Your Bills,{' '}
-                <span className="bg-gradient-to-r from-orange-400 via-amber-400 to-amber-400 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-violet-400 via-violet-300 to-violet-300 bg-clip-text text-transparent">
                   On Autopilot
                 </span>
               </h1>
@@ -322,7 +322,7 @@ export default function LandingPage() {
               >
                 <Link
                   href="/signup"
-                  className="group inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold bg-gradient-to-r from-orange-500 to-amber-500 rounded-full hover:opacity-90 transition-opacity"
+                  className="group inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold bg-gradient-to-r from-violet-500 to-violet-400 rounded-full hover:opacity-90 transition-opacity"
                 >
                   Get Started Free
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -341,11 +341,11 @@ export default function LandingPage() {
                 style={{ animationDelay: '400ms', animationFillMode: 'backwards' }}
               >
                 <div className="flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-green-500" />
+                  <Shield className="w-4 h-4 text-greeviolet-500" />
                   Bank-level security
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-green-500" />
+                  <CheckCircle2 className="w-4 h-4 text-greeviolet-500" />
                   Free to start
                 </div>
               </div>
@@ -359,7 +359,7 @@ export default function LandingPage() {
               {/* Floating cards */}
               <div className="relative w-full max-w-md mx-auto">
                 {/* Glow behind cards */}
-                <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 via-amber-500/20 to-amber-500/20 blur-3xl" />
+                <div className="absolute inset-0 bg-gradient-to-br from-violet-500/20 via-violet-400/20 to-violet-400/20 blur-3xl" />
 
                 {/* Card stack with stagger animation */}
                 <div className="relative space-y-4">
@@ -390,7 +390,7 @@ export default function LandingPage() {
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
               Everything You Need to{' '}
-              <span className="bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-violet-400 to-violet-300 bg-clip-text text-transparent">
                 Stay on Top
               </span>
             </h2>
@@ -432,12 +432,12 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section header */}
           <div className="text-center mb-16">
-            <span className="text-sm font-semibold bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent uppercase tracking-wider">
+            <span className="text-sm font-semibold bg-gradient-to-r from-violet-400 to-violet-300 bg-clip-text text-transparent uppercase tracking-wider">
               Simple Pricing
             </span>
             <h2 className="mt-3 text-3xl sm:text-4xl font-bold tracking-tight">
               Choose Your{' '}
-              <span className="bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-violet-400 to-violet-300 bg-clip-text text-transparent">
                 Plan
               </span>
             </h2>
@@ -460,19 +460,19 @@ export default function LandingPage() {
 
               <ul className="space-y-4 mb-8">
                 <li className="flex items-center gap-3 text-zinc-300">
-                  <Check className="w-5 h-5 text-orange-400 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-violet-400 flex-shrink-0" />
                   <span>Up to 5 bills</span>
                 </li>
                 <li className="flex items-center gap-3 text-zinc-300">
-                  <Check className="w-5 h-5 text-orange-400 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-violet-400 flex-shrink-0" />
                   <span>Bill templates for quick setup</span>
                 </li>
                 <li className="flex items-center gap-3 text-zinc-300">
-                  <Check className="w-5 h-5 text-orange-400 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-violet-400 flex-shrink-0" />
                   <span>Due date tracking & reminders</span>
                 </li>
                 <li className="flex items-center gap-3 text-zinc-300">
-                  <Check className="w-5 h-5 text-orange-400 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-violet-400 flex-shrink-0" />
                   <span>1 Gmail sync to try AI extraction</span>
                 </li>
                 <li className="flex items-center gap-3 text-zinc-500">
@@ -494,58 +494,58 @@ export default function LandingPage() {
             </div>
 
             {/* Pro Card */}
-            <div className="relative p-8 rounded-2xl bg-gradient-to-br from-orange-500/10 to-amber-500/10 border border-orange-500/30">
+            <div className="relative p-8 rounded-2xl bg-gradient-to-br from-violet-500/10 to-violet-400/10 border border-violet-500/30">
               {/* Best Value Badge */}
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <span className="px-3 py-1 text-xs font-semibold bg-gradient-to-r from-orange-500 to-amber-500 rounded-full text-white">
+                <span className="px-3 py-1 text-xs font-semibold bg-gradient-to-r from-violet-500 to-violet-400 rounded-full text-white">
                   Best Value
                 </span>
               </div>
 
               <div className="mb-6">
                 <div className="flex items-center gap-2 mb-2">
-                  <Crown className="w-5 h-5 text-amber-400" />
+                  <Crown className="w-5 h-5 text-violet-300" />
                   <h3 className="text-xl font-bold text-white">Pro</h3>
                 </div>
                 <div className="flex items-baseline gap-1">
                   <span className="text-4xl font-bold text-white">$4.99</span>
                   <span className="text-zinc-400">/month</span>
                 </div>
-                <p className="text-sm text-orange-400 mt-1">
+                <p className="text-sm text-violet-400 mt-1">
                   or $39.99/year (save 33%)
                 </p>
               </div>
 
               <ul className="space-y-4 mb-8">
                 <li className="flex items-center gap-3 text-zinc-300">
-                  <Check className="w-5 h-5 text-orange-400 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-violet-400 flex-shrink-0" />
                   <span>Unlimited bills</span>
                 </li>
                 <li className="flex items-center gap-3 text-zinc-300">
-                  <Check className="w-5 h-5 text-orange-400 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-violet-400 flex-shrink-0" />
                   <span>Unlimited Gmail syncs + daily auto-sync</span>
                 </li>
                 <li className="flex items-center gap-3 text-zinc-300">
-                  <Check className="w-5 h-5 text-orange-400 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-violet-400 flex-shrink-0" />
                   <span>Payment links ("Pay Now")</span>
                 </li>
                 <li className="flex items-center gap-3 text-zinc-300">
-                  <Check className="w-5 h-5 text-orange-400 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-violet-400 flex-shrink-0" />
                   <span>Calendar view</span>
                 </li>
                 <li className="flex items-center gap-3 text-zinc-300">
-                  <Check className="w-5 h-5 text-orange-400 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-violet-400 flex-shrink-0" />
                   <span>Analytics & insights</span>
                 </li>
                 <li className="flex items-center gap-3 text-zinc-300">
-                  <Check className="w-5 h-5 text-orange-400 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-violet-400 flex-shrink-0" />
                   <span>Full notification controls</span>
                 </li>
               </ul>
 
               <Link
                 href="/signup"
-                className="block w-full py-3 text-center font-semibold bg-gradient-to-r from-orange-500 to-amber-500 hover:opacity-90 rounded-xl transition-opacity"
+                className="block w-full py-3 text-center font-semibold bg-gradient-to-r from-violet-500 to-violet-400 hover:opacity-90 rounded-xl transition-opacity"
               >
                 Get Pro
               </Link>
@@ -561,18 +561,18 @@ export default function LandingPage() {
       >
         {/* Section background glow */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[500px] bg-gradient-to-r from-orange-500/[0.07] via-amber-500/[0.05] to-orange-500/[0.07] blur-[100px] rounded-full" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[500px] bg-gradient-to-r from-violet-500/[0.07] via-violet-400/[0.05] to-violet-500/[0.07] blur-[100px] rounded-full" />
         </div>
 
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section header */}
           <div className="text-center mb-20">
-            <span className="inline-block text-sm font-semibold bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent uppercase tracking-wider mb-3">
+            <span className="inline-block text-sm font-semibold bg-gradient-to-r from-violet-400 to-violet-300 bg-clip-text text-transparent uppercase tracking-wider mb-3">
               How it Works
             </span>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-5">
               Set Up in{' '}
-              <span className="bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-violet-400 to-violet-300 bg-clip-text text-transparent">
                 Under 2 Minutes
               </span>
             </h2>
@@ -585,26 +585,26 @@ export default function LandingPage() {
           <div className="relative">
             {/* Horizontal connector line (desktop) */}
             <div className="hidden md:block absolute top-[72px] left-[16%] right-[16%] h-px">
-              <div className="w-full h-full bg-gradient-to-r from-orange-500/40 via-amber-500/40 to-green-500/40" />
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-500/40 via-amber-500/40 to-green-500/40 blur-sm" />
+              <div className="w-full h-full bg-gradient-to-r from-violet-500/40 via-violet-400/40 to-greeviolet-500/40" />
+              <div className="absolute inset-0 bg-gradient-to-r from-violet-500/40 via-violet-400/40 to-greeviolet-500/40 blur-sm" />
             </div>
 
             <div className="grid md:grid-cols-3 gap-10 lg:gap-16">
               {/* Step 1: Connect Your Email */}
               <div className="group relative text-center">
                 <div className="relative w-36 h-36 mx-auto mb-8">
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-orange-500/20 to-amber-500/10 animate-pulse" style={{ animationDuration: '3s' }} />
-                  <div className="absolute inset-3 rounded-full bg-gradient-to-br from-orange-500/10 to-amber-500/5 border border-orange-500/20 backdrop-blur-sm flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-violet-500/20 to-violet-400/10 animate-pulse" style={{ animationDuration: '3s' }} />
+                  <div className="absolute inset-3 rounded-full bg-gradient-to-br from-violet-500/10 to-violet-400/5 border border-violet-500/20 backdrop-blur-sm flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
                     <div className="relative">
-                      <div className="w-16 h-12 rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-lg shadow-orange-500/25 group-hover:shadow-orange-500/40 transition-shadow">
+                      <div className="w-16 h-12 rounded-lg bg-gradient-to-br from-violet-500 to-violet-400 flex items-center justify-center shadow-lg shadow-violet-500/25 group-hover:shadow-violet-500/40 transition-shadow">
                         <Mail className="w-8 h-8 text-white" />
                       </div>
-                      <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-green-500 border-2 border-[#08080c] flex items-center justify-center">
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-greeviolet-500 border-2 border-[#08080c] flex items-center justify-center">
                         <Check className="w-3 h-3 text-white" />
                       </div>
                     </div>
                   </div>
-                  <div className="absolute -top-1 -right-1 w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-sm font-bold shadow-lg shadow-orange-500/30">
+                  <div className="absolute -top-1 -right-1 w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-violet-400 flex items-center justify-center text-sm font-bold shadow-lg shadow-violet-500/30">
                     1
                   </div>
                 </div>
@@ -617,18 +617,18 @@ export default function LandingPage() {
               {/* Step 2: AI Finds Your Bills */}
               <div className="group relative text-center">
                 <div className="relative w-36 h-36 mx-auto mb-8">
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-amber-500/20 to-orange-500/10 animate-pulse" style={{ animationDuration: '3s', animationDelay: '1s' }} />
-                  <div className="absolute inset-3 rounded-full bg-gradient-to-br from-amber-500/10 to-orange-500/5 border border-amber-500/20 backdrop-blur-sm flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-violet-400/20 to-violet-500/10 animate-pulse" style={{ animationDuration: '3s', animationDelay: '1s' }} />
+                  <div className="absolute inset-3 rounded-full bg-gradient-to-br from-violet-400/10 to-violet-500/5 border border-violet-400/20 backdrop-blur-sm flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
                     <div className="relative">
-                      <div className="w-16 h-12 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/25 group-hover:shadow-amber-500/40 transition-shadow">
+                      <div className="w-16 h-12 rounded-lg bg-gradient-to-br from-violet-400 to-violet-500 flex items-center justify-center shadow-lg shadow-violet-400/25 group-hover:shadow-violet-400/40 transition-shadow">
                         <Sparkles className="w-8 h-8 text-white" />
                       </div>
-                      <div className="absolute -top-2 -left-3 w-2 h-2 rounded-full bg-amber-400 animate-ping" style={{ animationDuration: '2s' }} />
-                      <div className="absolute -top-1 -right-3 w-2 h-2 rounded-full bg-orange-400 animate-ping" style={{ animationDuration: '2s', animationDelay: '0.5s' }} />
-                      <div className="absolute -bottom-2 left-1/2 w-2 h-2 rounded-full bg-amber-400 animate-ping" style={{ animationDuration: '2s', animationDelay: '1s' }} />
+                      <div className="absolute -top-2 -left-3 w-2 h-2 rounded-full bg-violet-300 animate-ping" style={{ animationDuration: '2s' }} />
+                      <div className="absolute -top-1 -right-3 w-2 h-2 rounded-full bg-violet-400 animate-ping" style={{ animationDuration: '2s', animationDelay: '0.5s' }} />
+                      <div className="absolute -bottom-2 left-1/2 w-2 h-2 rounded-full bg-violet-300 animate-ping" style={{ animationDuration: '2s', animationDelay: '1s' }} />
                     </div>
                   </div>
-                  <div className="absolute -top-1 -right-1 w-8 h-8 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-sm font-bold shadow-lg shadow-amber-500/30">
+                  <div className="absolute -top-1 -right-1 w-8 h-8 rounded-full bg-gradient-to-br from-violet-400 to-violet-500 flex items-center justify-center text-sm font-bold shadow-lg shadow-violet-400/30">
                     2
                   </div>
                 </div>
@@ -641,18 +641,18 @@ export default function LandingPage() {
               {/* Step 3: Never Miss a Due Date */}
               <div className="group relative text-center">
                 <div className="relative w-36 h-36 mx-auto mb-8">
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-green-500/20 to-emerald-500/10 animate-pulse" style={{ animationDuration: '3s', animationDelay: '2s' }} />
-                  <div className="absolute inset-3 rounded-full bg-gradient-to-br from-green-500/10 to-emerald-500/5 border border-green-500/20 backdrop-blur-sm flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-greeviolet-500/20 to-emerald-500/10 animate-pulse" style={{ animationDuration: '3s', animationDelay: '2s' }} />
+                  <div className="absolute inset-3 rounded-full bg-gradient-to-br from-greeviolet-500/10 to-emerald-500/5 border border-greeviolet-500/20 backdrop-blur-sm flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
                     <div className="relative">
-                      <div className="w-16 h-12 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center shadow-lg shadow-green-500/25 group-hover:shadow-green-500/40 transition-shadow">
+                      <div className="w-16 h-12 rounded-lg bg-gradient-to-br from-greeviolet-500 to-emerald-500 flex items-center justify-center shadow-lg shadow-greeviolet-500/25 group-hover:shadow-greeviolet-500/40 transition-shadow">
                         <Bell className="w-8 h-8 text-white" />
                       </div>
-                      <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-green-500 border-2 border-[#08080c] flex items-center justify-center">
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-greeviolet-500 border-2 border-[#08080c] flex items-center justify-center">
                         <CheckCircle2 className="w-3 h-3 text-white" />
                       </div>
                     </div>
                   </div>
-                  <div className="absolute -top-1 -right-1 w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center text-sm font-bold shadow-lg shadow-green-500/30">
+                  <div className="absolute -top-1 -right-1 w-8 h-8 rounded-full bg-gradient-to-br from-greeviolet-500 to-emerald-500 flex items-center justify-center text-sm font-bold shadow-lg shadow-greeviolet-500/30">
                     3
                   </div>
                 </div>
@@ -668,7 +668,7 @@ export default function LandingPage() {
           <div className="text-center mt-16">
             <Link
               href="/signup"
-              className="group inline-flex items-center gap-2 px-6 py-3 text-base font-semibold bg-gradient-to-r from-orange-500 to-amber-500 rounded-full hover:opacity-90 transition-opacity"
+              className="group inline-flex items-center gap-2 px-6 py-3 text-base font-semibold bg-gradient-to-r from-violet-500 to-violet-400 rounded-full hover:opacity-90 transition-opacity"
             >
               Try It Free
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -682,13 +682,13 @@ export default function LandingPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           {/* Glow */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="w-[500px] h-[300px] bg-gradient-to-r from-orange-500/20 via-amber-500/20 to-amber-500/20 blur-[100px]" />
+            <div className="w-[500px] h-[300px] bg-gradient-to-r from-violet-500/20 via-violet-400/20 to-violet-400/20 blur-[100px]" />
           </div>
 
           <div className="relative">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-6">
               Ready to Take Control of{' '}
-              <span className="bg-gradient-to-r from-orange-400 via-amber-400 to-amber-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-violet-400 via-violet-300 to-violet-300 bg-clip-text text-transparent">
                 Your Bills?
               </span>
             </h2>
@@ -698,7 +698,7 @@ export default function LandingPage() {
 
             <Link
               href="/signup"
-              className="group inline-flex items-center justify-center gap-2 px-8 py-4 text-lg font-semibold bg-gradient-to-r from-orange-500 to-amber-500 rounded-full hover:opacity-90 transition-opacity"
+              className="group inline-flex items-center justify-center gap-2 px-8 py-4 text-lg font-semibold bg-gradient-to-r from-violet-500 to-violet-400 rounded-full hover:opacity-90 transition-opacity"
             >
               Get Started Free
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />

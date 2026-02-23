@@ -108,7 +108,7 @@ export default function AnalyticsPage() {
     return (
       <div className="min-h-screen bg-[#08080c] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
+          <Loader2 className="w-8 h-8 text-violet-500 animate-spin" />
           <p className="text-zinc-400">Loading analytics...</p>
         </div>
       </div>
@@ -128,11 +128,11 @@ export default function AnalyticsPage() {
         {/* Logo */}
         <div className="p-6 border-b border-white/5">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-violet-400 flex items-center justify-center">
               <Zap className="w-5 h-5 text-white" />
             </div>
             <span className="text-lg font-bold text-white tracking-tight">
-              Due<span className="text-orange-400">zo</span>
+              Due<span className="text-violet-400">zo</span>
             </span>
           </Link>
         </div>
@@ -157,9 +157,9 @@ export default function AnalyticsPage() {
                 <BarChart3 className="w-5 h-5" />
                 Analytics
                 {!canUseHistory && (
-                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30 ml-auto">
-                    <Crown className="w-3 h-3 text-amber-400" />
-                    <span className="text-[10px] font-semibold text-amber-300">Pro</span>
+                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-violet-400/20 border border-violet-400/30 ml-auto">
+                    <Crown className="w-3 h-3 text-violet-300" />
+                    <span className="text-[10px] font-semibold text-violet-200">Pro</span>
                   </span>
                 )}
               </Link>
@@ -172,9 +172,9 @@ export default function AnalyticsPage() {
                 <History className="w-5 h-5" />
                 History
                 {!canUseHistory && (
-                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30 ml-auto">
-                    <Crown className="w-3 h-3 text-amber-400" />
-                    <span className="text-[10px] font-semibold text-amber-300">Pro</span>
+                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-violet-400/20 border border-violet-400/30 ml-auto">
+                    <Crown className="w-3 h-3 text-violet-300" />
+                    <span className="text-[10px] font-semibold text-violet-200">Pro</span>
                   </span>
                 )}
               </Link>
@@ -187,9 +187,9 @@ export default function AnalyticsPage() {
                 <Lightbulb className="w-5 h-5" />
                 Insights
                 {!canUseHistory && (
-                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30 ml-auto">
-                    <Crown className="w-3 h-3 text-amber-400" />
-                    <span className="text-[10px] font-semibold text-amber-300">Pro</span>
+                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-violet-400/20 border border-violet-400/30 ml-auto">
+                    <Crown className="w-3 h-3 text-violet-300" />
+                    <span className="text-[10px] font-semibold text-violet-200">Pro</span>
                   </span>
                 )}
               </Link>
@@ -208,9 +208,9 @@ export default function AnalyticsPage() {
 
         {/* Gmail sync status */}
         <div className="p-4 border-t border-white/5">
-          <div className="p-4 rounded-xl bg-gradient-to-br from-orange-500/10 to-amber-500/10 border border-white/5">
+          <div className="p-4 rounded-xl bg-gradient-to-br from-violet-500/10 to-violet-400/10 border border-white/5">
             <div className="flex items-center gap-3 mb-3">
-              <Mail className="w-5 h-5 text-orange-400" />
+              <Mail className="w-5 h-5 text-violet-400" />
               <span className="text-sm font-medium text-white">Gmail Sync</span>
             </div>
             <p className="text-xs text-zinc-400 mb-3">
@@ -228,7 +228,7 @@ export default function AnalyticsPage() {
         {/* User */}
         <div className="p-4 border-t border-white/5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white font-medium">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-400 to-pink-500 flex items-center justify-center text-white font-medium">
               {user?.email?.[0]?.toUpperCase() || 'U'}
             </div>
             <div className="flex-1 min-w-0">
@@ -254,13 +254,13 @@ export default function AnalyticsPage() {
           <div className="flex items-center justify-between px-6 h-16">
             {/* Mobile logo */}
             <div className="lg:hidden flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-violet-400 flex items-center justify-center">
                 <Zap className="w-5 h-5 text-white" />
               </div>
             </div>
 
             <div className="flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-orange-400" />
+              <BarChart3 className="w-5 h-5 text-violet-400" />
               <h1 className="text-lg font-semibold text-white">Analytics</h1>
             </div>
 
@@ -304,7 +304,7 @@ export default function AnalyticsPage() {
                 <Calendar className="w-4 h-4" />
                 <p className="text-sm">Upcoming</p>
               </div>
-              <p className="text-2xl font-bold text-orange-400">
+              <p className="text-2xl font-bold text-violet-400">
                 ${totalUpcoming.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
               <p className="text-xs text-zinc-500 mt-1">{unpaidBills.length} bills due</p>
@@ -326,7 +326,7 @@ export default function AnalyticsPage() {
                 <PieChart className="w-4 h-4" />
                 <p className="text-sm">Top Category</p>
               </div>
-              <p className="text-2xl font-bold text-amber-400 capitalize">
+              <p className="text-2xl font-bold text-violet-300 capitalize">
                 {topCategory.replace('_', ' ')}
               </p>
               <p className="text-xs text-zinc-500 mt-1">Highest spending</p>

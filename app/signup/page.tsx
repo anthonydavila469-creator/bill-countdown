@@ -85,7 +85,7 @@ export default function SignupPage() {
   if (!mounted) {
     return (
       <div className="min-h-screen bg-[#08080c] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-orange-500/30 border-t-orange-500 rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-violet-500/30 border-t-violet-500 rounded-full animate-spin" />
       </div>
     );
   }
@@ -93,17 +93,17 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen bg-[#08080c] text-white flex">
       {/* Left side - Decorative */}
-      <div className="hidden lg:flex flex-1 items-center justify-center bg-gradient-to-br from-orange-500/10 via-amber-500/10 to-amber-500/10 relative overflow-hidden">
+      <div className="hidden lg:flex flex-1 items-center justify-center bg-gradient-to-br from-violet-500/10 via-violet-400/10 to-violet-400/10 relative overflow-hidden">
         {/* Ambient blurs */}
-        <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-orange-500/20 rounded-full blur-[100px]" />
-        <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-amber-500/20 rounded-full blur-[100px]" />
+        <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-violet-500/20 rounded-full blur-[100px]" />
+        <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-violet-400/20 rounded-full blur-[100px]" />
 
         {/* Content */}
         <div className="relative px-12">
           <h2 className="text-3xl font-bold mb-8">
             Start tracking your bills
             <br />
-            <span className="bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-violet-400 to-violet-300 bg-clip-text text-transparent">
               in seconds
             </span>
           </h2>
@@ -114,7 +114,7 @@ export default function SignupPage() {
                 key={index}
                 className="flex items-center gap-3 text-zinc-300"
               >
-                <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
+                <CheckCircle2 className="w-5 h-5 text-greeviolet-500 flex-shrink-0" />
                 {benefit}
               </li>
             ))}
@@ -122,7 +122,7 @@ export default function SignupPage() {
 
           {/* Social proof */}
           <div className="mt-12 p-6 rounded-2xl bg-white/5 border border-white/10 text-center">
-            <p className="text-2xl font-bold bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
+            <p className="text-2xl font-bold bg-gradient-to-r from-violet-400 to-violet-300 bg-clip-text text-transparent">
               Join thousands of people
             </p>
             <p className="text-zinc-400 mt-1">
@@ -143,10 +143,10 @@ export default function SignupPage() {
                 alt="Duezo"
                 width={38}
                 height={38}
-                className="rounded-xl shadow-lg shadow-orange-500/20"
+                className="rounded-xl shadow-lg shadow-violet-500/20"
               />
               <span className="text-2xl font-bold tracking-tight">
-                Due<span className="text-orange-400">zo</span>
+                Due<span className="text-violet-400">zo</span>
               </span>
             </Link>
 
@@ -200,8 +200,8 @@ export default function SignupPage() {
           {/* Success State */}
           {success ? (
             <div className="text-center space-y-4">
-              <div className="w-16 h-16 mx-auto rounded-full bg-green-500/10 flex items-center justify-center">
-                <CheckCircle2 className="w-8 h-8 text-green-500" />
+              <div className="w-16 h-16 mx-auto rounded-full bg-greeviolet-500/10 flex items-center justify-center">
+                <CheckCircle2 className="w-8 h-8 text-greeviolet-500" />
               </div>
               <h2 className="text-xl font-semibold">Check your email</h2>
               <p className="text-zinc-400">
@@ -242,7 +242,7 @@ export default function SignupPage() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
-                    className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                    className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
                     placeholder="John Doe"
                   />
                 </div>
@@ -264,7 +264,7 @@ export default function SignupPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                    className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
                     placeholder="you@example.com"
                   />
                 </div>
@@ -287,7 +287,7 @@ export default function SignupPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     minLength={8}
-                    className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                    className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
                     placeholder="••••••••"
                   />
                 </div>
@@ -301,7 +301,7 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="group w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+              className="group w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-violet-500 to-violet-400 text-white font-semibold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -316,11 +316,11 @@ export default function SignupPage() {
             {/* Terms */}
             <p className="text-xs text-zinc-500 text-center">
               By creating an account, you agree to our{' '}
-              <Link href="/terms" className="text-orange-400 hover:underline">
+              <Link href="/terms" className="text-violet-400 hover:underline">
                 Terms of Service
               </Link>{' '}
               and{' '}
-              <Link href="/privacy" className="text-orange-400 hover:underline">
+              <Link href="/privacy" className="text-violet-400 hover:underline">
                 Privacy Policy
               </Link>
             </p>
@@ -331,7 +331,7 @@ export default function SignupPage() {
             Already have an account?{' '}
             <Link
               href="/login"
-              className="text-orange-400 hover:text-orange-300 font-medium transition-colors"
+              className="text-violet-400 hover:text-violet-300 font-medium transition-colors"
             >
               Sign in
             </Link>
