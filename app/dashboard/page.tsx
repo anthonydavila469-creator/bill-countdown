@@ -19,11 +19,13 @@ import { getDaysUntilDue } from '@/lib/utils';
 import { getBillRiskType } from '@/lib/risk-utils';
 import { getBillIcon } from '@/lib/get-bill-icon';
 import { RiskAlerts } from '@/components/risk-alerts';
+import { RecurringDetectionBanner } from '@/components/recurring-detection-banner';
 import { NotificationBell } from '@/components/notification-bell';
 import { OnTimePayments } from '@/components/on-time-payments';
 import { createClient } from '@/lib/supabase/client';
 import { useTheme } from '@/contexts/theme-context';
 import { useBillMutations } from '@/hooks/use-bill-mutations';
+import { useRecurringDetection } from '@/hooks/use-recurring-detection';
 import { Spinner } from '@/components/ui/animated-list';
 import { DashboardSkeleton } from '@/components/skeleton-loader';
 import { hapticSuccess, hapticLight } from '@/lib/haptics';
@@ -70,6 +72,15 @@ export default function DashboardPage() {
     getMutationState,
     refetch,
   } = useBillMutations();
+
+  // Recurring bill detection
+  const {
+    suggestions: recurringSuggestions,
+    dismissSuggestion: dismissRecurringSuggestion,
+    dismissAll: dismissAllRecurring,
+    markAsRecurring,
+    markAllAsRecurring,
+  } = useRecurringDetection(bills);
 
   // Auth state
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
@@ -626,6 +637,18 @@ export default function DashboardPage() {
                 </p>
               </div>
             </div>
+          )}
+
+          {/* Recurring Detection Banner */}
+          {recurringSuggestions.length > 0 && (
+            <RecurringDetectionBanner
+              suggestions={recurringSuggestions}
+              onMarkRecurring={markAsRecurring}
+              onMarkAllRecurring={markAllAsRecurring}
+              onDismiss={dismissRecurringSuggestion}
+              onDismissAll={dismissAllRecurring}
+              className="mb-6"
+            />
           )}
 
           {/* Risk Alerts Section */}
