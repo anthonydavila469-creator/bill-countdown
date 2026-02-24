@@ -8,6 +8,7 @@ import {
   useCallback,
   ReactNode,
 } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { SubscriptionStatus, SubscriptionPlan } from '@/types';
 
 // Feature limits for free tier
@@ -58,6 +59,10 @@ export interface SubscriptionState {
 
   // Loading state
   isLoading: boolean;
+
+  // Platform flags
+  isIosApp: boolean;
+  upgradeCtasEnabled: boolean;
 }
 
 interface SubscriptionContextValue extends SubscriptionState {
@@ -99,6 +104,7 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [upgradeModalFeature, setUpgradeModalFeature] = useState<string | null>(null);
+  const [isIosApp, setIsIosApp] = useState(false);
 
   // Fetch subscription status
   const refreshSubscription = useCallback(async () => {
@@ -130,6 +136,16 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     refreshSubscription();
   }, [refreshSubscription]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const isNative = Capacitor.isNativePlatform();
+      setIsIosApp(isNative && Capacitor.getPlatform() === 'ios');
+    } catch (error) {
+      console.warn('Failed to detect platform:', error);
+    }
+  }, []);
+
   // Increment gmail syncs counter
   const incrementGmailSyncs = useCallback(async () => {
     try {
@@ -146,9 +162,10 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
 
   // Modal controls
   const showUpgradeModal = useCallback((feature: string) => {
+    if (isIosApp) return;
     setUpgradeModalFeature(feature);
     setUpgradeModalOpen(true);
-  }, []);
+  }, [isIosApp]);
 
   const hideUpgradeModal = useCallback(() => {
     setUpgradeModalOpen(false);
@@ -171,6 +188,7 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   const canCustomizeReminders = effectiveIsPro;
   const canUsePushNotifications = effectiveIsPro;
   const canUseDailyAutoSync = effectiveIsPro;
+  const upgradeCtasEnabled = !isIosApp;
 
   return (
     <SubscriptionContext.Provider
@@ -209,6 +227,10 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
 
         // Loading state
         isLoading,
+
+        // Platform flags
+        isIosApp,
+        upgradeCtasEnabled,
 
         // Modal state
         upgradeModalOpen,

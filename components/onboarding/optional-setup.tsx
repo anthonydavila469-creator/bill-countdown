@@ -16,12 +16,14 @@ interface OptionalSetupProps {
 }
 
 export function OptionalSetup({ options, onChange }: OptionalSetupProps) {
-  const { canUsePaycheckMode, showUpgradeModal } = useSubscription();
+  const { canUsePaycheckMode, showUpgradeModal, upgradeCtasEnabled } = useSubscription();
 
   const toggleOption = (key: keyof SetupOptions) => {
     // If trying to enable paycheck mode and user is not Pro, show upgrade modal
     if (key === 'paycheckMode' && !options.paycheckMode && !canUsePaycheckMode) {
-      showUpgradeModal('paycheck mode');
+      if (upgradeCtasEnabled) {
+        showUpgradeModal('paycheck mode');
+      }
       return;
     }
 

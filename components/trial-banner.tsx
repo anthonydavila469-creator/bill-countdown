@@ -4,7 +4,15 @@ import Link from 'next/link';
 import { useSubscriptionContext } from '@/contexts/subscription-context';
 
 export function TrialBanner() {
-  const { isTrialing, trialDaysLeft, trialEndsAt, isPro, subscriptionStatus, isLoading } = useSubscriptionContext();
+  const {
+    isTrialing,
+    trialDaysLeft,
+    trialEndsAt,
+    isPro,
+    subscriptionStatus,
+    isLoading,
+    upgradeCtasEnabled,
+  } = useSubscriptionContext();
 
   if (isLoading) return null;
 
@@ -21,12 +29,14 @@ export function TrialBanner() {
           </svg>
           Pro Trial — {trialDaysLeft} day{trialDaysLeft !== 1 ? 's' : ''} left
         </span>
-        <Link
-          href="/dashboard/settings#subscription"
-          className="text-violet-400 hover:text-violet-300 underline underline-offset-2 transition-colors"
-        >
-          Upgrade
-        </Link>
+        {upgradeCtasEnabled && (
+          <Link
+            href="/dashboard/settings#subscription"
+            className="text-violet-400 hover:text-violet-300 underline underline-offset-2 transition-colors"
+          >
+            Upgrade
+          </Link>
+        )}
       </div>
     );
   }
@@ -38,12 +48,14 @@ export function TrialBanner() {
         <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-500/15 border border-orange-500/30 px-3 py-1 text-orange-300">
           Trial ended
         </span>
-        <Link
-          href="/dashboard/settings#subscription"
-          className="text-orange-400 hover:text-orange-300 underline underline-offset-2 transition-colors"
-        >
-          Upgrade to Pro
-        </Link>
+        {upgradeCtasEnabled && (
+          <Link
+            href="/dashboard/settings#subscription"
+            className="text-orange-400 hover:text-orange-300 underline underline-offset-2 transition-colors"
+          >
+            Upgrade to Pro
+          </Link>
+        )}
       </div>
     );
   }

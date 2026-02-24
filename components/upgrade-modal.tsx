@@ -20,9 +20,15 @@ const PRO_FEATURES = [
 ];
 
 export function UpgradeModal() {
-  const { upgradeModalOpen, upgradeModalFeature, hideUpgradeModal } = useSubscription();
+  const { upgradeModalOpen, upgradeModalFeature, hideUpgradeModal, isIosApp } = useSubscription();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('yearly');
+
+  useEffect(() => {
+    if (isIosApp && upgradeModalOpen) {
+      hideUpgradeModal();
+    }
+  }, [isIosApp, upgradeModalOpen, hideUpgradeModal]);
 
   // Prevent body scroll when modal is open
   useEffect(() => {
@@ -72,7 +78,7 @@ export function UpgradeModal() {
     }
   };
 
-  if (!upgradeModalOpen) return null;
+  if (!upgradeModalOpen || isIosApp) return null;
 
   return (
     <div className="fixed inset-0 z-50">

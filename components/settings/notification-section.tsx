@@ -136,7 +136,13 @@ export function NotificationSection() {
   const [settings, setSettings] = useState<NotificationSettings>(DEFAULT_NOTIFICATION_SETTINGS);
   const [isLoading, setIsLoading] = useState(true);
   const { isSupported, isSubscribed, subscribe, unsubscribe } = usePushNotifications();
-  const { canUsePushNotifications, canUseDailyAutoSync, canCustomizeReminders, showUpgradeModal } = useSubscription();
+  const {
+    canUsePushNotifications,
+    canUseDailyAutoSync,
+    canCustomizeReminders,
+    showUpgradeModal,
+    upgradeCtasEnabled,
+  } = useSubscription();
 
   // Fetch settings on mount
   useEffect(() => {
@@ -260,12 +266,14 @@ export function NotificationSection() {
               enabled={settings.push_enabled && isSubscribed && canUsePushNotifications}
               onChange={(enabled) => {
                 if (!canUsePushNotifications) {
-                  showUpgradeModal('push notifications');
+                  if (upgradeCtasEnabled) {
+                    showUpgradeModal('push notifications');
+                  }
                   return;
                 }
                 handlePushToggle(enabled);
               }}
-              disabled={!isSupported}
+              disabled={!isSupported || (!canUsePushNotifications && !upgradeCtasEnabled)}
               color="#f59e0b"
             />
           </div>
@@ -289,11 +297,14 @@ export function NotificationSection() {
               enabled={(settings.auto_sync_enabled ?? false) && canUseDailyAutoSync}
               onChange={(enabled) => {
                 if (!canUseDailyAutoSync) {
-                  showUpgradeModal('daily auto-sync');
+                  if (upgradeCtasEnabled) {
+                    showUpgradeModal('daily auto-sync');
+                  }
                   return;
                 }
                 handleAutoSyncToggle(enabled);
               }}
+              disabled={!canUseDailyAutoSync && !upgradeCtasEnabled}
               color="#10b981"
             />
           </div>
@@ -331,11 +342,14 @@ export function NotificationSection() {
                   type="button"
                   onClick={() => {
                     if (!canCustomizeReminders) {
-                      showUpgradeModal('custom reminders');
+                      if (upgradeCtasEnabled) {
+                        showUpgradeModal('custom reminders');
+                      }
                       return;
                     }
                     handleReminderDaysToggle(opt.value);
                   }}
+                  disabled={!canCustomizeReminders && !upgradeCtasEnabled}
                   className={cn(
                     'flex items-center gap-2 px-3 py-2.5 h-11 rounded-xl text-sm font-medium transition-all duration-200 border',
                     isActive

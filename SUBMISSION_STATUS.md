@@ -32,6 +32,15 @@ npx cap sync ios      # Synced to iOS
 2. Deploy app to production (duezo.app)
 3. Use .env.production values for final build
 
+### Fix 4: Add Sign in with Apple ✅
+**Files:** `app/login/page.tsx`, `app/signup/page.tsx`
+- **Status:** DONE - Apple sign-in sits alongside Google sign-in in the iOS app flow.
+
+### Fix 5: Remove External Upgrade CTAs in iOS ✅
+**Files:** subscription/upgrade UI components and onboarding prompts
+- **Status:** DONE - iOS builds no longer show Stripe checkout/portal or upgrade CTAs.
+- **Note:** Entitlement checks remain for existing Pro users.
+
 ---
 
 ## ⚠️ CRITICAL ARCHITECTURE ISSUE

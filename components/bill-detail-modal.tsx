@@ -27,7 +27,7 @@ export function BillDetailModal({
   onDelete,
   onMarkPaid,
 }: BillDetailModalProps) {
-  const { canUsePaymentLinks, showUpgradeModal } = useSubscription();
+  const { canUsePaymentLinks, showUpgradeModal, upgradeCtasEnabled } = useSubscription();
   const { selectedTheme } = useTheme();
   const [isMarkingPaid, setIsMarkingPaid] = useState(false);
 
@@ -239,7 +239,7 @@ export function BillDetailModal({
               )}
 
               {/* Upgrade prompt for Pay Now - free users with payment URL */}
-              {bill.payment_url && !canUsePaymentLinks && (
+              {bill.payment_url && !canUsePaymentLinks && upgradeCtasEnabled && (
                 <button
                   onClick={() => showUpgradeModal('payment links')}
                   className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 text-amber-200 font-semibold rounded-xl hover:from-amber-500/30 hover:to-orange-500/30 transition-colors"
@@ -247,6 +247,12 @@ export function BillDetailModal({
                   <Crown className="w-5 h-5" />
                   Upgrade for Pay Now
                 </button>
+              )}
+              {bill.payment_url && !canUsePaymentLinks && !upgradeCtasEnabled && (
+                <div className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white/5 border border-white/10 text-zinc-500 font-semibold rounded-xl">
+                  <Crown className="w-5 h-5" />
+                  Pro feature
+                </div>
               )}
 
               {/* Mark as Paid button */}

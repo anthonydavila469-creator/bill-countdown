@@ -96,7 +96,7 @@ export function BillListView({
   onMarkPaid,
   onPayNow,
 }: BillListViewProps) {
-  const { canUsePaymentLinks, showUpgradeModal } = useSubscription();
+  const { canUsePaymentLinks, showUpgradeModal, upgradeCtasEnabled } = useSubscription();
   const unpaidBills = bills.filter((b) => !b.is_paid);
   const billsForRiskCalc = allBills || bills;
   const allSelected = unpaidBills.length > 0 && unpaidBills.every((b) => selectedIds.has(b.id));
@@ -385,23 +385,34 @@ export function BillListView({
                         <span className="hidden lg:inline">Pay</span>
                       </button>
                     ) : hasPaymentLink && !canUsePaymentLinks ? (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          showUpgradeModal('payment links');
-                        }}
-                        className={cn(
-                          'flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-xs font-bold transition-all duration-200',
-                          'bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-300',
-                          'hover:from-amber-500/30 hover:to-orange-500/30',
-                          'active:scale-95',
-                          'border border-amber-500/30'
-                        )}
-                        title="Upgrade to Pro for payment links"
-                      >
-                        <Crown className="w-3.5 h-3.5" />
-                        <span className="hidden lg:inline">Pro</span>
-                      </button>
+                      upgradeCtasEnabled ? (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            showUpgradeModal('payment links');
+                          }}
+                          className={cn(
+                            'flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-xs font-bold transition-all duration-200',
+                            'bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-300',
+                            'hover:from-amber-500/30 hover:to-orange-500/30',
+                            'active:scale-95',
+                            'border border-amber-500/30'
+                          )}
+                          title="Upgrade to Pro for payment links"
+                        >
+                          <Crown className="w-3.5 h-3.5" />
+                          <span className="hidden lg:inline">Pro</span>
+                        </button>
+                      ) : (
+                        <button
+                          disabled
+                          className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-xs font-bold bg-white/[0.04] text-zinc-500 cursor-not-allowed border border-white/[0.06] border-dashed"
+                          title="Payment links are a Pro feature"
+                        >
+                          <Crown className="w-3.5 h-3.5" />
+                          <span className="hidden lg:inline">Pro</span>
+                        </button>
+                      )
                     ) : (
                       <button
                         disabled

@@ -113,7 +113,7 @@ export function CustomizationSection() {
     selectedTheme,
     updateTheme,
   } = useTheme();
-  const { isPro, showUpgradeModal } = useSubscription();
+  const { isPro, showUpgradeModal, upgradeCtasEnabled } = useSubscription();
 
   const themeIds = Object.keys(COLOR_THEMES) as ColorThemeId[];
 
@@ -125,7 +125,7 @@ export function CustomizationSection() {
   return (
     <div className="space-y-10">
       {/* Pro Upgrade Banner */}
-      {!isPro && (
+      {!isPro && upgradeCtasEnabled && (
         <div className="relative overflow-hidden rounded-3xl animate-in fade-in slide-in-from-bottom-4 duration-700">
           {/* Animated background gradient */}
           <div className="absolute inset-0 bg-gradient-to-br from-amber-600/20 via-orange-600/20 to-orange-600/20" />
@@ -206,7 +206,9 @@ export function CustomizationSection() {
                 </div>
                 <div>
                   <p className="font-medium text-zinc-400">Pro Feature</p>
-                  <p className="text-sm text-zinc-600">Upgrade to customize theme</p>
+                  <p className="text-sm text-zinc-600">
+                    {upgradeCtasEnabled ? 'Upgrade to customize theme' : 'Available on Pro'}
+                  </p>
                 </div>
               </div>
             </div>

@@ -59,7 +59,18 @@ export default function DashboardPage() {
   const router = useRouter();
   const supabase = createClient();
   const { dashboardLayout, updateDashboardLayout } = useTheme();
-  const { canAddBill, showUpgradeModal, billsUsed, billLimit, isPro, canUsePaycheckMode, canUseCalendar, canUseHistory, refreshSubscription } = useSubscription();
+  const {
+    canAddBill,
+    showUpgradeModal,
+    billsUsed,
+    billLimit,
+    isPro,
+    canUsePaycheckMode,
+    canUseCalendar,
+    canUseHistory,
+    refreshSubscription,
+    upgradeCtasEnabled,
+  } = useSubscription();
 
   // Use optimistic mutations hook
   const {
@@ -215,10 +226,11 @@ export default function DashboardPage() {
       hapticLight();
       setEditingBill(null);
       setIsAddModalOpen(true);
-    } else {
+    } else if (upgradeCtasEnabled) {
       showUpgradeModal('unlimited bills');
     }
   };
+  const addBillDisabled = !canAddBill && !upgradeCtasEnabled;
 
   // Filter and sort bills based on search, filters, and layout preferences
   const filteredBills = useMemo(() => {
@@ -568,13 +580,16 @@ export default function DashboardPage() {
               {/* Add Bill Button */}
               <button
                 onClick={handleAddBillClick}
+                disabled={addBillDisabled}
                 className={cn(
                   "p-2 rounded-lg transition-all duration-200",
                   canAddBill
                     ? "text-zinc-400 hover:text-white hover:bg-white/10"
-                    : "text-amber-400 hover:bg-amber-500/10"
+                    : addBillDisabled
+                      ? "text-zinc-600 cursor-not-allowed"
+                      : "text-amber-400 hover:bg-amber-500/10"
                 )}
-                title={canAddBill ? "Add Bill" : "Upgrade for more bills"}
+                title={canAddBill ? "Add Bill" : upgradeCtasEnabled ? "Upgrade for more bills" : "Bill limit reached"}
               >
                 {canAddBill ? (
                   <Plus className="w-5 h-5" />
@@ -588,13 +603,22 @@ export default function DashboardPage() {
 
               <button
                 onClick={handleAddBillClick}
+                disabled={addBillDisabled}
                 className={cn(
                   "hidden sm:flex items-center gap-2 px-4 py-2 font-medium rounded-lg transition-opacity",
                   canAddBill
                     ? "text-white hover:opacity-90"
-                    : "text-amber-200 border border-amber-500/30"
+                    : addBillDisabled
+                      ? "text-zinc-600 border border-white/10 cursor-not-allowed"
+                      : "text-amber-200 border border-amber-500/30"
                 )}
-                style={canAddBill ? { backgroundColor: 'var(--accent-primary)' } : { backgroundColor: 'rgba(245, 158, 11, 0.2)' }}
+                style={
+                  canAddBill
+                    ? { backgroundColor: 'var(--accent-primary)' }
+                    : addBillDisabled
+                      ? { backgroundColor: 'rgba(255, 255, 255, 0.04)' }
+                      : { backgroundColor: 'rgba(245, 158, 11, 0.2)' }
+                }
               >
                 {canAddBill ? (
                   <Plus className="w-4 h-4" />
@@ -844,20 +868,33 @@ export default function DashboardPage() {
                 {!searchQuery && (
                   <button
                     onClick={handleAddBillClick}
+                    disabled={addBillDisabled}
                     className={cn(
                       "inline-flex items-center gap-2 px-6 py-3 font-medium rounded-lg transition-opacity",
                       canAddBill
                         ? "text-white hover:opacity-90"
-                        : "text-amber-200 border border-amber-500/30"
+                        : addBillDisabled
+                          ? "text-zinc-600 border border-white/10 cursor-not-allowed"
+                          : "text-amber-200 border border-amber-500/30"
                     )}
-                    style={canAddBill ? { backgroundColor: 'var(--accent-primary)' } : { backgroundColor: 'rgba(245, 158, 11, 0.2)' }}
+                    style={
+                      canAddBill
+                        ? { backgroundColor: 'var(--accent-primary)' }
+                        : addBillDisabled
+                          ? { backgroundColor: 'rgba(255, 255, 255, 0.04)' }
+                          : { backgroundColor: 'rgba(245, 158, 11, 0.2)' }
+                    }
                   >
                     {canAddBill ? (
                       <Plus className="w-5 h-5" />
                     ) : (
                       <Crown className="w-5 h-5" />
                     )}
-                    {canAddBill ? 'Add Your First Bill' : 'Upgrade for More Bills'}
+                    {canAddBill
+                      ? 'Add Your First Bill'
+                      : upgradeCtasEnabled
+                        ? 'Upgrade for More Bills'
+                        : 'Bill Limit Reached'}
                   </button>
                 )}
               </div>

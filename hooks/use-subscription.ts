@@ -9,7 +9,13 @@ export function useSubscription() {
 
 // Feature-specific hooks for cleaner component code
 export function useCanAddBill() {
-  const { canAddBill, billsUsed, billLimit, showUpgradeModal } = useSubscriptionContext();
+  const {
+    canAddBill,
+    billsUsed,
+    billLimit,
+    showUpgradeModal,
+    upgradeCtasEnabled,
+  } = useSubscriptionContext();
   return {
     canAddBill,
     billsUsed,
@@ -17,7 +23,7 @@ export function useCanAddBill() {
     handleAddBillClick: (onAllowed: () => void) => {
       if (canAddBill) {
         onAllowed();
-      } else {
+      } else if (upgradeCtasEnabled) {
         showUpgradeModal('unlimited bills');
       }
     },
@@ -25,7 +31,15 @@ export function useCanAddBill() {
 }
 
 export function useCanSyncGmail() {
-  const { canSyncGmail, gmailSyncsUsed, gmailSyncsAllowed, isPro, showUpgradeModal, incrementGmailSyncs } = useSubscriptionContext();
+  const {
+    canSyncGmail,
+    gmailSyncsUsed,
+    gmailSyncsAllowed,
+    isPro,
+    showUpgradeModal,
+    incrementGmailSyncs,
+    upgradeCtasEnabled,
+  } = useSubscriptionContext();
   return {
     canSyncGmail,
     gmailSyncsUsed,
@@ -36,7 +50,7 @@ export function useCanSyncGmail() {
     handleSyncClick: (onAllowed: () => void) => {
       if (canSyncGmail) {
         onAllowed();
-      } else {
+      } else if (upgradeCtasEnabled) {
         showUpgradeModal('unlimited Gmail syncs');
       }
     },
@@ -69,11 +83,15 @@ export function useFeatureGate(feature: string) {
       } else {
         if (onDenied) {
           onDenied();
-        } else {
+        } else if (subscription.upgradeCtasEnabled) {
           subscription.showUpgradeModal(feature);
         }
       }
     },
-    showUpgrade: () => subscription.showUpgradeModal(feature),
+    showUpgrade: () => {
+      if (subscription.upgradeCtasEnabled) {
+        subscription.showUpgradeModal(feature);
+      }
+    },
   };
 }

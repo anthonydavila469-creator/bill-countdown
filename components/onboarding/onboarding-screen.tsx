@@ -37,7 +37,7 @@ export function OnboardingScreen({
   isGmailConnected = false,
 }: OnboardingScreenProps) {
   const { addToast } = useToast();
-  const { isPro, canSyncGmail, showUpgradeModal, refreshSubscription } = useSubscription();
+  const { isPro, canSyncGmail, showUpgradeModal, refreshSubscription, upgradeCtasEnabled } = useSubscription();
 
   const [step, setStep] = useState<OnboardingStep>('welcome');
   const [selectedTemplateIds, setSelectedTemplateIds] = useState<Set<string>>(
@@ -57,7 +57,7 @@ export function OnboardingScreen({
   const handleGmailSync = () => {
     if (canSyncGmail) {
       setStep('gmail_sync');
-    } else {
+    } else if (upgradeCtasEnabled) {
       showUpgradeModal('unlimited Gmail syncs');
     }
   };
@@ -184,6 +184,7 @@ export function OnboardingScreen({
             onAddManually={onAddManually}
             isPro={isPro}
             canSyncGmail={canSyncGmail}
+            upgradeCtasEnabled={upgradeCtasEnabled}
           />
         )}
 
@@ -234,9 +235,17 @@ interface WelcomeStepProps {
   onAddManually: () => void;
   isPro: boolean;
   canSyncGmail: boolean;
+  upgradeCtasEnabled: boolean;
 }
 
-function WelcomeStep({ onQuickAdd, onGmailSync, onAddManually, isPro, canSyncGmail }: WelcomeStepProps) {
+function WelcomeStep({
+  onQuickAdd,
+  onGmailSync,
+  onAddManually,
+  isPro,
+  canSyncGmail,
+  upgradeCtasEnabled,
+}: WelcomeStepProps) {
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Logo */}
@@ -295,7 +304,9 @@ function WelcomeStep({ onQuickAdd, onGmailSync, onAddManually, isPro, canSyncGma
                   ? 'Automatically import bills from your inbox'
                   : canSyncGmail
                     ? 'Import bills from your inbox (1 free sync)'
-                    : 'Upgrade to Pro for unlimited Gmail syncs'
+                    : upgradeCtasEnabled
+                      ? 'Upgrade to Pro for unlimited Gmail syncs'
+                      : 'Pro feature for unlimited Gmail syncs'
                 }
               </p>
             </div>

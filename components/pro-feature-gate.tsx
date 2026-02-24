@@ -37,7 +37,7 @@ export function ProFeatureGate({
 }: ProFeatureGateProps) {
   const [mounted, setMounted] = useState(false);
   const [loadingTimedOut, setLoadingTimedOut] = useState(false);
-  const { isPro, showUpgradeModal, isLoading } = useSubscription();
+  const { isPro, showUpgradeModal, isLoading, upgradeCtasEnabled } = useSubscription();
 
   // Wait for client-side mount to prevent hydration mismatch
   useEffect(() => {
@@ -123,38 +123,46 @@ export function ProFeatureGate({
               </div>
             </div>
 
-            {/* Pricing */}
-            <div className="grid grid-cols-2 gap-3 mb-6">
-              <div className="p-3 rounded-xl bg-black/40 border border-white/[0.08] text-center">
-                <p className="text-xs text-zinc-500 mb-1">Monthly</p>
-                <p className="text-lg font-bold text-white">${PRICING.MONTHLY}<span className="text-sm font-normal text-zinc-500">/mo</span></p>
-              </div>
-              <div className="p-3 rounded-xl bg-orange-500/10 border border-orange-500/20 text-center relative">
-                <div className="absolute -top-2 right-2 px-1.5 py-0.5 bg-green-500 text-white text-[10px] font-bold rounded">
-                  SAVE {PRICING.YEARLY_SAVINGS}%
+            {upgradeCtasEnabled ? (
+              <>
+                {/* Pricing */}
+                <div className="grid grid-cols-2 gap-3 mb-6">
+                  <div className="p-3 rounded-xl bg-black/40 border border-white/[0.08] text-center">
+                    <p className="text-xs text-zinc-500 mb-1">Monthly</p>
+                    <p className="text-lg font-bold text-white">${PRICING.MONTHLY}<span className="text-sm font-normal text-zinc-500">/mo</span></p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-orange-500/10 border border-orange-500/20 text-center relative">
+                    <div className="absolute -top-2 right-2 px-1.5 py-0.5 bg-green-500 text-white text-[10px] font-bold rounded">
+                      SAVE {PRICING.YEARLY_SAVINGS}%
+                    </div>
+                    <p className="text-xs text-zinc-500 mb-1">Yearly</p>
+                    <p className="text-lg font-bold text-white">${PRICING.YEARLY}<span className="text-sm font-normal text-zinc-500">/yr</span></p>
+                  </div>
                 </div>
-                <p className="text-xs text-zinc-500 mb-1">Yearly</p>
-                <p className="text-lg font-bold text-white">${PRICING.YEARLY}<span className="text-sm font-normal text-zinc-500">/yr</span></p>
+
+                {/* CTA */}
+                <button
+                  onClick={() => showUpgradeModal(featureName)}
+                  className="group relative w-full flex items-center justify-center gap-2.5 px-5 py-4 overflow-hidden rounded-xl font-medium transition-all duration-300"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-600" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700" />
+                  <Crown className="w-5 h-5 text-white relative z-10" />
+                  <span className="relative z-10 text-white font-semibold tracking-wide">
+                    Upgrade to Pro
+                  </span>
+                </button>
+
+                <p className="text-center text-xs text-zinc-500 mt-4">
+                  Cancel anytime. Secure payment via Stripe.
+                </p>
+              </>
+            ) : (
+              <div className="p-4 rounded-xl bg-black/40 border border-white/[0.08] text-sm text-zinc-400 text-center">
+                Pro upgrades aren&apos;t available in the iOS app.
               </div>
-            </div>
-
-            {/* CTA */}
-            <button
-              onClick={() => showUpgradeModal(featureName)}
-              className="group relative w-full flex items-center justify-center gap-2.5 px-5 py-4 overflow-hidden rounded-xl font-medium transition-all duration-300"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-600" />
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700" />
-              <Crown className="w-5 h-5 text-white relative z-10" />
-              <span className="relative z-10 text-white font-semibold tracking-wide">
-                Upgrade to Pro
-              </span>
-            </button>
-
-            <p className="text-center text-xs text-zinc-500 mt-4">
-              Cancel anytime. Secure payment via Stripe.
-            </p>
+            )}
           </div>
         </div>
       </div>

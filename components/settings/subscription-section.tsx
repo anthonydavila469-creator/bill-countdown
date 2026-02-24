@@ -53,6 +53,7 @@ export function SubscriptionSection() {
     gmailSyncsUsed,
     showUpgradeModal,
     isLoading,
+    upgradeCtasEnabled,
   } = useSubscription();
 
   const [isPortalLoading, setIsPortalLoading] = useState(false);
@@ -171,23 +172,28 @@ export function SubscriptionSection() {
               </div>
             )}
 
-            {/* Manage subscription button */}
-            <button
-              onClick={handleManageSubscription}
-              disabled={isPortalLoading}
-              className="group w-full flex items-center justify-center gap-2.5 px-5 py-3.5 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/[0.15] rounded-xl transition-all duration-300"
-            >
-              {isPortalLoading ? (
-                <Loader2 className="w-4 h-4 text-zinc-400 animate-spin" />
-              ) : (
-                <>
-                  <ExternalLink className="w-4 h-4 text-zinc-400 group-hover:text-white transition-colors" />
-                  <span className="font-medium text-zinc-300 group-hover:text-white tracking-wide transition-colors">
-                    Manage Subscription
-                  </span>
-                </>
-              )}
-            </button>
+            {upgradeCtasEnabled ? (
+              <button
+                onClick={handleManageSubscription}
+                disabled={isPortalLoading}
+                className="group w-full flex items-center justify-center gap-2.5 px-5 py-3.5 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/[0.15] rounded-xl transition-all duration-300"
+              >
+                {isPortalLoading ? (
+                  <Loader2 className="w-4 h-4 text-zinc-400 animate-spin" />
+                ) : (
+                  <>
+                    <ExternalLink className="w-4 h-4 text-zinc-400 group-hover:text-white transition-colors" />
+                    <span className="font-medium text-zinc-300 group-hover:text-white tracking-wide transition-colors">
+                      Manage Subscription
+                    </span>
+                  </>
+                )}
+              </button>
+            ) : (
+              <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] text-sm text-zinc-500">
+                Subscription changes aren&apos;t available in the iOS app.
+              </div>
+            )}
           </div>
         ) : (
           // Free tier view
@@ -252,56 +258,64 @@ export function SubscriptionSection() {
               </div>
             </div>
 
-            {/* Pro features preview */}
-            <div className="p-4 rounded-xl bg-gradient-to-br from-orange-500/5 to-amber-500/5 border border-orange-500/10 mb-6">
-              <p className="text-sm font-medium text-orange-300 mb-3">
-                Unlock with Pro:
-              </p>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                {[
-                  'Unlimited bills',
-                  'Unlimited syncs',
-                  'Calendar view',
-                  'Payment links',
-                  'Analytics',
-                  'Custom reminders',
-                ].map((feature) => (
-                  <div key={feature} className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-orange-400 flex-shrink-0" />
-                    <span className="text-zinc-400">{feature}</span>
+            {upgradeCtasEnabled ? (
+              <>
+                {/* Pro features preview */}
+                <div className="p-4 rounded-xl bg-gradient-to-br from-orange-500/5 to-amber-500/5 border border-orange-500/10 mb-6">
+                  <p className="text-sm font-medium text-orange-300 mb-3">
+                    Unlock with Pro:
+                  </p>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    {[
+                      'Unlimited bills',
+                      'Unlimited syncs',
+                      'Calendar view',
+                      'Payment links',
+                      'Analytics',
+                      'Custom reminders',
+                    ].map((feature) => (
+                      <div key={feature} className="flex items-center gap-2">
+                        <Check className="w-4 h-4 text-orange-400 flex-shrink-0" />
+                        <span className="text-zinc-400">{feature}</span>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Pricing options */}
-            <div className="grid grid-cols-2 gap-3 mb-6">
-              <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-                <p className="text-xs text-zinc-500 mb-1">Monthly</p>
-                <p className="text-lg font-bold text-white">${PRICING.MONTHLY}<span className="text-sm font-normal text-zinc-500">/mo</span></p>
-              </div>
-              <div className="p-3 rounded-xl bg-orange-500/10 border border-orange-500/20 relative">
-                <div className="absolute -top-2 right-2 px-1.5 py-0.5 bg-green-500 text-white text-[10px] font-bold rounded">
-                  SAVE {PRICING.YEARLY_SAVINGS}%
                 </div>
-                <p className="text-xs text-zinc-500 mb-1">Yearly</p>
-                <p className="text-lg font-bold text-white">${PRICING.YEARLY}<span className="text-sm font-normal text-zinc-500">/yr</span></p>
-              </div>
-            </div>
 
-            {/* Upgrade button */}
-            <button
-              onClick={() => showUpgradeModal('Pro features')}
-              className="group relative w-full flex items-center justify-center gap-2.5 px-5 py-4 overflow-hidden rounded-xl font-medium transition-all duration-300"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-600" />
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700" />
-              <Crown className="w-5 h-5 text-white relative z-10" />
-              <span className="relative z-10 text-white font-semibold tracking-wide">
-                Upgrade to Pro
-              </span>
-            </button>
+                {/* Pricing options */}
+                <div className="grid grid-cols-2 gap-3 mb-6">
+                  <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+                    <p className="text-xs text-zinc-500 mb-1">Monthly</p>
+                    <p className="text-lg font-bold text-white">${PRICING.MONTHLY}<span className="text-sm font-normal text-zinc-500">/mo</span></p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-orange-500/10 border border-orange-500/20 relative">
+                    <div className="absolute -top-2 right-2 px-1.5 py-0.5 bg-green-500 text-white text-[10px] font-bold rounded">
+                      SAVE {PRICING.YEARLY_SAVINGS}%
+                    </div>
+                    <p className="text-xs text-zinc-500 mb-1">Yearly</p>
+                    <p className="text-lg font-bold text-white">${PRICING.YEARLY}<span className="text-sm font-normal text-zinc-500">/yr</span></p>
+                  </div>
+                </div>
+
+                {/* Upgrade button */}
+                <button
+                  onClick={() => showUpgradeModal('Pro features')}
+                  className="group relative w-full flex items-center justify-center gap-2.5 px-5 py-4 overflow-hidden rounded-xl font-medium transition-all duration-300"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-600" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700" />
+                  <Crown className="w-5 h-5 text-white relative z-10" />
+                  <span className="relative z-10 text-white font-semibold tracking-wide">
+                    Upgrade to Pro
+                  </span>
+                </button>
+              </>
+            ) : (
+              <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] text-sm text-zinc-500">
+                Pro upgrades aren&apos;t available in the iOS app.
+              </div>
+            )}
           </div>
         )}
       </div>

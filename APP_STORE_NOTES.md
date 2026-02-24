@@ -1,5 +1,21 @@
 # iOS App Store Submission Notes
 
+## App Review Fixes (Guidelines 4.8 + 3.1.1)
+
+### ✅ Sign in with Apple added
+- **Where:** `app/login/page.tsx`, `app/signup/page.tsx`
+- **Behavior:** Apple sign-in sits alongside Google sign-in in the iOS app login flow.
+
+### ✅ External upgrade/purchase CTAs removed in iOS builds
+- **Where:** subscription UI + upgrade modal + paywall prompts
+- **Behavior:** iOS builds hide or disable upgrade CTAs and Stripe checkout/portal flows.
+- **Note:** Entitlement checks remain in place so existing Pro users keep access.
+
+**Review tips:**
+1. Open Login/Signup and confirm “Continue with Apple” is visible.
+2. Navigate to Settings → Subscription and confirm no upgrade/Stripe links appear in the iOS build.
+3. Trigger a Pro-gated feature and confirm no upgrade flow appears in iOS.
+
 ## Critical Issue: Next.js + Capacitor Architecture
 
 This app uses **Next.js with API Routes**, which CANNOT be bundled into a static iOS app.

@@ -90,7 +90,13 @@ export default function NotificationsSettingsPage() {
   const [hasChanges, setHasChanges] = useState(false);
   const [savedSettings, setSavedSettings] = useState<NotificationSettings>(DEFAULT_NOTIFICATION_SETTINGS);
   const { isSupported, isSubscribed, subscribe, unsubscribe } = usePushNotifications();
-  const { canUsePushNotifications, canUseDailyAutoSync, canCustomizeReminders, showUpgradeModal } = useSubscription();
+  const {
+    canUsePushNotifications,
+    canUseDailyAutoSync,
+    canCustomizeReminders,
+    showUpgradeModal,
+    upgradeCtasEnabled,
+  } = useSubscription();
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -152,7 +158,9 @@ export default function NotificationsSettingsPage() {
 
   const handlePushToggle = useCallback(async (enabled: boolean) => {
     if (!canUsePushNotifications) {
-      showUpgradeModal('push notifications');
+      if (upgradeCtasEnabled) {
+        showUpgradeModal('push notifications');
+      }
       return;
     }
     if (enabled) {
@@ -166,7 +174,9 @@ export default function NotificationsSettingsPage() {
 
   const toggleReminderDay = (day: number) => {
     if (!canCustomizeReminders) {
-      showUpgradeModal('custom reminders');
+      if (upgradeCtasEnabled) {
+        showUpgradeModal('custom reminders');
+      }
       return;
     }
     const current = settings.reminder_days ?? [settings.lead_days];
@@ -244,7 +254,7 @@ export default function NotificationsSettingsPage() {
               <Toggle
                 enabled={settings.push_enabled && isSubscribed && canUsePushNotifications}
                 onChange={handlePushToggle}
-                disabled={!isSupported}
+                disabled={!isSupported || (!canUsePushNotifications && !upgradeCtasEnabled)}
                 color="#f59e0b"
               />
             </div>
@@ -278,6 +288,7 @@ export default function NotificationsSettingsPage() {
                     key={opt.value}
                     type="button"
                     onClick={() => toggleReminderDay(opt.value)}
+                    disabled={!canCustomizeReminders && !upgradeCtasEnabled}
                     className={cn(
                       'flex items-center gap-2 px-3 py-2.5 h-11 rounded-xl text-sm font-medium transition-all duration-200 border',
                       isActive
@@ -353,11 +364,14 @@ export default function NotificationsSettingsPage() {
                 enabled={(settings.auto_sync_enabled ?? false) && canUseDailyAutoSync}
                 onChange={(v) => {
                   if (!canUseDailyAutoSync) {
-                    showUpgradeModal('daily auto-sync');
+                    if (upgradeCtasEnabled) {
+                      showUpgradeModal('daily auto-sync');
+                    }
                     return;
                   }
                   setSettings(prev => ({ ...prev, auto_sync_enabled: v }));
                 }}
+                disabled={!canUseDailyAutoSync && !upgradeCtasEnabled}
                 color="#10b981"
               />
             </div>

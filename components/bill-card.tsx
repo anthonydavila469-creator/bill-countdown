@@ -64,7 +64,7 @@ export function BillCard({
   showMarkPaid = true,
   riskType,
 }: BillCardProps) {
-  const { canUsePaymentLinks, showUpgradeModal } = useSubscription();
+  const { canUsePaymentLinks, showUpgradeModal, upgradeCtasEnabled } = useSubscription();
   const { selectedTheme } = useTheme();
   const daysLeft = getDaysUntilDue(bill.due_date);
   const urgency = getUrgency(daysLeft);
@@ -145,6 +145,7 @@ export function BillCard({
                     Pay
                   </button>
                 ) : hasPaymentLink && !canUsePaymentLinks ? (
+                  upgradeCtasEnabled ? (
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -160,6 +161,20 @@ export function BillCard({
                     <Crown className="w-3.5 h-3.5" />
                     Pro
                   </button>
+                  ) : (
+                    <button
+                      disabled
+                      className={cn(
+                        "flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium",
+                        "bg-black/30 backdrop-blur-sm",
+                        "text-white/40 border border-white/10 cursor-not-allowed"
+                      )}
+                      title="Payment links are a Pro feature"
+                    >
+                      <Crown className="w-3.5 h-3.5" />
+                      Pro
+                    </button>
+                  )
                 ) : (
                   <button
                     disabled
@@ -404,22 +419,38 @@ export function BillCard({
                   <span className="text-white font-semibold">Pay Now</span>
                 </button>
               ) : hasPaymentLink && !canUsePaymentLinks ? (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    showUpgradeModal('payment links');
-                  }}
-                  className={cn(
-                    "group relative flex-1 py-2.5 rounded-xl font-medium text-sm transition-all duration-200",
-                    "bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30",
-                    "active:scale-[0.98]",
-                    "flex items-center justify-center gap-2",
-                    "border border-amber-500/30"
-                  )}
-                >
-                  <Crown className="w-4 h-4 text-amber-300" />
-                  <span className="text-amber-200 font-semibold">Upgrade for Pay Now</span>
-                </button>
+                upgradeCtasEnabled ? (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      showUpgradeModal('payment links');
+                    }}
+                    className={cn(
+                      "group relative flex-1 py-2.5 rounded-xl font-medium text-sm transition-all duration-200",
+                      "bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30",
+                      "active:scale-[0.98]",
+                      "flex items-center justify-center gap-2",
+                      "border border-amber-500/30"
+                    )}
+                  >
+                    <Crown className="w-4 h-4 text-amber-300" />
+                    <span className="text-amber-200 font-semibold">Upgrade for Pay Now</span>
+                  </button>
+                ) : (
+                  <button
+                    disabled
+                    className={cn(
+                      "group relative flex-1 py-2.5 rounded-xl font-medium text-sm",
+                      "bg-white/5 border border-white/10",
+                      "flex items-center justify-center gap-2",
+                      "text-zinc-500 cursor-not-allowed"
+                    )}
+                    title="Payment links are a Pro feature"
+                  >
+                    <Crown className="w-4 h-4" />
+                    <span>Pro feature</span>
+                  </button>
+                )
               ) : (
                 <div className="flex-1 relative">
                   <button
@@ -486,7 +517,7 @@ export function BillListItem({
   showMarkPaid = true,
   riskType,
 }: BillCardProps) {
-  const { canUsePaymentLinks, showUpgradeModal } = useSubscription();
+  const { canUsePaymentLinks, showUpgradeModal, upgradeCtasEnabled } = useSubscription();
   const daysLeft = getDaysUntilDue(bill.due_date);
   const urgency = getUrgency(daysLeft);
   const priceChange = getPriceChange(bill.amount, bill.previous_amount);
@@ -648,21 +679,36 @@ export function BillListItem({
               Pay
             </button>
           ) : hasPaymentLink && !canUsePaymentLinks ? (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                showUpgradeModal('payment links');
-              }}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200",
-                "bg-amber-500/20 text-amber-500 dark:text-amber-400",
-                "border border-amber-500/30 hover:bg-amber-500/30"
-              )}
-              title="Upgrade to Pro for payment links"
-            >
-              <Crown className="w-4 h-4" />
-              Pro
-            </button>
+            upgradeCtasEnabled ? (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  showUpgradeModal('payment links');
+                }}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200",
+                  "bg-amber-500/20 text-amber-500 dark:text-amber-400",
+                  "border border-amber-500/30 hover:bg-amber-500/30"
+                )}
+                title="Upgrade to Pro for payment links"
+              >
+                <Crown className="w-4 h-4" />
+                Pro
+              </button>
+            ) : (
+              <button
+                disabled
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium",
+                  "bg-zinc-100 dark:bg-white/5 text-zinc-400 dark:text-zinc-600",
+                  "border border-zinc-200 dark:border-white/5 cursor-not-allowed"
+                )}
+                title="Payment links are a Pro feature"
+              >
+                <Crown className="w-4 h-4" />
+                Pro
+              </button>
+            )
           ) : (
             <button
               disabled
