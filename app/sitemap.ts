@@ -112,5 +112,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 0.8,
     },
+    {
+      url: 'https://duezo.app/blog/best-bill-reminder-app-2026',
+      lastModified: new Date('2026-02-24'),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
   ];
 }
