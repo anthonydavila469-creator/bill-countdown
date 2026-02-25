@@ -214,6 +214,9 @@ export function BillCard({
     );
   }
 
+  // Show pulsing badge for bills due within 3 days (urgent/overdue) and not paid
+  const showDueSoonBadge = !isPaid && daysLeft <= 3;
+
   return (
     <GradientCard
       urgency={urgency}
@@ -224,6 +227,34 @@ export function BillCard({
         className
       )}
     >
+      {/* Due Soon Pulsing Badge */}
+      {showDueSoonBadge && (
+        <div className="absolute top-3 right-3 z-10">
+          <div className="relative">
+            {/* Ping animation ring */}
+            <span
+              className="absolute inset-0 rounded-full animate-ping"
+              style={{
+                backgroundColor: daysLeft < 0 ? '#ef4444' : '#f97316',
+                opacity: 0.5,
+              }}
+            />
+            {/* Solid badge */}
+            <span
+              className="relative flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold text-white"
+              style={{
+                backgroundColor: daysLeft < 0 ? '#ef4444' : '#f97316',
+                boxShadow: daysLeft < 0
+                  ? '0 0 12px rgba(239, 68, 68, 0.8)'
+                  : '0 0 12px rgba(249, 115, 22, 0.8)',
+              }}
+            >
+              {daysLeft < 0 ? '!' : daysLeft}
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Paid overlay shimmer */}
       {isPaid && (
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-emerald-500/5 pointer-events-none" />

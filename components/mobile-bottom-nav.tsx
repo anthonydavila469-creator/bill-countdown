@@ -1,14 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutGrid, Calendar, Lightbulb, History, Settings, Crown } from 'lucide-react';
 import { useSubscription } from '@/hooks/use-subscription';
+import { useBillsContext } from '@/contexts/bills-context';
+import { getDaysUntilDue } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { href: '/dashboard', label: 'Home', icon: LayoutGrid },
+  { href: '/dashboard', label: 'Home', icon: LayoutGrid, showUrgencyDot: true },
   { href: '/dashboard/calendar', label: 'Calendar', icon: Calendar, proFeature: 'calendar' as const },
   { href: '/dashboard/insights', label: 'Insights', icon: Lightbulb, proFeature: 'insights' as const },
   { href: '/dashboard/history', label: 'History', icon: History, proFeature: 'history' as const },
@@ -19,6 +21,16 @@ export function MobileBottomNav() {
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
   const { canUseCalendar, canUseHistory } = useSubscription();
+  const { unpaidBills } = useBillsContext();
+
+  // Check if there are urgent bills (due within 3 days)
+  const hasUrgentBills = useMemo(() => {
+    if (!mounted) return false;
+    return unpaidBills.some((bill) => {
+      const daysUntil = getDaysUntilDue(bill.due_date);
+      return daysUntil <= 3;
+    });
+  }, [unpaidBills, mounted]);
 
   // Only render after hydration to avoid mismatch
   useEffect(() => {
@@ -71,6 +83,16 @@ export function MobileBottomNav() {
                   )} />
                   {locked && (
                     <Crown className="absolute -top-1.5 -right-2 w-3 h-3 text-amber-400" />
+                  )}
+                  {/* Urgency dot for Home when there are urgent bills */}
+                  {item.showUrgencyDot && hasUrgentBills && !isActive && (
+                    <span
+                      className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full"
+                      style={{
+                        backgroundColor: '#ef4444',
+                        boxShadow: '0 0 6px rgba(239, 68, 68, 0.8)',
+                      }}
+                    />
                   )}
                 </div>
 

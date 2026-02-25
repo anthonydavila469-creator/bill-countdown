@@ -19,6 +19,7 @@ import { getDaysUntilDue } from '@/lib/utils';
 import { getBillRiskType } from '@/lib/risk-utils';
 import { getBillIcon } from '@/lib/get-bill-icon';
 import { RiskAlerts } from '@/components/risk-alerts';
+import { DueSoonBanner } from '@/components/due-soon-banner';
 import { NotificationBell } from '@/components/notification-bell';
 import { OnTimePayments } from '@/components/on-time-payments';
 import { createClient } from '@/lib/supabase/client';
@@ -636,6 +637,9 @@ export default function DashboardPage() {
             onEditBill={handleEditFromRiskAlert}
             className="mb-8"
           />
+
+          {/* Due Soon Banner */}
+          <DueSoonBanner bills={bills} className="mb-6" />
 
           {/* Bills section */}
           <div className="mb-6">
