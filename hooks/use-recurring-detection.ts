@@ -44,12 +44,15 @@ export function useRecurringDetection(bills: Bill[]) {
   }, [dismissedIds, isInitialized]);
 
   // Compute suggestions, filtering out dismissed ones
-  const suggestions = useMemo<RecurringSuggestion[]>(() => {
+  const allSuggestions = useMemo<RecurringSuggestion[]>(() => {
     if (!isInitialized || bills.length === 0) return [];
+    return detectPotentialRecurringBills(bills);
+  }, [bills, isInitialized]);
 
-    const allSuggestions = detectPotentialRecurringBills(bills);
-    return allSuggestions.filter(s => !dismissedIds.has(s.bill.id));
-  }, [bills, dismissedIds, isInitialized]);
+  const suggestions = useMemo<RecurringSuggestion[]>(
+    () => allSuggestions.filter(s => !dismissedIds.has(s.bill.id)),
+    [allSuggestions, dismissedIds]
+  );
 
   // Dismiss a single suggestion
   const dismissSuggestion = useCallback((billId: string) => {
@@ -72,38 +75,63 @@ export function useRecurringDetection(bills: Bill[]) {
   // Mark a bill as recurring
   const markAsRecurring = useCallback(
     async (billId: string, interval: RecurrenceInterval) => {
-      const result = await updateBill(billId, {
-        is_recurring: true,
-        recurrence_interval: interval,
-      });
-
-      if (result) {
-        // Remove from suggestions (implicit via bill update)
-        dismissSuggestion(billId);
-        addToast({
-          message: `${result.name} marked as recurring`,
-          description: `Set to repeat ${interval}`,
-          type: 'success',
+      try {
+        const result = await updateBill(billId, {
+          is_recurring: true,
+          recurrence_interval: interval,
         });
-      }
 
-      return result;
+        if (result) {
+          // Remove from suggestions (implicit via bill update)
+          dismissSuggestion(billId);
+          addToast({
+            message: `${result.name} marked as recurring`,
+            description: `Set to repeat ${interval}`,
+            type: 'success',
+          });
+        } else {
+          addToast({
+            message: 'Could not update bill',
+            description: 'Please try again.',
+            type: 'error',
+          });
+        }
+
+        return result;
+      } catch (error) {
+        console.error('Failed to mark bill as recurring:', error);
+        addToast({
+          message: 'Could not update bill',
+          description: 'Please try again.',
+          type: 'error',
+        });
+        return null;
+      }
     },
     [updateBill, dismissSuggestion, addToast]
   );
 
   // Mark all suggestions as recurring
   const markAllAsRecurring = useCallback(async () => {
+    if (suggestions.length === 0) return;
     let successCount = 0;
+    let failureCount = 0;
 
     for (const suggestion of suggestions) {
-      const result = await updateBill(suggestion.bill.id, {
-        is_recurring: true,
-        recurrence_interval: suggestion.suggestedInterval,
-      });
+      try {
+        const result = await updateBill(suggestion.bill.id, {
+          is_recurring: true,
+          recurrence_interval: suggestion.suggestedInterval,
+        });
 
-      if (result) {
-        successCount++;
+        if (result) {
+          successCount++;
+        } else {
+          failureCount++;
+        }
+      } catch (error) {
+        console.error('Failed to mark bill as recurring:', error);
+        failureCount++;
       }
     }
 
@@ -112,6 +140,13 @@ export function useRecurringDetection(bills: Bill[]) {
       addToast({
         message: `${successCount} bill${successCount > 1 ? 's' : ''} marked as recurring`,
         type: 'success',
+      });
+    }
+    if (failureCount > 0) {
+      addToast({
+        message: `${failureCount} bill${failureCount > 1 ? 's' : ''} could not be updated`,
+        description: 'Please try again.',
+        type: 'error',
       });
     }
   }, [suggestions, updateBill, dismissAll, addToast]);

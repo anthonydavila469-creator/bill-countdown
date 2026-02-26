@@ -51,7 +51,8 @@ const RECURRING_KEYWORDS: { keywords: string[]; interval: RecurrenceInterval; co
  * Normalize a bill name for pattern matching
  * Strips numbers, months, and converts to lowercase
  */
-function normalizeBillName(name: string): string {
+function normalizeBillName(name?: string | null): string {
+  if (!name) return '';
   return name
     .toLowerCase()
     .replace(/\d+/g, '') // Remove numbers
@@ -64,9 +65,11 @@ function normalizeBillName(name: string): string {
 /**
  * Calculate days between two dates
  */
-function daysBetween(date1: string, date2: string): number {
+function daysBetween(date1?: string | null, date2?: string | null): number | null {
+  if (!date1 || !date2) return null;
   const d1 = new Date(date1);
   const d2 = new Date(date2);
+  if (Number.isNaN(d1.getTime()) || Number.isNaN(d2.getTime())) return null;
   const diffTime = Math.abs(d2.getTime() - d1.getTime());
   return Math.floor(diffTime / (1000 * 60 * 60 * 24));
 }
@@ -87,7 +90,9 @@ export function detectPotentialRecurringBills(bills: Bill[]): RecurringSuggestio
 
   // Detection 1: Keyword-based heuristics
   for (const bill of eligibleBills) {
-    const billNameLower = bill.name.toLowerCase();
+    const billName = bill.name?.trim();
+    if (!billName) continue;
+    const billNameLower = billName.toLowerCase();
 
     for (const { keywords, interval, confidence } of RECURRING_KEYWORDS) {
       const matched = keywords.some(keyword => billNameLower.includes(keyword.toLowerCase()));
@@ -132,6 +137,7 @@ export function detectPotentialRecurringBills(bills: Bill[]): RecurringSuggestio
     // Check if bills are at least 20 days apart (indicating monthly-ish pattern)
     for (let i = 0; i < sortedBills.length - 1; i++) {
       const daysDiff = daysBetween(sortedBills[i].due_date, sortedBills[i + 1].due_date);
+      if (daysDiff === null) continue;
 
       if (daysDiff >= 20) {
         // Determine interval based on gap
@@ -171,7 +177,7 @@ export function detectPotentialRecurringBills(bills: Bill[]): RecurringSuggestio
   const amountGroups: Map<number, Bill[]> = new Map();
 
   for (const bill of eligibleBills) {
-    if (bill.amount === null) continue;
+    if (bill.amount === null || !Number.isFinite(bill.amount)) continue;
 
     // Round to nearest dollar for grouping
     const roundedAmount = Math.round(bill.amount);
@@ -199,7 +205,7 @@ export function detectPotentialRecurringBills(bills: Bill[]): RecurringSuggestio
         if (shorter.length > 2 && longer.includes(shorter)) {
           const daysDiff = daysBetween(bill1.due_date, bill2.due_date);
 
-          if (daysDiff >= 20 && !suggestions.has(bill1.id)) {
+          if (daysDiff !== null && daysDiff >= 20 && !suggestions.has(bill1.id)) {
             suggestions.set(bill1.id, {
               bill: bill1,
               suggestedInterval: 'monthly',

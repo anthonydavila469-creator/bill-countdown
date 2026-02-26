@@ -87,6 +87,9 @@ export function RecurringDetectionBanner({
 
         <button
           onClick={() => setIsExpanded(true)}
+          type="button"
+          aria-expanded="false"
+          aria-controls="recurring-detection-panel"
           className={cn(
             'group relative w-full flex items-center justify-between gap-4 px-5 py-4 rounded-2xl',
             'bg-gradient-to-br from-violet-900/30 via-indigo-900/20 to-purple-900/30',
@@ -95,7 +98,8 @@ export function RecurringDetectionBanner({
             'shadow-[0_0_40px_rgba(139,92,246,0.15)]',
             'transition-all duration-300',
             'hover:shadow-[0_0_50px_rgba(139,92,246,0.25)]',
-            'animate-in fade-in slide-in-from-top-2 duration-300'
+            'animate-in fade-in slide-in-from-top-2 duration-300',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black/60'
           )}
         >
           {/* Left accent line */}
@@ -135,6 +139,7 @@ export function RecurringDetectionBanner({
       <div className="absolute inset-0 bg-gradient-to-r from-violet-500/10 via-indigo-500/5 to-purple-500/10 rounded-2xl blur-2xl opacity-50" />
 
       <div
+        id="recurring-detection-panel"
         className={cn(
           'relative rounded-2xl overflow-hidden',
           'bg-gradient-to-br from-violet-900/30 via-indigo-900/20 to-purple-900/30',
@@ -153,7 +158,13 @@ export function RecurringDetectionBanner({
         {/* Header */}
         <button
           onClick={() => setIsExpanded(false)}
-          className="w-full px-6 py-5 flex items-center justify-between border-b border-white/[0.06] hover:bg-white/[0.02] transition-colors"
+          type="button"
+          aria-expanded="true"
+          aria-controls="recurring-detection-panel"
+          className={cn(
+            'w-full px-6 py-5 flex items-center justify-between border-b border-white/[0.06] hover:bg-white/[0.02] transition-colors',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black/60'
+          )}
         >
           <div className="flex items-center gap-4">
             {/* Pulsing indicator with icon */}
@@ -206,7 +217,11 @@ export function RecurringDetectionBanner({
         <div className="px-4 py-3 border-t border-white/[0.06] flex items-center justify-between gap-3">
           <button
             onClick={onDismissAll}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-zinc-400 hover:text-white hover:bg-white/[0.05] transition-all duration-200"
+            type="button"
+            className={cn(
+              'flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-zinc-400 hover:text-white hover:bg-white/[0.05] transition-all duration-200',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black/60'
+            )}
           >
             <X className="w-3.5 h-3.5" />
             Dismiss All
@@ -214,13 +229,15 @@ export function RecurringDetectionBanner({
 
           <button
             onClick={onMarkAllRecurring}
+            type="button"
             className={cn(
               'flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200',
               'bg-gradient-to-r from-violet-600 to-indigo-600',
               'hover:from-violet-500 hover:to-indigo-500',
               'text-white',
               'shadow-lg shadow-violet-500/25',
-              'active:scale-95'
+              'active:scale-95',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black/60'
             )}
           >
             <Zap className="w-3.5 h-3.5" />
@@ -317,12 +334,15 @@ function SuggestionItem({
           {/* Mark as Recurring button */}
           <button
             onClick={() => onMarkRecurring(bill.id, suggestedInterval)}
+            type="button"
+            aria-label={`Mark ${bill.name} as recurring`}
             className={cn(
               'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200',
               'bg-gradient-to-r from-violet-600/80 to-indigo-600/80',
               'hover:from-violet-500 hover:to-indigo-500',
               'text-white',
-              'active:scale-95'
+              'active:scale-95',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black/60'
             )}
           >
             <Check className="w-3.5 h-3.5" />
@@ -332,11 +352,14 @@ function SuggestionItem({
           {/* Dismiss button */}
           <button
             onClick={() => onDismiss(bill.id)}
+            type="button"
+            aria-label={`Dismiss ${bill.name} suggestion`}
             className={cn(
               'flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200',
               'bg-white/[0.05] hover:bg-rose-500/20 border border-white/10 hover:border-rose-500/40',
               'text-zinc-400 hover:text-rose-400',
-              'active:scale-95'
+              'active:scale-95',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black/60'
             )}
             title="Dismiss suggestion"
           >
