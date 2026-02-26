@@ -118,5 +118,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 0.8,
     },
+    {
+      url: 'https://duezo.app/blog/why-simple-bill-tracker-beats-budgeting-apps',
+      lastModified: new Date('2026-02-26'),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
   ];
 }
