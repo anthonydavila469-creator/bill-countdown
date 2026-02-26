@@ -5,6 +5,7 @@ import { Crown, Sparkles, Check, Calendar, ExternalLink, Loader2 } from 'lucide-
 import { cn } from '@/lib/utils';
 import { useSubscription } from '@/hooks/use-subscription';
 import { PRICING, FREE_TIER_LIMITS } from '@/contexts/subscription-context';
+import { Capacitor } from '@capacitor/core';
 
 // Section header component matching other settings sections
 function SectionHeader({
@@ -56,6 +57,7 @@ export function SubscriptionSection() {
   } = useSubscription();
 
   const [isPortalLoading, setIsPortalLoading] = useState(false);
+  const isNativeIOS = Capacitor.isNativePlatform();
 
   const handleManageSubscription = async () => {
     setIsPortalLoading(true);
@@ -172,22 +174,29 @@ export function SubscriptionSection() {
             )}
 
             {/* Manage subscription button */}
-            <button
-              onClick={handleManageSubscription}
-              disabled={isPortalLoading}
-              className="group w-full flex items-center justify-center gap-2.5 px-5 py-3.5 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/[0.15] rounded-xl transition-all duration-300"
-            >
-              {isPortalLoading ? (
-                <Loader2 className="w-4 h-4 text-zinc-400 animate-spin" />
-              ) : (
-                <>
-                  <ExternalLink className="w-4 h-4 text-zinc-400 group-hover:text-white transition-colors" />
-                  <span className="font-medium text-zinc-300 group-hover:text-white tracking-wide transition-colors">
-                    Manage Subscription
-                  </span>
-                </>
-              )}
-            </button>
+            {!isNativeIOS && (
+              <button
+                onClick={handleManageSubscription}
+                disabled={isPortalLoading}
+                className="group w-full flex items-center justify-center gap-2.5 px-5 py-3.5 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/[0.15] rounded-xl transition-all duration-300"
+              >
+                {isPortalLoading ? (
+                  <Loader2 className="w-4 h-4 text-zinc-400 animate-spin" />
+                ) : (
+                  <>
+                    <ExternalLink className="w-4 h-4 text-zinc-400 group-hover:text-white transition-colors" />
+                    <span className="font-medium text-zinc-300 group-hover:text-white tracking-wide transition-colors">
+                      Manage Subscription
+                    </span>
+                  </>
+                )}
+              </button>
+            )}
+            {isNativeIOS && (
+              <p className="text-center text-sm text-zinc-500 py-2">
+                Manage your subscription at <span className="text-orange-400">duezo.app</span>
+              </p>
+            )}
           </div>
         ) : (
           // Free tier view
@@ -274,34 +283,49 @@ export function SubscriptionSection() {
               </div>
             </div>
 
-            {/* Pricing options */}
-            <div className="grid grid-cols-2 gap-3 mb-6">
-              <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-                <p className="text-xs text-zinc-500 mb-1">Monthly</p>
-                <p className="text-lg font-bold text-white">${PRICING.MONTHLY}<span className="text-sm font-normal text-zinc-500">/mo</span></p>
-              </div>
-              <div className="p-3 rounded-xl bg-orange-500/10 border border-orange-500/20 relative">
-                <div className="absolute -top-2 right-2 px-1.5 py-0.5 bg-green-500 text-white text-[10px] font-bold rounded">
-                  SAVE {PRICING.YEARLY_SAVINGS}%
+            {/* Pricing options — only show on web */}
+            {!isNativeIOS && (
+              <>
+                <div className="grid grid-cols-2 gap-3 mb-6">
+                  <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+                    <p className="text-xs text-zinc-500 mb-1">Monthly</p>
+                    <p className="text-lg font-bold text-white">${PRICING.MONTHLY}<span className="text-sm font-normal text-zinc-500">/mo</span></p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-orange-500/10 border border-orange-500/20 relative">
+                    <div className="absolute -top-2 right-2 px-1.5 py-0.5 bg-green-500 text-white text-[10px] font-bold rounded">
+                      SAVE {PRICING.YEARLY_SAVINGS}%
+                    </div>
+                    <p className="text-xs text-zinc-500 mb-1">Yearly</p>
+                    <p className="text-lg font-bold text-white">${PRICING.YEARLY}<span className="text-sm font-normal text-zinc-500">/yr</span></p>
+                  </div>
                 </div>
-                <p className="text-xs text-zinc-500 mb-1">Yearly</p>
-                <p className="text-lg font-bold text-white">${PRICING.YEARLY}<span className="text-sm font-normal text-zinc-500">/yr</span></p>
-              </div>
-            </div>
 
-            {/* Upgrade button */}
-            <button
-              onClick={() => showUpgradeModal('Pro features')}
-              className="group relative w-full flex items-center justify-center gap-2.5 px-5 py-4 overflow-hidden rounded-xl font-medium transition-all duration-300"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-600" />
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700" />
-              <Crown className="w-5 h-5 text-white relative z-10" />
-              <span className="relative z-10 text-white font-semibold tracking-wide">
-                Upgrade to Pro
-              </span>
-            </button>
+                {/* Upgrade button */}
+                <button
+                  onClick={() => showUpgradeModal('Pro features')}
+                  className="group relative w-full flex items-center justify-center gap-2.5 px-5 py-4 overflow-hidden rounded-xl font-medium transition-all duration-300"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-600" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700" />
+                  <Crown className="w-5 h-5 text-white relative z-10" />
+                  <span className="relative z-10 text-white font-semibold tracking-wide">
+                    Upgrade to Pro
+                  </span>
+                </button>
+              </>
+            )}
+
+            {/* iOS: redirect to web for upgrade */}
+            {isNativeIOS && (
+              <div className="p-4 rounded-xl bg-orange-500/5 border border-orange-500/10 text-center">
+                <Crown className="w-6 h-6 text-orange-400 mx-auto mb-2" />
+                <p className="text-sm font-medium text-white mb-1">Upgrade to Pro</p>
+                <p className="text-xs text-zinc-400">
+                  Visit <span className="text-orange-400">duezo.app</span> in your browser to upgrade and unlock unlimited bills, Gmail sync, and more.
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>

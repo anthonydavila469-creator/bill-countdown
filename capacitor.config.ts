@@ -12,6 +12,8 @@ const config: CapacitorConfig = {
     scheme: 'Duezo',
     contentInset: 'automatic',
     backgroundColor: '#08080c',
+    // Ensure OAuth redirects come back into the app
+    limitsNavigationsToAppBoundDomains: false,
   },
   plugins: {
     SplashScreen: {

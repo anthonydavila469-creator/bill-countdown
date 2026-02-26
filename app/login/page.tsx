@@ -6,6 +6,8 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -49,16 +51,40 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`,
-        },
-      });
+      const isNative = Capacitor.isNativePlatform();
+      const redirectTo = isNative
+        ? 'https://www.duezo.app/dashboard'
+        : `${window.location.origin}/dashboard`;
 
-      if (error) {
-        setError(error.message);
-        setIsLoading(false);
+      if (isNative) {
+        // Use Capacitor Browser (SFSafariViewController) — stays inside the app
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo,
+            skipBrowserRedirect: true,
+          },
+        });
+
+        if (error) {
+          setError(error.message);
+          setIsLoading(false);
+          return;
+        }
+
+        if (data?.url) {
+          await Browser.open({ url: data.url, windowName: '_self' });
+        }
+      } else {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: { redirectTo },
+        });
+
+        if (error) {
+          setError(error.message);
+          setIsLoading(false);
+        }
       }
     } catch (err) {
       setError('An unexpected error occurred');

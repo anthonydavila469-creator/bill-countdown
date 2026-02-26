@@ -5,6 +5,7 @@ import { X, Check, Sparkles, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSubscription } from '@/hooks/use-subscription';
 import { PRICING } from '@/contexts/subscription-context';
+import { Capacitor } from '@capacitor/core';
 
 // Feature list for Pro tier
 const PRO_FEATURES = [
@@ -23,6 +24,7 @@ export function UpgradeModal() {
   const { upgradeModalOpen, upgradeModalFeature, hideUpgradeModal } = useSubscription();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('yearly');
+  const isNativeIOS = Capacitor.isNativePlatform();
 
   // Prevent body scroll when modal is open
   useEffect(() => {
@@ -177,28 +179,44 @@ export function UpgradeModal() {
               </div>
 
               {/* CTA Button */}
-              <button
-                onClick={handleUpgrade}
-                disabled={isLoading}
-                className={cn(
-                  'w-full py-4 rounded-xl font-semibold text-white flex items-center justify-center gap-2 transition-all',
-                  'bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700',
-                  'disabled:opacity-50 disabled:cursor-not-allowed'
-                )}
-              >
-                {isLoading ? (
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <Zap className="w-5 h-5" />
-                    Upgrade to Pro
-                  </>
-                )}
-              </button>
-
-              <p className="text-center text-xs text-zinc-500">
-                Cancel anytime. Secure payment via Stripe.
-              </p>
+              {isNativeIOS ? (
+                <div className="space-y-3">
+                  <div className="w-full py-4 rounded-xl bg-white/5 border border-white/10 text-center text-zinc-400 text-sm px-4">
+                    <p className="text-white font-medium mb-1">Pro upgrades coming soon to the app</p>
+                    <p>Visit <span className="text-orange-400">duezo.app</span> on the web to upgrade to Pro and unlock all features.</p>
+                  </div>
+                  <button
+                    onClick={hideUpgradeModal}
+                    className="w-full py-3 rounded-xl font-medium text-zinc-400 border border-white/10 hover:bg-white/5 transition-colors"
+                  >
+                    Got it
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <button
+                    onClick={handleUpgrade}
+                    disabled={isLoading}
+                    className={cn(
+                      'w-full py-4 rounded-xl font-semibold text-white flex items-center justify-center gap-2 transition-all',
+                      'bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700',
+                      'disabled:opacity-50 disabled:cursor-not-allowed'
+                    )}
+                  >
+                    {isLoading ? (
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <Zap className="w-5 h-5" />
+                        Upgrade to Pro
+                      </>
+                    )}
+                  </button>
+                  <p className="text-center text-xs text-zinc-500">
+                    Cancel anytime. Secure payment via Stripe.
+                  </p>
+                </>
+              )}
             </div>
           </div>
         </div>
