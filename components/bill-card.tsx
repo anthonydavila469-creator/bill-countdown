@@ -14,6 +14,8 @@ import { RiskType, hasLatePaymentRisk } from '@/lib/risk-utils';
 import { getBillIcon } from '@/lib/get-bill-icon';
 import { GradientCard } from './ui/gradient-card';
 import { CountdownDisplay } from './countdown-display';
+import { SharedBillBadge } from './shared-bill-badge';
+import { useSharedBills } from '@/hooks/use-shared-bills';
 import {
   RefreshCw, Calendar, DollarSign, ExternalLink, CreditCard, TrendingUp, TrendingDown, Check, Zap,
   AlertTriangle, Clock, History, AlertCircle, LucideIcon, Crown
@@ -66,6 +68,7 @@ export function BillCard({
 }: BillCardProps) {
   const { canUsePaymentLinks, showUpgradeModal, upgradeCtasEnabled } = useSubscription();
   const { selectedTheme } = useTheme();
+  const { getSharedBillForBill } = useSharedBills();
   const daysLeft = getDaysUntilDue(bill.due_date);
   const urgency = getUrgency(daysLeft);
   const priceChange = getPriceChange(bill.amount, bill.previous_amount);
@@ -75,6 +78,7 @@ export function BillCard({
   const { icon: IconComponent, colorClass: iconColorClass } = getBillIcon(bill);
   const showLatePaymentRisk = hasLatePaymentRisk(bill);
   const riskConfig = riskType ? riskBadgeConfig[riskType] : null;
+  const sharedBill = getSharedBillForBill(bill.id);
 
   const handleMarkPaid = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -116,6 +120,10 @@ export function BillCard({
                     <riskConfig.icon className="w-2.5 h-2.5" />
                     {riskType === 'forgot_last_month' ? 'Forgot' : riskConfig.label}
                   </span>
+                )}
+                {/* Shared bill badge - compact */}
+                {sharedBill && (
+                  <SharedBillBadge sharedBill={sharedBill} variant="compact" />
                 )}
               </div>
               <p className="text-xs text-white/70 flex items-center gap-1.5">
@@ -267,6 +275,10 @@ export function BillCard({
                   <DollarSign className="w-3.5 h-3.5" />
                   {formatCurrency(bill.amount).replace('$', '')}
                 </p>
+              )}
+              {/* Shared bill badge - positioned below name */}
+              {sharedBill && (
+                <SharedBillBadge sharedBill={sharedBill} variant="compact" className="mt-1.5" />
               )}
             </div>
           </div>
@@ -518,6 +530,7 @@ export function BillListItem({
   riskType,
 }: BillCardProps) {
   const { canUsePaymentLinks, showUpgradeModal, upgradeCtasEnabled } = useSubscription();
+  const { getSharedBillForBill } = useSharedBills();
   const daysLeft = getDaysUntilDue(bill.due_date);
   const urgency = getUrgency(daysLeft);
   const priceChange = getPriceChange(bill.amount, bill.previous_amount);
@@ -527,6 +540,7 @@ export function BillListItem({
   const { icon: IconComponent, colorClass: iconColorClass } = getBillIcon(bill);
   const showLatePaymentRisk = hasLatePaymentRisk(bill);
   const riskConfig = riskType ? riskBadgeConfig[riskType] : null;
+  const sharedBill = getSharedBillForBill(bill.id);
 
   // List-specific risk badge colors (for light/dark mode)
   const listRiskBadgeConfig: Record<RiskType, { bgLight: string; bgDark: string; textLight: string; textDark: string }> = {
@@ -652,6 +666,12 @@ export function BillListItem({
                 <TrendingDown className="w-3 h-3" />
               )}
               {priceChange.isIncrease ? '+' : '-'}{priceChange.percentage.toFixed(0)}%
+            </span>
+          )}
+          {/* Shared bill indicator */}
+          {sharedBill && (
+            <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">
+              Split
             </span>
           )}
         </div>

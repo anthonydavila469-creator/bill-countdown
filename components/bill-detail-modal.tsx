@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Check, Pencil, Trash2, Calendar, DollarSign, RefreshCw, FileText, ExternalLink, Link, CreditCard, TrendingUp, TrendingDown, AlertTriangle, Crown } from 'lucide-react';
+import { X, Check, Pencil, Trash2, Calendar, DollarSign, RefreshCw, FileText, ExternalLink, Link, CreditCard, TrendingUp, TrendingDown, AlertTriangle, Crown, Users } from 'lucide-react';
 import { Bill } from '@/types';
 import { cn, formatDate, formatCurrency, getDaysUntilDue, getUrgency, formatCountdown, getPriceChange } from '@/lib/utils';
 import { getBillIcon } from '@/lib/get-bill-icon';
@@ -9,6 +9,9 @@ import { GradientCard } from './ui/gradient-card';
 import { CountdownDisplay } from './countdown-display';
 import { useSubscription } from '@/hooks/use-subscription';
 import { useTheme } from '@/contexts/theme-context';
+import { SharedBillInlineBadge } from './shared-bill-badge';
+import { SharedBillModal } from './shared-bill-modal';
+import { useSharedBills, SharedBill, SplitType, SharedBillStatus } from '@/hooks/use-shared-bills';
 
 interface BillDetailModalProps {
   isOpen: boolean;
@@ -30,6 +33,10 @@ export function BillDetailModal({
   const { canUsePaymentLinks, showUpgradeModal, upgradeCtasEnabled } = useSubscription();
   const { selectedTheme } = useTheme();
   const [isMarkingPaid, setIsMarkingPaid] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const { getSharedBillForBill, addSharedBill, updateSharedBill, removeSharedBill } = useSharedBills();
+
+  const sharedBill = bill ? getSharedBillForBill(bill.id) : null;
 
   // Prevent body scroll when modal is open
   useEffect(() => {
@@ -213,6 +220,11 @@ export function BillDetailModal({
                 </div>
               )}
 
+              {/* Shared Bill Info */}
+              {sharedBill && (
+                <SharedBillInlineBadge sharedBill={sharedBill} />
+              )}
+
               {/* Source */}
               <div className="pt-2 border-t border-white/5">
                 <p className="text-xs text-zinc-500">
@@ -271,6 +283,16 @@ export function BillDetailModal({
                 )}
               </button>
 
+              {/* Share Bill button */}
+              <button
+                onClick={() => setIsShareModalOpen(true)}
+                disabled={isMarkingPaid}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white/5 border border-white/10 text-white font-medium rounded-xl hover:bg-white/10 transition-colors disabled:opacity-50"
+              >
+                <Users className="w-5 h-5" />
+                {sharedBill ? 'Edit Split' : 'Share Bill'}
+              </button>
+
               {/* Edit and Delete buttons */}
               <div className="flex gap-3">
                 <button
@@ -300,6 +322,23 @@ export function BillDetailModal({
           </div>
         </div>
       </div>
+
+      {/* Shared Bill Modal */}
+      <SharedBillModal
+        isOpen={isShareModalOpen}
+        bill={bill}
+        existingSharedBill={sharedBill}
+        onClose={() => setIsShareModalOpen(false)}
+        onSave={(billId, partnerName, partnerEmail, splitType, billAmount, customPercent, fixedAmount) => {
+          addSharedBill(billId, partnerName, partnerEmail, splitType, billAmount, customPercent, fixedAmount);
+        }}
+        onUpdateStatus={(id, status) => {
+          updateSharedBill(id, { status });
+        }}
+        onRemove={(billId) => {
+          removeSharedBill(billId);
+        }}
+      />
     </div>
   );
 }
