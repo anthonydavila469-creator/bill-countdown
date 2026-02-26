@@ -5,6 +5,7 @@ import { Crown, Sparkles, Check, Calendar, ExternalLink, Loader2 } from 'lucide-
 import { cn } from '@/lib/utils';
 import { useSubscription } from '@/hooks/use-subscription';
 import { PRICING, FREE_TIER_LIMITS } from '@/contexts/subscription-context';
+import { Capacitor } from '@capacitor/core';
 
 // Section header component matching other settings sections
 function SectionHeader({
@@ -56,6 +57,7 @@ export function SubscriptionSection() {
     upgradeCtasEnabled,
   } = useSubscription();
 
+  const isNativeIOS = Capacitor.isNativePlatform();
   const [isPortalLoading, setIsPortalLoading] = useState(false);
 
   const handleManageSubscription = async () => {
@@ -172,7 +174,12 @@ export function SubscriptionSection() {
               </div>
             )}
 
-            {upgradeCtasEnabled ? (
+            {isNativeIOS ? (
+              <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] text-sm text-zinc-500 text-center">
+                Manage your subscription at{' '}
+                <span className="text-orange-400">duezo.app</span>
+              </div>
+            ) : upgradeCtasEnabled ? (
               <button
                 onClick={handleManageSubscription}
                 disabled={isPortalLoading}

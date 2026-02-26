@@ -6,6 +6,8 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, User, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
 
 const benefits = [
   'AI-powered bill detection from your email',
@@ -84,16 +86,36 @@ export default function SignupPage() {
   const handleAppleSignup = async () => {
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'apple',
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`,
-        },
-      });
+      if (Capacitor.isNativePlatform()) {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: 'apple',
+          options: {
+            redirectTo: `${window.location.origin}/dashboard`,
+            skipBrowserRedirect: true,
+          },
+        });
 
-      if (error) {
-        setError(error.message);
-        setIsLoading(false);
+        if (error) {
+          setError(error.message);
+          setIsLoading(false);
+          return;
+        }
+
+        if (data?.url) {
+          await Browser.open({ url: data.url });
+        }
+      } else {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'apple',
+          options: {
+            redirectTo: `${window.location.origin}/dashboard`,
+          },
+        });
+
+        if (error) {
+          setError(error.message);
+          setIsLoading(false);
+        }
       }
     } catch (err) {
       setError('An unexpected error occurred');
