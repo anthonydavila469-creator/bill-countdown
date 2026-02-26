@@ -51,16 +51,36 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`,
-        },
-      });
+      if (Capacitor.isNativePlatform()) {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: `${window.location.origin}/dashboard`,
+            skipBrowserRedirect: true,
+          },
+        });
 
-      if (error) {
-        setError(error.message);
-        setIsLoading(false);
+        if (error) {
+          setError(error.message);
+          setIsLoading(false);
+          return;
+        }
+
+        if (data?.url) {
+          await Browser.open({ url: data.url });
+        }
+      } else {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: `${window.location.origin}/dashboard`,
+          },
+        });
+
+        if (error) {
+          setError(error.message);
+          setIsLoading(false);
+        }
       }
     } catch (err) {
       setError('An unexpected error occurred');
