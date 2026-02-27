@@ -45,7 +45,6 @@ import {
   X,
   Eye,
   EyeOff,
-  Lightbulb,
   Crown,
   SlidersHorizontal,
   AlertTriangle,
@@ -454,23 +453,6 @@ export default function DashboardPage() {
                   <History className="w-4 h-4 group-hover:text-orange-400 transition-colors duration-200" />
                 </div>
                 <span className="font-medium">History</span>
-                {!canUseHistory && (
-                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30">
-                    <Crown className="w-3 h-3 text-amber-400" />
-                    <span className="text-[10px] font-semibold text-amber-300">Pro</span>
-                  </span>
-                )}
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/dashboard/insights"
-                className="group flex items-center gap-3 px-3 py-2.5 text-zinc-400 rounded-xl hover:bg-white/[0.04] hover:text-white transition-all duration-200"
-              >
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.03] group-hover:bg-white/[0.06] border border-transparent group-hover:border-white/[0.06] transition-all duration-200">
-                  <Lightbulb className="w-4 h-4 group-hover:text-amber-400 transition-colors duration-200" />
-                </div>
-                <span className="font-medium">Insights</span>
                 {!canUseHistory && (
                   <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30">
                     <Crown className="w-3 h-3 text-amber-400" />

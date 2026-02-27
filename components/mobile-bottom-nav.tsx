@@ -3,14 +3,13 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutGrid, Calendar, Lightbulb, History, Settings, Crown } from 'lucide-react';
+import { LayoutGrid, Calendar, History, Settings, Crown } from 'lucide-react';
 import { useSubscription } from '@/hooks/use-subscription';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/dashboard', label: 'Home', icon: LayoutGrid },
   { href: '/dashboard/calendar', label: 'Calendar', icon: Calendar, proFeature: 'calendar' as const },
-  { href: '/dashboard/insights', label: 'Insights', icon: Lightbulb, proFeature: 'insights' as const },
   { href: '/dashboard/history', label: 'History', icon: History, proFeature: 'history' as const },
   { href: '/dashboard/settings', label: 'Settings', icon: Settings },
 ];
@@ -27,10 +26,9 @@ export function MobileBottomNav() {
 
   if (!mounted) return null;
 
-  const isProLocked = (feature?: 'calendar' | 'history' | 'insights') => {
+  const isProLocked = (feature?: 'calendar' | 'history') => {
     if (feature === 'calendar') return !canUseCalendar;
     if (feature === 'history') return !canUseHistory;
-    if (feature === 'insights') return !canUseHistory;
     return false;
   };
 
