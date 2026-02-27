@@ -6,6 +6,8 @@ import {
   Check,
   RotateCcw,
   Sparkles,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { useTheme } from '@/contexts/theme-context';
 import { useSubscription } from '@/hooks/use-subscription';
@@ -15,6 +17,7 @@ import {
   ColorThemeId,
 } from '@/types';
 import { cn } from '@/lib/utils';
+import { ColorModeToggleExpanded } from '@/components/ui/color-mode-toggle';
 
 // Theme card component for the theme selection grid
 function ThemeCard({
@@ -99,8 +102,16 @@ function SectionHeader({
           <Icon className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-white tracking-tight">{title}</h3>
-          <p className="text-sm text-zinc-500">{description}</p>
+          <h3 className={cn(
+            "text-lg font-semibold tracking-tight",
+            "text-white",
+            "[html[data-color-mode=light]_&]:text-zinc-900"
+          )}>{title}</h3>
+          <p className={cn(
+            "text-sm",
+            "text-zinc-500",
+            "[html[data-color-mode=light]_&]:text-zinc-500"
+          )}>{description}</p>
         </div>
       </div>
       {action}
@@ -112,6 +123,7 @@ export function CustomizationSection() {
   const {
     selectedTheme,
     updateTheme,
+    colorMode,
   } = useTheme();
   const { isPro, showUpgradeModal, upgradeCtasEnabled } = useSubscription();
 
@@ -124,6 +136,32 @@ export function CustomizationSection() {
 
   return (
     <div className="space-y-10">
+      {/* Appearance Mode Section */}
+      <section className="relative animate-in fade-in slide-in-from-bottom-2 duration-500">
+        <SectionHeader
+          icon={colorMode === 'light' ? Sun : Moon}
+          iconGradient={colorMode === 'light'
+            ? "from-amber-400/80 to-orange-500/80"
+            : "from-slate-400/80 to-blue-500/80"
+          }
+          title="Appearance"
+          description="Choose between dark and light mode"
+        />
+
+        <div className="flex items-center justify-between">
+          <p className={cn(
+            "text-sm",
+            colorMode === 'dark' ? "text-zinc-400" : "text-zinc-600"
+          )}>
+            {colorMode === 'dark'
+              ? 'Dark mode is easier on the eyes in low light'
+              : 'Light mode is great for bright environments'
+            }
+          </p>
+          <ColorModeToggleExpanded />
+        </div>
+      </section>
+
       {/* Pro Upgrade Banner */}
       {!isPro && upgradeCtasEnabled && (
         <div className="relative overflow-hidden rounded-3xl animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -187,7 +225,11 @@ export function CustomizationSection() {
             isPro && selectedTheme !== DEFAULT_COLOR_THEME && (
               <button
                 onClick={resetTheme}
-                className="flex items-center gap-2 px-4 py-2 text-sm text-zinc-400 hover:text-white hover:bg-white/[0.06] rounded-xl transition-all duration-200"
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 text-sm rounded-xl transition-all duration-200",
+                  "text-zinc-400 hover:text-white hover:bg-white/[0.06]",
+                  "[html[data-color-mode=light]_&]:text-zinc-500 [html[data-color-mode=light]_&]:hover:text-zinc-900 [html[data-color-mode=light]_&]:hover:bg-black/[0.06]"
+                )}
               >
                 <RotateCcw className="w-4 h-4" />
                 <span className="hidden sm:inline">Reset</span>
@@ -199,14 +241,30 @@ export function CustomizationSection() {
         {/* Lock overlay for non-pro */}
         <div className={cn('relative')}>
           {!isPro && (
-            <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#08080c]/70 backdrop-blur-sm rounded-2xl">
+            <div className={cn(
+              "absolute inset-0 z-20 flex items-center justify-center backdrop-blur-sm rounded-2xl",
+              "bg-[#08080c]/70",
+              "[html[data-color-mode=light]_&]:bg-[#f0f4ff]/70"
+            )}>
               <div className="flex flex-col items-center gap-3 text-center p-6">
-                <div className="p-4 rounded-2xl bg-white/[0.04] border border-white/[0.08]">
+                <div className={cn(
+                  "p-4 rounded-2xl",
+                  "bg-white/[0.04] border border-white/[0.08]",
+                  "[html[data-color-mode=light]_&]:bg-black/[0.04] [html[data-color-mode=light]_&]:border-black/[0.08]"
+                )}>
                   <Crown className="w-6 h-6 text-amber-500" />
                 </div>
                 <div>
-                  <p className="font-medium text-zinc-400">Pro Feature</p>
-                  <p className="text-sm text-zinc-600">
+                  <p className={cn(
+                    "font-medium",
+                    "text-zinc-400",
+                    "[html[data-color-mode=light]_&]:text-zinc-600"
+                  )}>Pro Feature</p>
+                  <p className={cn(
+                    "text-sm",
+                    "text-zinc-600",
+                    "[html[data-color-mode=light]_&]:text-zinc-500"
+                  )}>
                     {upgradeCtasEnabled ? 'Upgrade to customize theme' : 'Available on Pro'}
                   </p>
                 </div>

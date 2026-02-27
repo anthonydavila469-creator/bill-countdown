@@ -1,39 +1,92 @@
 @import "tailwindcss";
 
-/* CSS Variables for theming */
-:root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
-  --card: #ffffff;
-  --card-foreground: #0f172a;
-  --border: #e2e8f0;
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
-  --accent: #F97316;
-  --accent-foreground: #ffffff;
-}
+/* =============================================================================
+   COLOR MODE SYSTEM
+   Uses data-color-mode attribute on <html> for dark/light mode switching
+   ============================================================================= */
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0f;
-    --foreground: #f8fafc;
-    --card: #18181b;
-    --card-foreground: #f8fafc;
-    --border: #27272a;
-    --muted: #27272a;
-    --muted-foreground: #a1a1aa;
-    --accent: #FB923C;
-    --accent-foreground: #0f172a;
-  }
-}
+/* Default (dark mode) */
+:root,
+[data-color-mode="dark"] {
+  /* Core colors */
+  --background: #08080c;
+  --foreground: #f8fafc;
+  --card: #18181b;
+  --card-foreground: #f8fafc;
+  --border: #27272a;
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;
+  --accent: #FB923C;
+  --accent-foreground: #0f172a;
 
-/* Custom urgency and accent colors (overridden by ThemeProvider) */
-:root {
+  /* Glass morphism - dark */
+  --glass-bg: rgba(255, 255, 255, 0.02);
+  --glass-bg-hover: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.05);
+  --glass-border-hover: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+
+  /* Surface colors for cards/modals */
+  --surface-primary: #0f0f14;
+  --surface-secondary: #18181f;
+  --surface-elevated: #1f1f28;
+
+  /* Text hierarchy */
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1aa;
+  --text-tertiary: #71717a;
+  --text-muted: #52525b;
+
+  /* Urgency colors (universal) */
   --urgency-overdue: #f43f5e;
   --urgency-urgent: #f97316;
   --urgency-soon: #fbbf24;
   --urgency-safe: #34d399;
   --urgency-distant: #60a5fa;
+
+  /* Accent primary (overridden by theme) */
+  --accent-primary: #F97316;
+}
+
+/* Light mode */
+[data-color-mode="light"] {
+  /* Core colors */
+  --background: #f0f4ff;
+  --foreground: #0a0a14;
+  --card: #ffffff;
+  --card-foreground: #0a0a14;
+  --border: #e2e8f0;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #F97316;
+  --accent-foreground: #ffffff;
+
+  /* Glass morphism - light (frosted glass) */
+  --glass-bg: rgba(255, 255, 255, 0.6);
+  --glass-bg-hover: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --glass-border-hover: rgba(0, 0, 0, 0.12);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+
+  /* Surface colors for cards/modals */
+  --surface-primary: #ffffff;
+  --surface-secondary: #f8fafc;
+  --surface-elevated: #ffffff;
+
+  /* Text hierarchy */
+  --text-primary: #0a0a14;
+  --text-secondary: #475569;
+  --text-tertiary: #64748b;
+  --text-muted: #94a3b8;
+
+  /* Urgency colors (slightly adjusted for light bg) */
+  --urgency-overdue: #e11d48;
+  --urgency-urgent: #ea580c;
+  --urgency-soon: #d97706;
+  --urgency-safe: #059669;
+  --urgency-distant: #2563eb;
+
+  /* Accent primary (overridden by theme) */
   --accent-primary: #F97316;
 }
 
@@ -54,8 +107,9 @@
 /* Base styles */
 html, body {
   scroll-behavior: smooth;
-  background: #08080c;
+  background: var(--background);
   height: 100%;
+  transition: background-color 300ms ease, color 300ms ease;
 }
 
 body {
@@ -248,19 +302,27 @@ body {
   -webkit-text-fill-color: transparent;
 }
 
-/* Glass morphism */
+/* Glass morphism - uses CSS variables for color mode */
 .glass {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  transition: background 300ms ease, border-color 300ms ease, box-shadow 300ms ease;
 }
 
-@media (prefers-color-scheme: dark) {
-  .glass {
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
+.glass:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+}
+
+/* Light mode specific glass enhancements */
+[data-color-mode="light"] .glass {
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.06),
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 /* Pattern background */
@@ -294,21 +356,19 @@ body {
 .hero-gradient {
   background: linear-gradient(
     135deg,
+    hsl(25, 95%, 40%) 0%,
+    hsl(21, 90%, 35%) 50%,
+    hsl(16, 85%, 30%) 100%
+  );
+}
+
+[data-color-mode="light"] .hero-gradient {
+  background: linear-gradient(
+    135deg,
     hsl(25, 95%, 53%) 0%,
     hsl(21, 90%, 48%) 50%,
     hsl(16, 85%, 43%) 100%
   );
-}
-
-@media (prefers-color-scheme: dark) {
-  .hero-gradient {
-    background: linear-gradient(
-      135deg,
-      hsl(25, 95%, 40%) 0%,
-      hsl(21, 90%, 35%) 50%,
-      hsl(16, 85%, 30%) 100%
-    );
-  }
 }
 
 /* Confetti animation */

@@ -19,6 +19,11 @@ import {
   DEFAULT_DASHBOARD_LAYOUT,
 } from '@/types';
 
+// Color mode type for dark/light theme
+export type ColorMode = 'dark' | 'light';
+
+const COLOR_MODE_KEY = 'duezo-color-mode';
+
 interface ThemeContextValue {
   // State
   isPro: boolean;
@@ -27,11 +32,14 @@ interface ThemeContextValue {
   cardGradient: string;      // Derived from theme
   dashboardLayout: DashboardLayout;
   isLoading: boolean;
+  colorMode: ColorMode;      // Dark or light mode
 
   // Actions
   updateTheme: (themeId: ColorThemeId) => Promise<void>;
   updateDashboardLayout: (layout: Partial<DashboardLayout>) => Promise<void>;
   refreshPreferences: () => Promise<void>;
+  toggleColorMode: () => void;
+  setColorMode: (mode: ColorMode) => void;
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
@@ -42,6 +50,20 @@ function getValidThemeId(themeId: string | null | undefined): ColorThemeId {
     return themeId as ColorThemeId;
   }
   return DEFAULT_COLOR_THEME;
+}
+
+// Apply color mode (dark/light) to document
+function applyColorMode(mode: ColorMode) {
+  if (typeof document === 'undefined') return;
+  document.documentElement.setAttribute('data-color-mode', mode);
+}
+
+// Get initial color mode from localStorage or default to dark
+function getInitialColorMode(): ColorMode {
+  if (typeof window === 'undefined') return 'dark';
+  const stored = localStorage.getItem(COLOR_MODE_KEY);
+  if (stored === 'light' || stored === 'dark') return stored;
+  return 'dark'; // Default to dark mode
 }
 
 // Apply CSS variables to document root
@@ -87,11 +109,34 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   const [selectedTheme, setSelectedTheme] = useState<ColorThemeId>(DEFAULT_COLOR_THEME);
   const [dashboardLayout, setDashboardLayout] = useState<DashboardLayout>(DEFAULT_DASHBOARD_LAYOUT);
   const [isLoading, setIsLoading] = useState(true);
+  const [colorMode, setColorModeState] = useState<ColorMode>('dark');
 
   // Derived values from theme (with fallback for invalid themes)
   const validTheme = COLOR_THEMES[selectedTheme] ?? COLOR_THEMES[DEFAULT_COLOR_THEME];
   const accentColor = validTheme.accentColor;
   const cardGradient = validTheme.cardGradient;
+
+  // Initialize color mode from localStorage on mount
+  useEffect(() => {
+    const initialMode = getInitialColorMode();
+    setColorModeState(initialMode);
+    applyColorMode(initialMode);
+  }, []);
+
+  // Set color mode and persist to localStorage
+  const setColorMode = useCallback((mode: ColorMode) => {
+    setColorModeState(mode);
+    applyColorMode(mode);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(COLOR_MODE_KEY, mode);
+    }
+  }, []);
+
+  // Toggle between dark and light mode
+  const toggleColorMode = useCallback(() => {
+    const newMode = colorMode === 'dark' ? 'light' : 'dark';
+    setColorMode(newMode);
+  }, [colorMode, setColorMode]);
 
   // Fetch preferences on mount
   const refreshPreferences = useCallback(async () => {
@@ -197,9 +242,12 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
         cardGradient,
         dashboardLayout,
         isLoading,
+        colorMode,
         updateTheme,
         updateDashboardLayout,
         refreshPreferences,
+        toggleColorMode,
+        setColorMode,
       }}
     >
       {children}
