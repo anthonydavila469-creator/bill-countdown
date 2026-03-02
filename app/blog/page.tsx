@@ -14,9 +14,34 @@ export const metadata: Metadata = {
     type: 'website',
   },
   alternates: { canonical: 'https://duezo.app/blog' },
+  other: { lastmod: '2026-03-01' },
 };
 
 const posts = [
+  {
+    slug: 'never-miss-a-bill-payment',
+    title: 'Never Miss a Bill Payment Again: 7 Tips + The App That Automates It',
+    excerpt:
+      'Late fees cost Americans $14 billion a year. Here is how to stop missing bill due dates for good — including the app that does it automatically.',
+    date: '2026-03-01',
+    readTime: '7 min read',
+  },
+  {
+    slug: 'why-simple-bill-tracker-beats-budgeting-apps',
+    title: 'Why a Simple Bill Tracker Beats Complex Budgeting Apps',
+    excerpt:
+      'YNAB, Copilot, Rocket Money — they do a lot. But if you just want to stop missing due dates, a simple bill tracker beats a complex budgeting app every time.',
+    date: '2026-02-26',
+    readTime: '6 min read',
+  },
+  {
+    slug: 'best-bill-reminder-app-2026',
+    title: 'Best Bill Reminder App 2026 — Ranked by What Actually Works',
+    excerpt:
+      'We tested the top apps that send bill payment reminders before the due date. Here is what actually works in 2026.',
+    date: '2026-02-24',
+    readTime: '8 min read',
+  },
   {
     slug: 'bill-tracker-no-bank-account',
     title: "Best Bill Tracker Apps That Don't Require a Bank Account (2026)",
