@@ -29,7 +29,7 @@ export function GradientCard({
       style={cardStyle}
       className={cn(
         // Base card structure
-        'group relative overflow-hidden rounded-3xl',
+        'group relative overflow-hidden rounded-3xl h-full',
         // Shadow and glow effect
         'shadow-xl',
         // Hover animations
@@ -59,7 +59,7 @@ export function GradientCard({
       <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/5 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full pointer-events-none" />
 
       {/* Content */}
-      <div className="relative z-10">{children}</div>
+      <div className="relative z-10 h-full">{children}</div>
     </div>
   );
 }

@@ -849,7 +849,7 @@ export default function DashboardPage() {
             {filteredBills.filter(b => showPaidBills ? true : !b.is_paid).length > 0 && view === 'grid' && (
               <div
                 className={cn(
-                  'grid grid-cols-1 gap-4 pb-24',
+                  'grid grid-cols-1 gap-4 pb-24 auto-rows-fr',
                   dashboardLayout.cardsPerRow === 2 && 'sm:grid-cols-2',
                   dashboardLayout.cardsPerRow === 3 && 'sm:grid-cols-2 lg:grid-cols-3',
                   dashboardLayout.cardsPerRow === 4 && 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
