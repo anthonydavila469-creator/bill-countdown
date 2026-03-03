@@ -86,7 +86,7 @@ function StepIndicator({
       <div
         className={cn(
           'w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300',
-          isActive && 'bg-orange-500/20 border-2 border-orange-500',
+          isActive && 'bg-violet-500/20 border-2 border-violet-500',
           isComplete && 'bg-emerald-500/20 border-2 border-emerald-500',
           !isActive && !isComplete && 'bg-white/5 border-2 border-white/10'
         )}
@@ -97,7 +97,7 @@ function StepIndicator({
           <Icon
             className={cn(
               'w-5 h-5',
-              isActive ? 'text-orange-400' : 'text-zinc-500'
+              isActive ? 'text-violet-400' : 'text-zinc-500'
             )}
           />
         )}
@@ -305,8 +305,8 @@ export function BillImportModal({
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-white/10">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500/20 to-amber-500/20 flex items-center justify-center">
-                  <Mail className="w-5 h-5 text-orange-400" />
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500/20 to-amber-500/20 flex items-center justify-center">
+                  <Mail className="w-5 h-5 text-violet-400" />
                 </div>
                 <div>
                   <h2 className="text-lg font-semibold text-white">
@@ -357,11 +357,11 @@ export function BillImportModal({
               {step === 'syncing' && (
                 <div className="flex flex-col items-center justify-center py-12">
                   <div className="relative mb-6">
-                    <div className="w-16 h-16 rounded-2xl bg-orange-500/10 flex items-center justify-center">
-                      <Mail className="w-8 h-8 text-orange-400" />
+                    <div className="w-16 h-16 rounded-2xl bg-violet-500/10 flex items-center justify-center">
+                      <Mail className="w-8 h-8 text-violet-400" />
                     </div>
                     <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#0c0c10] flex items-center justify-center">
-                      <RefreshCw className="w-4 h-4 text-orange-400 animate-spin" />
+                      <RefreshCw className="w-4 h-4 text-violet-400 animate-spin" />
                     </div>
                   </div>
                   <h3 className="text-lg font-medium text-white mb-2">
@@ -372,7 +372,7 @@ export function BillImportModal({
                   </p>
                   <div className="w-64 h-2 bg-white/5 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-orange-500 to-amber-500 rounded-full transition-all duration-300"
+                      className="h-full bg-gradient-to-r from-violet-500 to-amber-500 rounded-full transition-all duration-300"
                       style={{ width: `${syncProgress}%` }}
                     />
                   </div>
@@ -444,7 +444,7 @@ export function BillImportModal({
                       <div className="flex items-center justify-between mb-4">
                         <button
                           onClick={toggleSelectAll}
-                          className="text-sm text-orange-400 hover:text-orange-300 transition-colors"
+                          className="text-sm text-violet-400 hover:text-violet-300 transition-colors"
                         >
                           {bills.every((b) => b.selected)
                             ? 'Deselect All'
@@ -463,7 +463,7 @@ export function BillImportModal({
                             className={cn(
                               'p-4 rounded-xl border transition-all duration-200',
                               bill.selected
-                                ? 'bg-white/[0.03] border-orange-500/30'
+                                ? 'bg-white/[0.03] border-violet-500/30'
                                 : 'bg-white/[0.01] border-white/5 opacity-60'
                             )}
                           >
@@ -474,7 +474,7 @@ export function BillImportModal({
                                 className={cn(
                                   'w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 mt-1 transition-colors',
                                   bill.selected
-                                    ? 'bg-orange-500 border-orange-500'
+                                    ? 'bg-violet-500 border-violet-500'
                                     : 'border-white/20 hover:border-white/40'
                                 )}
                               >
@@ -524,7 +524,7 @@ export function BillImportModal({
                                             );
                                           }
                                         }}
-                                        className="w-20 px-2 py-0.5 bg-white/10 border border-white/20 rounded text-white text-sm focus:outline-none focus:ring-1 focus:ring-orange-500"
+                                        className="w-20 px-2 py-0.5 bg-white/10 border border-white/20 rounded text-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
                                         autoFocus
                                       />
                                     ) : (
@@ -562,7 +562,7 @@ export function BillImportModal({
                                         onBlur={(e) =>
                                           updateBillDate(index, e.target.value)
                                         }
-                                        className="px-2 py-0.5 bg-white/10 border border-white/20 rounded text-white text-sm focus:outline-none focus:ring-1 focus:ring-orange-500"
+                                        className="px-2 py-0.5 bg-white/10 border border-white/20 rounded text-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
                                         autoFocus
                                       />
                                     ) : (

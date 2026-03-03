@@ -37,15 +37,15 @@ const riskBadgeStyles: Record<RiskType, { bg: string; border: string; text: stri
     label: 'Overdue',
   },
   urgent: {
-    bg: 'bg-orange-500/15',
-    border: 'border-orange-500/25',
-    text: 'text-orange-400',
+    bg: 'bg-violet-500/15',
+    border: 'border-violet-500/25',
+    text: 'text-violet-400',
     label: 'Urgent',
   },
   forgot_last_month: {
-    bg: 'bg-amber-500/15',
-    border: 'border-amber-500/25',
-    text: 'text-amber-400',
+    bg: 'bg-violet-500/15',
+    border: 'border-violet-500/25',
+    text: 'text-violet-400',
     label: 'Forgot',
   },
 };
@@ -64,14 +64,14 @@ const urgencyStyles: Record<string, { bg: string; text: string; glow: string }> 
     glow: 'shadow-[0_0_8px_rgba(244,63,94,0.5)]',
   },
   urgent: {
-    bg: 'bg-orange-500',
-    text: 'text-orange-400',
-    glow: 'shadow-[0_0_8px_rgba(251,146,60,0.5)]',
+    bg: 'bg-violet-500',
+    text: 'text-violet-400',
+    glow: 'shadow-[0_0_8px_rgba(139,92,246,0.5)]',
   },
   soon: {
-    bg: 'bg-amber-500',
-    text: 'text-amber-400',
-    glow: 'shadow-[0_0_8px_rgba(251,191,36,0.5)]',
+    bg: 'bg-violet-500',
+    text: 'text-violet-400',
+    glow: 'shadow-[0_0_8px_rgba(139,92,246,0.5)]',
   },
   safe: {
     bg: 'bg-emerald-500',
@@ -79,9 +79,9 @@ const urgencyStyles: Record<string, { bg: string; text: string; glow: string }> 
     glow: 'shadow-[0_0_8px_rgba(52,211,153,0.5)]',
   },
   distant: {
-    bg: 'bg-orange-500',
-    text: 'text-orange-400',
-    glow: 'shadow-[0_0_8px_rgba(249,115,22,0.5)]',
+    bg: 'bg-violet-500',
+    text: 'text-violet-400',
+    glow: 'shadow-[0_0_8px_rgba(139,92,246,0.5)]',
   },
 };
 
@@ -156,9 +156,9 @@ export function BillListView({
             className={cn(
               'w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-200',
               allSelected
-                ? 'bg-orange-500 border-orange-500 shadow-[0_0_12px_rgba(249,115,22,0.5)]'
+                ? 'bg-violet-500 border-violet-500 shadow-[0_0_12px_rgba(139,92,246,0.5)]'
                 : someSelected
-                ? 'bg-orange-500/30 border-orange-500'
+                ? 'bg-violet-500/30 border-violet-500'
                 : 'border-zinc-600 hover:border-zinc-400'
             )}
           >
@@ -209,7 +209,7 @@ export function BillListView({
               className={cn(
                 'group relative flex items-center gap-3 px-5 py-5 cursor-pointer transition-all duration-200',
                 isSelected
-                  ? 'bg-orange-500/10 hover:bg-orange-500/15'
+                  ? 'bg-violet-500/10 hover:bg-violet-500/15'
                   : isEven
                     ? 'bg-white/[0.015] hover:bg-white/[0.04]'
                     : 'hover:bg-white/[0.04]',
@@ -235,7 +235,7 @@ export function BillListView({
                     className={cn(
                       'w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-200',
                       isSelected
-                        ? 'bg-orange-500 border-orange-500 shadow-[0_0_12px_rgba(249,115,22,0.5)]'
+                        ? 'bg-violet-500 border-violet-500 shadow-[0_0_12px_rgba(139,92,246,0.5)]'
                         : 'border-zinc-600 hover:border-zinc-400 hover:bg-white/[0.03]'
                     )}
                   >
@@ -291,9 +291,9 @@ export function BillListView({
                     )}
 
                     {bill.is_recurring && !isPaid && (
-                      <span className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-500/15 border border-amber-500/25 shadow-sm">
-                        <RefreshCw className="w-3 h-3 text-amber-400" />
-                        <span className="text-[10px] font-bold text-amber-400 hidden lg:inline">
+                      <span className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-violet-500/15 border border-violet-500/25 shadow-sm">
+                        <RefreshCw className="w-3 h-3 text-violet-400" />
+                        <span className="text-[10px] font-bold text-violet-400 hidden lg:inline">
                           {bill.recurrence_interval}
                         </span>
                       </span>
@@ -334,9 +334,9 @@ export function BillListView({
                     : urgency === 'overdue'
                       ? 'text-rose-300 bg-rose-500/15 border-rose-500/20'
                       : urgency === 'urgent'
-                        ? 'text-orange-300 bg-orange-500/15 border-orange-500/20'
+                        ? 'text-violet-300 bg-violet-500/15 border-violet-500/20'
                         : urgency === 'soon'
-                          ? 'text-amber-300 bg-amber-500/15 border-amber-500/20'
+                          ? 'text-violet-300 bg-violet-500/15 border-violet-500/20'
                           : 'text-zinc-300 bg-white/[0.05] border-white/[0.08]'
                 )}>
                   {isPaid ? (

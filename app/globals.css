@@ -9,7 +9,7 @@
   --border: #e2e8f0;
   --muted: #f1f5f9;
   --muted-foreground: #64748b;
-  --accent: #F97316;
+  --accent: #8B5CF6;
   --accent-foreground: #ffffff;
 }
 
@@ -22,7 +22,7 @@
     --border: #27272a;
     --muted: #27272a;
     --muted-foreground: #a1a1aa;
-    --accent: #FB923C;
+    --accent: #A78BFA;
     --accent-foreground: #0f172a;
   }
 }
@@ -30,11 +30,11 @@
 /* Custom urgency and accent colors (overridden by ThemeProvider) */
 :root {
   --urgency-overdue: #f43f5e;
-  --urgency-urgent: #f97316;
+  --urgency-urgent: #fb923c;
   --urgency-soon: #fbbf24;
   --urgency-safe: #34d399;
   --urgency-distant: #60a5fa;
-  --accent-primary: #F97316;
+  --accent-primary: #8B5CF6;
 }
 
 @theme inline {
@@ -275,7 +275,7 @@ body {
 
 /* Mesh gradient backgrounds */
 .bg-mesh-1 {
-  background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+  background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
 }
 
 .bg-mesh-2 {
@@ -294,9 +294,9 @@ body {
 .hero-gradient {
   background: linear-gradient(
     135deg,
-    hsl(25, 95%, 53%) 0%,
-    hsl(21, 90%, 48%) 50%,
-    hsl(16, 85%, 43%) 100%
+    hsl(263, 90%, 65%) 0%,
+    hsl(258, 90%, 58%) 50%,
+    hsl(253, 85%, 53%) 100%
   );
 }
 
@@ -304,9 +304,9 @@ body {
   .hero-gradient {
     background: linear-gradient(
       135deg,
-      hsl(25, 95%, 40%) 0%,
-      hsl(21, 90%, 35%) 50%,
-      hsl(16, 85%, 30%) 100%
+      hsl(263, 90%, 50%) 0%,
+      hsl(258, 90%, 45%) 50%,
+      hsl(253, 85%, 40%) 100%
     );
   }
 }
@@ -426,7 +426,7 @@ body {
 
 /* Glow effect for urgent bills */
 .glow-urgent {
-  box-shadow: 0 0 20px rgba(249, 115, 22, 0.3);
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
 }
 
 .glow-overdue {

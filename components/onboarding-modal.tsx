@@ -43,7 +43,7 @@ export function OnboardingModal({
       </p>
       <button
         onClick={() => setStep(1)}
-        className="mt-8 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold hover:opacity-90 transition-opacity"
+        className="mt-8 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-violet-500 to-amber-500 text-white font-semibold hover:opacity-90 transition-opacity"
       >
         Get Started
         <ArrowRight className="w-4 h-4" />
@@ -52,8 +52,8 @@ export function OnboardingModal({
 
     // Step 2: Connect Gmail
     <div key="gmail" className="text-center">
-      <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-orange-500/20 to-amber-500/20 border border-orange-500/30 flex items-center justify-center">
-        <Mail className="w-8 h-8 text-orange-400" />
+      <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-violet-500/20 to-amber-500/20 border border-violet-500/30 flex items-center justify-center">
+        <Mail className="w-8 h-8 text-violet-400" />
       </div>
       <h2 className="text-2xl font-bold text-white mb-3">Connect Gmail</h2>
       <p className="text-zinc-400 leading-relaxed max-w-sm mx-auto mb-8">
@@ -71,7 +71,7 @@ export function OnboardingModal({
               onConnectGmail();
               setStep(2);
             }}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold hover:opacity-90 transition-opacity"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-violet-500 to-amber-500 text-white font-semibold hover:opacity-90 transition-opacity"
           >
             <Mail className="w-4 h-4" />
             Connect Gmail
@@ -100,7 +100,7 @@ export function OnboardingModal({
       </p>
       <button
         onClick={finish}
-        className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold hover:opacity-90 transition-opacity"
+        className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-violet-500 to-amber-500 text-white font-semibold hover:opacity-90 transition-opacity"
       >
         Go to Dashboard
         <ArrowRight className="w-4 h-4" />
@@ -143,9 +143,9 @@ export function OnboardingModal({
               className={cn(
                 'h-1.5 rounded-full transition-all duration-300',
                 i === step
-                  ? 'w-8 bg-gradient-to-r from-orange-500 to-amber-500'
+                  ? 'w-8 bg-gradient-to-r from-violet-500 to-amber-500'
                   : i < step
-                  ? 'w-4 bg-orange-500/40'
+                  ? 'w-4 bg-violet-500/40'
                   : 'w-4 bg-white/10'
               )}
             />

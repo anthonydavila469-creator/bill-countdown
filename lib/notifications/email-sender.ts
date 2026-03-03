@@ -83,7 +83,7 @@ export async function sendBillReminderEmail(
 
                 <div style="display: flex; justify-content: space-between;">
                   <span style="color: rgba(255,255,255,0.6);">Status</span>
-                  <span style="font-weight: 500; color: ${daysUntilDue <= 1 ? '#f97316' : '#34d399'};">
+                  <span style="font-weight: 500; color: ${daysUntilDue <= 1 ? '#8B5CF6' : '#34d399'};">
                     Due ${dueText}
                   </span>
                 </div>

@@ -43,9 +43,9 @@ function getConfidenceBadge(confidence: number) {
   } else {
     return {
       label: 'Low',
-      bgClass: 'bg-orange-500/20',
-      textClass: 'text-orange-300',
-      borderClass: 'border-orange-500/30',
+      bgClass: 'bg-violet-500/20',
+      textClass: 'text-violet-300',
+      borderClass: 'border-violet-500/30',
     };
   }
 }

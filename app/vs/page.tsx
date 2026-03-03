@@ -81,13 +81,13 @@ export default function ComparisonsPage() {
 
       {/* Hero */}
       <section className="max-w-4xl mx-auto px-6 pt-24 pb-16 text-center">
-        <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 rounded-full px-4 py-2 text-sm text-orange-400 mb-6">
+        <div className="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/20 rounded-full px-4 py-2 text-sm text-violet-400 mb-6">
           <Search className="w-4 h-4" />
           Honest Comparisons
         </div>
         <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
           How Duezo Compares to{' '}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-orange-600">
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-violet-600">
             Other Apps
           </span>
         </h1>
@@ -103,14 +103,14 @@ export default function ComparisonsPage() {
             <Link
               key={comp.slug}
               href={`/vs/${comp.slug}`}
-              className="group relative bg-zinc-900/50 border border-zinc-800 hover:border-orange-500/50 rounded-2xl p-8 transition-all hover:bg-zinc-900/80"
+              className="group relative bg-zinc-900/50 border border-zinc-800 hover:border-violet-500/50 rounded-2xl p-8 transition-all hover:bg-zinc-900/80"
             >
               {comp.highlight && (
-                <div className="absolute -top-3 left-6 bg-orange-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                <div className="absolute -top-3 left-6 bg-violet-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
                   {comp.highlight}
                 </div>
               )}
-              <h2 className="text-xl font-bold mb-3 group-hover:text-orange-400 transition-colors">
+              <h2 className="text-xl font-bold mb-3 group-hover:text-violet-400 transition-colors">
                 {comp.title}
               </h2>
               <p className="text-zinc-400 mb-4 leading-relaxed">{comp.description}</p>
@@ -122,7 +122,7 @@ export default function ComparisonsPage() {
               {comp.pricing && (
                 <div className="text-sm text-zinc-500 mb-4">{comp.pricing}</div>
               )}
-              <div className="flex items-center gap-2 text-orange-400 font-medium text-sm">
+              <div className="flex items-center gap-2 text-violet-400 font-medium text-sm">
                 Read Comparison <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </div>
             </Link>
@@ -145,7 +145,7 @@ export default function ComparisonsPage() {
               Duezo is great at bill tracking. It&apos;s not great at budgeting, investment tracking, or subscription cancellation. 
               We&apos;ll tell you when another app is a better fit for your needs.
             </p>
-            <p className="text-orange-400 font-semibold">
+            <p className="text-violet-400 font-semibold">
               If you just want to track bills and never miss a payment, Duezo is probably the right choice. If you need more, we&apos;ll tell you.
             </p>
           </div>
@@ -160,7 +160,7 @@ export default function ComparisonsPage() {
         </p>
         <Link
           href="/signup"
-          className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-10 py-4 rounded-xl text-lg transition-colors"
+          className="inline-flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-semibold px-10 py-4 rounded-xl text-lg transition-colors"
         >
           Start Free Trial <ArrowRight className="w-5 h-5" />
         </Link>

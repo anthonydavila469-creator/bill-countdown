@@ -55,7 +55,7 @@ export function getIconFromName(name: string): { icon: LucideIcon; colorClass: s
 
   // Utilities - Gas
   if (lowerName.includes('gas') || lowerName.includes('propane')) {
-    return { icon: Flame, colorClass: 'text-orange-400' };
+    return { icon: Flame, colorClass: 'text-violet-400' };
   }
 
   // Utilities - Water
@@ -100,7 +100,7 @@ export function getIconFromName(name: string): { icon: LucideIcon; colorClass: s
 
   // Rent/Mortgage/Housing
   if (lowerName.includes('rent') || lowerName.includes('mortgage') || lowerName.includes('apartment') || lowerName.includes('housing') || lowerName.includes('hoa') || lowerName.includes('lease')) {
-    return { icon: Home, colorClass: 'text-amber-400' };
+    return { icon: Home, colorClass: 'text-violet-400' };
   }
 
   // Health/Medical/Gym
@@ -109,7 +109,7 @@ export function getIconFromName(name: string): { icon: LucideIcon; colorClass: s
   }
 
   if (lowerName.includes('gym') || lowerName.includes('fitness') || lowerName.includes('planet') || lowerName.includes('la fitness') || lowerName.includes('equinox') || lowerName.includes('peloton')) {
-    return { icon: Dumbbell, colorClass: 'text-orange-400' };
+    return { icon: Dumbbell, colorClass: 'text-violet-400' };
   }
 
   // Loans
@@ -128,10 +128,10 @@ export function getIconFromName(name: string): { icon: LucideIcon; colorClass: s
 
 // Category color schemes for consistent styling
 export const categoryColors: Record<string, { bg: string; border: string; accent: string }> = {
-  utilities: { bg: 'from-yellow-500/15 to-orange-500/10', border: 'border-yellow-500/30', accent: 'bg-yellow-500' },
+  utilities: { bg: 'from-yellow-500/15 to-violet-500/10', border: 'border-yellow-500/30', accent: 'bg-yellow-500' },
   subscription: { bg: 'from-purple-500/15 to-violet-500/10', border: 'border-purple-500/30', accent: 'bg-purple-500' },
-  rent: { bg: 'from-amber-500/15 to-orange-500/10', border: 'border-amber-500/30', accent: 'bg-amber-500' },
-  housing: { bg: 'from-amber-500/15 to-orange-500/10', border: 'border-amber-500/30', accent: 'bg-amber-500' },
+  rent: { bg: 'from-violet-500/15 to-violet-500/10', border: 'border-violet-500/30', accent: 'bg-violet-500' },
+  housing: { bg: 'from-violet-500/15 to-violet-500/10', border: 'border-violet-500/30', accent: 'bg-violet-500' },
   insurance: { bg: 'from-indigo-500/15 to-blue-500/10', border: 'border-indigo-500/30', accent: 'bg-indigo-500' },
   phone: { bg: 'from-green-500/15 to-emerald-500/10', border: 'border-green-500/30', accent: 'bg-green-500' },
   internet: { bg: 'from-blue-500/15 to-cyan-500/10', border: 'border-blue-500/30', accent: 'bg-blue-500' },

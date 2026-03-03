@@ -27,7 +27,7 @@ export async function GET(request: Request) {
           `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <style>body{background:#08080c;color:#fff;font-family:system-ui;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}
-.c{text-align:center}.s{width:32px;height:32px;border:3px solid rgba(255,107,0,.3);border-top-color:#FF6B00;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}
+.c{text-align:center}.s{width:32px;height:32px;border:3px solid rgba(139,92,246,.3);border-top-color:#8B5CF6;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}
 @keyframes spin{to{transform:rotate(360deg)}}</style></head>
 <body><div class="c"><div class="s"></div><p>Returning to Duezo...</p></div></body></html>`,
           { headers: { 'Content-Type': 'text/html' } }

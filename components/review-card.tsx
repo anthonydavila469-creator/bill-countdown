@@ -151,7 +151,7 @@ export function ReviewCard({
                   type="text"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="w-full px-2 py-1 rounded-lg bg-white/10 border border-white/20 text-white font-semibold focus:outline-none focus:border-orange-500"
+                  className="w-full px-2 py-1 rounded-lg bg-white/10 border border-white/20 text-white font-semibold focus:outline-none focus:border-violet-500"
                   placeholder="Bill name"
                 />
               ) : (
@@ -212,7 +212,7 @@ export function ReviewCard({
           {/* Due date */}
           {isEditing ? (
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 border border-white/20">
-              <Calendar className="w-4 h-4 text-orange-400" />
+              <Calendar className="w-4 h-4 text-violet-400" />
               <input
                 type="date"
                 value={editDueDate}
@@ -222,7 +222,7 @@ export function ReviewCard({
             </div>
           ) : item.extracted_due_date ? (
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 text-white/80">
-              <Calendar className="w-4 h-4 text-orange-400" />
+              <Calendar className="w-4 h-4 text-violet-400" />
               <span>{formatDate(item.extracted_due_date)}</span>
               {item.confidence_due_date !== null && (
                 <span className="text-xs text-white/40">
@@ -343,7 +343,7 @@ export function ReviewCard({
             className={cn(
               'flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl',
               isEditing
-                ? 'bg-orange-500/20 text-orange-400 border-orange-500/30'
+                ? 'bg-violet-500/20 text-violet-400 border-violet-500/30'
                 : 'bg-white/10 text-white/80 border-white/10',
               'hover:bg-white/15',
               'font-medium text-sm',

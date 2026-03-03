@@ -52,12 +52,12 @@ const riskConfig: Record<
   },
   urgent: {
     icon: Clock,
-    gradient: 'from-orange-500/20 via-amber-600/10 to-orange-900/20',
+    gradient: 'from-violet-500/20 via-amber-600/10 to-violet-900/20',
     glowColor: 'shadow-[0_0_30px_rgba(249,115,22,0.15),inset_0_1px_0_rgba(255,255,255,0.05)]',
-    borderColor: 'border-orange-500/30 hover:border-orange-400/50',
-    textColor: 'text-orange-400',
-    accentColor: 'bg-orange-500',
-    pulseColor: 'bg-orange-500/50',
+    borderColor: 'border-violet-500/30 hover:border-violet-400/50',
+    textColor: 'text-violet-400',
+    accentColor: 'bg-violet-500',
+    pulseColor: 'bg-violet-500/50',
     label: 'Due Soon',
     urgencyText: 'Pay within 3 days',
   },
@@ -150,9 +150,9 @@ export function RiskAlerts({
         current.daysLeft < closest.daysLeft ? current : closest
       );
       if (soonest.daysLeft === 0) {
-        return { text: 'Due today', color: 'text-orange-400' };
+        return { text: 'Due today', color: 'text-violet-400' };
       }
-      return { text: `Due in ${soonest.daysLeft}d`, color: 'text-orange-400' };
+      return { text: `Due in ${soonest.daysLeft}d`, color: 'text-violet-400' };
     }
 
     return { text: 'Bills need attention', color: 'text-zinc-400' };
@@ -163,7 +163,7 @@ export function RiskAlerts({
     return (
       <div className={cn('relative', className)}>
         {/* Subtle glow effect behind the banner */}
-        <div className="absolute inset-0 bg-gradient-to-r from-rose-500/10 via-orange-500/5 to-amber-500/10 rounded-2xl blur-xl opacity-60" />
+        <div className="absolute inset-0 bg-gradient-to-r from-rose-500/10 via-violet-500/5 to-amber-500/10 rounded-2xl blur-xl opacity-60" />
 
         <button
           onClick={() => setIsCollapsed(false)}
@@ -177,7 +177,7 @@ export function RiskAlerts({
           )}
         >
           {/* Left accent glow line */}
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full bg-gradient-to-b from-rose-500 via-orange-500 to-amber-500 shadow-[0_0_12px_rgba(244,63,94,0.5)]" />
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full bg-gradient-to-b from-rose-500 via-violet-500 to-amber-500 shadow-[0_0_12px_rgba(244,63,94,0.5)]" />
 
           <div className="flex items-center gap-4">
             {/* Pulsing indicator with glow */}
@@ -188,7 +188,7 @@ export function RiskAlerts({
 
             {/* Alert info with icon container */}
             <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-rose-500/20 to-orange-500/10 border border-rose-500/30">
+              <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-rose-500/20 to-violet-500/10 border border-rose-500/30">
                 <AlertTriangle className="w-4 h-4 text-rose-400" />
               </div>
               <div>
@@ -217,7 +217,7 @@ export function RiskAlerts({
   return (
     <div className={cn('relative', className)}>
       {/* Glow effect behind the panel */}
-      <div className="absolute inset-0 bg-gradient-to-r from-rose-500/10 via-orange-500/5 to-amber-500/10 rounded-2xl blur-2xl opacity-50" />
+      <div className="absolute inset-0 bg-gradient-to-r from-rose-500/10 via-violet-500/5 to-amber-500/10 rounded-2xl blur-2xl opacity-50" />
 
       <div
         className={cn(
@@ -243,7 +243,7 @@ export function RiskAlerts({
             {/* Pulsing alert icon */}
             <div className="relative">
               <div className="absolute inset-0 rounded-xl bg-rose-500/30 animate-ping opacity-75" style={{ animationDuration: '2s' }} />
-              <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500/25 to-orange-500/15 border border-rose-500/30 flex items-center justify-center shadow-[0_0_20px_rgba(244,63,94,0.2)]">
+              <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500/25 to-violet-500/15 border border-rose-500/30 flex items-center justify-center shadow-[0_0_20px_rgba(244,63,94,0.2)]">
                 <AlertTriangle className="w-5 h-5 text-rose-400" />
               </div>
             </div>
@@ -260,7 +260,7 @@ export function RiskAlerts({
                     )}
                     {overdueCount > 0 && urgentCount > 0 && ', '}
                     {urgentCount > 0 && (
-                      <span className="text-orange-400">{urgentCount} due soon</span>
+                      <span className="text-violet-400">{urgentCount} due soon</span>
                     )}
                   </span>
                 )}

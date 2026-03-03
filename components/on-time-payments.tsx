@@ -63,14 +63,14 @@ export function OnTimePayments({ bills, className }: OnTimePaymentsProps) {
       className={cn(
         'relative p-4 rounded-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500',
         isProminent
-          ? 'bg-gradient-to-br from-orange-500/15 via-amber-500/10 to-yellow-500/5 border border-orange-500/25'
+          ? 'bg-gradient-to-br from-violet-500/15 via-amber-500/10 to-yellow-500/5 border border-violet-500/25'
           : 'bg-white/[0.02] border border-white/[0.06]',
         className
       )}
     >
       {/* Glow effect for prominent display */}
       {isProminent && (
-        <div className="absolute -top-10 -right-10 w-24 h-24 bg-orange-500/20 rounded-full blur-2xl" />
+        <div className="absolute -top-10 -right-10 w-24 h-24 bg-violet-500/20 rounded-full blur-2xl" />
       )}
 
       <div className="relative flex items-center gap-3">
@@ -78,9 +78,9 @@ export function OnTimePayments({ bills, className }: OnTimePaymentsProps) {
         <div className={cn(
           'w-10 h-10 rounded-xl flex items-center justify-center',
           stats.isPerfectMonth
-            ? 'bg-gradient-to-br from-amber-500/30 to-orange-500/20 border border-amber-500/40'
+            ? 'bg-gradient-to-br from-amber-500/30 to-violet-500/20 border border-amber-500/40'
             : isProminent
-            ? 'bg-gradient-to-br from-orange-500/25 to-amber-500/15 border border-orange-500/30'
+            ? 'bg-gradient-to-br from-violet-500/25 to-amber-500/15 border border-violet-500/30'
             : 'bg-white/[0.04] border border-white/[0.08]'
         )}>
           {stats.isPerfectMonth ? (
@@ -88,7 +88,7 @@ export function OnTimePayments({ bills, className }: OnTimePaymentsProps) {
           ) : (
             <Flame className={cn(
               'w-5 h-5',
-              isProminent ? 'text-orange-400' : 'text-zinc-400'
+              isProminent ? 'text-violet-400' : 'text-zinc-400'
             )} />
           )}
         </div>
@@ -108,13 +108,13 @@ export function OnTimePayments({ bills, className }: OnTimePaymentsProps) {
             <>
               <p className={cn(
                 'text-sm font-semibold',
-                isProminent ? 'text-orange-200' : 'text-zinc-300'
+                isProminent ? 'text-violet-200' : 'text-zinc-300'
               )}>
                 {stats.onTimeCount} bill{stats.onTimeCount !== 1 ? 's' : ''} paid on time
               </p>
               <p className={cn(
                 'text-xs',
-                isProminent ? 'text-orange-400/70' : 'text-zinc-500'
+                isProminent ? 'text-violet-400/70' : 'text-zinc-500'
               )}>
                 Last 30 days
               </p>
