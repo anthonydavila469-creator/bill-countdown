@@ -181,7 +181,7 @@ export function PulseIndicator({
 }) {
   const colorClasses = {
     red: 'bg-red-500',
-    orange: 'bg-orange-500',
+    orange: 'bg-violet-500',
     green: 'bg-emerald-500',
   };
 
@@ -219,7 +219,7 @@ export function Confetti({ show }: { show: boolean }) {
             left: `${Math.random() * 100}%`,
             animationDelay: `${Math.random() * 3}s`,
             backgroundColor: [
-              '#f97316',
+              '#8B5CF6',
               '#f59e0b',
               '#10b981',
               '#f59e0b',

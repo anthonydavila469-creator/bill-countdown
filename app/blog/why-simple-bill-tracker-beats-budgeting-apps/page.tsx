@@ -283,8 +283,8 @@ export default function WhySimpleBillTrackerPage() {
                 ))}
               </ul>
             </div>
-            <div className="bg-orange-500/5 border border-orange-500/20 rounded-xl p-5">
-              <h3 className="font-semibold text-orange-400 mb-3">Simple bill trackers</h3>
+            <div className="bg-violet-500/5 border border-violet-500/20 rounded-xl p-5">
+              <h3 className="font-semibold text-violet-400 mb-3">Simple bill trackers</h3>
               <ul className="space-y-2 text-zinc-400 text-sm">
                 {[
                   'Set up in minutes, not hours',
@@ -294,7 +294,7 @@ export default function WhySimpleBillTrackerPage() {
                   'Actually get used',
                 ].map((item, i) => (
                   <li key={i} className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-orange-400 mt-0.5 flex-shrink-0" />
+                    <Check className="w-4 h-4 text-violet-400 mt-0.5 flex-shrink-0" />
                     {item}
                   </li>
                 ))}
@@ -334,7 +334,7 @@ export default function WhySimpleBillTrackerPage() {
                 'Stays current as new bills arrive without manual input',
               ].map((item, i) => (
                 <li key={i} className="flex items-start gap-2">
-                  <Check className="w-4 h-4 text-orange-400 mt-1 flex-shrink-0" />
+                  <Check className="w-4 h-4 text-violet-400 mt-1 flex-shrink-0" />
                   {item}
                 </li>
               ))}
@@ -425,7 +425,7 @@ export default function WhySimpleBillTrackerPage() {
           </p>
           <Link
             href="/signup"
-            className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-8 py-3.5 rounded-xl transition-colors"
+            className="inline-flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-semibold px-8 py-3.5 rounded-xl transition-colors"
           >
             Try Duezo Free <ArrowRight className="w-4 h-4" />
           </Link>
@@ -434,19 +434,19 @@ export default function WhySimpleBillTrackerPage() {
         <div className="mt-12 pt-8 border-t border-zinc-800">
           <h3 className="font-semibold mb-4 text-zinc-400">Related Pages</h3>
           <div className="flex flex-wrap gap-4 text-sm">
-            <Link href="/prism-alternative" className="text-orange-400 hover:underline">
+            <Link href="/prism-alternative" className="text-violet-400 hover:underline">
               Prism Alternative
             </Link>
-            <Link href="/vs/ynab" className="text-orange-400 hover:underline">
+            <Link href="/vs/ynab" className="text-violet-400 hover:underline">
               Duezo vs YNAB
             </Link>
-            <Link href="/vs/copilot-money" className="text-orange-400 hover:underline">
+            <Link href="/vs/copilot-money" className="text-violet-400 hover:underline">
               Duezo vs Copilot Money
             </Link>
-            <Link href="/vs/rocket-money" className="text-orange-400 hover:underline">
+            <Link href="/vs/rocket-money" className="text-violet-400 hover:underline">
               Duezo vs Rocket Money
             </Link>
-            <Link href="/blog/bill-tracker-no-bank-account" className="text-orange-400 hover:underline">
+            <Link href="/blog/bill-tracker-no-bank-account" className="text-violet-400 hover:underline">
               Bill Tracker Without Bank Account
             </Link>
           </div>
