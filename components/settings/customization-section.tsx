@@ -1,14 +1,11 @@
 'use client';
 
 import {
-  Crown,
   Palette,
   Check,
   RotateCcw,
-  Sparkles,
 } from 'lucide-react';
 import { useTheme } from '@/contexts/theme-context';
-import { useSubscription } from '@/hooks/use-subscription';
 import {
   DEFAULT_COLOR_THEME,
   COLOR_THEMES,
@@ -113,69 +110,15 @@ export function CustomizationSection() {
     selectedTheme,
     updateTheme,
   } = useTheme();
-  const { isPro, showUpgradeModal, upgradeCtasEnabled } = useSubscription();
 
   const themeIds = Object.keys(COLOR_THEMES) as ColorThemeId[];
 
   const resetTheme = () => {
-    if (!isPro) return;
     updateTheme(DEFAULT_COLOR_THEME);
   };
 
   return (
     <div className="space-y-10">
-      {/* Pro Upgrade Banner */}
-      {!isPro && upgradeCtasEnabled && (
-        <div className="relative overflow-hidden rounded-3xl animate-in fade-in slide-in-from-bottom-4 duration-700">
-          {/* Animated background gradient */}
-          <div className="absolute inset-0 bg-gradient-to-br from-amber-600/20 via-orange-600/20 to-orange-600/20" />
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-50" />
-
-          {/* Floating orbs */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-orange-500/20 rounded-full blur-3xl" />
-
-          {/* Content */}
-          <div className="relative p-8 border border-white/10">
-            <div className="flex flex-col sm:flex-row items-start gap-6">
-              {/* Crown icon */}
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl blur-xl opacity-50" />
-                <div className="relative p-4 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500">
-                  <Crown className="w-8 h-8 text-white" />
-                </div>
-              </div>
-
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs font-bold tracking-[0.2em] uppercase text-amber-400/80">
-                    Premium
-                  </span>
-                  <Sparkles className="w-3 h-3 text-amber-400/80" />
-                </div>
-                <h3 className="text-2xl font-light text-white mb-2 tracking-tight">
-                  Unlock <span className="font-semibold">Customization</span>
-                </h3>
-                <p className="text-zinc-400 mb-6 max-w-md">
-                  Personalize your dashboard with beautiful color themes that match your style.
-                </p>
-                <button
-                  onClick={() => showUpgradeModal('color themes')}
-                  className="group relative px-6 py-3 overflow-hidden rounded-xl font-medium transition-all duration-300"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-amber-400 to-orange-500" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-amber-300 to-orange-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700" />
-                  <span className="relative text-zinc-900 font-semibold tracking-wide">
-                    Upgrade to Pro
-                  </span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Color Theme Section */}
       <section className="relative">
         <SectionHeader
@@ -184,7 +127,7 @@ export function CustomizationSection() {
           title="Color Theme"
           description="Choose your dashboard aesthetic"
           action={
-            isPro && selectedTheme !== DEFAULT_COLOR_THEME && (
+            selectedTheme !== DEFAULT_COLOR_THEME && (
               <button
                 onClick={resetTheme}
                 className="flex items-center gap-2 px-4 py-2 text-sm text-zinc-400 hover:text-white hover:bg-white/[0.06] rounded-xl transition-all duration-200"
@@ -196,37 +139,17 @@ export function CustomizationSection() {
           }
         />
 
-        {/* Lock overlay for non-pro */}
-        <div className={cn('relative')}>
-          {!isPro && (
-            <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#08080c]/70 backdrop-blur-sm rounded-2xl">
-              <div className="flex flex-col items-center gap-3 text-center p-6">
-                <div className="p-4 rounded-2xl bg-white/[0.04] border border-white/[0.08]">
-                  <Crown className="w-6 h-6 text-amber-500" />
-                </div>
-                <div>
-                  <p className="font-medium text-zinc-400">Pro Feature</p>
-                  <p className="text-sm text-zinc-600">
-                    {upgradeCtasEnabled ? 'Upgrade to customize theme' : 'Available on Pro'}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Theme Grid - 2x3 layout */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {themeIds.map((themeId, index) => (
-              <ThemeCard
-                key={themeId}
-                themeId={themeId}
-                isSelected={selectedTheme === themeId}
-                onSelect={() => updateTheme(themeId)}
-                disabled={!isPro}
-                index={index}
-              />
-            ))}
-          </div>
+        {/* Theme Grid - 2x3 layout */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {themeIds.map((themeId, index) => (
+            <ThemeCard
+              key={themeId}
+              themeId={themeId}
+              isSelected={selectedTheme === themeId}
+              onSelect={() => updateTheme(themeId)}
+              index={index}
+            />
+          ))}
         </div>
       </section>
     </div>

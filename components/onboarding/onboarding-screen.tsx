@@ -37,7 +37,7 @@ export function OnboardingScreen({
   isGmailConnected = false,
 }: OnboardingScreenProps) {
   const { addToast } = useToast();
-  const { isPro, canSyncGmail, showUpgradeModal, refreshSubscription, upgradeCtasEnabled } = useSubscription();
+  const { refreshSubscription } = useSubscription();
 
   const [step, setStep] = useState<OnboardingStep>('welcome');
   const [selectedTemplateIds, setSelectedTemplateIds] = useState<Set<string>>(
@@ -55,11 +55,7 @@ export function OnboardingScreen({
   };
 
   const handleGmailSync = () => {
-    if (canSyncGmail) {
-      setStep('gmail_sync');
-    } else if (upgradeCtasEnabled) {
-      showUpgradeModal('unlimited Gmail syncs');
-    }
+    setStep('gmail_sync');
   };
 
   const handleGmailComplete = async (importedBills: Bill[]) => {
@@ -182,9 +178,6 @@ export function OnboardingScreen({
             onQuickAdd={handleQuickAdd}
             onGmailSync={handleGmailSync}
             onAddManually={onAddManually}
-            isPro={isPro}
-            canSyncGmail={canSyncGmail}
-            upgradeCtasEnabled={upgradeCtasEnabled}
           />
         )}
 
@@ -233,18 +226,12 @@ interface WelcomeStepProps {
   onQuickAdd: () => void;
   onGmailSync: () => void;
   onAddManually: () => void;
-  isPro: boolean;
-  canSyncGmail: boolean;
-  upgradeCtasEnabled: boolean;
 }
 
 function WelcomeStep({
   onQuickAdd,
   onGmailSync,
   onAddManually,
-  isPro,
-  canSyncGmail,
-  upgradeCtasEnabled,
 }: WelcomeStepProps) {
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -268,17 +255,11 @@ function WelcomeStep({
         </p>
       </div>
 
-      {/* Options - Different layout for Pro vs Free */}
       <div className="space-y-3">
-        {/* Gmail Sync - Primary for Pro users */}
+        {/* Gmail Sync */}
         <button
           onClick={onGmailSync}
-          className={cn(
-            'group w-full p-5 rounded-2xl transition-all duration-300',
-            isPro
-              ? 'bg-gradient-to-br from-orange-500/15 to-amber-500/15 border border-orange-500/30 hover:border-orange-500/50 hover:from-orange-500/20 hover:to-amber-500/20'
-              : 'bg-gradient-to-br from-orange-500/10 to-amber-500/10 border border-orange-500/20 hover:border-orange-500/40'
-          )}
+          className="group w-full p-5 rounded-2xl transition-all duration-300 bg-gradient-to-br from-orange-500/15 to-amber-500/15 border border-orange-500/30 hover:border-orange-500/50 hover:from-orange-500/20 hover:to-amber-500/20"
         >
           <div className="flex items-center gap-4">
             <div className="p-3 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500">
@@ -287,27 +268,9 @@ function WelcomeStep({
             <div className="flex-1 text-left">
               <div className="flex items-center gap-2 mb-1">
                 <h3 className="font-semibold text-white">Sync from Gmail</h3>
-                {!isPro && canSyncGmail && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-medium">
-                    1 FREE
-                  </span>
-                )}
-                {!canSyncGmail && (
-                  <span className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-medium">
-                    <Crown className="w-3 h-3" />
-                    PRO
-                  </span>
-                )}
               </div>
               <p className="text-sm text-white/50">
-                {isPro
-                  ? 'Automatically import bills from your inbox'
-                  : canSyncGmail
-                    ? 'Import bills from your inbox (1 free sync)'
-                    : upgradeCtasEnabled
-                      ? 'Upgrade to Pro for unlimited Gmail syncs'
-                      : 'Pro feature for unlimited Gmail syncs'
-                }
+                Automatically import bills from your inbox
               </p>
             </div>
             <ArrowRight className="w-5 h-5 text-orange-400 group-hover:translate-x-1 transition-transform" />
@@ -317,18 +280,10 @@ function WelcomeStep({
         {/* Quick Add from Templates */}
         <button
           onClick={onQuickAdd}
-          className={cn(
-            'group w-full p-5 rounded-2xl transition-all duration-300',
-            isPro
-              ? 'bg-white/[0.02] border border-white/10 hover:bg-white/[0.04] hover:border-white/20'
-              : 'bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20 hover:border-amber-500/40 hover:from-amber-500/15 hover:to-orange-500/15'
-          )}
+          className="group w-full p-5 rounded-2xl transition-all duration-300 bg-white/[0.02] border border-white/10 hover:bg-white/[0.04] hover:border-white/20"
         >
           <div className="flex items-center gap-4">
-            <div className={cn(
-              "p-3 rounded-xl",
-              isPro ? "bg-white/10" : "bg-gradient-to-br from-amber-500 to-orange-500"
-            )}>
+            <div className="p-3 rounded-xl bg-white/10">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
             <div className="flex-1 text-left">
@@ -337,10 +292,7 @@ function WelcomeStep({
                 Select from common bills like rent, utilities, subscriptions
               </p>
             </div>
-            <ArrowRight className={cn(
-              "w-5 h-5 group-hover:translate-x-1 transition-transform",
-              isPro ? "text-white/40" : "text-amber-400"
-            )} />
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform text-white/40" />
           </div>
         </button>
 

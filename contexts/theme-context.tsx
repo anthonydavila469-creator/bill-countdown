@@ -127,7 +127,6 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   }, [selectedTheme]);
 
   // Update theme
-  // TODO: Re-enable Pro check after testing: if (!isPro) return;
   const updateTheme = useCallback(async (themeId: ColorThemeId) => {
     const validThemeId = getValidThemeId(themeId);
     console.log('[Duezo] updateTheme requested:', themeId, '->', validThemeId);

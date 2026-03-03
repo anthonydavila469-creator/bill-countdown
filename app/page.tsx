@@ -15,8 +15,6 @@ import {
   Calendar,
   BarChart3,
   Check,
-  X,
-  Crown,
 } from 'lucide-react';
 
 // Demo bills for the hero showcase
@@ -195,13 +193,7 @@ export default function LandingPage() {
         '@type': 'Offer',
         price: '0',
         priceCurrency: 'USD',
-        description: 'Free plan — up to 5 bills',
-      },
-      {
-        '@type': 'Offer',
-        price: '4.99',
-        priceCurrency: 'USD',
-        description: 'Pro monthly — unlimited bills',
+        description: 'Free — unlimited bills, all features included',
       },
     ],
     description:
@@ -246,12 +238,6 @@ export default function LandingPage() {
                 className="text-sm text-zinc-400 hover:text-white transition-colors"
               >
                 Features
-              </a>
-              <a
-                href="#pricing"
-                className="text-sm text-zinc-400 hover:text-white transition-colors"
-              >
-                Pricing
               </a>
               <a
                 href="#how-it-works"
@@ -427,93 +413,31 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Pricing Section */}
+      {/* Pricing Section — 100% Free */}
       <section id="pricing" className="relative py-24 border-t border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Section header */}
           <div className="text-center mb-16">
             <span className="text-sm font-semibold bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent uppercase tracking-wider">
-              Simple Pricing
+              100% Free
             </span>
             <h2 className="mt-3 text-3xl sm:text-4xl font-bold tracking-tight">
-              Choose Your{' '}
+              Every Feature,{' '}
               <span className="bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
-                Plan
+                No Cost
               </span>
             </h2>
             <p className="mt-4 text-lg text-zinc-400 max-w-2xl mx-auto">
-              Start free and upgrade when you need more
+              All features included — no subscriptions, no paywalls, no limits
             </p>
           </div>
 
-          {/* Pricing Cards Grid */}
-          <div className="grid sm:grid-cols-2 gap-8 max-w-3xl mx-auto">
-            {/* Free Card */}
-            <div className="relative p-8 rounded-2xl bg-white/[0.02] border border-white/5">
-              <div className="mb-6">
-                <h3 className="text-xl font-bold text-white mb-2">Free</h3>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold text-white">$0</span>
-                  <span className="text-zinc-500">/forever</span>
-                </div>
-              </div>
-
-              <ul className="space-y-4 mb-8">
-                <li className="flex items-center gap-3 text-zinc-300">
-                  <Check className="w-5 h-5 text-orange-400 flex-shrink-0" />
-                  <span>Up to 5 bills</span>
-                </li>
-                <li className="flex items-center gap-3 text-zinc-300">
-                  <Check className="w-5 h-5 text-orange-400 flex-shrink-0" />
-                  <span>Bill templates for quick setup</span>
-                </li>
-                <li className="flex items-center gap-3 text-zinc-300">
-                  <Check className="w-5 h-5 text-orange-400 flex-shrink-0" />
-                  <span>Due date tracking & reminders</span>
-                </li>
-                <li className="flex items-center gap-3 text-zinc-300">
-                  <Check className="w-5 h-5 text-orange-400 flex-shrink-0" />
-                  <span>1 Gmail sync to try AI extraction</span>
-                </li>
-                <li className="flex items-center gap-3 text-zinc-500">
-                  <X className="w-5 h-5 text-zinc-600 flex-shrink-0" />
-                  <span>Calendar view</span>
-                </li>
-                <li className="flex items-center gap-3 text-zinc-500">
-                  <X className="w-5 h-5 text-zinc-600 flex-shrink-0" />
-                  <span>Analytics & insights</span>
-                </li>
-              </ul>
-
-              <Link
-                href="/signup"
-                className="block w-full py-3 text-center font-semibold bg-white/10 hover:bg-white/20 rounded-xl transition-colors"
-              >
-                Get Started
-              </Link>
-            </div>
-
-            {/* Pro Card */}
+          <div className="max-w-lg mx-auto">
             <div className="relative p-8 rounded-2xl bg-gradient-to-br from-orange-500/10 to-amber-500/10 border border-orange-500/30">
-              {/* Best Value Badge */}
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <span className="px-3 py-1 text-xs font-semibold bg-gradient-to-r from-orange-500 to-amber-500 rounded-full text-white">
-                  Best Value
-                </span>
-              </div>
-
-              <div className="mb-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <Crown className="w-5 h-5 text-amber-400" />
-                  <h3 className="text-xl font-bold text-white">Pro</h3>
+              <div className="mb-6 text-center">
+                <div className="flex items-baseline justify-center gap-1">
+                  <span className="text-4xl font-bold text-white">$0</span>
+                  <span className="text-zinc-400">/forever</span>
                 </div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold text-white">$4.99</span>
-                  <span className="text-zinc-400">/month</span>
-                </div>
-                <p className="text-sm text-orange-400 mt-1">
-                  or $39.99/year (save 33%)
-                </p>
               </div>
 
               <ul className="space-y-4 mb-8">
@@ -523,11 +447,7 @@ export default function LandingPage() {
                 </li>
                 <li className="flex items-center gap-3 text-zinc-300">
                   <Check className="w-5 h-5 text-orange-400 flex-shrink-0" />
-                  <span>Unlimited Gmail syncs + daily auto-sync</span>
-                </li>
-                <li className="flex items-center gap-3 text-zinc-300">
-                  <Check className="w-5 h-5 text-orange-400 flex-shrink-0" />
-                  <span>Payment links ("Pay Now")</span>
+                  <span>AI-powered Gmail sync</span>
                 </li>
                 <li className="flex items-center gap-3 text-zinc-300">
                   <Check className="w-5 h-5 text-orange-400 flex-shrink-0" />
@@ -535,7 +455,7 @@ export default function LandingPage() {
                 </li>
                 <li className="flex items-center gap-3 text-zinc-300">
                   <Check className="w-5 h-5 text-orange-400 flex-shrink-0" />
-                  <span>Analytics & insights</span>
+                  <span>Payment links &amp; reminders</span>
                 </li>
                 <li className="flex items-center gap-3 text-zinc-300">
                   <Check className="w-5 h-5 text-orange-400 flex-shrink-0" />
@@ -547,7 +467,7 @@ export default function LandingPage() {
                 href="/signup"
                 className="block w-full py-3 text-center font-semibold bg-gradient-to-r from-orange-500 to-amber-500 hover:opacity-90 rounded-xl transition-opacity"
               >
-                Get Pro
+                Get Started — It&apos;s Free
               </Link>
             </div>
           </div>

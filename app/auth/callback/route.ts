@@ -1,16 +1,40 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
   const next = searchParams.get('next') ?? '/dashboard';
+  const transferKey = searchParams.get('transfer_key');
 
   if (code) {
     const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
-    if (!error) {
+    if (!error && data?.session) {
+      // Native Capacitor flow: store tokens for WKWebView to retrieve
+      if (transferKey) {
+        const admin = createAdminClient();
+        await admin.from('auth_transfers').insert({
+          transfer_key: transferKey,
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        });
+
+        // Return a page that auto-closes the SFSafariViewController
+        return new NextResponse(
+          `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>body{background:#08080c;color:#fff;font-family:system-ui;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}
+.c{text-align:center}.s{width:32px;height:32px;border:3px solid rgba(255,107,0,.3);border-top-color:#FF6B00;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}</style></head>
+<body><div class="c"><div class="s"></div><p>Returning to Duezo...</p></div></body></html>`,
+          { headers: { 'Content-Type': 'text/html' } }
+        );
+      }
+
+      // Standard web flow: redirect to dashboard
       return NextResponse.redirect(`${origin}${next}`);
     }
   }

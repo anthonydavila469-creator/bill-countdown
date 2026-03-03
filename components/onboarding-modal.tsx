@@ -96,10 +96,7 @@ export function OnboardingModal({
       </div>
       <h2 className="text-2xl font-bold text-white mb-3">You&apos;re all set!</h2>
       <p className="text-zinc-400 leading-relaxed max-w-sm mx-auto mb-2">
-        You have <span className="text-amber-400 font-semibold">14 days of Pro free</span>.
-      </p>
-      <p className="text-zinc-500 text-sm mb-8">
-        Enjoy unlimited bills, push notifications, and auto-sync.
+        Everything is included — unlimited bills, notifications, and auto-sync.
       </p>
       <button
         onClick={finish}

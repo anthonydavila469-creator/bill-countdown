@@ -94,8 +94,6 @@ export default function NotificationsSettingsPage() {
     canUsePushNotifications,
     canUseDailyAutoSync,
     canCustomizeReminders,
-    showUpgradeModal,
-    upgradeCtasEnabled,
   } = useSubscription();
 
   useEffect(() => {
@@ -157,12 +155,6 @@ export default function NotificationsSettingsPage() {
   }, [settings]);
 
   const handlePushToggle = useCallback(async (enabled: boolean) => {
-    if (!canUsePushNotifications) {
-      if (upgradeCtasEnabled) {
-        showUpgradeModal('push notifications');
-      }
-      return;
-    }
     if (enabled) {
       const success = await subscribe();
       if (success) setSettings(prev => ({ ...prev, push_enabled: true }));
@@ -170,15 +162,9 @@ export default function NotificationsSettingsPage() {
       await unsubscribe();
       setSettings(prev => ({ ...prev, push_enabled: false }));
     }
-  }, [canUsePushNotifications, showUpgradeModal, subscribe, unsubscribe]);
+  }, [subscribe, unsubscribe]);
 
   const toggleReminderDay = (day: number) => {
-    if (!canCustomizeReminders) {
-      if (upgradeCtasEnabled) {
-        showUpgradeModal('custom reminders');
-      }
-      return;
-    }
     const current = settings.reminder_days ?? [settings.lead_days];
     const updated = current.includes(day)
       ? current.filter(d => d !== day)
@@ -245,16 +231,10 @@ export default function NotificationsSettingsPage() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              {!canUsePushNotifications && (
-                <span className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-500/20 border border-amber-500/30">
-                  <Crown className="w-3 h-3 text-amber-400" />
-                  <span className="text-[10px] font-semibold text-amber-300">Pro</span>
-                </span>
-              )}
               <Toggle
-                enabled={settings.push_enabled && isSubscribed && canUsePushNotifications}
+                enabled={settings.push_enabled && isSubscribed}
                 onChange={handlePushToggle}
-                disabled={!isSupported || (!canUsePushNotifications && !upgradeCtasEnabled)}
+                disabled={!isSupported}
                 color="#f59e0b"
               />
             </div>
@@ -272,12 +252,6 @@ export default function NotificationsSettingsPage() {
                   <p className="text-sm text-zinc-500">When to send reminders before due date</p>
                 </div>
               </div>
-              {!canCustomizeReminders && (
-                <span className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-500/20 border border-amber-500/30">
-                  <Crown className="w-3 h-3 text-amber-400" />
-                  <span className="text-[10px] font-semibold text-amber-300">Pro</span>
-                </span>
-              )}
             </div>
             <div className="grid grid-cols-2 gap-2 ml-14">
               {REMINDER_DAY_OPTIONS.map((opt) => {
@@ -288,7 +262,7 @@ export default function NotificationsSettingsPage() {
                     key={opt.value}
                     type="button"
                     onClick={() => toggleReminderDay(opt.value)}
-                    disabled={!canCustomizeReminders && !upgradeCtasEnabled}
+                    disabled={!canCustomizeReminders}
                     className={cn(
                       'flex items-center gap-2 px-3 py-2.5 h-11 rounded-xl text-sm font-medium transition-all duration-200 border',
                       isActive
@@ -354,24 +328,11 @@ export default function NotificationsSettingsPage() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              {!canUseDailyAutoSync && (
-                <span className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-500/20 border border-amber-500/30">
-                  <Crown className="w-3 h-3 text-amber-400" />
-                  <span className="text-[10px] font-semibold text-amber-300">Pro</span>
-                </span>
-              )}
               <Toggle
-                enabled={(settings.auto_sync_enabled ?? false) && canUseDailyAutoSync}
+                enabled={settings.auto_sync_enabled ?? false}
                 onChange={(v) => {
-                  if (!canUseDailyAutoSync) {
-                    if (upgradeCtasEnabled) {
-                      showUpgradeModal('daily auto-sync');
-                    }
-                    return;
-                  }
                   setSettings(prev => ({ ...prev, auto_sync_enabled: v }));
                 }}
-                disabled={!canUseDailyAutoSync && !upgradeCtasEnabled}
                 color="#10b981"
               />
             </div>

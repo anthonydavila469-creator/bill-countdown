@@ -30,7 +30,7 @@ export function GmailSyncStep({
   onSkip,
   isGmailConnected,
 }: GmailSyncStepProps) {
-  const { isPro, canSyncGmail, incrementGmailSyncs } = useSubscription();
+  const { canSyncGmail, incrementGmailSyncs } = useSubscription();
   const [status, setStatus] = useState<SyncStatus>('idle');
   const [foundBills, setFoundBills] = useState<Bill[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -91,10 +91,7 @@ export function GmailSyncStep({
 
       const { suggestions } = await parseResponse.json();
 
-      // Increment gmail syncs count for free users
-      if (!isPro) {
-        await incrementGmailSyncs();
-      }
+      await incrementGmailSyncs();
 
       if (suggestions && suggestions.length > 0) {
         setFoundBills(suggestions);
@@ -143,11 +140,6 @@ export function GmailSyncStep({
             </h2>
             <p className="text-white/50 mb-8">
               We&apos;ll scan your inbox for bill-related emails and automatically import them.
-              {!isPro && (
-                <span className="block mt-2 text-amber-400/80 text-sm">
-                  Free accounts get 1 Gmail sync
-                </span>
-              )}
             </p>
             <button
               onClick={handleConnect}

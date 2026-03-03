@@ -1,13 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Check, Pencil, Trash2, Calendar, DollarSign, RefreshCw, FileText, ExternalLink, Link, CreditCard, TrendingUp, TrendingDown, AlertTriangle, Crown } from 'lucide-react';
+import { X, Check, Pencil, Trash2, Calendar, DollarSign, RefreshCw, FileText, ExternalLink, Link, CreditCard, TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react';
 import { Bill } from '@/types';
 import { cn, formatDate, formatCurrency, getDaysUntilDue, getUrgency, formatCountdown, getPriceChange } from '@/lib/utils';
 import { getBillIcon } from '@/lib/get-bill-icon';
 import { GradientCard } from './ui/gradient-card';
 import { CountdownDisplay } from './countdown-display';
-import { useSubscription } from '@/hooks/use-subscription';
 import { useTheme } from '@/contexts/theme-context';
 
 interface BillDetailModalProps {
@@ -27,7 +26,6 @@ export function BillDetailModal({
   onDelete,
   onMarkPaid,
 }: BillDetailModalProps) {
-  const { canUsePaymentLinks, showUpgradeModal, upgradeCtasEnabled } = useSubscription();
   const { selectedTheme } = useTheme();
   const [isMarkingPaid, setIsMarkingPaid] = useState(false);
 
@@ -225,7 +223,7 @@ export function BillDetailModal({
             {/* Actions */}
             <div className="p-6 pt-0 pb-28 space-y-3">
               {/* Pay Now button - only show if payment URL exists */}
-              {bill.payment_url && canUsePaymentLinks && (
+              {bill.payment_url && (
                 <a
                   href={bill.payment_url}
                   target="_blank"
@@ -236,23 +234,6 @@ export function BillDetailModal({
                   <ExternalLink className="w-5 h-5" />
                   Pay Now
                 </a>
-              )}
-
-              {/* Upgrade prompt for Pay Now - free users with payment URL */}
-              {bill.payment_url && !canUsePaymentLinks && upgradeCtasEnabled && (
-                <button
-                  onClick={() => showUpgradeModal('payment links')}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 text-amber-200 font-semibold rounded-xl hover:from-amber-500/30 hover:to-orange-500/30 transition-colors"
-                >
-                  <Crown className="w-5 h-5" />
-                  Upgrade for Pay Now
-                </button>
-              )}
-              {bill.payment_url && !canUsePaymentLinks && !upgradeCtasEnabled && (
-                <div className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white/5 border border-white/10 text-zinc-500 font-semibold rounded-xl">
-                  <Crown className="w-5 h-5" />
-                  Pro feature
-                </div>
               )}
 
               {/* Mark as Paid button */}

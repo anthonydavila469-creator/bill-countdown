@@ -45,7 +45,6 @@ import {
   X,
   Eye,
   EyeOff,
-  Crown,
   SlidersHorizontal,
   AlertTriangle,
   Check,
@@ -60,15 +59,8 @@ export default function DashboardPage() {
   const { dashboardLayout, updateDashboardLayout } = useTheme();
   const {
     canAddBill,
-    showUpgradeModal,
-    billsUsed,
-    billLimit,
-    isPro,
     canUsePaycheckMode,
-    canUseCalendar,
-    canUseHistory,
     refreshSubscription,
-    upgradeCtasEnabled,
   } = useSubscription();
 
   // Use optimistic mutations hook
@@ -219,17 +211,12 @@ export default function DashboardPage() {
     setIsAddModalOpen(true);
   };
 
-  // Handle Add Bill button click - checks bill limit
+  // Handle Add Bill button click
   const handleAddBillClick = () => {
-    if (canAddBill) {
-      hapticLight();
-      setEditingBill(null);
-      setIsAddModalOpen(true);
-    } else if (upgradeCtasEnabled) {
-      showUpgradeModal('unlimited bills');
-    }
+    hapticLight();
+    setEditingBill(null);
+    setIsAddModalOpen(true);
   };
-  const addBillDisabled = !canAddBill && !upgradeCtasEnabled;
 
   // Filter and sort bills based on search, filters, and layout preferences
   const filteredBills = useMemo(() => {
@@ -436,12 +423,6 @@ export default function DashboardPage() {
                   <Calendar className="w-4 h-4 group-hover:text-orange-300 transition-colors duration-200" />
                 </div>
                 <span className="font-medium">Calendar</span>
-                {!canUseCalendar && (
-                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30">
-                    <Crown className="w-3 h-3 text-amber-400" />
-                    <span className="text-[10px] font-semibold text-amber-300">Pro</span>
-                  </span>
-                )}
               </Link>
             </li>
             <li>
@@ -453,12 +434,6 @@ export default function DashboardPage() {
                   <History className="w-4 h-4 group-hover:text-orange-400 transition-colors duration-200" />
                 </div>
                 <span className="font-medium">History</span>
-                {!canUseHistory && (
-                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30">
-                    <Crown className="w-3 h-3 text-amber-400" />
-                    <span className="text-[10px] font-semibold text-amber-300">Pro</span>
-                  </span>
-                )}
               </Link>
             </li>
             <li>
@@ -562,22 +537,10 @@ export default function DashboardPage() {
               {/* Add Bill Button */}
               <button
                 onClick={handleAddBillClick}
-                disabled={addBillDisabled}
-                className={cn(
-                  "p-2 rounded-lg transition-all duration-200",
-                  canAddBill
-                    ? "text-zinc-400 hover:text-white hover:bg-white/10"
-                    : addBillDisabled
-                      ? "text-zinc-600 cursor-not-allowed"
-                      : "text-amber-400 hover:bg-amber-500/10"
-                )}
-                title={canAddBill ? "Add Bill" : upgradeCtasEnabled ? "Upgrade for more bills" : "Bill limit reached"}
+                className="p-2 rounded-lg transition-all duration-200 text-zinc-400 hover:text-white hover:bg-white/10"
+                title="Add Bill"
               >
-                {canAddBill ? (
-                  <Plus className="w-5 h-5" />
-                ) : (
-                  <Crown className="w-5 h-5" />
-                )}
+                <Plus className="w-5 h-5" />
               </button>
 
               {/* Notification Bell - In-app feed */}
@@ -585,29 +548,11 @@ export default function DashboardPage() {
 
               <button
                 onClick={handleAddBillClick}
-                disabled={addBillDisabled}
-                className={cn(
-                  "hidden sm:flex items-center gap-2 px-4 py-2 font-medium rounded-lg transition-opacity",
-                  canAddBill
-                    ? "text-white hover:opacity-90"
-                    : addBillDisabled
-                      ? "text-zinc-600 border border-white/10 cursor-not-allowed"
-                      : "text-amber-200 border border-amber-500/30"
-                )}
-                style={
-                  canAddBill
-                    ? { backgroundColor: 'var(--accent-primary)' }
-                    : addBillDisabled
-                      ? { backgroundColor: 'rgba(255, 255, 255, 0.04)' }
-                      : { backgroundColor: 'rgba(245, 158, 11, 0.2)' }
-                }
+                className="hidden sm:flex items-center gap-2 px-4 py-2 font-medium rounded-lg transition-opacity text-white hover:opacity-90"
+                style={{ backgroundColor: 'var(--accent-primary)' }}
               >
-                {canAddBill ? (
-                  <Plus className="w-4 h-4" />
-                ) : (
-                  <Crown className="w-4 h-4" />
-                )}
-                {canAddBill ? 'Add Bill' : `${billsUsed}/${billLimit} Bills`}
+                <Plus className="w-4 h-4" />
+                Add Bill
               </button>
             </div>
           </div>
@@ -850,33 +795,11 @@ export default function DashboardPage() {
                 {!searchQuery && (
                   <button
                     onClick={handleAddBillClick}
-                    disabled={addBillDisabled}
-                    className={cn(
-                      "inline-flex items-center gap-2 px-6 py-3 font-medium rounded-lg transition-opacity",
-                      canAddBill
-                        ? "text-white hover:opacity-90"
-                        : addBillDisabled
-                          ? "text-zinc-600 border border-white/10 cursor-not-allowed"
-                          : "text-amber-200 border border-amber-500/30"
-                    )}
-                    style={
-                      canAddBill
-                        ? { backgroundColor: 'var(--accent-primary)' }
-                        : addBillDisabled
-                          ? { backgroundColor: 'rgba(255, 255, 255, 0.04)' }
-                          : { backgroundColor: 'rgba(245, 158, 11, 0.2)' }
-                    }
+                    className="inline-flex items-center gap-2 px-6 py-3 font-medium rounded-lg transition-opacity text-white hover:opacity-90"
+                    style={{ backgroundColor: 'var(--accent-primary)' }}
                   >
-                    {canAddBill ? (
-                      <Plus className="w-5 h-5" />
-                    ) : (
-                      <Crown className="w-5 h-5" />
-                    )}
-                    {canAddBill
-                      ? 'Add Your First Bill'
-                      : upgradeCtasEnabled
-                        ? 'Upgrade for More Bills'
-                        : 'Bill Limit Reached'}
+                    <Plus className="w-5 h-5" />
+                    Add Your First Bill
                   </button>
                 )}
               </div>
