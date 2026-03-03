@@ -285,7 +285,7 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
             </div>
 
           {/* Summary stats - clickable to filter */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-3 flex-wrap">
             {/* Overdue warning - only show if there are overdue bills */}
             {overdueCount > 0 && (
               <button
@@ -363,7 +363,7 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
             </button>
           </div>
 
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
               <button
                 onClick={goToToday}
                 className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-zinc-400 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] hover:border-white/10 rounded-xl transition-all duration-300"
