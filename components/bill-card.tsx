@@ -136,7 +136,7 @@ export function BillCard({
                     onClick={handlePayNow}
                     className={cn(
                       "flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200",
-                      "bg-gradient-to-r from-violet-500 to-amber-500 hover:from-violet-400 hover:to-amber-400",
+                      "bg-gradient-to-r from-violet-500 to-violet-400 hover:from-violet-400 hover:to-violet-300",
                       "text-white shadow-lg shadow-violet-500/30",
                       "active:scale-95"
                     )}
@@ -378,7 +378,7 @@ export function BillCard({
                   onClick={handlePayNow}
                   className={cn(
                     "group relative flex-1 py-2.5 rounded-xl font-medium text-sm transition-all duration-200",
-                    "bg-gradient-to-r from-violet-500 to-amber-500 hover:from-violet-400 hover:to-amber-400",
+                    "bg-gradient-to-r from-violet-500 to-violet-400 hover:from-violet-400 hover:to-violet-300",
                     "active:scale-[0.98]",
                     "flex items-center justify-center gap-2",
                     "shadow-lg shadow-violet-500/20"
@@ -606,8 +606,8 @@ export function BillListItem({
               onClick={handlePayNow}
               className={cn(
                 "flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200",
-                "bg-gradient-to-r from-violet-500 to-amber-500 text-white",
-                "hover:from-violet-400 hover:to-amber-400",
+                "bg-gradient-to-r from-violet-500 to-violet-400 text-white",
+                "hover:from-violet-400 hover:to-violet-300",
                 "active:scale-95"
               )}
             >
