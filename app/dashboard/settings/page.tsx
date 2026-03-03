@@ -3,6 +3,8 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -290,9 +292,15 @@ export default function SettingsPage() {
   };
 
   // Gmail handlers
-  const handleConnectGmail = () => {
-    // Redirect to Gmail OAuth
-    window.location.href = '/api/gmail/connect';
+  const handleConnectGmail = async () => {
+    if (Capacitor.isNativePlatform()) {
+      // On native iOS: open in SFSafariViewController to satisfy Guideline 4.0
+      const gmailAuthUrl = `${window.location.origin}/api/gmail/connect`;
+      await Browser.open({ url: gmailAuthUrl, presentationStyle: 'fullscreen' });
+    } else {
+      // On web: standard redirect
+      window.location.href = '/api/gmail/connect';
+    }
   };
 
   const handleDisconnectGmail = async () => {

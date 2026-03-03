@@ -613,7 +613,7 @@ export default function LandingPage() {
               </span>
             </h2>
             <p className="text-lg text-zinc-400 mb-8 max-w-2xl mx-auto">
-              Set up in under 2 minutes. Track up to 5 bills completely free — no credit card, no catch.
+              Set up in under 2 minutes. Track unlimited bills completely free — no credit card, no catch.
             </p>
 
             <Link
@@ -625,7 +625,7 @@ export default function LandingPage() {
             </Link>
 
             <p className="text-sm text-zinc-500 mt-4">
-              No credit card required • Free forever for up to 5 bills
+              No credit card required • Unlimited bills, free forever
             </p>
           </div>
         </div>
