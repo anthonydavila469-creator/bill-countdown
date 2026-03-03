@@ -38,14 +38,14 @@ const sortOptions: { value: SortOption; label: string; icon: React.ReactNode }[]
 // Primary filters shown directly
 const primaryFilters: { value: FilterOption; label: string; icon: React.ReactNode; color: string }[] = [
   { value: 'all', label: 'All', icon: <Layers className="w-3.5 h-3.5" />, color: 'cyan' },
-  { value: 'due_soon', label: 'Soon', icon: <Clock className="w-3.5 h-3.5" />, color: 'amber' },
+  { value: 'due_soon', label: 'Soon', icon: <Clock className="w-3.5 h-3.5" />, color: 'violet' },
   { value: 'overdue', label: 'Overdue', icon: <AlertTriangle className="w-3.5 h-3.5" />, color: 'rose' },
 ];
 
 // Secondary filters in "More" dropdown
 const secondaryFilters: { value: FilterOption; label: string; icon: React.ReactNode; color: string }[] = [
   { value: 'autopay', label: 'Auto-pay', icon: <CreditCard className="w-3.5 h-3.5" />, color: 'emerald' },
-  { value: 'manual', label: 'Manual', icon: <Hand className="w-3.5 h-3.5" />, color: 'orange' },
+  { value: 'manual', label: 'Manual', icon: <Hand className="w-3.5 h-3.5" />, color: 'violet' },
   { value: 'recurring', label: 'Recurring', icon: <RefreshCw className="w-3.5 h-3.5" />, color: 'violet' },
 ];
 
@@ -57,9 +57,9 @@ const filterColors: Record<string, { active: string; glow: string; icon: string 
     icon: 'text-violet-400',
   },
   amber: {
-    active: 'from-amber-500/25 to-amber-600/15 border-amber-400/50 text-amber-300',
+    active: 'from-violet-500/25 to-violet-600/15 border-violet-400/50 text-violet-300',
     glow: 'shadow-[0_0_20px_-4px_rgba(251,191,36,0.4),inset_0_1px_0_rgba(255,255,255,0.1)]',
-    icon: 'text-amber-400',
+    icon: 'text-violet-400',
   },
   rose: {
     active: 'from-rose-500/25 to-rose-600/15 border-rose-400/50 text-rose-300',
@@ -296,9 +296,9 @@ export function SortFilterBar({
           {/* More dropdown menu */}
           {isMoreOpen && (
             <div className="absolute top-full right-0 mt-2 z-50 min-w-[160px] animate-in fade-in slide-in-from-top-2 duration-200">
-              <div className="absolute -inset-1 bg-gradient-to-b from-amber-500/10 to-transparent rounded-2xl blur-xl" />
+              <div className="absolute -inset-1 bg-gradient-to-b from-violet-500/10 to-transparent rounded-2xl blur-xl" />
               <div className="relative py-1.5 bg-[#0a0a0e]/98 backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.8)]">
-                <div className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-amber-500/40 to-transparent" />
+                <div className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-violet-500/40 to-transparent" />
                 {secondaryFilters.map((filter) => {
                   const isActive = activeFilter === filter.value;
                   const colors = filterColors[filter.color];
@@ -313,7 +313,7 @@ export function SortFilterBar({
                         'w-full flex items-center gap-3 px-3 py-2.5 mx-1.5 rounded-lg text-sm transition-all duration-200',
                         'first:mt-1 last:mb-1',
                         isActive
-                          ? 'bg-gradient-to-r from-amber-500/15 to-transparent text-white'
+                          ? 'bg-gradient-to-r from-violet-500/15 to-transparent text-white'
                           : 'text-zinc-400 hover:bg-white/[0.05] hover:text-white'
                       )}
                       style={{ width: 'calc(100% - 12px)' }}
@@ -326,8 +326,8 @@ export function SortFilterBar({
                       </span>
                       <span className="flex-1 text-left">{filter.label}</span>
                       {isActive && (
-                        <div className="flex items-center justify-center w-5 h-5 rounded-full bg-amber-500/20">
-                          <Check className="w-3 h-3 text-amber-400" />
+                        <div className="flex items-center justify-center w-5 h-5 rounded-full bg-violet-500/20">
+                          <Check className="w-3 h-3 text-violet-400" />
                         </div>
                       )}
                     </button>
