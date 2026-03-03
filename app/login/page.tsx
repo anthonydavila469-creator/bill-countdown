@@ -28,9 +28,13 @@ export default function LoginPage() {
     router.refresh();
   }, [router]);
 
+  const handleAuthDismissed = useCallback(() => {
+    setIsLoading(false);
+  }, []);
+
   useEffect(() => {
-    return listenForAuthReturn(supabase, handleAuthReturn);
-  }, [supabase, handleAuthReturn]);
+    return listenForAuthReturn(supabase, handleAuthReturn, handleAuthDismissed);
+  }, [supabase, handleAuthReturn, handleAuthDismissed]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

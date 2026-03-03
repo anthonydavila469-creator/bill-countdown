@@ -33,9 +33,13 @@ export default function SignupPage() {
     router.refresh();
   }, [router]);
 
+  const handleAuthDismissed = useCallback(() => {
+    setIsLoading(false);
+  }, []);
+
   useEffect(() => {
-    return listenForAuthReturn(supabase, handleAuthReturn);
-  }, [supabase, handleAuthReturn]);
+    return listenForAuthReturn(supabase, handleAuthReturn, handleAuthDismissed);
+  }, [supabase, handleAuthReturn, handleAuthDismissed]);
 
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);

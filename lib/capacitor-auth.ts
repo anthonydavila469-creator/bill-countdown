@@ -61,6 +61,7 @@ export async function signInWithOAuthNative(
 export function listenForAuthReturn(
   supabase: SupabaseClient,
   onAuthenticated: () => void,
+  onDismissed?: () => void,
 ): () => void {
   if (!Capacitor.isNativePlatform()) return () => {};
 
@@ -106,6 +107,11 @@ export function listenForAuthReturn(
   const browserListener = Browser.addListener('browserFinished', async () => {
     await new Promise((r) => setTimeout(r, 1000));
     await tryResolveSession();
+    // If we didn't resolve (auth failed/cancelled), reset the loading state
+    if (!resolved && onDismissed) {
+      pendingTransferKey = null;
+      onDismissed();
+    }
   });
 
   // Listen for app returning to foreground
