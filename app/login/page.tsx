@@ -1,13 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
-import { Capacitor } from '@capacitor/core';
-import { Browser } from '@capacitor/browser';
+import { signInWithOAuthNative, listenForAuthReturn } from '@/lib/capacitor-auth';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -22,6 +21,16 @@ export default function LoginPage() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // On native: listen for return from OAuth browser and redirect if authenticated
+  const handleAuthReturn = useCallback(() => {
+    router.push('/dashboard');
+    router.refresh();
+  }, [router]);
+
+  useEffect(() => {
+    return listenForAuthReturn(supabase, handleAuthReturn);
+  }, [supabase, handleAuthReturn]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,36 +60,10 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     setIsLoading(true);
     try {
-      if (Capacitor.isNativePlatform()) {
-        const { data, error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: `${window.location.origin}/dashboard`,
-            skipBrowserRedirect: true,
-          },
-        });
-
-        if (error) {
-          setError(error.message);
-          setIsLoading(false);
-          return;
-        }
-
-        if (data?.url) {
-          await Browser.open({ url: data.url });
-        }
-      } else {
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: `${window.location.origin}/dashboard`,
-          },
-        });
-
-        if (error) {
-          setError(error.message);
-          setIsLoading(false);
-        }
+      const result = await signInWithOAuthNative(supabase, 'google');
+      if (result.error) {
+        setError(result.error);
+        setIsLoading(false);
       }
     } catch (err) {
       setError('An unexpected error occurred');
@@ -91,36 +74,10 @@ export default function LoginPage() {
   const handleAppleLogin = async () => {
     setIsLoading(true);
     try {
-      if (Capacitor.isNativePlatform()) {
-        const { data, error } = await supabase.auth.signInWithOAuth({
-          provider: 'apple',
-          options: {
-            redirectTo: `${window.location.origin}/dashboard`,
-            skipBrowserRedirect: true,
-          },
-        });
-
-        if (error) {
-          setError(error.message);
-          setIsLoading(false);
-          return;
-        }
-
-        if (data?.url) {
-          await Browser.open({ url: data.url });
-        }
-      } else {
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: 'apple',
-          options: {
-            redirectTo: `${window.location.origin}/dashboard`,
-          },
-        });
-
-        if (error) {
-          setError(error.message);
-          setIsLoading(false);
-        }
+      const result = await signInWithOAuthNative(supabase, 'apple');
+      if (result.error) {
+        setError(result.error);
+        setIsLoading(false);
       }
     } catch (err) {
       setError('An unexpected error occurred');
@@ -129,14 +86,6 @@ export default function LoginPage() {
   };
 
   // Show loading state until mounted to prevent hydration mismatch
-  if (!mounted) {
-    return (
-      <div className="min-h-screen bg-[#08080c] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-orange-500/30 border-t-orange-500 rounded-full animate-spin" />
-      </div>
-    );
-  }
-
   if (!mounted) {
     return (
       <div className="min-h-screen bg-[#08080c] flex items-center justify-center">

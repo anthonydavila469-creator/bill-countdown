@@ -9,12 +9,10 @@ import {
   Check,
   Info,
   RefreshCw,
-  Crown,
 } from 'lucide-react';
 import { NotificationSettings, DEFAULT_NOTIFICATION_SETTINGS } from '@/types';
 import { cn } from '@/lib/utils';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
-import { useSubscription } from '@/hooks/use-subscription';
 
 const REMINDER_DAY_OPTIONS = [
   { value: 7, label: '7 days before' },
@@ -136,13 +134,6 @@ export function NotificationSection() {
   const [settings, setSettings] = useState<NotificationSettings>(DEFAULT_NOTIFICATION_SETTINGS);
   const [isLoading, setIsLoading] = useState(true);
   const { isSupported, isSubscribed, subscribe, unsubscribe } = usePushNotifications();
-  const {
-    canUsePushNotifications,
-    canUseDailyAutoSync,
-    canCustomizeReminders,
-    showUpgradeModal,
-    upgradeCtasEnabled,
-  } = useSubscription();
 
   // Fetch settings on mount
   useEffect(() => {
@@ -181,13 +172,11 @@ export function NotificationSection() {
 
   const handlePushToggle = useCallback(async (enabled: boolean) => {
     if (enabled) {
-      // Request push permission and subscribe
       const success = await subscribe();
       if (success) {
         await updateSettings({ ...settings, push_enabled: true });
       }
     } else {
-      // Unsubscribe
       await unsubscribe();
       await updateSettings({ ...settings, push_enabled: false });
     }
@@ -198,7 +187,6 @@ export function NotificationSection() {
     const updated = current.includes(day)
       ? current.filter((d) => d !== day)
       : [...current, day].sort((a, b) => b - a);
-    // Keep at least one selected
     if (updated.length === 0) return;
     await updateSettings({ ...settings, reminder_days: updated, lead_days: Math.min(...updated) });
   }, [settings, updateSettings]);
@@ -248,69 +236,36 @@ export function NotificationSection() {
           />
         </FieldRow>
 
-        {/* Push Notifications - Pro Feature */}
+        {/* Push Notifications */}
         <FieldRow
           icon={Smartphone}
           label="Push Notifications"
           description={!isSupported ? 'Not supported on this device' : 'Get notified when bills are due'}
           index={1}
         >
-          <div className="flex items-center gap-3">
-            {!canUsePushNotifications && (
-              <span className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-500/20 border border-amber-500/30">
-                <Crown className="w-3 h-3 text-amber-400" />
-                <span className="text-[10px] font-semibold text-amber-300">Pro</span>
-              </span>
-            )}
-            <Toggle
-              enabled={settings.push_enabled && isSubscribed && canUsePushNotifications}
-              onChange={(enabled) => {
-                if (!canUsePushNotifications) {
-                  if (upgradeCtasEnabled) {
-                    showUpgradeModal('push notifications');
-                  }
-                  return;
-                }
-                handlePushToggle(enabled);
-              }}
-              disabled={!isSupported || (!canUsePushNotifications && !upgradeCtasEnabled)}
-              color="#f59e0b"
-            />
-          </div>
+          <Toggle
+            enabled={settings.push_enabled && isSubscribed}
+            onChange={handlePushToggle}
+            disabled={!isSupported}
+            color="#f59e0b"
+          />
         </FieldRow>
 
-        {/* Auto-Sync Bills - Pro Feature */}
+        {/* Auto-Sync Bills */}
         <FieldRow
           icon={RefreshCw}
           label="Auto-Sync Bills"
           description="Automatically scan Gmail for bills daily"
           index={2}
         >
-          <div className="flex items-center gap-3">
-            {!canUseDailyAutoSync && (
-              <span className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-500/20 border border-amber-500/30">
-                <Crown className="w-3 h-3 text-amber-400" />
-                <span className="text-[10px] font-semibold text-amber-300">Pro</span>
-              </span>
-            )}
-            <Toggle
-              enabled={(settings.auto_sync_enabled ?? false) && canUseDailyAutoSync}
-              onChange={(enabled) => {
-                if (!canUseDailyAutoSync) {
-                  if (upgradeCtasEnabled) {
-                    showUpgradeModal('daily auto-sync');
-                  }
-                  return;
-                }
-                handleAutoSyncToggle(enabled);
-              }}
-              disabled={!canUseDailyAutoSync && !upgradeCtasEnabled}
-              color="#10b981"
-            />
-          </div>
+          <Toggle
+            enabled={settings.auto_sync_enabled ?? false}
+            onChange={handleAutoSyncToggle}
+            color="#10b981"
+          />
         </FieldRow>
 
-        {/* Reminder Timing - Multi-select - Pro Feature */}
+        {/* Reminder Timing - Multi-select */}
         <div
           className="group p-4 bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.06] hover:border-white/[0.1] rounded-2xl transition-all duration-300 animate-in fade-in slide-in-from-bottom-2"
           style={{ animationDelay: '225ms', animationFillMode: 'backwards' }}
@@ -325,12 +280,6 @@ export function NotificationSection() {
                 <p className="text-sm text-zinc-500">When to send reminders</p>
               </div>
             </div>
-            {!canCustomizeReminders && (
-              <span className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-500/20 border border-amber-500/30">
-                <Crown className="w-3 h-3 text-amber-400" />
-                <span className="text-[10px] font-semibold text-amber-300">Pro</span>
-              </span>
-            )}
           </div>
           <div className="grid grid-cols-2 gap-2 ml-14">
             {REMINDER_DAY_OPTIONS.map((opt) => {
@@ -340,22 +289,12 @@ export function NotificationSection() {
                 <button
                   key={opt.value}
                   type="button"
-                  onClick={() => {
-                    if (!canCustomizeReminders) {
-                      if (upgradeCtasEnabled) {
-                        showUpgradeModal('custom reminders');
-                      }
-                      return;
-                    }
-                    handleReminderDaysToggle(opt.value);
-                  }}
-                  disabled={!canCustomizeReminders && !upgradeCtasEnabled}
+                  onClick={() => handleReminderDaysToggle(opt.value)}
                   className={cn(
                     'flex items-center gap-2 px-3 py-2.5 h-11 rounded-xl text-sm font-medium transition-all duration-200 border',
                     isActive
                       ? 'bg-orange-500/15 border-orange-500/30 text-orange-300'
-                      : 'bg-white/[0.02] border-white/[0.06] text-zinc-500 hover:text-zinc-300 hover:border-white/[0.1]',
-                    !canCustomizeReminders && 'opacity-50 cursor-not-allowed'
+                      : 'bg-white/[0.02] border-white/[0.06] text-zinc-500 hover:text-zinc-300 hover:border-white/[0.1]'
                   )}
                 >
                   <div

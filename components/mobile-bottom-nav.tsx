@@ -3,21 +3,19 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutGrid, Calendar, History, Settings, Crown } from 'lucide-react';
-import { useSubscription } from '@/hooks/use-subscription';
+import { LayoutGrid, Calendar, History, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/dashboard', label: 'Home', icon: LayoutGrid },
-  { href: '/dashboard/calendar', label: 'Calendar', icon: Calendar, proFeature: 'calendar' as const },
-  { href: '/dashboard/history', label: 'History', icon: History, proFeature: 'history' as const },
+  { href: '/dashboard/calendar', label: 'Calendar', icon: Calendar },
+  { href: '/dashboard/history', label: 'History', icon: History },
   { href: '/dashboard/settings', label: 'Settings', icon: Settings },
 ];
 
 export function MobileBottomNav() {
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
-  const { canUseCalendar, canUseHistory } = useSubscription();
 
   // Only render after hydration to avoid mismatch
   useEffect(() => {
@@ -25,12 +23,6 @@ export function MobileBottomNav() {
   }, []);
 
   if (!mounted) return null;
-
-  const isProLocked = (feature?: 'calendar' | 'history') => {
-    if (feature === 'calendar') return !canUseCalendar;
-    if (feature === 'history') return !canUseHistory;
-    return false;
-  };
 
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50" style={{ position: 'fixed', bottom: 0, transform: 'translate3d(0,0,0)', WebkitTransform: 'translate3d(0,0,0)' }}>
@@ -43,7 +35,6 @@ export function MobileBottomNav() {
             const isActive = item.href === '/dashboard'
               ? pathname === '/dashboard'
               : pathname.startsWith(item.href);
-            const locked = isProLocked(item.proFeature);
             const Icon = item.icon;
 
             return (
@@ -67,9 +58,6 @@ export function MobileBottomNav() {
                     'w-5 h-5 transition-colors duration-200',
                     isActive && 'text-orange-400'
                   )} />
-                  {locked && (
-                    <Crown className="absolute -top-1.5 -right-2 w-3 h-3 text-amber-400" />
-                  )}
                 </div>
 
                 <span className={cn(

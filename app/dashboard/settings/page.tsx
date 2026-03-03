@@ -26,17 +26,14 @@ import {
   ExternalLink,
   Lightbulb,
   RefreshCw,
-  Crown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BillImportModal } from '@/components/bill-import-modal';
 import { CustomizationSection } from '@/components/settings/customization-section';
 import { NotificationSection } from '@/components/settings/notification-section';
-import { SubscriptionSection } from '@/components/settings/subscription-section';
 import { DeleteAccountModal } from '@/components/settings/delete-account-modal';
 import { ParsedBill } from '@/types';
 import { useBillsContext } from '@/contexts/bills-context';
-import { useSubscription } from '@/hooks/use-subscription';
 
 // Premium section header component - matches CustomizationSection
 function SectionHeader({
@@ -238,7 +235,6 @@ export default function SettingsPage() {
   const router = useRouter();
   const supabase = createClient();
   const { refetch } = useBillsContext();
-  const { isPro, canUseCalendar, canUseHistory } = useSubscription();
 
   // Auth state
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
@@ -431,12 +427,6 @@ export default function SettingsPage() {
               >
                 <Calendar className="w-5 h-5" />
                 Calendar
-                {!canUseCalendar && (
-                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30 ml-auto">
-                    <Crown className="w-3 h-3 text-amber-400" />
-                    <span className="text-[10px] font-semibold text-amber-300">Pro</span>
-                  </span>
-                )}
               </Link>
             </li>
             <li>
@@ -446,27 +436,6 @@ export default function SettingsPage() {
               >
                 <History className="w-5 h-5" />
                 History
-                {!canUseHistory && (
-                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30 ml-auto">
-                    <Crown className="w-3 h-3 text-amber-400" />
-                    <span className="text-[10px] font-semibold text-amber-300">Pro</span>
-                  </span>
-                )}
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/dashboard/insights"
-                className="flex items-center gap-3 px-3 py-2 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-              >
-                <Lightbulb className="w-5 h-5" />
-                Insights
-                {!canUseHistory && (
-                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30 ml-auto">
-                    <Crown className="w-3 h-3 text-amber-400" />
-                    <span className="text-[10px] font-semibold text-amber-300">Pro</span>
-                  </span>
-                )}
               </Link>
             </li>
             <li>
@@ -746,11 +715,6 @@ export default function SettingsPage() {
             <CustomizationSection />
           </section>
 
-          {/* Subscription */}
-          <section>
-            <SubscriptionSection />
-          </section>
-
           {/* Account */}
           <section>
             <SectionHeader
@@ -789,24 +753,6 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                {/* Account badge */}
-                <div className={cn(
-                  "hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full border",
-                  isPro
-                    ? "bg-amber-500/10 border-amber-500/20"
-                    : "bg-white/[0.04] border-white/[0.08]"
-                )}>
-                  <div className={cn(
-                    "w-1.5 h-1.5 rounded-full",
-                    isPro ? "bg-amber-400" : "bg-orange-400"
-                  )} />
-                  <span className={cn(
-                    "text-xs font-medium uppercase tracking-wider",
-                    isPro ? "text-amber-400" : "text-zinc-400"
-                  )}>
-                    {isPro ? "Pro Plan" : "Free Plan"}
-                  </span>
-                </div>
               </div>
 
               <button

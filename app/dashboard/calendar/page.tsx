@@ -24,16 +24,11 @@ import {
   Mail,
   History,
   Loader2,
-  Lightbulb,
-  Crown,
 } from 'lucide-react';
-import { ProFeatureGate } from '@/components/pro-feature-gate';
-import { useSubscription } from '@/hooks/use-subscription';
 
 export default function CalendarPage() {
   const router = useRouter();
   const supabase = createClient();
-  const { canUseCalendar, canUseHistory } = useSubscription();
 
   // Auth state
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
@@ -176,12 +171,6 @@ export default function CalendarPage() {
   // Skip full-page loading state to prevent flash - content loads quickly
 
   return (
-    <ProFeatureGate
-      feature="calendar"
-      featureName="Calendar View"
-      featureDescription="See all your bills laid out on a calendar to better plan your month."
-      icon={Calendar}
-    >
     <div className="min-h-screen bg-[#08080c]">
       {/* Sidebar */}
       <aside className="fixed left-0 top-0 bottom-0 w-64 bg-[#0c0c10] border-r border-white/5 hidden lg:flex flex-col">
@@ -220,12 +209,6 @@ export default function CalendarPage() {
               >
                 <Calendar className="w-5 h-5" />
                 Calendar
-                {!canUseCalendar && (
-                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30 ml-auto">
-                    <Crown className="w-3 h-3 text-amber-400" />
-                    <span className="text-[10px] font-semibold text-amber-300">Pro</span>
-                  </span>
-                )}
               </Link>
             </li>
             <li>
@@ -235,27 +218,6 @@ export default function CalendarPage() {
               >
                 <History className="w-5 h-5" />
                 History
-                {!canUseHistory && (
-                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30 ml-auto">
-                    <Crown className="w-3 h-3 text-amber-400" />
-                    <span className="text-[10px] font-semibold text-amber-300">Pro</span>
-                  </span>
-                )}
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/dashboard/insights"
-                className="flex items-center gap-3 px-3 py-2 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-              >
-                <Lightbulb className="w-5 h-5" />
-                Insights
-                {!canUseHistory && (
-                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30 ml-auto">
-                    <Crown className="w-3 h-3 text-amber-400" />
-                    <span className="text-[10px] font-semibold text-amber-300">Pro</span>
-                  </span>
-                )}
               </Link>
             </li>
             <li>
@@ -390,6 +352,5 @@ export default function CalendarPage() {
         onMarkPaid={handleMarkAsPaid}
       />
     </div>
-    </ProFeatureGate>
   );
 }

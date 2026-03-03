@@ -1,19 +1,18 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, User, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
-import { Capacitor } from '@capacitor/core';
-import { Browser } from '@capacitor/browser';
+import { signInWithOAuthNative, listenForAuthReturn } from '@/lib/capacitor-auth';
 
 const benefits = [
   'AI-powered bill detection from your email',
   'Beautiful countdown cards for each bill',
   'Smart reminders before due dates',
-  'Free forever for up to 5 bills',
+  'Free to use — track all your bills',
 ];
 
 export default function SignupPage() {
@@ -27,6 +26,17 @@ export default function SignupPage() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // On native: listen for return from OAuth browser and redirect if authenticated
+  const handleAuthReturn = useCallback(() => {
+    router.push('/dashboard');
+    router.refresh();
+  }, [router]);
+
+  useEffect(() => {
+    return listenForAuthReturn(supabase, handleAuthReturn);
+  }, [supabase, handleAuthReturn]);
+
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -66,36 +76,10 @@ export default function SignupPage() {
   const handleGoogleSignup = async () => {
     setIsLoading(true);
     try {
-      if (Capacitor.isNativePlatform()) {
-        const { data, error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: `${window.location.origin}/dashboard`,
-            skipBrowserRedirect: true,
-          },
-        });
-
-        if (error) {
-          setError(error.message);
-          setIsLoading(false);
-          return;
-        }
-
-        if (data?.url) {
-          await Browser.open({ url: data.url });
-        }
-      } else {
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: `${window.location.origin}/dashboard`,
-          },
-        });
-
-        if (error) {
-          setError(error.message);
-          setIsLoading(false);
-        }
+      const result = await signInWithOAuthNative(supabase, 'google');
+      if (result.error) {
+        setError(result.error);
+        setIsLoading(false);
       }
     } catch (err) {
       setError('An unexpected error occurred');
@@ -106,36 +90,10 @@ export default function SignupPage() {
   const handleAppleSignup = async () => {
     setIsLoading(true);
     try {
-      if (Capacitor.isNativePlatform()) {
-        const { data, error } = await supabase.auth.signInWithOAuth({
-          provider: 'apple',
-          options: {
-            redirectTo: `${window.location.origin}/dashboard`,
-            skipBrowserRedirect: true,
-          },
-        });
-
-        if (error) {
-          setError(error.message);
-          setIsLoading(false);
-          return;
-        }
-
-        if (data?.url) {
-          await Browser.open({ url: data.url });
-        }
-      } else {
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: 'apple',
-          options: {
-            redirectTo: `${window.location.origin}/dashboard`,
-          },
-        });
-
-        if (error) {
-          setError(error.message);
-          setIsLoading(false);
-        }
+      const result = await signInWithOAuthNative(supabase, 'apple');
+      if (result.error) {
+        setError(result.error);
+        setIsLoading(false);
       }
     } catch (err) {
       setError('An unexpected error occurred');

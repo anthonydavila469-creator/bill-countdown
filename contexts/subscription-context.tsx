@@ -3,51 +3,34 @@
 import {
   createContext,
   useContext,
-  useEffect,
-  useState,
-  useCallback,
   ReactNode,
 } from 'react';
-import { Capacitor } from '@capacitor/core';
 import { SubscriptionStatus, SubscriptionPlan } from '@/types';
 
-// Feature limits for free tier
-export const FREE_TIER_LIMITS = {
-  MAX_BILLS: 5,
-  MAX_GMAIL_SYNCS: 1,
-} as const;
-
-// Pricing info
-export const PRICING = {
-  MONTHLY: 4.99,
-  YEARLY: 39.99,
-  YEARLY_SAVINGS: 33, // percent
-} as const;
-
 export interface SubscriptionState {
-  // Core status
+  // Core status — always Pro (free app)
   isPro: boolean;
   subscriptionStatus: SubscriptionStatus;
   subscriptionPlan: SubscriptionPlan;
   currentPeriodEnd: string | null;
   cancelAtPeriodEnd: boolean;
 
-  // Trial
+  // Trial — disabled
   trialEndsAt: string | null;
   isTrialing: boolean;
   trialDaysLeft: number;
 
-  // Usage tracking
+  // Usage tracking — unlimited
   billsUsed: number;
   gmailSyncsUsed: number;
 
-  // Computed limits
+  // Computed limits — unlimited
   billLimit: number;
   canAddBill: boolean;
   gmailSyncsAllowed: number;
   canSyncGmail: boolean;
 
-  // Feature flags
+  // Feature flags — all enabled
   canUseCalendar: boolean;
   canUsePaymentLinks: boolean;
   canUsePaycheckMode: boolean;
@@ -66,13 +49,13 @@ export interface SubscriptionState {
 }
 
 interface SubscriptionContextValue extends SubscriptionState {
-  // Actions
+  // Actions (no-ops in free app)
   showUpgradeModal: (feature: string) => void;
   hideUpgradeModal: () => void;
   refreshSubscription: () => Promise<void>;
   incrementGmailSyncs: () => Promise<void>;
 
-  // Modal state
+  // Modal state — always closed
   upgradeModalOpen: boolean;
   upgradeModalFeature: string | null;
 }
@@ -84,165 +67,60 @@ interface SubscriptionProviderProps {
 }
 
 export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
-  // Core status
-  const [isPro, setIsPro] = useState(false);
-  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus>('free');
-  const [subscriptionPlan, setSubscriptionPlan] = useState<SubscriptionPlan>(null);
-  const [currentPeriodEnd, setCurrentPeriodEnd] = useState<string | null>(null);
-  const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
+  // Everything is unlocked — free app with full access
+  const value: SubscriptionContextValue = {
+    // Core status — treat as Pro
+    isPro: true,
+    subscriptionStatus: 'active',
+    subscriptionPlan: null,
+    currentPeriodEnd: null,
+    cancelAtPeriodEnd: false,
 
-  // Trial
-  const [trialEndsAt, setTrialEndsAt] = useState<string | null>(null);
-  const [isTrialing, setIsTrialing] = useState(false);
-  const [trialDaysLeft, setTrialDaysLeft] = useState(0);
+    // Trial — disabled
+    trialEndsAt: null,
+    isTrialing: false,
+    trialDaysLeft: 0,
 
-  // Usage tracking
-  const [billsUsed, setBillsUsed] = useState(0);
-  const [gmailSyncsUsed, setGmailSyncsUsed] = useState(0);
+    // Usage — unlimited
+    billsUsed: 0,
+    gmailSyncsUsed: 0,
 
-  // Loading and modal state
-  const [isLoading, setIsLoading] = useState(true);
-  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
-  const [upgradeModalFeature, setUpgradeModalFeature] = useState<string | null>(null);
-  const [isIosApp, setIsIosApp] = useState(false);
+    // Limits — unlimited
+    billLimit: Infinity,
+    canAddBill: true,
+    gmailSyncsAllowed: Infinity,
+    canSyncGmail: true,
 
-  // Fetch subscription status
-  const refreshSubscription = useCallback(async () => {
-    try {
-      const response = await fetch('/api/stripe/status');
-      if (!response.ok) {
-        return;
-      }
+    // All features enabled
+    canUseCalendar: true,
+    canUsePaymentLinks: true,
+    canUsePaycheckMode: true,
+    canUseHistory: true,
+    canUseVariableBills: true,
+    canCustomizeReminders: true,
+    canUsePushNotifications: true,
+    canUseDailyAutoSync: true,
 
-      const data = await response.json();
-      setIsPro(data.isPro ?? false);
-      setSubscriptionStatus(data.subscriptionStatus ?? 'free');
-      setSubscriptionPlan(data.subscriptionPlan ?? null);
-      setCurrentPeriodEnd(data.currentPeriodEnd ?? null);
-      setCancelAtPeriodEnd(data.cancelAtPeriodEnd ?? false);
-      setBillsUsed(data.billsUsed ?? 0);
-      setGmailSyncsUsed(data.gmailSyncsUsed ?? 0);
-      setTrialEndsAt(data.trialEndsAt ?? null);
-      setIsTrialing(data.isTrialing ?? false);
-      setTrialDaysLeft(data.trialDaysLeft ?? 0);
-    } catch (error) {
-      console.error('Failed to fetch subscription status:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+    // Never loading
+    isLoading: false,
 
-  useEffect(() => {
-    refreshSubscription();
-  }, [refreshSubscription]);
+    // No upgrade CTAs
+    isIosApp: false,
+    upgradeCtasEnabled: false,
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      const isNative = Capacitor.isNativePlatform();
-      setIsIosApp(isNative && Capacitor.getPlatform() === 'ios');
-    } catch (error) {
-      console.warn('Failed to detect platform:', error);
-    }
-  }, []);
+    // Modal — always closed
+    upgradeModalOpen: false,
+    upgradeModalFeature: null,
 
-  // Increment gmail syncs counter
-  const incrementGmailSyncs = useCallback(async () => {
-    try {
-      await fetch('/api/preferences', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ gmail_syncs_used: gmailSyncsUsed + 1 }),
-      });
-      setGmailSyncsUsed(prev => prev + 1);
-    } catch (error) {
-      console.error('Failed to increment gmail syncs:', error);
-    }
-  }, [gmailSyncsUsed]);
-
-  // Modal controls
-  const showUpgradeModal = useCallback((feature: string) => {
-    if (isIosApp) return;
-    setUpgradeModalFeature(feature);
-    setUpgradeModalOpen(true);
-  }, [isIosApp]);
-
-  const hideUpgradeModal = useCallback(() => {
-    setUpgradeModalOpen(false);
-    setUpgradeModalFeature(null);
-  }, []);
-
-  // Computed values — trial counts as pro
-  const effectiveIsPro = isPro || isTrialing;
-  const billLimit = effectiveIsPro ? Infinity : FREE_TIER_LIMITS.MAX_BILLS;
-  const canAddBill = effectiveIsPro || billsUsed < FREE_TIER_LIMITS.MAX_BILLS;
-  const gmailSyncsAllowed = effectiveIsPro ? Infinity : FREE_TIER_LIMITS.MAX_GMAIL_SYNCS;
-  const canSyncGmail = effectiveIsPro || gmailSyncsUsed < FREE_TIER_LIMITS.MAX_GMAIL_SYNCS;
-
-  // Feature flags — gated by effectiveIsPro (paid OR trialing)
-  const canUseCalendar = effectiveIsPro;
-  const canUsePaymentLinks = effectiveIsPro;
-  const canUsePaycheckMode = effectiveIsPro;
-  const canUseHistory = effectiveIsPro;
-  const canUseVariableBills = effectiveIsPro;
-  const canCustomizeReminders = effectiveIsPro;
-  const canUsePushNotifications = effectiveIsPro;
-  const canUseDailyAutoSync = effectiveIsPro;
-  const upgradeCtasEnabled = !isIosApp;
+    // No-op actions
+    showUpgradeModal: () => {},
+    hideUpgradeModal: () => {},
+    refreshSubscription: async () => {},
+    incrementGmailSyncs: async () => {},
+  };
 
   return (
-    <SubscriptionContext.Provider
-      value={{
-        // Core status
-        isPro: effectiveIsPro,
-        subscriptionStatus,
-        subscriptionPlan,
-        currentPeriodEnd,
-        cancelAtPeriodEnd,
-
-        // Trial
-        trialEndsAt,
-        isTrialing,
-        trialDaysLeft,
-
-        // Usage tracking
-        billsUsed,
-        gmailSyncsUsed,
-
-        // Computed limits
-        billLimit,
-        canAddBill,
-        gmailSyncsAllowed,
-        canSyncGmail,
-
-        // Feature flags
-        canUseCalendar,
-        canUsePaymentLinks,
-        canUsePaycheckMode,
-        canUseHistory,
-        canUseVariableBills,
-        canCustomizeReminders,
-        canUsePushNotifications,
-        canUseDailyAutoSync,
-
-        // Loading state
-        isLoading,
-
-        // Platform flags
-        isIosApp,
-        upgradeCtasEnabled,
-
-        // Modal state
-        upgradeModalOpen,
-        upgradeModalFeature,
-
-        // Actions
-        showUpgradeModal,
-        hideUpgradeModal,
-        refreshSubscription,
-        incrementGmailSyncs,
-      }}
-    >
+    <SubscriptionContext.Provider value={value}>
       {children}
     </SubscriptionContext.Provider>
   );
