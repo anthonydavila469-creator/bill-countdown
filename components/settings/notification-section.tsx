@@ -240,13 +240,28 @@ export function NotificationSection() {
         <FieldRow
           icon={Smartphone}
           label="Push Notifications"
-          description={!isSupported ? 'Not supported on this device' : 'Get notified when bills are due'}
+          description="Get notified when bills are due"
           index={1}
         >
           <Toggle
-            enabled={settings.push_enabled && isSubscribed}
-            onChange={handlePushToggle}
-            disabled={!isSupported}
+            enabled={settings.push_enabled}
+            onChange={async (enabled) => {
+              if (isSupported && enabled) {
+                const success = await subscribe();
+                if (success) {
+                  await updateSettings({ ...settings, push_enabled: true });
+                } else {
+                  // Save preference even if subscription fails
+                  await updateSettings({ ...settings, push_enabled: true });
+                }
+              } else if (isSupported && !enabled) {
+                await unsubscribe();
+                await updateSettings({ ...settings, push_enabled: false });
+              } else {
+                // Not supported — still save the preference
+                await updateSettings({ ...settings, push_enabled: enabled });
+              }
+            }}
             color="#8b5cf6"
           />
         </FieldRow>
