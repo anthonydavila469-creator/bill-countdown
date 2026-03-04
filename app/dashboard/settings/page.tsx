@@ -723,6 +723,33 @@ export default function SettingsPage() {
             <CustomizationSection />
           </section>
 
+          {/* Support */}
+          <section>
+            <SectionHeader
+              icon={User}
+              iconGradient="from-blue-500/80 to-cyan-500/80"
+              title="Support"
+              description="Get help with Duezo"
+            />
+            <div className="mt-3 rounded-2xl overflow-hidden border border-white/[0.06] bg-white/[0.03]">
+              <a
+                href="mailto:support@duezo.app"
+                className="flex items-center justify-between px-4 py-4 hover:bg-white/[0.04] transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
+                    <span className="text-blue-400 text-sm">✉️</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-white">Contact Support</p>
+                    <p className="text-xs text-zinc-500">support@duezo.app</p>
+                  </div>
+                </div>
+                <span className="text-zinc-600 text-xs">→</span>
+              </a>
+            </div>
+          </section>
+
           {/* Account */}
           <section>
             <SectionHeader
