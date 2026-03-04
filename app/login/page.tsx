@@ -77,14 +77,24 @@ export default function LoginPage() {
 
   const handleAppleLogin = async () => {
     setIsLoading(true);
+    setError('');
+
+    // Safety timeout — if Apple auth hangs or is dismissed, reset after 30s
+    const timeout = setTimeout(() => {
+      setIsLoading(false);
+    }, 30000);
+
     try {
       const result = await signInWithOAuthNative(supabase, 'apple');
+      clearTimeout(timeout);
       if (result.error) {
         setError(result.error);
         setIsLoading(false);
       }
+      // On success, navigation happens automatically — no need to setIsLoading(false)
     } catch (err) {
-      setError('An unexpected error occurred');
+      clearTimeout(timeout);
+      setError('Apple Sign In was cancelled or failed. Please try again.');
       setIsLoading(false);
     }
   };
