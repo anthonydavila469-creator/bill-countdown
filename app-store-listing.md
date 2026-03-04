@@ -1,72 +1,59 @@
-# Duezo — App Store Listing
+# Duezo — App Store Listing (v1.0 Submission)
 
 ## App Name
-**Duezo — Bill Reminders**
-_(24 characters)_
+**Duezo — Bill Reminder & Tracker**
+_(30 characters)_
 
 ## Subtitle
-**Smart bill tracking from Gmail**
-_(30 characters)_
+**Never miss a bill again**
+_(25 characters)_
 
 ## Description
 
-Late fees are literally throwing money away. Duezo makes sure that never happens again.
+Late fees are money you didn't have to lose. Duezo makes sure that never happens again.
 
-Connect your Gmail and let Duezo's AI do the work. It scans your inbox, finds your bills, and pulls out exactly what you need — who you owe, how much, and when it's due. No manual entry. No spreadsheets. Just open the app and see what's coming.
+Add your bills once and Duezo counts down to every due date — so you always know exactly what's coming and when.
 
 **How it works:**
 
-→ Connect Gmail in one tap
-→ AI extracts bills automatically — amounts, due dates, payees
-→ Countdown timers show exactly how many days you have
-→ Reminders hit at 7, 3, and 1 day before each due date
+→ Add bills in seconds — name, amount, due date
+→ Countdown timers show exactly how many days you have left
+→ Color-coded urgency — green to red as due dates approach
+→ Calendar view shows your whole month at a glance
 → Home screen widget keeps your next bill front and center
+→ Track payment history so nothing slips through
 
-That's it. You stop forgetting. You stop paying late fees. You stop that low-key anxiety of "wait, did I pay that?"
-
-**What you get free:**
-• Track up to 5 bills
-• 1 manual Gmail sync
-• Countdown timers + reminders
+**What you get:**
+• Unlimited bill tracking
+• Countdown timers for every bill
+• Calendar view
 • Home screen widget
+• Payment history
+• Multiple themes to personalize your experience
 
-**What Pro unlocks:**
-• Unlimited bills
-• Auto-sync — new bills found automatically
-• Push notifications so nothing slips
-• Calendar view to see your whole month
-• Spending history to track where your money goes
-
-Pro is $4.99/month or $39.99/year. Try it free for 14 days — no credit card required. Cancel anytime.
-
-Duezo was built for people who are good with money but bad with dates. You don't need a budgeting app. You don't need a finance course. You just need to know what's due and when.
+Duezo was built for people who are good with money but bad with dates. No bank connection required. No subscription needed. Just open the app and see what's due.
 
 Download Duezo. Never pay a late fee again.
 
 ## Keywords
-`bills,bill reminder,due date,bill tracker,payment reminder,countdown,late fee,Gmail,bill pay,finance`
-_(97 characters)_
+`bills,bill reminder,due date,bill tracker,payment reminder,countdown,late fee,bill pay,finance,budget`
+_(100 characters)_
 
 ## Promotional Text
-**Duezo scans your Gmail with AI to find every bill — amounts, due dates, everything. Countdown timers + smart reminders mean you'll never pay a late fee again. Try Pro free for 14 days.**
-_(170 characters — adjust if over)_
-
-Let me recount:
-**AI scans your Gmail, finds your bills, and counts down to every due date. Smart reminders at 7, 3, and 1 day out. Try Pro free 14 days — no credit card needed.**
-_(164 characters)_
+**Track every bill with a countdown timer. See exactly how many days until each payment is due — never pay a late fee again.**
+_(125 characters)_
 
 ## What's New — v1.0
 🎉 Welcome to Duezo!
 
-• AI-powered Gmail scanning — bills found automatically
-• Countdown timers for every due date
-• Smart reminders at 7, 3, and 1 day before
+• Countdown timers for every bill
+• Calendar view to see your whole month
 • Home screen widget
-• Pro: unlimited bills, auto-sync, calendar view, spending history
-• 14-day free Pro trial — no credit card required
+• Color-coded urgency indicators
+• Payment history tracking
+• 9 themes to personalize your experience
 
-## Screenshot Captions
-
-1. **"Your bills, counted down."**
-2. **"AI finds them. You just pay."**
-3. **"Widget. Glance. Done."**
+## Privacy
+- No bank account connection required
+- Bills stored securely in your account
+- See Privacy Policy at duezo.app/privacy
