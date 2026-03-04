@@ -104,8 +104,20 @@ export function listenForAuthReturn(
   };
 
   // Listen for browser closed event (SFSafariViewController dismissed)
+  // Listen for pages loading inside the SFSafariViewController.
+  // When the auth callback page loads ("Returning to Duezo..."), the server has
+  // already stored the tokens — we can fetch them and close the browser immediately.
+  // This fires for every page load inside the SFVC (including the Apple auth page
+  // itself), but tryResolveSession is a no-op until tokens exist.
+  const pageLoadedListener = Browser.addListener('browserPageLoaded', async () => {
+    if (resolved || !pendingTransferKey) return;
+    // Wait briefly for the server to finish writing the token row
+    await new Promise((r) => setTimeout(r, 800));
+    await tryResolveSession();
+  });
+
   const browserListener = Browser.addListener('browserFinished', async () => {
-    await new Promise((r) => setTimeout(r, 1000));
+    await new Promise((r) => setTimeout(r, 500));
     await tryResolveSession();
     // If we didn't resolve (auth failed/cancelled), reset the loading state
     if (!resolved && onDismissed) {
@@ -119,6 +131,7 @@ export function listenForAuthReturn(
 
   return () => {
     document.removeEventListener('visibilitychange', checkSession);
+    pageLoadedListener.then(h => h.remove()).catch(() => {});
     browserListener.then(h => h.remove()).catch(() => {});
   };
 }
