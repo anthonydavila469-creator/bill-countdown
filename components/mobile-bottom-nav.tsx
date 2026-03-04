@@ -3,13 +3,12 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutGrid, Calendar, Wallet, History, Settings } from 'lucide-react';
+import { LayoutGrid, Calendar, History, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/dashboard', label: 'Home', icon: LayoutGrid },
   { href: '/dashboard/calendar', label: 'Calendar', icon: Calendar },
-  { href: '/dashboard/paycheck', label: 'Paycheck', icon: Wallet },
   { href: '/dashboard/history', label: 'History', icon: History },
   { href: '/dashboard/settings', label: 'Settings', icon: Settings },
 ];
