@@ -59,7 +59,6 @@ export default function DashboardPage() {
   const { dashboardLayout, updateDashboardLayout } = useTheme();
   const {
     canAddBill,
-    canUsePaycheckMode,
     refreshSubscription,
   } = useSubscription();
 
@@ -562,7 +561,7 @@ export default function DashboardPage() {
         {/* Dashboard content */}
         <div className="p-6">
 
-          {/* On-Time Payments Counter - placed below Paycheck Mode widget */}
+          {/* On-Time Payments Counter */}
           <OnTimePayments bills={bills} className="mb-6" />
 
           {/* Stats - conditionally rendered based on layout preferences */}

@@ -33,7 +33,6 @@ export interface SubscriptionState {
   // Feature flags — all enabled
   canUseCalendar: boolean;
   canUsePaymentLinks: boolean;
-  canUsePaycheckMode: boolean;
   canUseHistory: boolean;
   canUseVariableBills: boolean;
   canCustomizeReminders: boolean;
@@ -94,7 +93,6 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     // All features enabled
     canUseCalendar: true,
     canUsePaymentLinks: true,
-    canUsePaycheckMode: true,
     canUseHistory: true,
     canUseVariableBills: true,
     canCustomizeReminders: true,

@@ -45,7 +45,7 @@ export function OnboardingScreen({
   );
   const [setupOptions, setSetupOptions] = useState<SetupOptions>({
     autopayTracking: false,
-    paycheckMode: false,
+
     emailReminders: false,
   });
   const [isCreating, setIsCreating] = useState(false);

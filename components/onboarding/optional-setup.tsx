@@ -1,11 +1,10 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { CreditCard, Wallet, Bell } from 'lucide-react';
+import { CreditCard, Bell } from 'lucide-react';
 
 export interface SetupOptions {
   autopayTracking: boolean;
-  paycheckMode: boolean;
   emailReminders: boolean;
 }
 
@@ -35,17 +34,6 @@ export function OptionalSetup({ options, onChange }: OptionalSetupProps) {
         index={0}
       />
 
-      {/* Paycheck Mode */}
-      <SetupCard
-        icon={Wallet}
-        iconGradient="from-violet-500 to-violet-500"
-        title="Paycheck Mode"
-        description="See which bills are due before your next payday"
-        enabled={options.paycheckMode}
-        onToggle={() => toggleOption('paycheckMode')}
-        index={1}
-      />
-
       {/* Email Reminders */}
       <SetupCard
         icon={Bell}
@@ -54,7 +42,7 @@ export function OptionalSetup({ options, onChange }: OptionalSetupProps) {
         description="Get notified before bills are due"
         enabled={options.emailReminders}
         onToggle={() => toggleOption('emailReminders')}
-        index={2}
+        index={1}
       />
     </div>
   );

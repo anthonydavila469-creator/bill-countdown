@@ -733,7 +733,7 @@ export default function SettingsPage() {
             />
             <div className="mt-3 rounded-2xl overflow-hidden border border-white/[0.06] bg-white/[0.03]">
               <a
-                href="mailto:support@duezo.app"
+                href="mailto:noemi.services@outlook.com"
                 className="flex items-center justify-between px-4 py-4 hover:bg-white/[0.04] transition-colors"
               >
                 <div className="flex items-center gap-3">
@@ -742,7 +742,7 @@ export default function SettingsPage() {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-white">Contact Support</p>
-                    <p className="text-xs text-zinc-500">support@duezo.app</p>
+                    <p className="text-xs text-zinc-500">noemi.services@outlook.com</p>
                   </div>
                 </div>
                 <span className="text-zinc-600 text-xs">→</span>

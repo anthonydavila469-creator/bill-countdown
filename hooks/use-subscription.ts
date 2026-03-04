@@ -64,7 +64,6 @@ export function useFeatureGate(feature: string) {
   const featureMap: Record<string, boolean> = {
     calendar: subscription.canUseCalendar,
     'payment-links': subscription.canUsePaymentLinks,
-    'paycheck-mode': subscription.canUsePaycheckMode,
     history: subscription.canUseHistory,
     analytics: subscription.canUseHistory,
     'variable-bills': subscription.canUseVariableBills,
