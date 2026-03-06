@@ -11,7 +11,7 @@ import { DeleteBillModal } from '@/components/delete-bill-modal';
 import { BillDetailModal } from '@/components/bill-detail-modal';
 import { PayNowModal } from '@/components/pay-now-modal';
 import { Bill } from '@/types';
-import { getDaysUntilDue, formatCurrency, getUrgency } from '@/lib/utils';
+import { getDaysUntilDue, formatCurrency, getUrgency, hexToRgba } from '@/lib/utils';
 import { getBillIcon } from '@/lib/get-bill-icon';
 import { RecurringDetectionBanner } from '@/components/recurring-detection-banner';
 import { NotificationBell } from '@/components/notification-bell';
@@ -111,10 +111,12 @@ function TimelineBillRow({
   bill,
   onClick,
   onMarkPaid,
+  accentColor,
 }: {
   bill: Bill;
   onClick: () => void;
   onMarkPaid: (bill: Bill) => void;
+  accentColor: string;
 }) {
   const daysLeft = getDaysUntilDue(bill.due_date);
   const urgency = getUrgency(daysLeft);
@@ -132,8 +134,9 @@ function TimelineBillRow({
             ? 'bg-[rgba(127,29,29,0.35)] border border-red-500/40'
             : isUrgent
               ? 'bg-[rgba(255,255,255,0.05)] animate-pulse-amber'
-              : 'bg-[rgba(255,255,255,0.05)] border border-[rgba(139,92,246,0.2)]'
+              : 'bg-[rgba(255,255,255,0.05)]'
         )}
+        style={!isOverdue && !isUrgent ? { border: `1px solid ${hexToRgba(accentColor, 0.2)}` } : undefined}
       >
         {/* Icon */}
         <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center">
@@ -181,7 +184,7 @@ function TimelineBillRow({
 export default function DashboardPage() {
   const router = useRouter();
   const supabase = createClient();
-  useTheme();
+  const { accentColor } = useTheme();
   const {
     canAddBill,
     refreshSubscription,
@@ -404,7 +407,7 @@ export default function DashboardPage() {
               className="group-hover:scale-105 transition-transform duration-300"
             />
             <span className="text-lg font-bold text-white tracking-tight">
-              Due<span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-violet-400">zo</span>
+              Due<span style={{ color: accentColor }}>zo</span>
             </span>
           </Link>
         </div>
@@ -420,9 +423,9 @@ export default function DashboardPage() {
                 className="group relative flex items-center gap-3 px-3 py-2.5 text-white rounded-xl bg-gradient-to-r from-white/[0.08] to-white/[0.03] border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-all duration-200"
               >
                 {/* Active indicator bar */}
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full bg-gradient-to-b from-violet-400 to-violet-500 shadow-[0_0_8px_rgba(139,92,246,0.5)]" />
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500/20 to-violet-500/20 border border-white/[0.08]">
-                  <LayoutGrid className="w-4 h-4 text-violet-400" />
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full" style={{ background: accentColor, boxShadow: `0 0 8px ${hexToRgba(accentColor, 0.5)}` }} />
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg border border-white/[0.08]" style={{ background: hexToRgba(accentColor, 0.2) }}>
+                  <LayoutGrid className="w-4 h-4" style={{ color: accentColor }} />
                 </div>
                 <span className="font-medium">Dashboard</span>
               </Link>
@@ -466,13 +469,13 @@ export default function DashboardPage() {
         {/* Gmail sync status - only show if not connected */}
         {!isGmailConnected && (
           <div className="p-4 border-t border-white/[0.06]">
-            <div className="relative p-4 rounded-xl overflow-hidden bg-gradient-to-br from-violet-500/10 via-violet-500/5 to-violet-500/10 border border-violet-500/20">
+            <div className="relative p-4 rounded-xl overflow-hidden" style={{ background: `linear-gradient(to bottom right, ${hexToRgba(accentColor, 0.1)}, ${hexToRgba(accentColor, 0.05)}, ${hexToRgba(accentColor, 0.1)})`, border: `1px solid ${hexToRgba(accentColor, 0.2)}` }}>
               {/* Decorative glow */}
-              <div className="absolute -top-10 -right-10 w-24 h-24 bg-violet-500/20 rounded-full blur-2xl" />
+              <div className="absolute -top-10 -right-10 w-24 h-24 rounded-full blur-2xl" style={{ backgroundColor: hexToRgba(accentColor, 0.2) }} />
               <div className="relative">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-violet-500/20 border border-violet-500/30">
-                    <Mail className="w-4 h-4 text-violet-400" />
+                  <div className="flex items-center justify-center w-8 h-8 rounded-lg" style={{ backgroundColor: hexToRgba(accentColor, 0.2), border: `1px solid ${hexToRgba(accentColor, 0.3)}` }}>
+                    <Mail className="w-4 h-4" style={{ color: accentColor }} />
                   </div>
                   <span className="text-sm font-semibold text-white">Gmail Sync</span>
                 </div>
@@ -481,7 +484,8 @@ export default function DashboardPage() {
                 </p>
                 <Link
                   href="/dashboard/settings"
-                  className="block w-full px-3 py-2 text-sm font-semibold bg-gradient-to-r from-violet-500/20 to-violet-500/20 hover:from-violet-500/30 hover:to-violet-500/30 border border-white/10 hover:border-white/20 rounded-lg transition-all duration-200 text-white text-center"
+                  className="block w-full px-3 py-2 text-sm font-semibold border border-white/10 hover:border-white/20 rounded-lg transition-all duration-200 text-white text-center"
+                  style={{ background: hexToRgba(accentColor, 0.2) }}
                 >
                   Connect Gmail
                 </Link>
@@ -493,7 +497,7 @@ export default function DashboardPage() {
         {/* User */}
         <div className="p-4 border-t border-white/[0.06]">
           <div className="flex items-center gap-3 p-2 -m-2 rounded-xl hover:bg-white/[0.03] transition-colors duration-200">
-            <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-violet-400 to-pink-500 flex items-center justify-center text-white font-semibold shadow-lg shadow-violet-500/20">
+            <div className="relative w-10 h-10 rounded-xl flex items-center justify-center text-white font-semibold shadow-lg" style={{ background: `linear-gradient(to bottom right, ${accentColor}, ${hexToRgba(accentColor, 0.7)})`, boxShadow: `0 10px 15px -3px ${hexToRgba(accentColor, 0.2)}` }}>
               {user?.email?.[0]?.toUpperCase() || 'U'}
             </div>
             <div className="flex-1 min-w-0">
@@ -537,7 +541,8 @@ export default function DashboardPage() {
                     placeholder="Search bills..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm"
+                    className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:border-transparent text-sm"
+                    style={{ '--tw-ring-color': accentColor } as React.CSSProperties}
                   />
                 </div>
               </div>
@@ -548,7 +553,12 @@ export default function DashboardPage() {
               <NotificationBell />
               <button
                 onClick={handleAddBillClick}
-                className="p-2.5 rounded-xl bg-violet-500/20 text-violet-300 hover:bg-violet-500/30 hover:text-white transition-all duration-200 shadow-[0_0_20px_rgba(139,92,246,0.3)] hover:shadow-[0_0_30px_rgba(139,92,246,0.5)]"
+                className="p-2.5 rounded-xl hover:text-white transition-all duration-200"
+                style={{
+                  backgroundColor: hexToRgba(accentColor, 0.2),
+                  color: hexToRgba(accentColor, 0.8),
+                  boxShadow: `0 0 20px ${hexToRgba(accentColor, 0.3)}`,
+                }}
                 title="Add Bill"
               >
                 <Plus className="w-6 h-6" />
@@ -612,7 +622,7 @@ export default function DashboardPage() {
                   {/* Blurred placeholder bill cards in background */}
                   <div className="absolute inset-0 flex flex-col gap-3 blur-sm opacity-30 pointer-events-none pt-4">
                     {[1, 2, 3].map(i => (
-                      <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-white/[0.05] border border-[rgba(139,92,246,0.15)]">
+                      <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-white/[0.05]" style={{ border: `1px solid ${hexToRgba(accentColor, 0.15)}` }}>
                         <div className="w-11 h-11 rounded-xl bg-white/10" />
                         <div className="flex-1 space-y-2">
                           <div className="h-4 w-24 bg-white/10 rounded" />
@@ -629,7 +639,11 @@ export default function DashboardPage() {
                   <div className="relative z-10 flex flex-col items-center justify-center py-20">
                     <button
                       onClick={handleAddBillClick}
-                      className="group flex items-center gap-3 px-8 py-4 rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-500 hover:to-violet-400 transition-all duration-300 shadow-[0_0_40px_rgba(139,92,246,0.5)] hover:shadow-[0_0_60px_rgba(139,92,246,0.7)] hover:scale-105"
+                      className="group flex items-center gap-3 px-8 py-4 rounded-2xl font-bold text-lg text-white transition-all duration-300 hover:scale-105"
+                      style={{
+                        background: `linear-gradient(to right, ${accentColor}, ${hexToRgba(accentColor, 0.85)})`,
+                        boxShadow: `0 0 40px ${hexToRgba(accentColor, 0.5)}`,
+                      }}
                     >
                       <Plus className="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" />
                       Add your first bill
@@ -646,7 +660,10 @@ export default function DashboardPage() {
                 {heroBill && (
                   <div className="relative mb-6">
                     {/* Ambient gradient orb behind hero */}
-                    <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-80 h-80 rounded-full bg-violet-500/20 blur-[100px] animate-ambient-pulse pointer-events-none" />
+                    <div
+                      className="absolute -top-16 left-1/2 -translate-x-1/2 w-80 h-80 rounded-full blur-[100px] animate-ambient-pulse pointer-events-none"
+                      style={{ backgroundColor: hexToRgba(accentColor, 0.2) }}
+                    />
 
                     <div
                       onClick={() => handleBillClick(heroBill)}
@@ -655,23 +672,29 @@ export default function DashboardPage() {
                         'transition-all duration-300 hover:scale-[1.01]',
                         getDaysUntilDue(heroBill.due_date) < 0
                           ? 'bg-[rgba(127,29,29,0.3)] border border-red-500/30'
-                          : 'bg-[rgba(255,255,255,0.05)] border border-[rgba(139,92,246,0.25)]'
+                          : 'bg-[rgba(255,255,255,0.05)]'
                       )}
                       style={{
                         minHeight: '25vh',
+                        ...(getDaysUntilDue(heroBill.due_date) >= 0 && {
+                          border: `1px solid ${hexToRgba(accentColor, 0.25)}`,
+                        }),
                         boxShadow: getDaysUntilDue(heroBill.due_date) < 0
                           ? '0 8px 40px rgba(127,29,29,0.4)'
-                          : '0 8px 40px rgba(139,92,246,0.15)',
+                          : `0 8px 40px ${hexToRgba(accentColor, 0.15)}`,
                       }}
                     >
-                      {/* Violet aura glow inside card */}
+                      {/* Accent aura glow inside card */}
                       {getDaysUntilDue(heroBill.due_date) >= 0 && (
-                        <div className="absolute -bottom-20 -right-20 w-60 h-60 rounded-full bg-violet-500/15 blur-[80px] pointer-events-none" />
+                        <div
+                          className="absolute -bottom-20 -right-20 w-60 h-60 rounded-full blur-[80px] pointer-events-none"
+                          style={{ backgroundColor: hexToRgba(accentColor, 0.15) }}
+                        />
                       )}
 
                       <div className="relative z-10 flex flex-col h-full justify-between">
                         {/* Top: label */}
-                        <p className="text-xs font-semibold uppercase tracking-widest text-violet-300/80 mb-2">
+                        <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: hexToRgba(accentColor, 0.8) }}>
                           {getDaysUntilDue(heroBill.due_date) < 0 ? 'Overdue' : 'Next Up'}
                         </p>
 
@@ -700,7 +723,11 @@ export default function DashboardPage() {
                               e.stopPropagation();
                               handleMarkAsPaidFromCard(heroBill);
                             }}
-                            className="w-full py-3.5 rounded-2xl font-bold text-base text-white bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-500 hover:to-violet-400 transition-all duration-200 active:scale-[0.98] shadow-lg shadow-violet-500/25"
+                            className="w-full py-3.5 rounded-2xl font-bold text-base text-white transition-all duration-200 active:scale-[0.98] shadow-lg"
+                            style={{
+                              background: `linear-gradient(to right, ${accentColor}, ${hexToRgba(accentColor, 0.85)})`,
+                              boxShadow: `0 10px 15px -3px ${hexToRgba(accentColor, 0.25)}`,
+                            }}
                           >
                             <Check className="w-5 h-5 inline-block mr-2 -mt-0.5" />
                             Mark as Paid
@@ -751,6 +778,7 @@ export default function DashboardPage() {
                             bill={bill}
                             onClick={() => handleBillClick(bill)}
                             onMarkPaid={handleMarkAsPaidFromCard}
+                            accentColor={accentColor}
                           />
                         ))}
                       </div>
@@ -768,6 +796,7 @@ export default function DashboardPage() {
                             bill={bill}
                             onClick={() => handleBillClick(bill)}
                             onMarkPaid={handleMarkAsPaidFromCard}
+                            accentColor={accentColor}
                           />
                         ))}
                       </div>
@@ -785,6 +814,7 @@ export default function DashboardPage() {
                             bill={bill}
                             onClick={() => handleBillClick(bill)}
                             onMarkPaid={handleMarkAsPaidFromCard}
+                            accentColor={accentColor}
                           />
                         ))}
                       </div>

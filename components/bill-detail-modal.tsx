@@ -26,7 +26,7 @@ export function BillDetailModal({
   onDelete,
   onMarkPaid,
 }: BillDetailModalProps) {
-  const { selectedTheme } = useTheme();
+  const { accentColor, selectedTheme } = useTheme();
   const [isMarkingPaid, setIsMarkingPaid] = useState(false);
 
   // Prevent body scroll when modal is open
@@ -84,7 +84,7 @@ export function BillDetailModal({
             )}
           >
             {/* Header with gradient */}
-            <GradientCard urgency={urgency} className="rounded-none rounded-t-2xl">
+            <GradientCard urgency={urgency} className="rounded-none rounded-t-2xl" accentColor={accentColor}>
               <div className="p-6 pb-8">
                 <div className="flex items-start justify-between mb-4">
                   <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
@@ -206,7 +206,7 @@ export function BillDetailModal({
                   <Link className="w-5 h-5 text-zinc-500 mt-0.5" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-zinc-500">Payment Link</p>
-                    <p className="font-medium text-violet-400 truncate">{bill.payment_url}</p>
+                    <p className="font-medium truncate" style={{ color: accentColor }}>{bill.payment_url}</p>
                   </div>
                 </div>
               )}

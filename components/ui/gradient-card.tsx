@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '@/lib/utils';
+import { cn, hexToRgba } from '@/lib/utils';
 import { BillUrgency } from '@/types';
 import { ReactNode } from 'react';
 
@@ -9,6 +9,7 @@ interface GradientCardProps {
   children: ReactNode;
   className?: string;
   onClick?: () => void;
+  accentColor?: string;
 }
 
 export function GradientCard({
@@ -16,6 +17,7 @@ export function GradientCard({
   children,
   className,
   onClick,
+  accentColor = '#a78bfa',
 }: GradientCardProps) {
   const isOverdue = urgency === 'overdue';
   const isUrgent = urgency === 'urgent';
@@ -41,10 +43,10 @@ export function GradientCard({
         className
       )}
       style={{
-        // Glassmorphism: translucent background with violet inner border
+        // Glassmorphism: translucent background with accent inner border
         ...(!isOverdue ? {
           background: 'rgba(255, 255, 255, 0.05)',
-          border: '1px solid rgba(139, 92, 246, 0.2)',
+          border: `1px solid ${hexToRgba(accentColor, 0.2)}`,
         } : {
           border: '1px solid rgba(239, 68, 68, 0.4)',
         }),
