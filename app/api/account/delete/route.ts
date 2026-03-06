@@ -1,9 +1,10 @@
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { NextResponse } from 'next/server';
+import { isRateLimited } from '@/lib/rate-limit';
 
 // DELETE /api/account/delete - Permanently delete user account and all data
-export async function DELETE() {
+export async function DELETE(request: Request) {
   try {
     const supabase = await createClient();
 
@@ -19,9 +20,45 @@ export async function DELETE() {
 
     const userId = user.id;
 
-    // Use admin client to bypass RLS and delete all user data
-    const adminClient = createAdminClient();
+    // Rate limit: max 1 request per minute per user
+    if (isRateLimited(`delete-account:${userId}`, 1, 60_000)) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please wait before trying again.' },
+        { status: 429 }
+      );
+    }
 
+    // Require confirmation: user must re-authenticate by providing current password
+    let confirmPassword: string | null = null;
+    try {
+      const body = await request.json();
+      confirmPassword = body.confirm_password ?? null;
+    } catch {
+      // no body
+    }
+
+    if (!confirmPassword) {
+      return NextResponse.json(
+        { error: 'Confirmation required. Please provide your password to delete your account.', requires_confirmation: true },
+        { status: 400 }
+      );
+    }
+
+    // Verify password by attempting sign-in
+    const adminClient = createAdminClient();
+    const { error: signInError } = await adminClient.auth.signInWithPassword({
+      email: user.email!,
+      password: confirmPassword,
+    });
+
+    if (signInError) {
+      return NextResponse.json(
+        { error: 'Incorrect password. Account deletion denied.' },
+        { status: 403 }
+      );
+    }
+
+    // Use admin client to bypass RLS and delete all user data
     // Delete all user data from all tables (order matters for foreign keys)
     // 1. Delete notification queue entries (references bills)
     const { error: notifError } = await adminClient

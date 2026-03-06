@@ -12,7 +12,7 @@ export async function generateWidgetToken(userId: string, email: string): Promis
   const token = await new SignJWT({ userId, email })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
-    .setExpirationTime('30d') // Token valid for 30 days
+    .setExpirationTime('24h') // Token valid for 24 hours
     .sign(WIDGET_TOKEN_SECRET);
   
   return token;

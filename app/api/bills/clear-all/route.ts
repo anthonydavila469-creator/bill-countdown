@@ -1,9 +1,10 @@
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { NextResponse } from 'next/server';
+import { isRateLimited } from '@/lib/rate-limit';
 
 // DELETE /api/bills/clear-all - Delete all bills and related data for the current user
-export async function DELETE() {
+export async function DELETE(request: Request) {
   try {
     const supabase = await createClient();
 
@@ -18,6 +19,30 @@ export async function DELETE() {
     }
 
     const userId = user.id;
+
+    // Rate limit: max 1 request per minute per user
+    if (isRateLimited(`clear-all-bills:${userId}`, 1, 60_000)) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please wait before trying again.' },
+        { status: 429 }
+      );
+    }
+
+    // Require confirmation token in request body
+    let confirmToken: string | null = null;
+    try {
+      const body = await request.json();
+      confirmToken = body.confirm ?? null;
+    } catch {
+      // no body
+    }
+
+    if (confirmToken !== 'DELETE_ALL_BILLS') {
+      return NextResponse.json(
+        { error: 'Confirmation required. Send { "confirm": "DELETE_ALL_BILLS" } to proceed.', requires_confirmation: true },
+        { status: 400 }
+      );
+    }
 
     // Use admin client to bypass RLS and delete all user's bill data
     const adminClient = createAdminClient();

@@ -51,6 +51,18 @@ Extraction rules:
 - Prefer a due date in the FUTURE if multiple dates exist.
 - If autopay scheduled, store the scheduled charge date as dueDate if no other due date exists.
 - If you can't find amount/date, set them to null (do NOT fail).
+
+Currency:
+- Default to "USD" for dollar amounts.
+- Detect non-USD currencies: "EUR" for €, "GBP" for £, "JPY" for ¥.
+- If the email uses a non-USD currency symbol or code, set currency accordingly.
+
+Chase disambiguation:
+- If sender is Chase, inspect the email body to determine the product type:
+  - "auto loan" / "auto account" / "vehicle" → billType "loan", vendorName "Chase Auto"
+  - "credit card" / "sapphire" / "freedom" / "ink" / "slate" → billType "credit_card", vendorName "Chase [Product]"
+  - "mortgage" / "home loan" → billType "loan", vendorName "Chase Mortgage"
+  - If no product is identifiable, use vendorName "Chase" and billType "credit_card" as default.
 `.trim();
 
 export type BillPromptEmailInput = {
@@ -85,7 +97,7 @@ Return JSON in this exact schema:
   "billType": "credit_card" | "utility" | "rent" | "insurance" | "loan" | "subscription" | "invoice" | "autopay" | "other" | null,
   "amountDue": number | null,
   "dueDate": "YYYY-MM-DD" | null,
-  "currency": "USD" | null,
+  "currency": "USD" | "EUR" | "GBP" | "JPY" | null,
   "accountHint": string | null,
   "paymentStatus": "DUE" | "SCHEDULED" | "PAID" | "UNKNOWN",
   "paymentLink": string | null,

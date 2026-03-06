@@ -73,7 +73,11 @@ export function listenForAuthReturn(
     // Try transfer-based auth (primary method — bridges SFVC ↔ WKWebView)
     if (pendingTransferKey) {
       try {
-        const res = await fetch(`/api/auth/transfer?key=${pendingTransferKey}`);
+        const res = await fetch('/api/auth/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ transfer_key: pendingTransferKey }),
+        });
         if (res.ok) {
           const { access_token, refresh_token } = await res.json();
           await supabase.auth.setSession({ access_token, refresh_token });

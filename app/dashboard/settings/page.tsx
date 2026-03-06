@@ -340,9 +340,11 @@ export default function SettingsPage() {
   };
 
   // Handle delete account
-  const handleDeleteAccount = async () => {
+  const handleDeleteAccount = async (password: string) => {
     const response = await fetch('/api/account/delete', {
       method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ confirm_password: password }),
     });
 
     if (!response.ok) {
