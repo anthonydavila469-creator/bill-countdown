@@ -36,12 +36,12 @@ const sizeStyles = {
     gap: 'gap-0',
   },
   md: {
-    number: 'text-6xl',
+    number: 'text-7xl',
     label: 'text-sm',
     gap: 'gap-0.5',
   },
   lg: {
-    number: 'text-7xl md:text-8xl',
+    number: 'text-8xl md:text-9xl',
     label: 'text-base',
     gap: 'gap-1',
   },

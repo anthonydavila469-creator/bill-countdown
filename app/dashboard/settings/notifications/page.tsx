@@ -175,14 +175,14 @@ export default function NotificationsSettingsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#08080c] flex items-center justify-center">
+      <div className="min-h-screen bg-[#0F0A1E] flex items-center justify-center">
         <Loader2 className="w-6 h-6 text-zinc-500 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#08080c]">
+    <div className="min-h-screen bg-[#0F0A1E]">
       <div className="max-w-2xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">

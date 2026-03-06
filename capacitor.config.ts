@@ -11,13 +11,13 @@ const config: CapacitorConfig = {
   ios: {
     scheme: 'Duezo',
     contentInset: 'automatic',
-    backgroundColor: '#08080c',
+    backgroundColor: '#0F0A1E',
   },
   plugins: {
     SplashScreen: {
       launchShowDuration: 3000,
       launchAutoHide: true,
-      backgroundColor: '#08080c',
+      backgroundColor: '#0F0A1E',
       showSpinner: true,
       spinnerColor: '#8B5CF6',
     },

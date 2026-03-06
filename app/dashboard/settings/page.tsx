@@ -387,7 +387,7 @@ export default function SettingsPage() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#08080c] flex items-center justify-center">
+      <div className="min-h-screen bg-[#0F0A1E] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="w-8 h-8 text-violet-500 animate-spin" />
           <p className="text-zinc-400">Loading...</p>
@@ -397,7 +397,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#08080c]">
+    <div className="min-h-screen bg-[#0F0A1E]">
       {/* Sidebar */}
       <aside className="fixed left-0 top-0 bottom-0 w-64 bg-[#0c0c10] border-r border-white/5 hidden lg:flex flex-col">
         {/* Logo */}
@@ -504,7 +504,7 @@ export default function SettingsPage() {
       {/* Main content */}
       <main className="lg:ml-64 h-screen overflow-y-auto overscroll-none pb-28 pt-[env(safe-area-inset-top)]">
         {/* Header */}
-        <header className="sticky top-0 z-40 bg-[#08080c]/80 backdrop-blur-xl border-b border-white/5">
+        <header className="sticky top-0 z-40 bg-[#0F0A1E]/80 backdrop-blur-xl border-b border-white/5">
           <div className="flex items-center justify-between px-6 h-16">
             {/* Mobile menu */}
             <Link

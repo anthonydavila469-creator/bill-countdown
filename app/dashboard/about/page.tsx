@@ -3,7 +3,7 @@ import Image from 'next/image';
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-[#08080c] flex items-center justify-center p-6">
+    <div className="min-h-screen bg-[#0F0A1E] flex items-center justify-center p-6">
       <div className="w-full max-w-sm text-center">
         <Image
           src="/logo-transparent-96.png"

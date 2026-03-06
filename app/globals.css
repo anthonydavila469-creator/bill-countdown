@@ -15,12 +15,12 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0f;
+    --background: #0F0A1E;
     --foreground: #f8fafc;
-    --card: #18181b;
+    --card: #1A1033;
     --card-foreground: #f8fafc;
-    --border: #27272a;
-    --muted: #27272a;
+    --border: #2D1B4E;
+    --muted: #2D1B4E;
     --muted-foreground: #a1a1aa;
     --accent: #A78BFA;
     --accent-foreground: #0f172a;
@@ -54,7 +54,7 @@
 /* Base styles */
 html, body {
   scroll-behavior: smooth;
-  background: #08080c;
+  background: #0F0A1E;
   height: 100%;
 }
 
@@ -506,4 +506,53 @@ button:active:not(:disabled) {
   animation:
     typewriter 2s steps(30, end) forwards,
     blink-caret 0.75s step-end infinite;
+}
+
+/* Pulsing amber border for bills due soon (<=3 days) */
+@keyframes pulse-amber-border {
+  0%, 100% {
+    border-color: rgba(245, 158, 11, 0.4);
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.15);
+  }
+  50% {
+    border-color: rgba(245, 158, 11, 0.8);
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+  }
+}
+
+.animate-pulse-amber {
+  animation: pulse-amber-border 2s ease-in-out infinite;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+/* Swipe-to-pay card transition */
+@keyframes swipe-paid {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.animate-swipe-paid {
+  animation: swipe-paid 0.4s ease-out forwards;
+}
+
+/* Ambient gradient orb */
+@keyframes ambient-pulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.05);
+  }
+}
+
+.animate-ambient-pulse {
+  animation: ambient-pulse 4s ease-in-out infinite;
 }

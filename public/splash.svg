@@ -7,7 +7,7 @@
   </defs>
   
   <!-- Dark background matching app theme -->
-  <rect width="2732" height="2732" fill="#08080c"/>
+  <rect width="2732" height="2732" fill="#0F0A1E"/>
   
   <!-- Subtle ambient glow -->
   <ellipse cx="1366" cy="1200" rx="600" ry="400" fill="#3b82f6" opacity="0.05"/>

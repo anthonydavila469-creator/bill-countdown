@@ -57,7 +57,7 @@ export async function sendBillReminderEmail(
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
           </head>
-          <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; background-color: #08080c; color: #ffffff;">
+          <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; background-color: #0F0A1E; color: #ffffff;">
             <div style="max-width: 480px; margin: 0 auto; padding: 40px 20px;">
               <div style="text-align: center; margin-bottom: 32px;">
                 <div style="font-size: 48px; margin-bottom: 8px;">${bill.emoji}</div>

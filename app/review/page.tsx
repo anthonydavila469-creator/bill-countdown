@@ -203,14 +203,14 @@ export default function ReviewQueuePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#08080c] flex items-center justify-center">
+      <div className="min-h-screen bg-[#0F0A1E] flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-violet-500 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#08080c]">
+    <div className="min-h-screen bg-[#0F0A1E]">
       {/* Sidebar */}
       <aside className="fixed left-0 top-0 bottom-0 w-64 bg-[#0c0c10] border-r border-white/5 hidden lg:flex flex-col">
         {/* Logo */}
@@ -333,7 +333,7 @@ export default function ReviewQueuePage() {
       {/* Main content */}
       <main className="lg:ml-64">
         {/* Header */}
-        <header className="sticky top-0 z-40 bg-[#08080c]/80 backdrop-blur-xl border-b border-white/5">
+        <header className="sticky top-0 z-40 bg-[#0F0A1E]/80 backdrop-blur-xl border-b border-white/5">
           <div className="flex items-center justify-between px-6 h-16">
             {/* Back button (mobile) */}
             <Link

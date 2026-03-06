@@ -170,7 +170,7 @@ export function OnboardingScreen({
   };
 
   return (
-    <div className="min-h-screen bg-[#08080c] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#0F0A1E] flex items-center justify-center p-4">
       <div className="w-full max-w-lg">
         {/* Step: Welcome */}
         {step === 'welcome' && (

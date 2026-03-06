@@ -59,7 +59,7 @@ const faqs = [
 
 export default function FioveraAlternativePage() {
   return (
-    <main className="min-h-screen bg-[#08080c] text-white">
+    <main className="min-h-screen bg-[#0F0A1E] text-white">
       {/* Schema markup */}
       <script
         type="application/ld+json"

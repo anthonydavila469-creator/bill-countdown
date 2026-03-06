@@ -62,7 +62,7 @@ const posts = [
 
 export default function BlogPage() {
   return (
-    <main className="min-h-screen bg-[#08080c] text-white">
+    <main className="min-h-screen bg-[#0F0A1E] text-white">
       <section className="max-w-4xl mx-auto px-6 pt-24 pb-16">
         <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">Blog</h1>
         <p className="text-lg text-zinc-400 mb-12">

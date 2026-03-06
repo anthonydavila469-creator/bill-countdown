@@ -202,7 +202,7 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#08080c] text-white overflow-x-hidden overflow-y-auto">
+    <div className="min-h-screen bg-[#0F0A1E] text-white overflow-x-hidden overflow-y-auto">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -519,7 +519,7 @@ export default function LandingPage() {
                       <div className="w-16 h-12 rounded-lg bg-gradient-to-br from-violet-500 to-violet-500 flex items-center justify-center shadow-lg shadow-violet-500/25 group-hover:shadow-violet-500/40 transition-shadow">
                         <Mail className="w-8 h-8 text-white" />
                       </div>
-                      <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-green-500 border-2 border-[#08080c] flex items-center justify-center">
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-green-500 border-2 border-[#0F0A1E] flex items-center justify-center">
                         <Check className="w-3 h-3 text-white" />
                       </div>
                     </div>
@@ -567,7 +567,7 @@ export default function LandingPage() {
                       <div className="w-16 h-12 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center shadow-lg shadow-green-500/25 group-hover:shadow-green-500/40 transition-shadow">
                         <Bell className="w-8 h-8 text-white" />
                       </div>
-                      <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-green-500 border-2 border-[#08080c] flex items-center justify-center">
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-green-500 border-2 border-[#0F0A1E] flex items-center justify-center">
                         <CheckCircle2 className="w-3 h-3 text-white" />
                       </div>
                     </div>

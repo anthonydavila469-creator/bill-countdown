@@ -4,7 +4,7 @@
   "description": "Never miss a bill payment. Track due dates with beautiful countdown cards and AI-powered email sync.",
   "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#08080c",
+  "background_color": "#0F0A1E",
   "theme_color": "#f97316",
   "orientation": "portrait-primary",
   "icons": [
