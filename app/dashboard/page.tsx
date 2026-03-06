@@ -1,56 +1,37 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { BillCard } from '@/components/bill-card';
 import { AddBillModal } from '@/components/add-bill-modal';
 import { OnboardingScreen } from '@/components/onboarding/onboarding-screen';
 import { OnboardingModal, useOnboardingComplete } from '@/components/onboarding-modal';
 import { DeleteBillModal } from '@/components/delete-bill-modal';
 import { BillDetailModal } from '@/components/bill-detail-modal';
 import { PayNowModal } from '@/components/pay-now-modal';
-import { BillListView } from '@/components/bill-list-view';
-import { SortFilterBar, SortOption, FilterOption } from '@/components/sort-filter-bar';
-import { DashboardControls, CardSize } from '@/components/dashboard-controls';
-import { Bill, DashboardView } from '@/types';
+import { Bill } from '@/types';
 import { getDaysUntilDue, formatCurrency, getUrgency } from '@/lib/utils';
-import { getBillRiskType } from '@/lib/risk-utils';
 import { getBillIcon } from '@/lib/get-bill-icon';
-import { RiskAlerts } from '@/components/risk-alerts';
 import { RecurringDetectionBanner } from '@/components/recurring-detection-banner';
 import { NotificationBell } from '@/components/notification-bell';
-import { OnTimePayments } from '@/components/on-time-payments';
 import { CountdownDisplay } from '@/components/countdown-display';
 import { createClient } from '@/lib/supabase/client';
 import { useTheme } from '@/contexts/theme-context';
 import { useBillMutations } from '@/hooks/use-bill-mutations';
 import { useRecurringDetection } from '@/hooks/use-recurring-detection';
-import { Spinner } from '@/components/ui/animated-list';
 import { DashboardSkeleton } from '@/components/skeleton-loader';
 import { hapticSuccess, hapticLight } from '@/lib/haptics';
 import {
-  Zap,
   Plus,
   LayoutGrid,
-  List,
   Calendar,
   Settings,
   LogOut,
-  Bell,
   Mail,
   Search,
   History,
-  Loader2,
-  X,
-  Eye,
-  EyeOff,
-  SlidersHorizontal,
-  AlertTriangle,
   Check,
-  Trash2,
-  DollarSign,
 } from 'lucide-react';
 import { useSubscription } from '@/hooks/use-subscription';
 import { cn } from '@/lib/utils';
@@ -200,7 +181,7 @@ function TimelineBillRow({
 export default function DashboardPage() {
   const router = useRouter();
   const supabase = createClient();
-  const { dashboardLayout, updateDashboardLayout } = useTheme();
+  useTheme();
   const {
     canAddBill,
     refreshSubscription,
@@ -231,9 +212,7 @@ export default function DashboardPage() {
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isGmailConnected, setIsGmailConnected] = useState(false);
-  const [view, setView] = useState<DashboardView>(dashboardLayout.defaultView);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showPaidBills, setShowPaidBills] = useState(false);
 
   // Onboarding state
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -241,49 +220,12 @@ export default function DashboardPage() {
   const onboardingComplete = useOnboardingComplete();
   const [showOnboardingModal, setShowOnboardingModal] = useState(false);
 
-  // List view state
-  const [selectedBillIds, setSelectedBillIds] = useState<Set<string>>(new Set());
-  const [sortBy, setSortBy] = useState<SortOption>(dashboardLayout.sortBy || 'due_date');
-  const [quickFilter, setQuickFilter] = useState<FilterOption>('all');
-
-  // Layout settings popover state
-  const [isLayoutSettingsOpen, setIsLayoutSettingsOpen] = useState(false);
-  const layoutSettingsRef = useRef<HTMLDivElement>(null);
 
   // Mounted state for hydration-safe date calculations
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  // Sync view with layout preference when it changes
-  useEffect(() => {
-    setView(dashboardLayout.defaultView);
-  }, [dashboardLayout.defaultView]);
-
-  // Sync sortBy with layout preference when it changes
-  useEffect(() => {
-    if (dashboardLayout.sortBy) {
-      setSortBy(dashboardLayout.sortBy);
-    }
-  }, [dashboardLayout.sortBy]);
-
-  // Close layout settings popover when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (layoutSettingsRef.current && !layoutSettingsRef.current.contains(event.target as Node)) {
-        setIsLayoutSettingsOpen(false);
-      }
-    };
-
-    if (isLayoutSettingsOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isLayoutSettingsOpen]);
 
   // Modal state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -361,77 +303,11 @@ export default function DashboardPage() {
     setIsAddModalOpen(true);
   };
 
-  // Filter and sort bills based on search, filters, and layout preferences
-  const filteredBills = useMemo(() => {
-    let filtered = bills.filter((bill) =>
-      bill.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
-    // Apply quick filter (SortFilterBar)
-    if (quickFilter !== 'all') {
-      filtered = filtered.filter((bill) => {
-        const daysLeft = getDaysUntilDue(bill.due_date);
-        switch (quickFilter) {
-          case 'due_soon':
-            return daysLeft >= 0 && daysLeft <= 7 && !bill.is_paid;
-          case 'overdue':
-            return daysLeft < 0 && !bill.is_paid;
-          case 'autopay':
-            return bill.is_autopay && !bill.is_paid;
-          case 'manual':
-            return !bill.is_autopay && !bill.is_paid;
-          case 'recurring':
-            return bill.is_recurring && !bill.is_paid;
-          default:
-            return true;
-        }
-      });
-    }
-
-    // Sort - always keep overdue at top, then sort by selected criteria
-    return filtered.sort((a, b) => {
-      const aDaysLeft = getDaysUntilDue(a.due_date);
-      const bDaysLeft = getDaysUntilDue(b.due_date);
-      const aOverdue = aDaysLeft < 0 && !a.is_paid;
-      const bOverdue = bDaysLeft < 0 && !b.is_paid;
-
-      // Overdue bills always come first
-      if (aOverdue && !bOverdue) return -1;
-      if (!aOverdue && bOverdue) return 1;
-
-      // Then sort by selected criteria
-      switch (sortBy) {
-        case 'amount':
-          return (b.amount || 0) - (a.amount || 0);
-        case 'name':
-          return a.name.localeCompare(b.name);
-        case 'due_date':
-        default:
-          return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
-      }
-    });
-  }, [bills, searchQuery, sortBy, quickFilter]);
-
   // Calculate stats (only unpaid bills)
   const unpaidBills = bills.filter(b => !b.is_paid);
   const totalDue = unpaidBills.reduce((sum, bill) => sum + (bill.amount || 0), 0);
   // Use getDaysUntilDue for consistent calculation - includes bills due today (0 days)
   // Only calculate on client to avoid hydration mismatch
-  const billsDueSoon = mounted ? unpaidBills.filter((bill) => {
-    const daysUntil = getDaysUntilDue(bill.due_date);
-    return daysUntil <= 7 && daysUntil >= 0;
-  }) : [];
-  const overdueBills = mounted ? unpaidBills.filter((bill) => {
-    const daysUntil = getDaysUntilDue(bill.due_date);
-    return daysUntil < 0;
-  }) : [];
-  // notificationCount moved to NotificationBell component
-
-  // Handle sort change - update local state and persist to layout settings
-  const handleSortChange = (newSort: SortOption) => {
-    setSortBy(newSort);
-    updateDashboardLayout({ sortBy: newSort });
-  };
 
   // Handle adding/updating a bill
   const handleBillSuccess = async (bill: Bill) => {
@@ -456,12 +332,6 @@ export default function DashboardPage() {
   // Handle editing a bill from detail modal
   const handleEditFromDetail = (bill: Bill) => {
     setSelectedBill(null);
-    setEditingBill(bill);
-    setIsAddModalOpen(true);
-  };
-
-  // Handle editing a bill from Risk Alerts (to add payment link)
-  const handleEditFromRiskAlert = (bill: Bill) => {
     setEditingBill(bill);
     setIsAddModalOpen(true);
   };
