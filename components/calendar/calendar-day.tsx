@@ -250,39 +250,29 @@ export function CalendarDay({
             )}
           </div>
 
-          {/* Mobile view - compact icon-only pills */}
-          <div className="flex md:hidden flex-wrap gap-0.5 mt-0.5">
-            {visibleBillsMobile.map((bill, index) => {
+          {/* Mobile view - colored dots */}
+          <div className="flex md:hidden flex-wrap gap-1 mt-0.5 items-center">
+            {sortedBills.slice(0, 3).map((bill) => {
               const daysLeft = getDaysUntilDue(bill.due_date);
-              const urgency = getUrgency(daysLeft);
               const isProjected = 'isProjected' in bill && bill.isProjected;
-              const cssVar = urgencyVarMap[urgency];
-              const { icon: BillIcon, colorClass } = getBillIcon(bill);
+              const dotColor = daysLeft < 0 ? '#EF4444' : daysLeft <= 3 ? '#F59E0B' : 'var(--accent-primary)';
 
               return (
                 <div
                   key={bill.id}
                   className={cn(
-                    'flex items-center gap-0.5 px-1 py-0.5 rounded text-[8px] font-medium',
+                    'w-2 h-2 rounded-full flex-shrink-0',
                     isProjected && 'opacity-60',
                     bill.is_paid && 'opacity-40'
                   )}
-                  style={{
-                    backgroundColor: `color-mix(in srgb, var(${cssVar}) 20%, transparent)`,
-                    borderLeft: `2px solid var(${cssVar})`,
-                  }}
+                  style={{ backgroundColor: dotColor }}
                   title={bill.name}
-                >
-                  <BillIcon className={cn('w-2.5 h-2.5', colorClass)} />
-                  <span className="truncate max-w-[3ch]" style={{ color: `var(${cssVar})` }}>
-                    {bill.name.substring(0, 2)}..
-                  </span>
-                </div>
+                />
               );
             })}
-            {extraCountMobile > 0 && (
-              <span className="text-[8px] font-semibold text-zinc-500 px-1">
-                +{extraCountMobile}
+            {sortedBills.length > 3 && (
+              <span className="text-[8px] font-semibold text-zinc-500">
+                +{sortedBills.length - 3}
               </span>
             )}
           </div>

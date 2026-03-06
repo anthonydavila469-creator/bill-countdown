@@ -11,7 +11,8 @@ import { cn, formatDate, formatCurrency, getDaysUntilDue } from '@/lib/utils';
 import { getMissedBills } from '@/lib/risk-utils';
 import { createClient } from '@/lib/supabase/client';
 import { useBillsContext } from '@/contexts/bills-context';
-import { iconMap, getIconFromName, getCategoryColors } from '@/lib/get-bill-icon';
+import { iconMap, getIconFromName } from '@/lib/get-bill-icon';
+import { useTheme } from '@/contexts/theme-context';
 import {
   Zap,
   LayoutGrid,
@@ -53,6 +54,7 @@ const periodFilterLabels: Record<PeriodFilter, string> = {
 };
 
 function PaidBillCard({ bill, isRecent, isEven }: { bill: Bill; isRecent?: boolean; isEven?: boolean }) {
+  const { accentColor } = useTheme();
   const paidDate = bill.paid_at ? new Date(bill.paid_at) : new Date();
   const isAutoPay = bill.is_autopay || bill.paid_method === 'autopay';
   const isRecurring = bill.is_recurring && bill.next_due_date;
@@ -62,9 +64,6 @@ function PaidBillCard({ bill, isRecent, isEven }: { bill: Bill; isRecent?: boole
   const autoDetected = getIconFromName(bill.name);
   const IconComponent = explicitIcon || autoDetected.icon;
   const iconColorClass = explicitIcon ? 'text-emerald-400' : autoDetected.colorClass;
-
-  // Get category colors
-  const colors = getCategoryColors(bill.category);
 
   // Format next due date
   const nextDueFormatted = isRecurring
@@ -86,20 +85,24 @@ function PaidBillCard({ bill, isRecent, isEven }: { bill: Bill; isRecent?: boole
       isEven ? "bg-white/[0.02]" : "bg-white/[0.035]"
     )}>
       {/* Left accent bar */}
-      <div className={cn(
-        "absolute left-0 top-3 bottom-3 w-1 sm:w-1.5 rounded-full transition-all duration-300",
-        colors.accent
-      )} />
+      <div
+        className="absolute left-0 top-3 bottom-3 w-1 sm:w-1.5 rounded-full transition-all duration-300"
+        style={{ backgroundColor: accentColor }}
+      />
 
       <div className="flex items-center gap-2 sm:gap-4 pl-2 sm:pl-3">
         {/* Icon with paid status */}
         <div className="relative flex-shrink-0">
-          <div className={cn(
-            "w-11 h-11 sm:w-14 sm:h-14 rounded-xl border-2 flex items-center justify-center transition-all duration-200",
-            "group-hover:scale-105 group-hover:shadow-lg",
-            `bg-gradient-to-br ${colors.bg}`,
-            colors.border
-          )}>
+          <div
+            className={cn(
+              "w-11 h-11 sm:w-14 sm:h-14 rounded-xl border-2 flex items-center justify-center transition-all duration-200",
+              "group-hover:scale-105 group-hover:shadow-lg",
+            )}
+            style={{
+              background: `linear-gradient(to bottom right, color-mix(in srgb, ${accentColor} 15%, transparent), color-mix(in srgb, ${accentColor} 10%, transparent))`,
+              borderColor: `color-mix(in srgb, ${accentColor} 30%, transparent)`,
+            }}
+          >
             <IconComponent className={cn("w-5 h-5 sm:w-7 sm:h-7", iconColorClass)} />
           </div>
           {/* Paid checkmark */}
@@ -184,6 +187,7 @@ function MonthSection({
   isCollapsed: boolean;
   onToggle: () => void;
 }) {
+  const { accentColor } = useTheme();
   // Check if bill was paid in last 7 days
   const isRecentPayment = (bill: Bill) => {
     if (!bill.paid_at) return false;
@@ -198,11 +202,25 @@ function MonthSection({
       {/* Month header - more prominent styling */}
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-emerald-500/[0.08] via-white/[0.04] to-transparent border border-emerald-500/20 hover:border-emerald-500/30 hover:from-emerald-500/[0.12] transition-all duration-200 mb-4 group sticky top-16 z-10 backdrop-blur-xl shadow-lg shadow-black/10"
+        className="w-full flex items-center justify-between p-4 rounded-xl transition-all duration-200 mb-4 group sticky top-16 z-10 backdrop-blur-xl shadow-lg shadow-black/10"
+        style={{
+          background: `linear-gradient(to right, color-mix(in srgb, ${accentColor} 8%, transparent), rgba(255,255,255,0.04), transparent)`,
+          borderWidth: '1px',
+          borderStyle: 'solid',
+          borderColor: `color-mix(in srgb, ${accentColor} 20%, transparent)`,
+        }}
       >
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/25 to-teal-500/15 border border-emerald-500/30 flex items-center justify-center shadow-inner">
-            <Calendar className="w-6 h-6 text-emerald-400" />
+          <div
+            className="w-12 h-12 rounded-xl flex items-center justify-center shadow-inner"
+            style={{
+              background: `linear-gradient(to bottom right, color-mix(in srgb, ${accentColor} 25%, transparent), color-mix(in srgb, ${accentColor} 15%, transparent))`,
+              borderWidth: '1px',
+              borderStyle: 'solid',
+              borderColor: `color-mix(in srgb, ${accentColor} 30%, transparent)`,
+            }}
+          >
+            <Calendar className="w-6 h-6" style={{ color: accentColor }} />
           </div>
           <div className="text-left">
             <h2 className="text-lg font-bold text-white">{label}</h2>
@@ -213,7 +231,7 @@ function MonthSection({
         </div>
         <div className="flex items-center gap-5">
           <div className="text-right">
-            <p className="text-xl font-bold text-emerald-400">
+            <p className="text-xl font-bold" style={{ color: accentColor }}>
               ${totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
             </p>
             <p className="text-xs text-zinc-500 font-medium">total paid</p>

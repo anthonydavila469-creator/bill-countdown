@@ -189,12 +189,11 @@ export function BillCard({
               daysLeft={daysLeft}
               urgency={urgency}
               size="sm"
-              colorMode={
-                ['midnight', 'wine', 'onyx', 'amethyst', 'ocean', 'sunset'].includes(selectedTheme)
-                  ? 'gradient'
-                  : (urgency === 'overdue' || urgency === 'urgent' || urgency === 'soon')
-                    ? 'urgency'
-                    : 'white'
+              colorMode="custom"
+              customColor={
+                daysLeft < 0 ? '#EF4444'
+                  : daysLeft <= 3 ? '#F59E0B'
+                  : 'var(--accent-primary)'
               }
             />
           </div>
@@ -337,12 +336,11 @@ export function BillCard({
             daysLeft={daysLeft}
             urgency={urgency}
             size="lg"
-            colorMode={
-              ['midnight', 'wine', 'onyx', 'amethyst', 'ocean', 'sunset'].includes(selectedTheme)
-                ? 'gradient'
-                : (urgency === 'overdue' || urgency === 'urgent' || urgency === 'soon')
-                  ? 'urgency'
-                  : 'white'
+            colorMode="custom"
+            customColor={
+              daysLeft < 0 ? '#EF4444'
+                : daysLeft <= 3 ? '#F59E0B'
+                : 'var(--accent-primary)'
             }
           />
         </div>
