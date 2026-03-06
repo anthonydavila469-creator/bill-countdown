@@ -26,7 +26,7 @@ export function BillDetailModal({
   onDelete,
   onMarkPaid,
 }: BillDetailModalProps) {
-  const { accentColor, selectedTheme } = useTheme();
+  const { accentColor } = useTheme();
   const [isMarkingPaid, setIsMarkingPaid] = useState(false);
 
   // Prevent body scroll when modal is open
@@ -112,12 +112,11 @@ export function BillDetailModal({
                     urgency={urgency}
                     size="lg"
                     colorMode={
-                      ['midnight', 'wine', 'onyx', 'amethyst', 'ocean', 'sunset'].includes(selectedTheme)
-                        ? 'gradient'
-                        : (urgency === 'overdue' || urgency === 'urgent' || urgency === 'soon')
-                          ? 'urgency'
-                          : 'white'
+                      (urgency === 'overdue' || urgency === 'urgent')
+                        ? 'urgency'
+                        : 'custom'
                     }
+                    customColor={accentColor}
                   />
                 </div>
               </div>
