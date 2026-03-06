@@ -156,8 +156,9 @@ function TimelineBillRow({
           <span
             className={cn(
               'text-3xl font-extrabold tabular-nums',
-              isOverdue ? 'text-red-400' : isUrgent ? 'text-amber-400' : 'text-white'
+              isOverdue ? 'text-red-400' : isUrgent ? 'text-amber-400' : ''
             )}
+            style={!isOverdue && !isUrgent ? { color: accentColor } : undefined}
           >
             {Math.abs(daysLeft)}
           </span>
@@ -723,11 +724,7 @@ export default function DashboardPage() {
                               e.stopPropagation();
                               handleMarkAsPaidFromCard(heroBill);
                             }}
-                            className="w-full py-3.5 rounded-2xl font-bold text-base text-white transition-all duration-200 active:scale-[0.98] shadow-lg"
-                            style={{
-                              background: `linear-gradient(to right, ${accentColor}, ${hexToRgba(accentColor, 0.85)})`,
-                              boxShadow: `0 10px 15px -3px ${hexToRgba(accentColor, 0.25)}`,
-                            }}
+                            className="w-full py-3.5 rounded-2xl font-bold text-base text-white transition-all duration-200 active:scale-[0.98] border border-white/20 bg-transparent hover:bg-white/[0.05]"
                           >
                             <Check className="w-5 h-5 inline-block mr-2 -mt-0.5" />
                             Mark as Paid

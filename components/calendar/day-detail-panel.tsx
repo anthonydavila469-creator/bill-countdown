@@ -361,7 +361,8 @@ export function DayDetailPanel({
                           href={bill.payment_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex-1 flex items-center justify-center gap-1.5 px-3.5 py-2.5 text-xs font-semibold rounded-lg bg-violet-500/20 text-violet-400 border border-violet-500/30 hover:bg-violet-500/30 hover:border-violet-400/50 transition-all duration-200"
+                          className="flex-1 flex items-center justify-center gap-1.5 px-3.5 py-2.5 text-xs font-semibold rounded-lg text-white hover:brightness-110 transition-all duration-200"
+                          style={{ backgroundColor: 'var(--accent-primary)' }}
                           onClick={(e) => e.stopPropagation()}
                         >
                           <ExternalLink className="w-3.5 h-3.5" />
@@ -378,8 +379,8 @@ export function DayDetailPanel({
                         disabled={isLoading}
                         className={cn(
                           'flex-1 flex items-center justify-center gap-1.5 px-3.5 py-2.5 text-xs font-semibold rounded-lg transition-all duration-200',
-                          'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30',
-                          'hover:bg-emerald-500/30 hover:border-emerald-400/50',
+                          'bg-transparent text-white border border-white/20',
+                          'hover:bg-white/[0.05]',
                           isLoading && 'opacity-50 cursor-not-allowed'
                         )}
                       >

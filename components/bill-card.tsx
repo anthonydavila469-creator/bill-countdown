@@ -142,7 +142,7 @@ export function BillCard({
                       "active:scale-95"
                     )}
                     style={{
-                      background: `linear-gradient(to right, ${accentColor}, ${hexToRgba(accentColor, 0.85)})`,
+                      background: accentColor,
                       boxShadow: `0 10px 15px -3px ${hexToRgba(accentColor, 0.3)}`,
                     }}
                   >
@@ -169,9 +169,9 @@ export function BillCard({
                   onClick={handleMarkPaid}
                   className={cn(
                     "flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200",
-                    "bg-white/20 hover:bg-emerald-500/40 backdrop-blur-sm",
-                    "text-white hover:text-emerald-100 border border-white/20 hover:border-emerald-400/50",
-                    "active:scale-95 shadow-lg"
+                    "bg-transparent hover:bg-white/[0.05] backdrop-blur-sm",
+                    "text-white border border-white/20",
+                    "active:scale-95"
                   )}
                   title={bill.is_autopay ? "Confirm Auto-Paid" : "Mark as Paid"}
                 >
@@ -389,7 +389,7 @@ export function BillCard({
                     "shadow-lg"
                   )}
                   style={{
-                    background: `linear-gradient(to right, ${accentColor}, ${hexToRgba(accentColor, 0.85)})`,
+                    background: accentColor,
                     boxShadow: `0 10px 15px -3px ${hexToRgba(accentColor, 0.2)}`,
                   }}
                 >
@@ -421,11 +421,9 @@ export function BillCard({
                 onClick={handleMarkPaid}
                 className={cn(
                   "group relative py-2.5 px-4 rounded-xl font-medium text-sm transition-all duration-200",
-                  "bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30",
-                  "active:scale-[0.98] active:bg-white/25",
-                  "flex items-center justify-center gap-2",
-                  "shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]",
-                  "hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_0_20px_rgba(255,255,255,0.1)]"
+                  "bg-transparent hover:bg-white/[0.05] border border-white/20",
+                  "active:scale-[0.98]",
+                  "flex items-center justify-center gap-2"
                 )}
                 title={bill.is_autopay ? "Confirm Auto-Paid" : "Mark as Paid"}
               >
@@ -620,7 +618,7 @@ export function BillListItem({
                 "active:scale-95"
               )}
               style={{
-                background: `linear-gradient(to right, ${accentColor}, ${hexToRgba(accentColor, 0.85)})`,
+                background: accentColor,
               }}
             >
               <ExternalLink className="w-4 h-4" />
@@ -645,9 +643,9 @@ export function BillListItem({
             onClick={handleMarkPaid}
             className={cn(
               "flex items-center gap-1.5 px-2 py-2 rounded-xl text-sm font-medium transition-all duration-200",
-              "bg-zinc-100 dark:bg-white/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20",
-              "text-zinc-600 dark:text-white/80 hover:text-emerald-600 dark:hover:text-emerald-300",
-              "border border-zinc-200 dark:border-white/10 hover:border-emerald-300 dark:hover:border-emerald-500/30",
+              "bg-transparent hover:bg-white/[0.05]",
+              "text-white",
+              "border border-white/20",
               "active:scale-95"
             )}
             title={bill.is_autopay ? 'Confirm Auto-Paid' : 'Mark as Paid'}

@@ -228,7 +228,7 @@ export function BillDetailModal({
                   href={bill.payment_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 text-white font-semibold rounded-xl hover:opacity-90 transition-opacity"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 text-white font-semibold rounded-xl hover:brightness-110 transition-all"
                   style={{ backgroundColor: 'var(--accent-primary)' }}
                 >
                   <ExternalLink className="w-5 h-5" />
@@ -240,7 +240,7 @@ export function BillDetailModal({
               <button
                 onClick={handleMarkPaid}
                 disabled={isMarkingPaid}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-emerald-500 to-green-500 text-white font-semibold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-transparent border border-white/20 hover:bg-white/[0.05] text-white font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isMarkingPaid ? (
                   'Marking as Paid...'

@@ -479,11 +479,10 @@ function RiskAlertItem({
               onClick={handlePayNow}
               className={cn(
                 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200',
-                'bg-gradient-to-r from-emerald-500 to-teal-500',
-                'hover:from-emerald-400 hover:to-teal-400',
-                'text-white',
+                'text-white hover:brightness-110',
                 'active:scale-95'
               )}
+              style={{ backgroundColor: 'var(--accent-primary)' }}
             >
               <ExternalLink className="w-3.5 h-3.5" />
               Pay
@@ -508,8 +507,8 @@ function RiskAlertItem({
             onClick={handleMarkPaid}
             className={cn(
               'hidden sm:flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200',
-              'bg-white/[0.05] hover:bg-emerald-500/20 border border-white/10 hover:border-emerald-500/40',
-              'text-zinc-400 hover:text-emerald-400',
+              'bg-transparent hover:bg-white/[0.05] border border-white/20',
+              'text-white',
               'active:scale-95'
             )}
             title={bill.is_autopay ? 'Confirm Auto-Paid' : 'Mark as Paid'}

@@ -372,11 +372,10 @@ export function BillListView({
                         onClick={(e) => handlePayNow(bill, e)}
                         className={cn(
                           'flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-xs font-bold transition-all duration-200',
-                          'bg-gradient-to-r from-emerald-500 to-teal-500 text-white',
-                          'hover:from-emerald-400 hover:to-teal-400',
+                          'text-white hover:brightness-110',
                           'active:scale-95',
-                          'shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40'
                         )}
+                        style={{ backgroundColor: 'var(--accent-primary)' }}
                       >
                         <ExternalLink className="w-3.5 h-3.5" />
                         <span className="hidden lg:inline">Pay</span>
@@ -397,11 +396,10 @@ export function BillListView({
                       onClick={(e) => handleMarkPaid(bill, e)}
                       className={cn(
                         'flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-200',
-                        'bg-gradient-to-b from-white/[0.04] to-white/[0.02] hover:from-emerald-500/20 hover:to-emerald-500/10',
-                        'text-zinc-500 hover:text-emerald-400',
-                        'border border-white/[0.08] hover:border-emerald-500/30',
-                        'active:scale-95',
-                        'shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]'
+                        'bg-transparent hover:bg-white/[0.05]',
+                        'text-white',
+                        'border border-white/20',
+                        'active:scale-95'
                       )}
                       title={bill.is_autopay ? 'Confirm Auto-Paid' : 'Mark as Paid'}
                     >
