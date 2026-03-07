@@ -9,16 +9,17 @@ import {
   Check,
   Info,
   RefreshCw,
+  AlertCircle,
 } from 'lucide-react';
 import { NotificationSettings, DEFAULT_NOTIFICATION_SETTINGS } from '@/types';
 import { cn } from '@/lib/utils';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
 
 const REMINDER_DAY_OPTIONS = [
+  { value: 14, label: '14 days before' },
   { value: 7, label: '7 days before' },
   { value: 3, label: '3 days before' },
   { value: 1, label: '1 day before' },
-  { value: 0, label: 'Day of (AM)' },
 ];
 
 // Section header with gradient icon
@@ -133,7 +134,7 @@ function FieldRow({
 export function NotificationSection() {
   const [settings, setSettings] = useState<NotificationSettings>(DEFAULT_NOTIFICATION_SETTINGS);
   const [isLoading, setIsLoading] = useState(true);
-  const { isSupported, isSubscribed, subscribe, unsubscribe } = usePushNotifications();
+  const { isSupported, isSubscribed, permissionStatus, subscribe, unsubscribe } = usePushNotifications();
 
   // Fetch settings on mount
   useEffect(() => {
@@ -173,8 +174,10 @@ export function NotificationSection() {
   const handlePushToggle = useCallback(async (enabled: boolean) => {
     if (enabled) {
       const success = await subscribe();
-      if (success) {
-        await updateSettings({ ...settings, push_enabled: true });
+      // Save preference regardless — if denied, the warning banner will show
+      await updateSettings({ ...settings, push_enabled: true });
+      if (!success) {
+        console.warn('Push permission not granted — preference saved, banner will show');
       }
     } else {
       await unsubscribe();
@@ -237,34 +240,36 @@ export function NotificationSection() {
         </FieldRow>
 
         {/* Push Notifications */}
-        <FieldRow
-          icon={Smartphone}
-          label="Push Notifications"
-          description="Get notified when bills are due"
-          index={1}
+        <div
+          className="group p-4 bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.06] hover:border-white/[0.1] rounded-2xl transition-all duration-300 animate-in fade-in slide-in-from-bottom-2"
+          style={{ animationDelay: '75ms', animationFillMode: 'backwards' }}
         >
-          <Toggle
-            enabled={settings.push_enabled}
-            onChange={async (enabled) => {
-              if (isSupported && enabled) {
-                const success = await subscribe();
-                if (success) {
-                  await updateSettings({ ...settings, push_enabled: true });
-                } else {
-                  // Save preference even if subscription fails
-                  await updateSettings({ ...settings, push_enabled: true });
-                }
-              } else if (isSupported && !enabled) {
-                await unsubscribe();
-                await updateSettings({ ...settings, push_enabled: false });
-              } else {
-                // Not supported — still save the preference
-                await updateSettings({ ...settings, push_enabled: enabled });
-              }
-            }}
-            color="#8b5cf6"
-          />
-        </FieldRow>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-2.5 rounded-xl bg-white/[0.04] group-hover:bg-white/[0.06] transition-colors">
+                <Smartphone className="w-4 h-4 text-zinc-400" />
+              </div>
+              <div>
+                <p className="font-medium text-white tracking-wide">Push Notifications</p>
+                <p className="text-sm text-zinc-500">Get notified when bills are due</p>
+              </div>
+            </div>
+            <Toggle
+              enabled={settings.push_enabled}
+              onChange={handlePushToggle}
+              color="#8b5cf6"
+            />
+          </div>
+          {/* iOS permission denied warning */}
+          {permissionStatus === 'denied' && settings.push_enabled && (
+            <div className="mt-3 ml-14 flex items-start gap-2.5 p-3 rounded-xl bg-amber-500/[0.06] border border-amber-500/15">
+              <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-amber-300/90 leading-relaxed">
+                Enable notifications in <span className="font-semibold">iOS Settings &rarr; Duezo</span> to receive push alerts.
+              </p>
+            </div>
+          )}
+        </div>
 
         {/* Auto-Sync Bills */}
         <FieldRow
