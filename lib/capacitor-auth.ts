@@ -129,8 +129,35 @@ export function listenForAuthReturn(
   // Listen for app returning to foreground
   document.addEventListener('visibilitychange', checkSession);
 
+  // Also listen for focus and pageshow events — iPad compatibility mode
+  // may not fire visibilitychange reliably when SFSafariViewController closes.
+  const focusHandler = () => {
+    if (!resolved && pendingTransferKey) {
+      setTimeout(() => tryResolveSession(), 500);
+    }
+  };
+  window.addEventListener('focus', focusHandler);
+  window.addEventListener('pageshow', focusHandler);
+
+  // Polling fallback: on iPad in iPhone compatibility mode, browser lifecycle
+  // events (browserPageLoaded, browserFinished, visibilitychange) may not fire
+  // at all. Poll the transfer endpoint every 2s while auth is pending so the
+  // user isn't stuck on a spinner forever.
+  const pollInterval = setInterval(() => {
+    if (resolved) {
+      clearInterval(pollInterval);
+      return;
+    }
+    if (pendingTransferKey) {
+      tryResolveSession();
+    }
+  }, 2000);
+
   return () => {
     document.removeEventListener('visibilitychange', checkSession);
+    window.removeEventListener('focus', focusHandler);
+    window.removeEventListener('pageshow', focusHandler);
+    clearInterval(pollInterval);
     pageLoadedListener.then(h => h.remove()).catch(() => {});
     browserListener.then(h => h.remove()).catch(() => {});
   };
