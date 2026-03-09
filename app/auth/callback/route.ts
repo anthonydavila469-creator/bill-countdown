@@ -22,26 +22,11 @@ export async function GET(request: Request) {
           refresh_token: data.session.refresh_token,
         });
 
-        // Return a page that signals the app via window.opener / postMessage.
-        // The browserPageLoaded event fires when this page loads in the SFVC,
-        // which lets the WKWebView fetch tokens and call Browser.close() immediately.
-        return new NextResponse(
-          `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<style>body{background:#08080c;color:#fff;font-family:system-ui;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}
-.c{text-align:center}.s{width:32px;height:32px;border:3px solid rgba(139,92,246,.3);border-top-color:#8B5CF6;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}
-@keyframes spin{to{transform:rotate(360deg)}}</style>
-</head>
-<body><div class="c"><div class="s"></div><p>Signing you in...</p></div>
-<script>
-// Signal the parent app that auth is complete.
-// The Capacitor browserPageLoaded event fires when this page loads —
-// the app will fetch the transfer tokens and close this browser automatically.
-try { window.opener && window.opener.postMessage('auth-complete', '*'); } catch(e){}
-</script>
-</body></html>`,
-          { headers: { 'Content-Type': 'text/html' } }
-        );
+        // Redirect to app URL scheme — this triggers appUrlOpen in the native app.
+        // Works reliably on both iPhone and iPad (including iPad compatibility mode)
+        // because it doesn't depend on SFSafariViewController lifecycle events.
+        const appSchemeUrl = `app.duezo://auth-callback?transfer_key=${transferKey}`;
+        return NextResponse.redirect(appSchemeUrl);
       }
 
       // Standard web flow: redirect to dashboard
