@@ -1,18 +1,48 @@
 import { Capacitor } from '@capacitor/core';
 import DuezoWidgetBridge, { WidgetPayloadV1 } from './widget-bridge';
+import {
+  buildWidgetPayload,
+  normalizeBillsForWidgetSync,
+  type WidgetSyncBill,
+} from './sync-widget-payload';
 
-function getDaysLeft(dueDate: string): number {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const due = new Date(dueDate + 'T00:00:00');
-  const diff = due.getTime() - today.getTime();
-  return Math.ceil(diff / (1000 * 60 * 60 * 24));
-}
+const WIDGET_BRIDGE_NAME = 'DuezoWidgetBridge';
+const WIDGET_SYNC_RETRY_MS = 350;
+const WIDGET_SYNC_MAX_ATTEMPTS = 3;
+export { buildWidgetPayload, normalizeBillsForWidgetSync } from './sync-widget-payload';
 
-function getUrgency(daysLeft: number): 'critical' | 'soon' | 'later' {
-  if (daysLeft <= 2) return 'critical';
-  if (daysLeft <= 7) return 'soon';
-  return 'later';
+async function writePayloadWithRetry(payload: WidgetPayloadV1, theme: string) {
+  let lastError: unknown = null;
+
+  for (let attempt = 1; attempt <= WIDGET_SYNC_MAX_ATTEMPTS; attempt += 1) {
+    try {
+      await DuezoWidgetBridge.syncPayload({
+        payload: JSON.stringify(payload),
+        theme,
+      });
+      console.log(
+        '[Duezo] Widget payload synced',
+        JSON.stringify({
+          attempt,
+          theme,
+          upcomingCount: payload.upcoming.length,
+          nextBillId: payload.nextBill?.id ?? null,
+        })
+      );
+      return;
+    } catch (error) {
+      lastError = error;
+      console.warn(
+        '[Duezo] Widget payload sync attempt failed',
+        JSON.stringify({ attempt, theme, error })
+      );
+      if (attempt < WIDGET_SYNC_MAX_ATTEMPTS) {
+        await new Promise((resolve) => globalThis.setTimeout(resolve, WIDGET_SYNC_RETRY_MS));
+      }
+    }
+  }
+
+  throw lastError;
 }
 
 /**
@@ -20,62 +50,35 @@ function getUrgency(daysLeft: number): 'critical' | 'soon' | 'later' {
  * Call this whenever bills change, theme changes, or user logs in.
  */
 export async function syncWidgetPayload(
-  bills: any[],
+  bills: WidgetSyncBill[],
   theme: string = 'emerald',
   lastMonthTotal: number | null = null
 ) {
-  if (!Capacitor.isNativePlatform()) return;
+  if (!Capacitor.isNativePlatform()) {
+    return;
+  }
 
   try {
-    console.log('[Duezo] syncWidgetPayload theme:', theme, 'bills:', bills.length);
-    // Filter to unpaid bills, sorted by due date ascending
-    const unpaid = bills
-      .filter((b) => !b.is_paid)
-      .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
+    const normalizedBills = normalizeBillsForWidgetSync(bills);
+    const pluginAvailable = Capacitor.isPluginAvailable(WIDGET_BRIDGE_NAME);
 
-    const totalDue = unpaid.reduce((sum, b) => sum + (b.amount || 0), 0);
-    const deltaVsLastMonth = lastMonthTotal !== null ? totalDue - lastMonthTotal : null;
+    console.log(
+      '[Duezo] syncWidgetPayload requested',
+      JSON.stringify({
+        theme,
+        inputBills: Array.isArray(bills) ? bills.length : 0,
+        normalizedBills: normalizedBills.length,
+        pluginAvailable,
+      })
+    );
 
-    const nextBill = unpaid.length > 0
-      ? {
-          id: unpaid[0].id,
-          vendor: unpaid[0].name,
-          amount: unpaid[0].amount,
-          dueDate: unpaid[0].due_date,
-          daysLeft: getDaysLeft(unpaid[0].due_date),
-          isAutopay: unpaid[0].is_autopay ?? false,
-          iconKey: null,
-        }
-      : null;
+    if (!pluginAvailable) {
+      console.warn('[Duezo] Widget bridge plugin is not available on native platform');
+      return;
+    }
 
-    const upcoming = unpaid.slice(0, 6).map((b) => {
-      const daysLeft = getDaysLeft(b.due_date);
-      return {
-        id: b.id,
-        vendor: b.name,
-        amount: b.amount,
-        dueDate: b.due_date,
-        daysLeft,
-        urgency: getUrgency(daysLeft),
-      };
-    });
-
-    const payload: WidgetPayloadV1 = {
-      version: 1,
-      generatedAt: Math.floor(Date.now() / 1000),
-      currencyCode: 'USD',
-      totals: {
-        totalDue: Math.round(totalDue * 100) / 100,
-        deltaVsLastMonth: deltaVsLastMonth !== null ? Math.round(deltaVsLastMonth * 100) / 100 : null,
-      },
-      nextBill,
-      upcoming,
-    };
-
-    await DuezoWidgetBridge.syncPayload({
-      payload: JSON.stringify(payload),
-      theme,
-    });
+    const payload = buildWidgetPayload(normalizedBills, lastMonthTotal);
+    await writePayloadWithRetry(payload, theme);
   } catch (e) {
     console.warn('[Duezo] Widget payload sync failed:', e);
   }
@@ -84,18 +87,20 @@ export async function syncWidgetPayload(
 /**
  * Legacy sync — kept for backward compatibility.
  */
-export async function syncBillsToWidget(bills: any[]) {
+export async function syncBillsToWidget(bills: WidgetSyncBill[]) {
   if (!Capacitor.isNativePlatform()) return;
 
   try {
-    const widgetBills = bills.map((bill) => ({
+    const normalizedBills = normalizeBillsForWidgetSync(bills);
+    const widgetBills = normalizedBills.map((bill) => ({
       id: bill.id,
       name: bill.name,
-      amount: bill.amount,
+      amount: typeof bill.amount === 'number' && Number.isFinite(bill.amount) ? bill.amount : 0,
       due_date: bill.due_date,
       is_paid: bill.is_paid,
       category: bill.category ?? null,
     }));
+    console.log('[Duezo] syncBillsToWidget requested', JSON.stringify({ count: widgetBills.length }));
     await DuezoWidgetBridge.syncBills({ bills: widgetBills });
   } catch (e) {
     console.warn('[Duezo] Widget sync failed:', e);

@@ -92,8 +92,19 @@ final class DuezoWidgetStore {
 
     func readPayload() -> DuezoWidgetPayload? {
         guard let json = defaults.string(forKey: Self.payloadKey),
-              let data = json.data(using: .utf8) else { return nil }
-        return try? JSONDecoder().decode(DuezoWidgetPayload.self, from: data)
+              let data = json.data(using: .utf8) else {
+            print("[DuezoWidget] No v1 payload found in shared defaults")
+            return nil
+        }
+
+        do {
+            let payload = try JSONDecoder().decode(DuezoWidgetPayload.self, from: data)
+            print("[DuezoWidget] Loaded v1 payload with \(payload.upcoming.count) upcoming bills")
+            return payload
+        } catch {
+            print("[DuezoWidget] Failed to decode v1 payload: \(error)")
+            return nil
+        }
     }
 
     var hasSynced: Bool {
@@ -169,6 +180,7 @@ struct DuezoProvider: TimelineProvider {
 
     private func loadEntry() -> DuezoEntry {
         let store = DuezoWidgetStore()
+        print("[DuezoWidget] loadEntry hasSynced=\(store.hasSynced) theme=\(store.readTheme())")
 
         // Try v1 payload first
         if let payload = store.readPayload() {
@@ -184,12 +196,14 @@ struct DuezoProvider: TimelineProvider {
                     .filter { !$0.is_paid }
                     .sorted { ($0.dueDate ?? .distantFuture) < ($1.dueDate ?? .distantFuture) }
                 let payload = legacyBillsToPayload(unpaid)
+                print("[DuezoWidget] Loaded legacy bills fallback count=\(unpaid.count)")
                 return DuezoEntry(date: Date(), payload: payload, bills: unpaid, error: nil)
             } catch {
                 print("[DuezoWidget] Failed to decode legacy bills: \(error)")
             }
         }
 
+        print("[DuezoWidget] No synced widget data found, returning empty entry")
         return DuezoEntry.empty
     }
 

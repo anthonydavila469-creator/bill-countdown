@@ -779,7 +779,7 @@ export default function DashboardPage() {
                     return d >= 0 && d <= 7;
                   }).length;
                   return (
-                  <div className="grid grid-cols-3 gap-3 mb-6">
+                  <div className="grid grid-cols-2 gap-3 mb-6">
                     {/* DUE SOON */}
                     <div className="relative overflow-hidden rounded-2xl p-4 backdrop-blur-xl bg-white/[0.04] border border-orange-500/40"
                       style={{ boxShadow: '0 4px 20px rgba(245,158,11,0.15)' }}>
@@ -787,19 +787,12 @@ export default function DashboardPage() {
                       <p className="text-[10px] font-bold uppercase tracking-widest text-orange-400/80 mb-1">Due Soon</p>
                       <p className="text-2xl font-black text-orange-400 tabular-nums">{dueSoonCount}</p>
                     </div>
-                    {/* ACTIVE */}
-                    <div className="relative overflow-hidden rounded-2xl p-4 backdrop-blur-xl bg-white/[0.04] border border-violet-500/20"
-                      style={{ boxShadow: '0 4px 20px rgba(139,92,246,0.08)' }}>
-                      <div className="absolute -top-6 -right-6 w-16 h-16 rounded-full blur-2xl bg-violet-500/15 pointer-events-none" />
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-violet-400/80 mb-1">Active</p>
-                      <p className="text-2xl font-black text-violet-400 tabular-nums">{unpaidBills.length}</p>
-                    </div>
                     {/* TOTAL DUE */}
                     <div className="relative overflow-hidden rounded-2xl p-4 backdrop-blur-xl bg-white/[0.04] border border-teal-500/20"
                       style={{ boxShadow: '0 4px 20px rgba(20,184,166,0.08)' }}>
                       <div className="absolute -top-6 -right-6 w-16 h-16 rounded-full blur-2xl bg-teal-500/15 pointer-events-none" />
                       <p className="text-[10px] font-bold uppercase tracking-widest text-teal-400/80 mb-1">Total</p>
-                      <p className={`font-black text-teal-400 tabular-nums tracking-tight ${totalDue >= 100000 ? 'text-sm' : totalDue >= 10000 ? 'text-lg' : 'text-2xl'}`}>{formatCurrency(totalDue)}</p>
+                      <p className="text-2xl font-black text-teal-400 tabular-nums tracking-tight">{formatCurrency(totalDue)}</p>
                     </div>
                   </div>
                   );

@@ -4,6 +4,12 @@ import WidgetKit
 
 @objc(DuezoWidgetBridge)
 public class DuezoWidgetBridge: CAPPlugin, CAPBridgedPlugin {
+    private let appGroupId = "group.app.duezo"
+    private let billsKey = "duezo_bills"
+    private let payloadKey = "duezo_widget_payload_v1"
+    private let themeKey = "duezo_theme"
+    private let updatedKey = "duezo_widget_last_updated"
+
     public let identifier = "DuezoWidgetBridge"
     public let jsName = "DuezoWidgetBridge"
     public let pluginMethods: [CAPPluginMethod] = [
@@ -13,25 +19,38 @@ public class DuezoWidgetBridge: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "setTheme", returnType: CAPPluginReturnPromise)
     ]
 
+    private func sharedDefaults() -> UserDefaults? {
+        UserDefaults(suiteName: appGroupId)
+    }
+
+    private func reloadWidgets(reason: String) {
+        if #available(iOS 14.0, *) {
+            NSLog("[DuezoWidgetBridge] Reloading widget timelines (%@)", reason)
+            WidgetCenter.shared.reloadAllTimelines()
+        }
+    }
+
     @objc func syncBills(_ call: CAPPluginCall) {
         guard let bills = call.getArray("bills") else {
             call.reject("Missing bills array")
             return
         }
 
-        guard let defaults = UserDefaults(suiteName: "group.app.duezo") else {
+        NSLog("[DuezoWidgetBridge] syncBills called with %d bills", bills.count)
+
+        guard let defaults = sharedDefaults() else {
             call.reject("Failed to access App Group")
             return
         }
 
         do {
             let data = try JSONSerialization.data(withJSONObject: bills, options: [])
-            defaults.set(data, forKey: "duezo_bills")
+            defaults.set(data, forKey: billsKey)
+            defaults.set(Date().timeIntervalSince1970, forKey: updatedKey)
             defaults.synchronize()
 
-            if #available(iOS 14.0, *) {
-                WidgetCenter.shared.reloadAllTimelines()
-            }
+            reloadWidgets(reason: "syncBills")
+            NSLog("[DuezoWidgetBridge] ✅ syncBills stored %d bytes in %@", data.count, appGroupId)
 
             call.resolve()
         } catch {
@@ -45,23 +64,26 @@ public class DuezoWidgetBridge: CAPPlugin, CAPBridgedPlugin {
             return
         }
         let themeValue = call.getString("theme") ?? "onyx"
-        NSLog("[DuezoWidgetBridge] syncPayload called with theme: %@", themeValue)
+        NSLog("[DuezoWidgetBridge] syncPayload called with theme: %@ payloadBytes: %d", themeValue, payload.lengthOfBytes(using: .utf8))
 
-        guard let defaults = UserDefaults(suiteName: "group.app.duezo") else {
+        guard let defaults = sharedDefaults() else {
             call.reject("Failed to access App Group")
             return
         }
 
-        defaults.set(payload, forKey: "duezo_widget_payload_v1")
-        defaults.set(themeValue, forKey: "duezo_theme")
-        defaults.set(Date().timeIntervalSince1970, forKey: "duezo_widget_last_updated")
+        defaults.set(payload, forKey: payloadKey)
+        defaults.set(themeValue, forKey: themeKey)
+        defaults.set(Date().timeIntervalSince1970, forKey: updatedKey)
         defaults.synchronize()
 
-        if #available(iOS 14.0, *) {
-            WidgetCenter.shared.reloadAllTimelines()
-        }
+        reloadWidgets(reason: "syncPayload")
 
-        NSLog("[DuezoWidgetBridge] ✅ syncPayload stored theme: %@", defaults.string(forKey: "duezo_theme") ?? "nil")
+        NSLog(
+            "[DuezoWidgetBridge] ✅ syncPayload stored payload: %@ theme: %@ updatedAt: %.0f",
+            defaults.string(forKey: payloadKey) != nil ? "yes" : "no",
+            defaults.string(forKey: themeKey) ?? "nil",
+            defaults.double(forKey: updatedKey)
+        )
         call.resolve()
     }
 
@@ -72,34 +94,39 @@ public class DuezoWidgetBridge: CAPPlugin, CAPBridgedPlugin {
         }
         NSLog("[DuezoWidgetBridge] setTheme called with: %@", theme)
 
-        guard let defaults = UserDefaults(suiteName: "group.app.duezo") else {
+        guard let defaults = sharedDefaults() else {
             call.reject("Failed to access App Group")
             return
         }
 
-        defaults.set(theme, forKey: "duezo_theme")
+        let previousTheme = defaults.string(forKey: themeKey) ?? "nil"
+        defaults.set(theme, forKey: themeKey)
+        defaults.set(Date().timeIntervalSince1970, forKey: updatedKey)
         defaults.synchronize()
 
-        if #available(iOS 14.0, *) {
-            WidgetCenter.shared.reloadAllTimelines()
-        }
+        reloadWidgets(reason: "setTheme")
 
-        NSLog("[DuezoWidgetBridge] ✅ Theme set to: %@", defaults.string(forKey: "duezo_theme") ?? "nil")
+        NSLog(
+            "[DuezoWidgetBridge] ✅ Theme updated %@ -> %@",
+            previousTheme,
+            defaults.string(forKey: themeKey) ?? "nil"
+        )
         call.resolve()
     }
 
     @objc func clearBills(_ call: CAPPluginCall) {
-        guard let defaults = UserDefaults(suiteName: "group.app.duezo") else {
+        guard let defaults = sharedDefaults() else {
             call.reject("Failed to access App Group")
             return
         }
 
-        defaults.removeObject(forKey: "duezo_bills")
+        defaults.removeObject(forKey: billsKey)
+        defaults.removeObject(forKey: payloadKey)
+        defaults.set(Date().timeIntervalSince1970, forKey: updatedKey)
         defaults.synchronize()
 
-        if #available(iOS 14.0, *) {
-            WidgetCenter.shared.reloadAllTimelines()
-        }
+        reloadWidgets(reason: "clearBills")
+        NSLog("[DuezoWidgetBridge] Cleared widget bills and payload from %@", appGroupId)
 
         call.resolve()
     }

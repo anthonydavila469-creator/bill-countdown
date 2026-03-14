@@ -8,6 +8,7 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { Bill } from '@/types';
 
 // Mutation states for per-bill loading indicators
@@ -191,17 +192,6 @@ export function BillsProvider({ children }: BillsProviderProps) {
             new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
         );
         dispatch({ type: 'SET_BILLS', bills: sortedBills });
-
-        // Sync bills to iOS widget with user's actual theme
-        Promise.all([
-          import('../lib/capacitor-plugins/sync-widget'),
-          fetch('/api/preferences').then(r => r.ok ? r.json() : null).catch(() => null)
-        ]).then(([{ syncWidgetPayload }, prefs]) => {
-          const theme = prefs?.color_theme || 'onyx';
-          console.log('[Duezo] syncWidgetPayload (bills-context) theme:', theme);
-          // Map app theme IDs to widget theme IDs
-          syncWidgetPayload(sortedBills, theme);
-        }).catch((e) => console.warn('[Duezo] syncWidgetPayload (bills-context) failed:', e));
       }
     } catch (error) {
       console.error('Failed to fetch bills:', error);
@@ -220,6 +210,45 @@ export function BillsProvider({ children }: BillsProviderProps) {
       refetch();
     }
   }, [state.lastFetched, refetch]);
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform() || state.loading) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const syncBillsToWidget = async () => {
+      try {
+        const [{ syncWidgetPayload }, prefsResponse] = await Promise.all([
+          import('../lib/capacitor-plugins/sync-widget'),
+          fetch('/api/preferences').catch(() => null),
+        ]);
+
+        if (cancelled) {
+          return;
+        }
+
+        const prefs = prefsResponse && prefsResponse.ok ? await prefsResponse.json() : null;
+        const theme = prefs?.color_theme || 'onyx';
+
+        console.log(
+          '[Duezo] bills-context widget sync scheduled',
+          JSON.stringify({ theme, bills: state.bills.length, lastFetched: state.lastFetched })
+        );
+
+        await syncWidgetPayload(state.bills, theme);
+      } catch (error) {
+        console.warn('[Duezo] bills-context widget sync failed:', error);
+      }
+    };
+
+    syncBillsToWidget();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [state.bills, state.lastFetched, state.loading]);
 
   // Filter out deleted bills
   const visibleBills = useMemo(() => {
