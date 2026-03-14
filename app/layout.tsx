@@ -38,11 +38,11 @@ export const metadata: Metadata = {
     type: "website",
     url: "https://duezo.app",
     title: "Duezo — Never Miss a Bill Payment Again",
-    description: "Beautiful countdown cards + AI email sync. Track every bill, get smart reminders, and never pay late again.",
+    description: "Simple bill tracking with countdown timers. No bank login required. Know exactly when every bill is due.",
     siteName: "Duezo",
     images: [
       {
-        url: "/og-image.png",
+        url: "/og-card.png",
         width: 1200,
         height: 630,
         alt: "Duezo — Bill Tracking Made Beautiful",
@@ -52,8 +52,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Duezo — Never Miss a Bill Payment Again",
-    description: "Beautiful countdown cards + AI email sync. Track every bill, get smart reminders, and never pay late again.",
-    images: ["/og-image.png"],
+    description: "Simple bill tracking with countdown timers. No bank login required. Know exactly when every bill is due.",
+    images: ["/og-card.png"],
   },
   robots: {
     index: true,
