@@ -79,13 +79,14 @@ export function BillDetailModal({
         <div className="flex min-h-full items-end sm:items-center justify-center p-4 pb-28 sm:pb-4">
           <div
             className={cn(
-              'relative w-full max-w-md bg-[#0c0c10] border border-white/10 rounded-2xl shadow-2xl overflow-hidden',
+              'relative w-full max-w-md bg-[#0c0c10] rounded-2xl shadow-2xl overflow-hidden',
+              urgency === 'overdue' ? 'border border-red-500/30' : urgency === 'urgent' ? 'border border-amber-500/30' : 'border border-white/10',
               'animate-in fade-in zoom-in-95 duration-200'
             )}
           >
             {/* Header with theme gradient */}
             <div
-              className="relative rounded-t-2xl overflow-hidden"
+              className="relative overflow-hidden"
               style={{
                 background: urgency === 'overdue'
                   ? 'linear-gradient(135deg, rgba(127,29,29,0.8), rgba(185,28,28,0.6))'
