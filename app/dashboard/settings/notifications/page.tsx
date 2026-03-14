@@ -182,7 +182,10 @@ export default function NotificationsSettingsPage() {
       ? current.filter(d => d !== day)
       : [...current, day].sort((a, b) => b - a);
     if (updated.length === 0) return;
-    setSettings(prev => ({ ...prev, reminder_days: updated, lead_days: Math.min(...updated) }));
+    const newSettings = { ...settings, reminder_days: updated, lead_days: Math.min(...updated) };
+    setSettings(newSettings);
+    // Force immediate save — don't rely on useEffect debounce
+    saveSettings(newSettings);
   };
 
   if (isLoading) {
