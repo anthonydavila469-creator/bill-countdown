@@ -131,6 +131,15 @@ function TimelineBillRow({
     : isSoon ? '#EAB308'
     : accentColor;
 
+  // Gradient style for countdown numbers — uses CSS vars set by theme
+  const urgencyGradientStyle: React.CSSProperties = isOverdue
+    ? { backgroundImage: 'linear-gradient(160deg, var(--urgency-overdue-from), var(--urgency-overdue-to))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }
+    : isUrgent
+    ? { backgroundImage: 'linear-gradient(160deg, var(--urgency-urgent-from), var(--urgency-urgent-to))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }
+    : isSoon
+    ? { backgroundImage: 'linear-gradient(160deg, var(--urgency-soon-from), var(--urgency-soon-to))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }
+    : { backgroundImage: 'linear-gradient(160deg, var(--urgency-safe-from), var(--urgency-safe-to))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' };
+
   return (
     <SwipeBillCard bill={bill} onClick={onClick} onMarkPaid={onMarkPaid}>
       <div
@@ -175,13 +184,13 @@ function TimelineBillRow({
         <div className="text-right flex-shrink-0">
           <span
             className="text-3xl font-black tabular-nums"
-            style={{ color: urgencyColor }}
+            style={urgencyGradientStyle}
           >
             {Math.abs(daysLeft)}
           </span>
           <p
             className="text-[10px] font-bold uppercase tracking-wider"
-            style={{ color: urgencyColor }}
+            style={urgencyGradientStyle}
           >
             {isOverdue
               ? `${Math.abs(daysLeft) === 1 ? 'day' : 'days'} late`
@@ -200,7 +209,7 @@ function TimelineBillRow({
 export default function DashboardPage() {
   const router = useRouter();
   const supabase = createClient();
-  const { accentColor } = useTheme();
+  const { accentColor, cardGradient } = useTheme();
   const {
     canAddBill,
     refreshSubscription,
@@ -678,11 +687,7 @@ export default function DashboardPage() {
                   const heroUrgency = getUrgency(heroDays);
                   const isHeroOverdue = heroDays < 0;
                   // Urgency-based countdown color
-                  const heroCountdownColor = isHeroOverdue ? '#EF4444'
-                    : heroDays <= 3 ? '#F59E0B'
-                    : heroDays <= 7 ? '#EAB308'
-                    : accentColor;
-                  return (
+                                    return (
                   <div className="relative mb-6">
                     {/* Ambient gradient orb behind hero */}
                     <div
@@ -700,7 +705,7 @@ export default function DashboardPage() {
                         minHeight: '25vh',
                         background: isHeroOverdue
                           ? 'linear-gradient(135deg, rgba(127,29,29,0.5) 0%, rgba(153,27,27,0.3) 50%, rgba(127,29,29,0.5) 100%)'
-                          : `linear-gradient(135deg, ${accentColor} 0%, ${hexToRgba(accentColor, 0.8)} 50%, ${accentColor} 100%)`,
+                          : cardGradient,
                         border: isHeroOverdue
                           ? '1px solid rgba(239,68,68,0.4)'
                           : `1px solid ${hexToRgba(accentColor, 0.35)}`,
@@ -736,8 +741,7 @@ export default function DashboardPage() {
                             daysLeft={heroDays}
                             urgency={heroUrgency}
                             size="lg"
-                            colorMode="custom"
-                            customColor={heroCountdownColor}
+                            colorMode="gradient"
                           />
                           <h2 className="text-2xl sm:text-3xl font-bold text-white mt-3">
                             {heroBill.name}
