@@ -781,8 +781,8 @@ export default function DashboardPage() {
                   return (
                   <div className="grid grid-cols-3 gap-3 mb-6">
                     {/* DUE SOON */}
-                    <div className="relative overflow-hidden rounded-2xl p-4 backdrop-blur-xl bg-white/[0.04] border border-orange-500/20"
-                      style={{ boxShadow: '0 4px 20px rgba(245,158,11,0.08)' }}>
+                    <div className="relative overflow-hidden rounded-2xl p-4 backdrop-blur-xl bg-white/[0.04] border border-orange-500/40"
+                      style={{ boxShadow: '0 4px 20px rgba(245,158,11,0.15)' }}>
                       <div className="absolute -top-6 -right-6 w-16 h-16 rounded-full blur-2xl bg-orange-500/15 pointer-events-none" />
                       <p className="text-[10px] font-bold uppercase tracking-widest text-orange-400/80 mb-1">Due Soon</p>
                       <p className="text-2xl font-black text-orange-400 tabular-nums">{dueSoonCount}</p>
