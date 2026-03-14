@@ -301,16 +301,8 @@ export function PayNowModal({ bill, isOpen, onClose, onMarkPaid }: PayNowModalPr
                       "disabled:opacity-50 disabled:cursor-not-allowed"
                     )}
                   >
-                    {/* Gradient background */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 via-emerald-400 to-teal-500" />
-
-                    {/* Shine effect on hover */}
-                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-                    </div>
-
-                    {/* Glow effect */}
-                    <div className="absolute inset-0 rounded-xl shadow-[0_0_30px_-5px_rgba(16,185,129,0.5)] group-hover:shadow-[0_0_40px_-5px_rgba(16,185,129,0.6)] transition-shadow duration-300" />
+                    {/* Ghost background */}
+                    <div className="absolute inset-0 rounded-xl border border-white/20 hover:bg-white/[0.05] transition-colors" />
 
                     {/* Content */}
                     <div className="relative flex items-center justify-center gap-2">

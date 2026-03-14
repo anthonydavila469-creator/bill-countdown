@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Bell, X, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTheme } from '@/contexts/theme-context';
 
 interface FeedNotification {
   id: string;
@@ -28,6 +29,7 @@ export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const { accentColor } = useTheme();
 
   const fetchFeed = useCallback(async () => {
     try {
@@ -104,7 +106,7 @@ export function NotificationBell() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-3 w-96 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="fixed left-1/2 -translate-x-1/2 top-16 mt-3 w-96 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
           {/* Glow */}
           <div className="absolute -inset-1 bg-gradient-to-b from-white/5 to-transparent rounded-2xl blur-xl" />
 
@@ -117,8 +119,8 @@ export function NotificationBell() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="relative">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500/20 to-amber-500/20 flex items-center justify-center">
-                      <Bell className="w-4 h-4 text-violet-400" />
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `color-mix(in srgb, ${accentColor} 20%, transparent)` }}>
+                      <Bell className="w-4 h-4" style={{ color: accentColor }} />
                     </div>
                     {unreadCount > 0 && (
                       <span className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-violet-500 to-rose-500 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-lg shadow-violet-500/30">

@@ -26,7 +26,7 @@ export function BillDetailModal({
   onDelete,
   onMarkPaid,
 }: BillDetailModalProps) {
-  const { selectedTheme } = useTheme();
+  const { accentColor } = useTheme();
   const [isMarkingPaid, setIsMarkingPaid] = useState(false);
 
   // Prevent body scroll when modal is open
@@ -84,7 +84,7 @@ export function BillDetailModal({
             )}
           >
             {/* Header with gradient */}
-            <GradientCard urgency={urgency} className="rounded-none rounded-t-2xl">
+            <GradientCard urgency={urgency} className="rounded-none rounded-t-2xl" accentColor={accentColor}>
               <div className="p-6 pb-8">
                 <div className="flex items-start justify-between mb-4">
                   <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
@@ -112,12 +112,11 @@ export function BillDetailModal({
                     urgency={urgency}
                     size="lg"
                     colorMode={
-                      ['midnight', 'wine', 'onyx', 'amethyst', 'ocean', 'sunset'].includes(selectedTheme)
-                        ? 'gradient'
-                        : (urgency === 'overdue' || urgency === 'urgent' || urgency === 'soon')
-                          ? 'urgency'
-                          : 'white'
+                      (urgency === 'overdue' || urgency === 'urgent')
+                        ? 'urgency'
+                        : 'custom'
                     }
+                    customColor={accentColor}
                   />
                 </div>
               </div>
@@ -206,7 +205,7 @@ export function BillDetailModal({
                   <Link className="w-5 h-5 text-zinc-500 mt-0.5" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-zinc-500">Payment Link</p>
-                    <p className="font-medium text-violet-400 truncate">{bill.payment_url}</p>
+                    <p className="font-medium truncate" style={{ color: accentColor }}>{bill.payment_url}</p>
                   </div>
                 </div>
               )}
@@ -228,7 +227,7 @@ export function BillDetailModal({
                   href={bill.payment_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 text-white font-semibold rounded-xl hover:opacity-90 transition-opacity"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 text-white font-semibold rounded-xl hover:brightness-110 transition-all"
                   style={{ backgroundColor: 'var(--accent-primary)' }}
                 >
                   <ExternalLink className="w-5 h-5" />
@@ -240,7 +239,7 @@ export function BillDetailModal({
               <button
                 onClick={handleMarkPaid}
                 disabled={isMarkingPaid}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-emerald-500 to-green-500 text-white font-semibold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-transparent border border-white/20 hover:bg-white/[0.05] text-white font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isMarkingPaid ? (
                   'Marking as Paid...'

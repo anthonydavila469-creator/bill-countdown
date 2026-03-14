@@ -1,62 +1,191 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { BillCard } from '@/components/bill-card';
 import { AddBillModal } from '@/components/add-bill-modal';
 import { OnboardingScreen } from '@/components/onboarding/onboarding-screen';
 import { OnboardingModal, useOnboardingComplete } from '@/components/onboarding-modal';
 import { DeleteBillModal } from '@/components/delete-bill-modal';
 import { BillDetailModal } from '@/components/bill-detail-modal';
 import { PayNowModal } from '@/components/pay-now-modal';
-import { BillListView } from '@/components/bill-list-view';
-import { SortFilterBar, SortOption, FilterOption } from '@/components/sort-filter-bar';
-import { DashboardControls, CardSize } from '@/components/dashboard-controls';
-import { Bill, DashboardView } from '@/types';
-import { getDaysUntilDue } from '@/lib/utils';
-import { getBillRiskType } from '@/lib/risk-utils';
+import { Bill } from '@/types';
+import { getDaysUntilDue, formatCurrency, getUrgency, hexToRgba } from '@/lib/utils';
 import { getBillIcon } from '@/lib/get-bill-icon';
-import { RiskAlerts } from '@/components/risk-alerts';
 import { RecurringDetectionBanner } from '@/components/recurring-detection-banner';
 import { NotificationBell } from '@/components/notification-bell';
-import { OnTimePayments } from '@/components/on-time-payments';
+import { CountdownDisplay } from '@/components/countdown-display';
 import { createClient } from '@/lib/supabase/client';
 import { useTheme } from '@/contexts/theme-context';
 import { useBillMutations } from '@/hooks/use-bill-mutations';
 import { useRecurringDetection } from '@/hooks/use-recurring-detection';
-import { Spinner } from '@/components/ui/animated-list';
 import { DashboardSkeleton } from '@/components/skeleton-loader';
 import { hapticSuccess, hapticLight } from '@/lib/haptics';
 import {
-  Zap,
   Plus,
   LayoutGrid,
-  List,
   Calendar,
   Settings,
   LogOut,
-  Bell,
   Mail,
   Search,
   History,
-  Loader2,
-  X,
-  Eye,
-  EyeOff,
-  SlidersHorizontal,
-  AlertTriangle,
   Check,
-  Trash2,
 } from 'lucide-react';
 import { useSubscription } from '@/hooks/use-subscription';
 import { cn } from '@/lib/utils';
 
+// Swipe-to-pay card wrapper
+function SwipeBillCard({
+  bill,
+  onClick,
+  onMarkPaid,
+  children,
+}: {
+  bill: Bill;
+  onClick: () => void;
+  onMarkPaid: (bill: Bill) => void;
+  children: React.ReactNode;
+}) {
+  const touchStartX = useRef(0);
+  const touchCurrentX = useRef(0);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [swiping, setSwiping] = useState(false);
+  const [swipedPaid, setSwipedPaid] = useState(false);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchCurrentX.current = e.touches[0].clientX;
+    setSwiping(true);
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!swiping) return;
+    touchCurrentX.current = e.touches[0].clientX;
+    const diff = touchCurrentX.current - touchStartX.current;
+    if (diff > 0 && cardRef.current) {
+      cardRef.current.style.transform = `translateX(${Math.min(diff, 200)}px)`;
+      cardRef.current.style.opacity = `${1 - Math.min(diff / 300, 0.5)}`;
+      if (diff > 100) {
+        cardRef.current.style.background = 'rgba(34, 197, 94, 0.2)';
+      }
+    }
+  }, [swiping]);
+
+  const handleTouchEnd = useCallback(() => {
+    if (!swiping) return;
+    setSwiping(false);
+    const diff = touchCurrentX.current - touchStartX.current;
+    if (diff > 100 && !bill.is_paid) {
+      setSwipedPaid(true);
+      hapticSuccess();
+      setTimeout(() => onMarkPaid(bill), 300);
+    } else if (cardRef.current) {
+      cardRef.current.style.transform = '';
+      cardRef.current.style.opacity = '';
+      cardRef.current.style.background = '';
+    }
+  }, [swiping, bill, onMarkPaid]);
+
+  return (
+    <div
+      ref={cardRef}
+      className={cn(
+        'transition-all duration-200',
+        swipedPaid && 'animate-swipe-paid'
+      )}
+      style={{ willChange: 'transform' }}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onClick={onClick}
+    >
+      {children}
+    </div>
+  );
+}
+
+// Timeline bill row — icon left | name+amount center | countdown right
+function TimelineBillRow({
+  bill,
+  onClick,
+  onMarkPaid,
+  accentColor,
+}: {
+  bill: Bill;
+  onClick: () => void;
+  onMarkPaid: (bill: Bill) => void;
+  accentColor: string;
+}) {
+  const daysLeft = getDaysUntilDue(bill.due_date);
+  const urgency = getUrgency(daysLeft);
+  const isOverdue = daysLeft < 0;
+  const isUrgent = daysLeft >= 0 && daysLeft <= 3;
+  const { icon: IconComponent } = getBillIcon(bill);
+
+  return (
+    <SwipeBillCard bill={bill} onClick={onClick} onMarkPaid={onMarkPaid}>
+      <div
+        className={cn(
+          'flex items-center gap-4 p-4 rounded-2xl backdrop-blur-xl cursor-pointer',
+          'transition-all duration-300 hover:scale-[1.01]',
+          isOverdue
+            ? 'bg-[rgba(127,29,29,0.35)] border border-red-500/40'
+            : isUrgent
+              ? 'bg-[rgba(255,255,255,0.05)] animate-pulse-amber'
+              : 'bg-[rgba(255,255,255,0.05)]'
+        )}
+        style={!isOverdue && !isUrgent ? { border: `1px solid ${hexToRgba(accentColor, 0.2)}` } : undefined}
+      >
+        {/* Icon */}
+        <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center">
+          <IconComponent className="w-5 h-5 text-white/80" />
+        </div>
+
+        {/* Name + Amount */}
+        <div className="flex-1 min-w-0">
+          <h4 className="font-semibold text-white truncate">{bill.name}</h4>
+          <p className="text-sm text-zinc-400">
+            {bill.amount ? formatCurrency(bill.amount) : 'No amount'}
+          </p>
+        </div>
+
+        {/* Urgency countdown */}
+        <div className="text-right flex-shrink-0">
+          <span
+            className={cn(
+              'text-3xl font-extrabold tabular-nums',
+              isOverdue ? 'text-red-400' : isUrgent ? 'text-amber-400' : ''
+            )}
+            style={!isOverdue && !isUrgent ? { color: accentColor } : undefined}
+          >
+            {Math.abs(daysLeft)}
+          </span>
+          <p
+            className={cn(
+              'text-[10px] font-semibold uppercase tracking-wider',
+              isOverdue ? 'text-red-400' : 'text-zinc-500'
+            )}
+          >
+            {isOverdue
+              ? `${Math.abs(daysLeft) === 1 ? 'day' : 'days'} late`
+              : daysLeft === 0
+                ? 'today'
+                : daysLeft === 1
+                  ? 'day left'
+                  : 'days left'}
+          </p>
+        </div>
+      </div>
+    </SwipeBillCard>
+  );
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const supabase = createClient();
-  const { dashboardLayout, updateDashboardLayout } = useTheme();
+  const { accentColor } = useTheme();
   const {
     canAddBill,
     refreshSubscription,
@@ -87,9 +216,7 @@ export default function DashboardPage() {
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isGmailConnected, setIsGmailConnected] = useState(false);
-  const [view, setView] = useState<DashboardView>(dashboardLayout.defaultView);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showPaidBills, setShowPaidBills] = useState(false);
 
   // Onboarding state
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -97,49 +224,12 @@ export default function DashboardPage() {
   const onboardingComplete = useOnboardingComplete();
   const [showOnboardingModal, setShowOnboardingModal] = useState(false);
 
-  // List view state
-  const [selectedBillIds, setSelectedBillIds] = useState<Set<string>>(new Set());
-  const [sortBy, setSortBy] = useState<SortOption>(dashboardLayout.sortBy || 'due_date');
-  const [quickFilter, setQuickFilter] = useState<FilterOption>('all');
-
-  // Layout settings popover state
-  const [isLayoutSettingsOpen, setIsLayoutSettingsOpen] = useState(false);
-  const layoutSettingsRef = useRef<HTMLDivElement>(null);
 
   // Mounted state for hydration-safe date calculations
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  // Sync view with layout preference when it changes
-  useEffect(() => {
-    setView(dashboardLayout.defaultView);
-  }, [dashboardLayout.defaultView]);
-
-  // Sync sortBy with layout preference when it changes
-  useEffect(() => {
-    if (dashboardLayout.sortBy) {
-      setSortBy(dashboardLayout.sortBy);
-    }
-  }, [dashboardLayout.sortBy]);
-
-  // Close layout settings popover when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (layoutSettingsRef.current && !layoutSettingsRef.current.contains(event.target as Node)) {
-        setIsLayoutSettingsOpen(false);
-      }
-    };
-
-    if (isLayoutSettingsOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isLayoutSettingsOpen]);
 
   // Modal state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -217,77 +307,11 @@ export default function DashboardPage() {
     setIsAddModalOpen(true);
   };
 
-  // Filter and sort bills based on search, filters, and layout preferences
-  const filteredBills = useMemo(() => {
-    let filtered = bills.filter((bill) =>
-      bill.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
-    // Apply quick filter (SortFilterBar)
-    if (quickFilter !== 'all') {
-      filtered = filtered.filter((bill) => {
-        const daysLeft = getDaysUntilDue(bill.due_date);
-        switch (quickFilter) {
-          case 'due_soon':
-            return daysLeft >= 0 && daysLeft <= 7 && !bill.is_paid;
-          case 'overdue':
-            return daysLeft < 0 && !bill.is_paid;
-          case 'autopay':
-            return bill.is_autopay && !bill.is_paid;
-          case 'manual':
-            return !bill.is_autopay && !bill.is_paid;
-          case 'recurring':
-            return bill.is_recurring && !bill.is_paid;
-          default:
-            return true;
-        }
-      });
-    }
-
-    // Sort - always keep overdue at top, then sort by selected criteria
-    return filtered.sort((a, b) => {
-      const aDaysLeft = getDaysUntilDue(a.due_date);
-      const bDaysLeft = getDaysUntilDue(b.due_date);
-      const aOverdue = aDaysLeft < 0 && !a.is_paid;
-      const bOverdue = bDaysLeft < 0 && !b.is_paid;
-
-      // Overdue bills always come first
-      if (aOverdue && !bOverdue) return -1;
-      if (!aOverdue && bOverdue) return 1;
-
-      // Then sort by selected criteria
-      switch (sortBy) {
-        case 'amount':
-          return (b.amount || 0) - (a.amount || 0);
-        case 'name':
-          return a.name.localeCompare(b.name);
-        case 'due_date':
-        default:
-          return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
-      }
-    });
-  }, [bills, searchQuery, sortBy, quickFilter]);
-
   // Calculate stats (only unpaid bills)
   const unpaidBills = bills.filter(b => !b.is_paid);
   const totalDue = unpaidBills.reduce((sum, bill) => sum + (bill.amount || 0), 0);
   // Use getDaysUntilDue for consistent calculation - includes bills due today (0 days)
   // Only calculate on client to avoid hydration mismatch
-  const billsDueSoon = mounted ? unpaidBills.filter((bill) => {
-    const daysUntil = getDaysUntilDue(bill.due_date);
-    return daysUntil <= 7 && daysUntil >= 0;
-  }) : [];
-  const overdueBills = mounted ? unpaidBills.filter((bill) => {
-    const daysUntil = getDaysUntilDue(bill.due_date);
-    return daysUntil < 0;
-  }) : [];
-  // notificationCount moved to NotificationBell component
-
-  // Handle sort change - update local state and persist to layout settings
-  const handleSortChange = (newSort: SortOption) => {
-    setSortBy(newSort);
-    updateDashboardLayout({ sortBy: newSort });
-  };
 
   // Handle adding/updating a bill
   const handleBillSuccess = async (bill: Bill) => {
@@ -312,12 +336,6 @@ export default function DashboardPage() {
   // Handle editing a bill from detail modal
   const handleEditFromDetail = (bill: Bill) => {
     setSelectedBill(null);
-    setEditingBill(bill);
-    setIsAddModalOpen(true);
-  };
-
-  // Handle editing a bill from Risk Alerts (to add payment link)
-  const handleEditFromRiskAlert = (bill: Bill) => {
     setEditingBill(bill);
     setIsAddModalOpen(true);
   };
@@ -358,7 +376,7 @@ export default function DashboardPage() {
   // Loading state
   if (isLoading || billsLoading) {
     return (
-      <div className="min-h-screen bg-[#08080c]">
+      <div className="min-h-screen bg-[#0F0A1E]">
         <DashboardSkeleton />
       </div>
     );
@@ -376,9 +394,9 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#08080c]">
+    <div className="min-h-screen bg-[#0F0A1E]">
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 bottom-0 w-64 bg-gradient-to-b from-[#0c0c10] to-[#09090d] border-r border-white/[0.06] hidden lg:flex flex-col">
+      <aside className="fixed left-0 top-0 bottom-0 w-64 bg-gradient-to-b from-[#130D24] to-[#0F0A1E] border-r border-white/[0.06] hidden lg:flex flex-col">
         {/* Logo */}
         <div className="p-6 border-b border-white/[0.06]">
           <Link href="/" className="flex items-center gap-2.5 group">
@@ -390,7 +408,7 @@ export default function DashboardPage() {
               className="group-hover:scale-105 transition-transform duration-300"
             />
             <span className="text-lg font-bold text-white tracking-tight">
-              Due<span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-violet-400">zo</span>
+              Due<span style={{ color: accentColor }}>zo</span>
             </span>
           </Link>
         </div>
@@ -406,9 +424,9 @@ export default function DashboardPage() {
                 className="group relative flex items-center gap-3 px-3 py-2.5 text-white rounded-xl bg-gradient-to-r from-white/[0.08] to-white/[0.03] border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-all duration-200"
               >
                 {/* Active indicator bar */}
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full bg-gradient-to-b from-violet-400 to-violet-500 shadow-[0_0_8px_rgba(139,92,246,0.5)]" />
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500/20 to-violet-500/20 border border-white/[0.08]">
-                  <LayoutGrid className="w-4 h-4 text-violet-400" />
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full" style={{ background: accentColor, boxShadow: `0 0 8px ${hexToRgba(accentColor, 0.5)}` }} />
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg border border-white/[0.08]" style={{ background: hexToRgba(accentColor, 0.2) }}>
+                  <LayoutGrid className="w-4 h-4" style={{ color: accentColor }} />
                 </div>
                 <span className="font-medium">Dashboard</span>
               </Link>
@@ -452,13 +470,13 @@ export default function DashboardPage() {
         {/* Gmail sync status - only show if not connected */}
         {!isGmailConnected && (
           <div className="p-4 border-t border-white/[0.06]">
-            <div className="relative p-4 rounded-xl overflow-hidden bg-gradient-to-br from-violet-500/10 via-violet-500/5 to-violet-500/10 border border-violet-500/20">
+            <div className="relative p-4 rounded-xl overflow-hidden" style={{ background: `linear-gradient(to bottom right, ${hexToRgba(accentColor, 0.1)}, ${hexToRgba(accentColor, 0.05)}, ${hexToRgba(accentColor, 0.1)})`, border: `1px solid ${hexToRgba(accentColor, 0.2)}` }}>
               {/* Decorative glow */}
-              <div className="absolute -top-10 -right-10 w-24 h-24 bg-violet-500/20 rounded-full blur-2xl" />
+              <div className="absolute -top-10 -right-10 w-24 h-24 rounded-full blur-2xl" style={{ backgroundColor: hexToRgba(accentColor, 0.2) }} />
               <div className="relative">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-violet-500/20 border border-violet-500/30">
-                    <Mail className="w-4 h-4 text-violet-400" />
+                  <div className="flex items-center justify-center w-8 h-8 rounded-lg" style={{ backgroundColor: hexToRgba(accentColor, 0.2), border: `1px solid ${hexToRgba(accentColor, 0.3)}` }}>
+                    <Mail className="w-4 h-4" style={{ color: accentColor }} />
                   </div>
                   <span className="text-sm font-semibold text-white">Gmail Sync</span>
                 </div>
@@ -467,7 +485,8 @@ export default function DashboardPage() {
                 </p>
                 <Link
                   href="/dashboard/settings"
-                  className="block w-full px-3 py-2 text-sm font-semibold bg-gradient-to-r from-violet-500/20 to-violet-500/20 hover:from-violet-500/30 hover:to-violet-500/30 border border-white/10 hover:border-white/20 rounded-lg transition-all duration-200 text-white text-center"
+                  className="block w-full px-3 py-2 text-sm font-semibold border border-white/10 hover:border-white/20 rounded-lg transition-all duration-200 text-white text-center"
+                  style={{ background: hexToRgba(accentColor, 0.2) }}
                 >
                   Connect Gmail
                 </Link>
@@ -479,7 +498,7 @@ export default function DashboardPage() {
         {/* User */}
         <div className="p-4 border-t border-white/[0.06]">
           <div className="flex items-center gap-3 p-2 -m-2 rounded-xl hover:bg-white/[0.03] transition-colors duration-200">
-            <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-violet-400 to-pink-500 flex items-center justify-center text-white font-semibold shadow-lg shadow-violet-500/20">
+            <div className="relative w-10 h-10 rounded-xl flex items-center justify-center text-white font-semibold shadow-lg" style={{ background: `linear-gradient(to bottom right, ${accentColor}, ${hexToRgba(accentColor, 0.7)})`, boxShadow: `0 10px 15px -3px ${hexToRgba(accentColor, 0.2)}` }}>
               {user?.email?.[0]?.toUpperCase() || 'U'}
             </div>
             <div className="flex-1 min-w-0">
@@ -501,414 +520,308 @@ export default function DashboardPage() {
 
       {/* Main content */}
       <main className="lg:ml-64 pt-[calc(env(safe-area-inset-top)+4rem)] h-screen overflow-y-auto overscroll-none pb-28">
-        {/* Header - fixed at top, content scrolls under */}
-        <header className="fixed top-0 left-0 right-0 z-50 lg:left-64 bg-[#08080c]">
+        {/* Header - minimal: gear left, glowing + button right */}
+        <header className="fixed top-0 left-0 right-0 z-50 lg:left-64 bg-[#0F0A1E]">
           {/* Safe area for notch */}
-          <div className="h-[env(safe-area-inset-top)] bg-[#08080c]" />
-          <div className="flex items-center justify-between px-6 h-16 bg-[#08080c] border-b border-white/5">
-            {/* Mobile logo */}
-            <div className="lg:hidden flex items-center gap-2">
-              <Image
-                src="/logo-transparent-96.png"
-                alt="Duezo"
-                width={40}
-                height={40}
-                className=""
-              />
-            </div>
-
-            {/* Search */}
-            <div className="flex-1 max-w-md mx-4 lg:mx-0">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-                <input
-                  type="text"
-                  placeholder="Search bills..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm"
-                />
+          <div className="h-[env(safe-area-inset-top)] bg-[#0F0A1E]" />
+          <div className="flex items-center justify-between px-5 h-14 bg-[#0F0A1E]/95 backdrop-blur-md">
+            {/* Left: Settings gear (mobile) / Search (desktop) */}
+            <div className="flex items-center gap-3">
+              <Link
+                href="/dashboard/settings"
+                className="lg:hidden p-2.5 rounded-xl text-zinc-400 hover:text-white hover:bg-white/[0.06] transition-all duration-200"
+              >
+                <Settings className="w-5 h-5" />
+              </Link>
+              {/* Desktop search */}
+              <div className="hidden lg:block flex-1 max-w-md">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                  <input
+                    type="text"
+                    placeholder="Search bills..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:border-transparent text-sm"
+                    style={{ '--tw-ring-color': accentColor } as React.CSSProperties}
+                  />
+                </div>
               </div>
             </div>
 
-            {/* Actions */}
+            {/* Right: Notification + Glowing Add button */}
             <div className="flex items-center gap-2">
-              {/* Add Bill Button */}
+              <NotificationBell />
               <button
                 onClick={handleAddBillClick}
-                className="p-2 rounded-lg transition-all duration-200 text-zinc-400 hover:text-white hover:bg-white/10"
+                className="p-2.5 rounded-xl hover:text-white transition-all duration-200"
+                style={{
+                  backgroundColor: hexToRgba(accentColor, 0.2),
+                  color: hexToRgba(accentColor, 0.8),
+                  boxShadow: `0 0 20px ${hexToRgba(accentColor, 0.3)}`,
+                }}
                 title="Add Bill"
               >
-                <Plus className="w-5 h-5" />
-              </button>
-
-              {/* Notification Bell - In-app feed */}
-              <NotificationBell />
-
-              <button
-                onClick={handleAddBillClick}
-                className="hidden sm:flex items-center gap-2 px-4 py-2 font-medium rounded-lg transition-opacity text-white hover:opacity-90"
-                style={{ backgroundColor: 'var(--accent-primary)' }}
-              >
-                <Plus className="w-4 h-4" />
-                Add Bill
+                <Plus className="w-6 h-6" />
               </button>
             </div>
           </div>
-
         </header>
 
         {/* Dashboard content */}
-        <div className="p-6">
+        <div className="px-5 py-4">
 
-          {/* On-Time Payments Counter */}
-          <OnTimePayments bills={bills} className="mb-6" />
+          {(() => {
+            // Get hero bill (next upcoming unpaid bill)
+            const heroBill = mounted ? unpaidBills
+              .filter(b => getDaysUntilDue(b.due_date) >= 0)
+              .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())[0]
+              // Fall back to first overdue bill if no upcoming
+              || unpaidBills.filter(b => getDaysUntilDue(b.due_date) < 0).sort((a, b) => new Date(b.due_date).getTime() - new Date(a.due_date).getTime())[0]
+              : null;
 
-          {/* Stats - conditionally rendered based on layout preferences */}
-          {dashboardLayout.showStatsBar && (
-            <div className="grid grid-cols-3 gap-3 mb-8">
-              <div className="relative p-4 sm:p-6 rounded-2xl bg-gradient-to-br from-violet-500/[0.08] to-white/[0.01] border border-violet-500/20 overflow-hidden group hover:border-violet-500/30 transition-all duration-300 flex flex-col items-center justify-center text-center">
-                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-violet-500/30 to-transparent" />
-                <p className="text-[10px] sm:text-xs text-zinc-400 mb-1 font-medium uppercase tracking-wide">Due Soon</p>
-                <p className="text-3xl sm:text-4xl font-black text-violet-400 drop-shadow-[0_0_10px_rgba(139,92,246,0.3)]">
-                  {billsDueSoon.length}
-                </p>
-              </div>
-              <div className="relative p-4 sm:p-6 rounded-2xl bg-gradient-to-br from-white/[0.05] to-white/[0.01] border border-white/[0.08] overflow-hidden group hover:border-white/[0.15] transition-all duration-300 flex flex-col items-center justify-center text-center">
-                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
-                <p className="text-[10px] sm:text-xs text-zinc-400 mb-1 font-medium uppercase tracking-wide">Active</p>
-                <p className="text-3xl sm:text-4xl font-black text-white">{unpaidBills.length}</p>
-              </div>
-              <div className="relative p-4 sm:p-6 rounded-2xl bg-gradient-to-br from-emerald-500/[0.08] to-white/[0.01] border border-emerald-500/20 overflow-hidden group hover:border-emerald-500/30 transition-all duration-300 flex flex-col items-center justify-center text-center">
-                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent" />
-                <p className="text-[10px] sm:text-xs text-zinc-400 mb-1 font-medium uppercase tracking-wide">Total</p>
-                <p className="text-xl sm:text-2xl font-black text-emerald-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.3)]">
-                  ${totalDue.toLocaleString('en-US', { minimumFractionDigits: 0 })}
-                </p>
-              </div>
-            </div>
-          )}
+            // Remaining bills (exclude hero)
+            const remainingBills = mounted ? unpaidBills
+              .filter(b => b.id !== heroBill?.id)
+              .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())
+              : [];
 
-          {/* Recurring Detection Banner */}
-          {recurringSuggestions.length > 0 && (
-            <RecurringDetectionBanner
-              suggestions={recurringSuggestions}
-              onMarkRecurring={markAsRecurring}
-              onMarkAllRecurring={markAllAsRecurring}
-              onDismiss={dismissRecurringSuggestion}
-              onDismissAll={dismissAllRecurring}
-              className="mb-6"
-            />
-          )}
+            // Group remaining bills by timeline
+            const now = new Date();
+            const endOfWeek = new Date(now);
+            endOfWeek.setDate(now.getDate() + (7 - now.getDay()));
+            endOfWeek.setHours(23, 59, 59, 999);
+            const endOfNextWeek = new Date(endOfWeek);
+            endOfNextWeek.setDate(endOfNextWeek.getDate() + 7);
 
-          {/* Risk Alerts Section */}
-          <RiskAlerts
-            bills={bills}
-            onPayNow={handlePayNow}
-            onMarkPaid={handleMarkAsPaidFromCard}
-            onEditBill={handleEditFromRiskAlert}
-            className="mb-8"
-          />
+            const thisWeekBills = remainingBills.filter(b => {
+              const d = new Date(b.due_date + 'T00:00:00');
+              const days = getDaysUntilDue(b.due_date);
+              return days < 0 || d <= endOfWeek;
+            });
+            const nextWeekBills = remainingBills.filter(b => {
+              const d = new Date(b.due_date + 'T00:00:00');
+              return d > endOfWeek && d <= endOfNextWeek;
+            });
+            const laterBills = remainingBills.filter(b => {
+              const d = new Date(b.due_date + 'T00:00:00');
+              return d > endOfNextWeek;
+            });
 
-          {/* Bills section */}
-          <div className="mb-6">
-            {/* Section separator */}
-            <div className="mb-6 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
+            // Count bills due this month
+            const thisMonth = now.getMonth();
+            const thisYear = now.getFullYear();
+            const billsThisMonth = unpaidBills.filter(b => {
+              const d = new Date(b.due_date + 'T00:00:00');
+              return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+            });
 
-            {/* Controls Row - Dropdown + Overdue button */}
-            <div className="flex items-center gap-3 mb-4">
-              {/* Combined Sort/View/CardSize dropdown */}
-              <DashboardControls
-                sortBy={sortBy}
-                onSortChange={handleSortChange}
-                view={view}
-                onViewChange={(v) => {
-                  setView(v);
-                  setSelectedBillIds(new Set());
-                }}
-                cardSize={(dashboardLayout.cardSize || 'default') as CardSize}
-                onCardSizeChange={(size) => updateDashboardLayout({ cardSize: size as 'compact' | 'default' })}
-              />
-              
-              {/* Overdue quick filter */}
-              <button
-                onClick={() => setQuickFilter(quickFilter === 'overdue' ? 'all' : 'overdue')}
-                className={cn(
-                  'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200',
-                  quickFilter === 'overdue'
-                    ? 'bg-gradient-to-b from-rose-500/25 to-rose-600/15 border border-rose-400/50 text-rose-300 shadow-[0_0_20px_-4px_rgba(244,63,94,0.4)]'
-                    : 'bg-gradient-to-b from-white/[0.05] to-white/[0.02] border border-white/[0.08] text-zinc-400 hover:text-white hover:border-white/[0.15]'
-                )}
-              >
-                <AlertTriangle className={cn('w-4 h-4', quickFilter === 'overdue' ? 'text-rose-400' : 'text-zinc-500')} />
-                Overdue
-              </button>
-            </div>
+            // Empty state
+            if (unpaidBills.length === 0 && mounted) {
+              return (
+                <div className="relative py-8">
+                  {/* Blurred placeholder bill cards in background */}
+                  <div className="absolute inset-0 flex flex-col gap-3 blur-sm opacity-30 pointer-events-none pt-4">
+                    {[1, 2, 3].map(i => (
+                      <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-white/[0.05]" style={{ border: `1px solid ${hexToRgba(accentColor, 0.15)}` }}>
+                        <div className="w-11 h-11 rounded-xl bg-white/10" />
+                        <div className="flex-1 space-y-2">
+                          <div className="h-4 w-24 bg-white/10 rounded" />
+                          <div className="h-3 w-16 bg-white/5 rounded" />
+                        </div>
+                        <div className="text-right">
+                          <div className="h-8 w-10 bg-white/10 rounded" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
 
-            {/* View controls - REMOVED, now in DashboardControls dropdown */}
-            <div className="hidden">
-              <div className="flex items-center gap-2">
-                {/* View toggle buttons */}
-                <div className="flex items-center bg-gradient-to-b from-white/[0.05] to-white/[0.02] border border-white/[0.08] rounded-xl p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
-                  <button
-                    onClick={() => {
-                      setView('grid');
-                      setSelectedBillIds(new Set());
-                    }}
-                    className={cn(
-                      'flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-200',
-                      view === 'grid'
-                        ? 'bg-gradient-to-b from-white/15 to-white/10 text-white shadow-[0_2px_8px_-2px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.1)]'
-                        : 'text-zinc-500 hover:text-white hover:bg-white/[0.05]'
-                    )}
-                  >
-                    <LayoutGrid className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => {
-                      setView('list');
-                      setSelectedBillIds(new Set());
-                    }}
-                    className={cn(
-                      'flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-200',
-                      view === 'list'
-                        ? 'bg-gradient-to-b from-white/15 to-white/10 text-white shadow-[0_2px_8px_-2px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.1)]'
-                        : 'text-zinc-500 hover:text-white hover:bg-white/[0.05]'
-                    )}
-                  >
-                    <List className="w-4 h-4" />
-                  </button>
+                  {/* Glowing CTA in foreground */}
+                  <div className="relative z-10 flex flex-col items-center justify-center py-20">
+                    <button
+                      onClick={handleAddBillClick}
+                      className="group flex items-center gap-3 px-8 py-4 rounded-2xl font-bold text-lg text-white transition-all duration-300 hover:scale-105"
+                      style={{
+                        background: `linear-gradient(to right, ${accentColor}, ${hexToRgba(accentColor, 0.85)})`,
+                        boxShadow: `0 0 40px ${hexToRgba(accentColor, 0.5)}`,
+                      }}
+                    >
+                      <Plus className="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" />
+                      Add your first bill
+                    </button>
+                    <p className="mt-4 text-zinc-500 text-sm">Start tracking your bills in seconds</p>
+                  </div>
                 </div>
+              );
+            }
 
-                {/* Layout Settings Popover - moved here for better dropdown visibility */}
-                <div className="relative" ref={layoutSettingsRef}>
-                  <button
-                    onClick={() => setIsLayoutSettingsOpen(!isLayoutSettingsOpen)}
-                    className={cn(
-                      'group flex items-center justify-center w-10 h-10 rounded-xl border transition-all duration-200',
-                      isLayoutSettingsOpen
-                        ? 'bg-gradient-to-b from-white/[0.1] to-white/[0.05] border-white/[0.15] text-white'
-                        : 'bg-gradient-to-b from-white/[0.05] to-white/[0.02] border-white/[0.08] text-zinc-400 hover:from-white/[0.08] hover:to-white/[0.04] hover:border-white/[0.12] hover:text-white'
-                    )}
-                    title="Layout settings"
-                  >
-                    <SlidersHorizontal className={cn(
-                      'w-4 h-4 transition-transform duration-200',
-                      isLayoutSettingsOpen && 'rotate-180'
-                    )} />
-                  </button>
+            return (
+              <>
+                {/* Hero "Next Up" card */}
+                {heroBill && (
+                  <div className="relative mb-6">
+                    {/* Ambient gradient orb behind hero */}
+                    <div
+                      className="absolute -top-16 left-1/2 -translate-x-1/2 w-80 h-80 rounded-full blur-[100px] animate-ambient-pulse pointer-events-none"
+                      style={{ backgroundColor: hexToRgba(accentColor, 0.2) }}
+                    />
 
-                  {isLayoutSettingsOpen && (
-                    <div className="absolute top-full right-0 mt-2 z-50 w-56 animate-in fade-in slide-in-from-top-2 duration-200">
-                      <div className="absolute -inset-1 bg-gradient-to-b from-white/5 to-transparent rounded-2xl blur-xl" />
-                      <div className="relative bg-[#0a0a0e]/98 backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.8)] overflow-hidden">
-                        {/* Header */}
-                        <div className="px-4 py-3 border-b border-white/[0.06]">
-                          <p className="text-xs font-semibold text-white">Layout Settings</p>
+                    <div
+                      onClick={() => handleBillClick(heroBill)}
+                      className={cn(
+                        'relative overflow-hidden rounded-3xl p-6 sm:p-8 cursor-pointer backdrop-blur-xl',
+                        'transition-all duration-300 hover:scale-[1.01]',
+                        getDaysUntilDue(heroBill.due_date) < 0
+                          ? 'bg-[rgba(127,29,29,0.3)] border border-red-500/30'
+                          : 'bg-[rgba(255,255,255,0.05)]'
+                      )}
+                      style={{
+                        minHeight: '25vh',
+                        ...(getDaysUntilDue(heroBill.due_date) >= 0 && {
+                          border: `1px solid ${hexToRgba(accentColor, 0.25)}`,
+                        }),
+                        boxShadow: getDaysUntilDue(heroBill.due_date) < 0
+                          ? '0 8px 40px rgba(127,29,29,0.4)'
+                          : `0 8px 40px ${hexToRgba(accentColor, 0.15)}`,
+                      }}
+                    >
+                      {/* Accent aura glow inside card */}
+                      {getDaysUntilDue(heroBill.due_date) >= 0 && (
+                        <div
+                          className="absolute -bottom-20 -right-20 w-60 h-60 rounded-full blur-[80px] pointer-events-none"
+                          style={{ backgroundColor: hexToRgba(accentColor, 0.15) }}
+                        />
+                      )}
+
+                      <div className="relative z-10 flex flex-col h-full justify-between">
+                        {/* Top: label */}
+                        <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: hexToRgba(accentColor, 0.8) }}>
+                          {getDaysUntilDue(heroBill.due_date) < 0 ? 'Overdue' : 'Next Up'}
+                        </p>
+
+                        {/* Center: countdown + name */}
+                        <div className="flex-1 flex flex-col items-center justify-center py-4">
+                          <CountdownDisplay
+                            daysLeft={getDaysUntilDue(heroBill.due_date)}
+                            urgency={getUrgency(getDaysUntilDue(heroBill.due_date))}
+                            size="lg"
+                            colorMode={getDaysUntilDue(heroBill.due_date) < 0 ? 'urgency' : 'gradient'}
+                          />
+                          <h2 className="text-2xl sm:text-3xl font-bold text-white mt-3">
+                            {heroBill.name}
+                          </h2>
+                          {heroBill.amount && (
+                            <p className="text-3xl sm:text-4xl font-extrabold text-white/90 mt-1 tracking-tight">
+                              {formatCurrency(heroBill.amount)}
+                            </p>
+                          )}
                         </div>
 
-                        <div className="p-2 space-y-1">
-                          {/* Card Size */}
-                          <div className="px-2 py-1.5">
-                            <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider mb-2">Card Size</p>
-                            <div className="flex gap-1">
-                              {(['compact', 'default'] as const).map((size) => (
-                                <button
-                                  key={size}
-                                  onClick={() => updateDashboardLayout({ cardSize: size })}
-                                  className={cn(
-                                    'flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200',
-                                    dashboardLayout.cardSize === size
-                                      ? 'bg-white/[0.1] text-white'
-                                      : 'text-zinc-400 hover:bg-white/[0.05] hover:text-white'
-                                  )}
-                                >
-                                  {size.charAt(0).toUpperCase() + size.slice(1)}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Cards Per Row - hidden on mobile */}
-                          <div className="hidden sm:block px-2 py-1.5">
-                            <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider mb-2">Cards Per Row</p>
-                            <div className="flex gap-1">
-                              {[2, 3, 4].map((cols) => (
-                                <button
-                                  key={cols}
-                                  onClick={() => updateDashboardLayout({ cardsPerRow: cols as 2 | 3 | 4 })}
-                                  className={cn(
-                                    'flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200',
-                                    dashboardLayout.cardsPerRow === cols
-                                      ? 'bg-white/[0.1] text-white'
-                                      : 'text-zinc-400 hover:bg-white/[0.05] hover:text-white'
-                                  )}
-                                >
-                                  {cols}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Stats Bar Toggle */}
+                        {/* Bottom: Mark as Paid button */}
+                        {!heroBill.is_paid && (
                           <button
-                            onClick={() => updateDashboardLayout({ showStatsBar: !dashboardLayout.showStatsBar })}
-                            className="w-full flex items-center justify-between px-2 py-2.5 rounded-lg hover:bg-white/[0.05] transition-all duration-200"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleMarkAsPaidFromCard(heroBill);
+                            }}
+                            className="w-full py-3.5 rounded-2xl font-bold text-base text-white transition-all duration-200 active:scale-[0.98] border border-white/20 bg-transparent hover:bg-white/[0.05]"
                           >
-                            <span className="text-xs font-medium text-zinc-300">Show Stats Bar</span>
-                            <div
-                              className={cn(
-                                'relative w-9 h-5 rounded-full transition-all duration-200',
-                                dashboardLayout.showStatsBar ? 'bg-violet-500' : 'bg-white/10'
-                              )}
-                            >
-                              <div
-                                className={cn(
-                                  'absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all duration-200',
-                                  dashboardLayout.showStatsBar ? 'left-[18px]' : 'left-0.5'
-                                )}
-                              />
-                            </div>
+                            <Check className="w-5 h-5 inline-block mr-2 -mt-0.5" />
+                            Mark as Paid
                           </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
 
-                        </div>
+                {/* Quick summary pill */}
+                {mounted && (
+                  <div className="flex justify-center mb-6">
+                    <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/[0.06] border border-white/[0.08] backdrop-blur-sm">
+                      <span className="text-sm font-medium text-zinc-300">
+                        {billsThisMonth.length} bill{billsThisMonth.length === 1 ? '' : 's'} left this month
+                      </span>
+                      <span className="text-zinc-600">•</span>
+                      <span className="text-sm font-semibold text-white">
+                        {formatCurrency(totalDue)}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Recurring Detection Banner */}
+                {recurringSuggestions.length > 0 && (
+                  <RecurringDetectionBanner
+                    suggestions={recurringSuggestions}
+                    onMarkRecurring={markAsRecurring}
+                    onMarkAllRecurring={markAllAsRecurring}
+                    onDismiss={dismissRecurringSuggestion}
+                    onDismissAll={dismissAllRecurring}
+                    className="mb-6"
+                  />
+                )}
+
+                {/* Timeline sections */}
+                <div className="space-y-6 pb-24">
+                  {/* This Week */}
+                  {thisWeekBills.length > 0 && (
+                    <div>
+                      <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-3 px-1">This Week</h3>
+                      <div className="space-y-2">
+                        {thisWeekBills.map((bill) => (
+                          <TimelineBillRow
+                            key={bill.id}
+                            bill={bill}
+                            onClick={() => handleBillClick(bill)}
+                            onMarkPaid={handleMarkAsPaidFromCard}
+                            accentColor={accentColor}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Next Week */}
+                  {nextWeekBills.length > 0 && (
+                    <div>
+                      <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-3 px-1">Next Week</h3>
+                      <div className="space-y-2">
+                        {nextWeekBills.map((bill) => (
+                          <TimelineBillRow
+                            key={bill.id}
+                            bill={bill}
+                            onClick={() => handleBillClick(bill)}
+                            onMarkPaid={handleMarkAsPaidFromCard}
+                            accentColor={accentColor}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Later */}
+                  {laterBills.length > 0 && (
+                    <div>
+                      <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-3 px-1">Later</h3>
+                      <div className="space-y-2">
+                        {laterBills.map((bill) => (
+                          <TimelineBillRow
+                            key={bill.id}
+                            bill={bill}
+                            onClick={() => handleBillClick(bill)}
+                            onMarkPaid={handleMarkAsPaidFromCard}
+                            accentColor={accentColor}
+                          />
+                        ))}
                       </div>
                     </div>
                   )}
                 </div>
-              </div>
-            </div>
+              </>
+            );
+          })()}
 
-            {/* Empty state */}
-            {filteredBills.filter(b => showPaidBills ? true : !b.is_paid).length === 0 && (
-              <div className="text-center py-16">
-                <div className="text-6xl mb-4">📭</div>
-                <h3 className="text-xl font-semibold text-white mb-2">
-                  {searchQuery ? 'No bills found' : 'No bills yet'}
-                </h3>
-                <p className="text-zinc-400 mb-6">
-                  {searchQuery
-                    ? 'Try a different search term'
-                    : 'Add your first bill to start tracking'}
-                </p>
-                {!searchQuery && (
-                  <button
-                    onClick={handleAddBillClick}
-                    className="inline-flex items-center gap-2 px-6 py-3 font-medium rounded-lg transition-opacity text-white hover:opacity-90"
-                    style={{ backgroundColor: 'var(--accent-primary)' }}
-                  >
-                    <Plus className="w-5 h-5" />
-                    Add Your First Bill
-                  </button>
-                )}
-              </div>
-            )}
-
-            {/* Bulk Action Bar - appears when items selected */}
-            {selectedBillIds.size > 0 && (
-              <div className="flex items-center justify-between gap-4 mb-4 p-3 rounded-xl bg-gradient-to-r from-violet-500/10 to-violet-500/10 border border-violet-500/20 animate-in fade-in slide-in-from-top-2">
-                <span className="text-sm font-medium text-white">
-                  {selectedBillIds.size} bill{selectedBillIds.size === 1 ? '' : 's'} selected
-                </span>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={async () => {
-                      const selectedBills = bills.filter(b => selectedBillIds.has(b.id) && !b.is_paid);
-                      for (const bill of selectedBills) {
-                        await markPaid(bill);
-                      }
-                      setSelectedBillIds(new Set());
-                    }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 transition-colors whitespace-nowrap"
-                  >
-                    <Check className="w-3.5 h-3.5" />
-                    Paid
-                  </button>
-                  <button
-                    onClick={() => {
-                      const firstSelected = bills.find(b => selectedBillIds.has(b.id));
-                      if (firstSelected) setDeletingBill(firstSelected);
-                    }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/30 hover:bg-rose-500/30 transition-colors"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    Delete
-                  </button>
-                  <button
-                    onClick={() => setSelectedBillIds(new Set())}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/10 text-zinc-300 border border-white/10 hover:bg-white/20 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Bills grid/list */}
-            {filteredBills.filter(b => showPaidBills ? true : !b.is_paid).length > 0 && view === 'grid' && (
-              <div
-                className={cn(
-                  'grid grid-cols-1 gap-4 pb-24 auto-rows-fr',
-                  dashboardLayout.cardsPerRow === 2 && 'sm:grid-cols-2',
-                  dashboardLayout.cardsPerRow === 3 && 'sm:grid-cols-2 lg:grid-cols-3',
-                  dashboardLayout.cardsPerRow === 4 && 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-                )}
-              >
-                {/* Unpaid bills first */}
-                {filteredBills.filter(b => !b.is_paid).map((bill, index) => (
-                  <div
-                    key={bill.id}
-                    className="animate-in fade-in slide-in-from-bottom-4"
-                    style={{
-                      animationDelay: `${index * 75}ms`,
-                      animationFillMode: 'backwards',
-                    }}
-                  >
-                    <BillCard
-                      bill={bill}
-                      onClick={() => handleBillClick(bill)}
-                      onMarkPaid={handleMarkAsPaidFromCard}
-                      onPayNow={handlePayNow}
-                      variant={dashboardLayout.cardSize === 'compact' ? 'compact' : 'default'}
-                      riskType={getBillRiskType(bill, bills)}
-                    />
-                  </div>
-                ))}
-                {/* Paid bills (when toggle is on) */}
-                {showPaidBills && filteredBills.filter(b => b.is_paid).map((bill, index) => (
-                  <div
-                    key={bill.id}
-                    className="animate-in fade-in slide-in-from-bottom-4"
-                    style={{
-                      animationDelay: `${(filteredBills.filter(b => !b.is_paid).length + index) * 75}ms`,
-                      animationFillMode: 'backwards',
-                    }}
-                  >
-                    <BillCard
-                      bill={bill}
-                      onClick={() => handleBillClick(bill)}
-                      variant={dashboardLayout.cardSize === 'compact' ? 'compact' : 'default'}
-                      showMarkPaid={false}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {filteredBills.filter(b => showPaidBills ? true : !b.is_paid).length > 0 && view === 'list' && (
-              <div className="pb-24">
-              <BillListView
-                bills={showPaidBills ? filteredBills : filteredBills.filter(b => !b.is_paid)}
-                allBills={bills}
-                selectedIds={selectedBillIds}
-                onSelectionChange={setSelectedBillIds}
-                onBillClick={handleBillClick}
-                onMarkPaid={handleMarkAsPaidFromCard}
-                onPayNow={handlePayNow}
-              />
-              </div>
-            )}
-          </div>
         </div>
       </main>
 

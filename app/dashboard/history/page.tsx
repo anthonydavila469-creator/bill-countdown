@@ -11,7 +11,8 @@ import { cn, formatDate, formatCurrency, getDaysUntilDue } from '@/lib/utils';
 import { getMissedBills } from '@/lib/risk-utils';
 import { createClient } from '@/lib/supabase/client';
 import { useBillsContext } from '@/contexts/bills-context';
-import { iconMap, getIconFromName, getCategoryColors } from '@/lib/get-bill-icon';
+import { iconMap, getIconFromName } from '@/lib/get-bill-icon';
+import { useTheme } from '@/contexts/theme-context';
 import {
   Zap,
   LayoutGrid,
@@ -53,6 +54,7 @@ const periodFilterLabels: Record<PeriodFilter, string> = {
 };
 
 function PaidBillCard({ bill, isRecent, isEven }: { bill: Bill; isRecent?: boolean; isEven?: boolean }) {
+  const { accentColor } = useTheme();
   const paidDate = bill.paid_at ? new Date(bill.paid_at) : new Date();
   const isAutoPay = bill.is_autopay || bill.paid_method === 'autopay';
   const isRecurring = bill.is_recurring && bill.next_due_date;
@@ -62,9 +64,6 @@ function PaidBillCard({ bill, isRecent, isEven }: { bill: Bill; isRecent?: boole
   const autoDetected = getIconFromName(bill.name);
   const IconComponent = explicitIcon || autoDetected.icon;
   const iconColorClass = explicitIcon ? 'text-emerald-400' : autoDetected.colorClass;
-
-  // Get category colors
-  const colors = getCategoryColors(bill.category);
 
   // Format next due date
   const nextDueFormatted = isRecurring
@@ -86,20 +85,24 @@ function PaidBillCard({ bill, isRecent, isEven }: { bill: Bill; isRecent?: boole
       isEven ? "bg-white/[0.02]" : "bg-white/[0.035]"
     )}>
       {/* Left accent bar */}
-      <div className={cn(
-        "absolute left-0 top-3 bottom-3 w-1 sm:w-1.5 rounded-full transition-all duration-300",
-        colors.accent
-      )} />
+      <div
+        className="absolute left-0 top-3 bottom-3 w-1 sm:w-1.5 rounded-full transition-all duration-300"
+        style={{ backgroundColor: accentColor }}
+      />
 
       <div className="flex items-center gap-2 sm:gap-4 pl-2 sm:pl-3">
         {/* Icon with paid status */}
         <div className="relative flex-shrink-0">
-          <div className={cn(
-            "w-11 h-11 sm:w-14 sm:h-14 rounded-xl border-2 flex items-center justify-center transition-all duration-200",
-            "group-hover:scale-105 group-hover:shadow-lg",
-            `bg-gradient-to-br ${colors.bg}`,
-            colors.border
-          )}>
+          <div
+            className={cn(
+              "w-11 h-11 sm:w-14 sm:h-14 rounded-xl border-2 flex items-center justify-center transition-all duration-200",
+              "group-hover:scale-105 group-hover:shadow-lg",
+            )}
+            style={{
+              background: `linear-gradient(to bottom right, color-mix(in srgb, ${accentColor} 15%, transparent), color-mix(in srgb, ${accentColor} 10%, transparent))`,
+              borderColor: `color-mix(in srgb, ${accentColor} 30%, transparent)`,
+            }}
+          >
             <IconComponent className={cn("w-5 h-5 sm:w-7 sm:h-7", iconColorClass)} />
           </div>
           {/* Paid checkmark */}
@@ -184,6 +187,7 @@ function MonthSection({
   isCollapsed: boolean;
   onToggle: () => void;
 }) {
+  const { accentColor } = useTheme();
   // Check if bill was paid in last 7 days
   const isRecentPayment = (bill: Bill) => {
     if (!bill.paid_at) return false;
@@ -198,11 +202,25 @@ function MonthSection({
       {/* Month header - more prominent styling */}
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-emerald-500/[0.08] via-white/[0.04] to-transparent border border-emerald-500/20 hover:border-emerald-500/30 hover:from-emerald-500/[0.12] transition-all duration-200 mb-4 group sticky top-16 z-10 backdrop-blur-xl shadow-lg shadow-black/10"
+        className="w-full flex items-center justify-between p-4 rounded-xl transition-all duration-200 mb-4 group sticky top-16 z-10 backdrop-blur-xl shadow-lg shadow-black/10"
+        style={{
+          background: `linear-gradient(to right, color-mix(in srgb, ${accentColor} 8%, transparent), rgba(255,255,255,0.04), transparent)`,
+          borderWidth: '1px',
+          borderStyle: 'solid',
+          borderColor: `color-mix(in srgb, ${accentColor} 20%, transparent)`,
+        }}
       >
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/25 to-teal-500/15 border border-emerald-500/30 flex items-center justify-center shadow-inner">
-            <Calendar className="w-6 h-6 text-emerald-400" />
+          <div
+            className="w-12 h-12 rounded-xl flex items-center justify-center shadow-inner"
+            style={{
+              background: `linear-gradient(to bottom right, color-mix(in srgb, ${accentColor} 25%, transparent), color-mix(in srgb, ${accentColor} 15%, transparent))`,
+              borderWidth: '1px',
+              borderStyle: 'solid',
+              borderColor: `color-mix(in srgb, ${accentColor} 30%, transparent)`,
+            }}
+          >
+            <Calendar className="w-6 h-6" style={{ color: accentColor }} />
           </div>
           <div className="text-left">
             <h2 className="text-lg font-bold text-white">{label}</h2>
@@ -213,7 +231,7 @@ function MonthSection({
         </div>
         <div className="flex items-center gap-5">
           <div className="text-right">
-            <p className="text-xl font-bold text-emerald-400">
+            <p className="text-xl font-bold" style={{ color: accentColor }}>
               ${totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
             </p>
             <p className="text-xs text-zinc-500 font-medium">total paid</p>
@@ -332,6 +350,7 @@ function ExportDropdown({ bills, periodFilter }: { bills: Bill[]; periodFilter: 
 export default function HistoryPage() {
   const router = useRouter();
   const supabase = createClient();
+  const { accentColor } = useTheme();
 
   // Auth state
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
@@ -550,7 +569,7 @@ export default function HistoryPage() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#08080c] flex items-center justify-center">
+      <div className="min-h-screen bg-[#0F0A1E] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="w-8 h-8 text-violet-500 animate-spin" />
           <p className="text-zinc-400">Loading...</p>
@@ -560,7 +579,7 @@ export default function HistoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#08080c]">
+    <div className="min-h-screen bg-[#0F0A1E]">
       {/* Sidebar */}
       <aside className="fixed left-0 top-0 bottom-0 w-64 bg-[#0c0c10] border-r border-white/5 hidden lg:flex flex-col">
         {/* Logo */}
@@ -667,7 +686,7 @@ export default function HistoryPage() {
       {/* Main content */}
       <main className="lg:ml-64 h-screen overflow-y-auto overscroll-none pb-28 pt-[env(safe-area-inset-top)]">
         {/* Header */}
-        <header className="sticky top-0 z-40 bg-[#08080c]/80 backdrop-blur-xl border-b border-white/5">
+        <header className="sticky top-0 z-40 bg-[#0F0A1E]/80 backdrop-blur-xl border-b border-white/5">
           <div className="flex items-center justify-between px-6 h-16">
             {/* Back button (mobile) */}
             <Link
@@ -717,9 +736,14 @@ export default function HistoryPage() {
                 className={cn(
                   "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
                   periodFilter === filter
-                    ? "bg-emerald-500/20 border border-emerald-500/40 text-emerald-400"
+                    ? "border"
                     : "bg-white/5 border border-white/10 text-zinc-400 hover:bg-white/10 hover:text-white"
                 )}
+                style={periodFilter === filter ? {
+                  backgroundColor: `color-mix(in srgb, ${accentColor} 20%, transparent)`,
+                  borderColor: `color-mix(in srgb, ${accentColor} 40%, transparent)`,
+                  color: accentColor,
+                } : undefined}
               >
                 {periodFilterLabels[filter]}
               </button>
@@ -729,14 +753,31 @@ export default function HistoryPage() {
           {/* Stats Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
             {/* Total Paid Card */}
-            <div className="relative p-6 rounded-2xl bg-gradient-to-br from-emerald-500/15 via-emerald-500/10 to-teal-500/5 border border-emerald-500/25 overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-emerald-500/10 to-transparent rounded-bl-full" />
+            <div
+              className="relative p-6 rounded-2xl border overflow-hidden"
+              style={{
+                background: `linear-gradient(to bottom right, color-mix(in srgb, ${accentColor} 15%, transparent), color-mix(in srgb, ${accentColor} 10%, transparent), color-mix(in srgb, ${accentColor} 5%, transparent))`,
+                borderColor: `color-mix(in srgb, ${accentColor} 25%, transparent)`,
+              }}
+            >
+              <div
+                className="absolute top-0 right-0 w-32 h-32 rounded-bl-full"
+                style={{ background: `linear-gradient(to bottom left, color-mix(in srgb, ${accentColor} 10%, transparent), transparent)` }}
+              />
               <div className="relative">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
-                    <DollarSign className="w-5 h-5 text-emerald-400" />
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center"
+                    style={{
+                      backgroundColor: `color-mix(in srgb, ${accentColor} 20%, transparent)`,
+                      borderWidth: '1px',
+                      borderStyle: 'solid',
+                      borderColor: `color-mix(in srgb, ${accentColor} 30%, transparent)`,
+                    }}
+                  >
+                    <DollarSign className="w-5 h-5" style={{ color: accentColor }} />
                   </div>
-                  <p className="text-sm text-emerald-400 font-medium">Total Paid</p>
+                  <p className="text-sm font-medium" style={{ color: accentColor }}>Total Paid</p>
                 </div>
                 <p className="text-3xl font-bold text-white mb-1">
                   ${totalPaid.toLocaleString('en-US', { minimumFractionDigits: 2 })}
@@ -759,14 +800,31 @@ export default function HistoryPage() {
             </div>
 
             {/* Bills Paid Card */}
-            <div className="relative p-6 rounded-2xl bg-gradient-to-br from-violet-500/10 via-violet-500/5 to-transparent border border-violet-500/20 overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-violet-500/10 to-transparent rounded-bl-full" />
+            <div
+              className="relative p-6 rounded-2xl border overflow-hidden"
+              style={{
+                background: `linear-gradient(to bottom right, color-mix(in srgb, ${accentColor} 10%, transparent), color-mix(in srgb, ${accentColor} 5%, transparent), transparent)`,
+                borderColor: `color-mix(in srgb, ${accentColor} 20%, transparent)`,
+              }}
+            >
+              <div
+                className="absolute top-0 right-0 w-32 h-32 rounded-bl-full"
+                style={{ background: `linear-gradient(to bottom left, color-mix(in srgb, ${accentColor} 10%, transparent), transparent)` }}
+              />
               <div className="relative">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-violet-500/20 border border-violet-500/30 flex items-center justify-center">
-                    <Receipt className="w-5 h-5 text-violet-400" />
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center"
+                    style={{
+                      backgroundColor: `color-mix(in srgb, ${accentColor} 20%, transparent)`,
+                      borderWidth: '1px',
+                      borderStyle: 'solid',
+                      borderColor: `color-mix(in srgb, ${accentColor} 30%, transparent)`,
+                    }}
+                  >
+                    <Receipt className="w-5 h-5" style={{ color: accentColor }} />
                   </div>
-                  <p className="text-sm text-violet-400 font-medium">Bills Paid</p>
+                  <p className="text-sm font-medium" style={{ color: accentColor }}>Bills Paid</p>
                 </div>
                 <p className="text-3xl font-bold text-white mb-1">{filteredByPeriod.length}</p>
                 <p className="text-sm text-zinc-500">{periodFilterLabels[periodFilter].toLowerCase()}</p>
@@ -774,14 +832,31 @@ export default function HistoryPage() {
             </div>
 
             {/* Top Categories Card */}
-            <div className="relative p-6 rounded-2xl bg-gradient-to-br from-violet-500/10 via-violet-500/5 to-transparent border border-violet-500/20 overflow-hidden sm:col-span-2 lg:col-span-1">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-violet-500/10 to-transparent rounded-bl-full" />
+            <div
+              className="relative p-6 rounded-2xl border overflow-hidden sm:col-span-2 lg:col-span-1"
+              style={{
+                background: `linear-gradient(to bottom right, color-mix(in srgb, ${accentColor} 10%, transparent), color-mix(in srgb, ${accentColor} 5%, transparent), transparent)`,
+                borderColor: `color-mix(in srgb, ${accentColor} 20%, transparent)`,
+              }}
+            >
+              <div
+                className="absolute top-0 right-0 w-32 h-32 rounded-bl-full"
+                style={{ background: `linear-gradient(to bottom left, color-mix(in srgb, ${accentColor} 10%, transparent), transparent)` }}
+              />
               <div className="relative">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-violet-500/20 border border-violet-500/30 flex items-center justify-center">
-                    <FolderOpen className="w-5 h-5 text-violet-400" />
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center"
+                    style={{
+                      backgroundColor: `color-mix(in srgb, ${accentColor} 20%, transparent)`,
+                      borderWidth: '1px',
+                      borderStyle: 'solid',
+                      borderColor: `color-mix(in srgb, ${accentColor} 30%, transparent)`,
+                    }}
+                  >
+                    <FolderOpen className="w-5 h-5" style={{ color: accentColor }} />
                   </div>
-                  <p className="text-sm text-violet-400 font-medium">Top Categories</p>
+                  <p className="text-sm font-medium" style={{ color: accentColor }}>Top Categories</p>
                 </div>
                 {topCategories.length === 0 ? (
                   <p className="text-sm text-zinc-500">No category data</p>

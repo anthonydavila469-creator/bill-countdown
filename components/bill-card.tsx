@@ -9,6 +9,7 @@ import {
   formatDateCompact,
   formatCurrency,
   getPriceChange,
+  hexToRgba,
 } from '@/lib/utils';
 import { RiskType, hasLatePaymentRisk } from '@/lib/risk-utils';
 import { getBillIcon } from '@/lib/get-bill-icon';
@@ -43,8 +44,8 @@ const riskBadgeConfig: Record<RiskType, { icon: LucideIcon; label: string; bgCol
   urgent: {
     icon: Clock,
     label: 'Urgent',
-    bgColor: 'bg-violet-500/40',
-    textColor: 'text-violet-100',
+    bgColor: 'bg-amber-500/40',
+    textColor: 'text-amber-100',
   },
   forgot_last_month: {
     icon: History,
@@ -65,7 +66,7 @@ export function BillCard({
   riskType,
 }: BillCardProps) {
   const { canUsePaymentLinks } = useSubscription();
-  const { selectedTheme } = useTheme();
+  const { accentColor, selectedTheme } = useTheme();
   const daysLeft = getDaysUntilDue(bill.due_date);
   const urgency = getUrgency(daysLeft);
   const priceChange = getPriceChange(bill.amount, bill.previous_amount);
@@ -96,6 +97,7 @@ export function BillCard({
         urgency={urgency}
         onClick={onClick}
         className={cn('p-4 group/compact', className)}
+        accentColor={accentColor}
       >
         <div className="flex items-center justify-between gap-4">
           {/* Left side: icon + name */}
@@ -136,10 +138,13 @@ export function BillCard({
                     onClick={handlePayNow}
                     className={cn(
                       "flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200",
-                      "bg-gradient-to-r from-violet-500 to-violet-400 hover:from-violet-400 hover:to-violet-300",
-                      "text-white shadow-lg shadow-violet-500/30",
+                      "text-white shadow-lg",
                       "active:scale-95"
                     )}
+                    style={{
+                      background: accentColor,
+                      boxShadow: `0 10px 15px -3px ${hexToRgba(accentColor, 0.3)}`,
+                    }}
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
                     Pay
@@ -164,9 +169,9 @@ export function BillCard({
                   onClick={handleMarkPaid}
                   className={cn(
                     "flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200",
-                    "bg-white/20 hover:bg-emerald-500/40 backdrop-blur-sm",
-                    "text-white hover:text-emerald-100 border border-white/20 hover:border-emerald-400/50",
-                    "active:scale-95 shadow-lg"
+                    "bg-transparent hover:bg-white/[0.05] backdrop-blur-sm",
+                    "text-white border border-white/20",
+                    "active:scale-95"
                   )}
                   title={bill.is_autopay ? "Confirm Auto-Paid" : "Mark as Paid"}
                 >
@@ -184,12 +189,11 @@ export function BillCard({
               daysLeft={daysLeft}
               urgency={urgency}
               size="sm"
-              colorMode={
-                ['midnight', 'wine', 'onyx', 'amethyst', 'ocean', 'sunset'].includes(selectedTheme)
-                  ? 'gradient'
-                  : (urgency === 'overdue' || urgency === 'urgent' || urgency === 'soon')
-                    ? 'urgency'
-                    : 'white'
+              colorMode="custom"
+              customColor={
+                daysLeft < 0 ? '#EF4444'
+                  : daysLeft <= 3 ? '#F59E0B'
+                  : 'var(--accent-primary)'
               }
             />
           </div>
@@ -202,6 +206,7 @@ export function BillCard({
     <GradientCard
       urgency={urgency}
       onClick={onClick}
+      accentColor={accentColor}
       className={cn(
         'p-6 relative overflow-hidden',
         isPaid && 'opacity-60',
@@ -331,12 +336,11 @@ export function BillCard({
             daysLeft={daysLeft}
             urgency={urgency}
             size="lg"
-            colorMode={
-              ['midnight', 'wine', 'onyx', 'amethyst', 'ocean', 'sunset'].includes(selectedTheme)
-                ? 'gradient'
-                : (urgency === 'overdue' || urgency === 'urgent' || urgency === 'soon')
-                  ? 'urgency'
-                  : 'white'
+            colorMode="custom"
+            customColor={
+              daysLeft < 0 ? '#EF4444'
+                : daysLeft <= 3 ? '#F59E0B'
+                : 'var(--accent-primary)'
             }
           />
         </div>
@@ -378,11 +382,14 @@ export function BillCard({
                   onClick={handlePayNow}
                   className={cn(
                     "group relative flex-1 py-2.5 rounded-xl font-medium text-sm transition-all duration-200",
-                    "bg-gradient-to-r from-violet-500 to-violet-400 hover:from-violet-400 hover:to-violet-300",
                     "active:scale-[0.98]",
                     "flex items-center justify-center gap-2",
-                    "shadow-lg shadow-violet-500/20"
+                    "shadow-lg"
                   )}
+                  style={{
+                    background: accentColor,
+                    boxShadow: `0 10px 15px -3px ${hexToRgba(accentColor, 0.2)}`,
+                  }}
                 >
                   <ExternalLink className="w-4 h-4 text-white" />
                   <span className="text-white font-semibold">Pay Now</span>
@@ -412,11 +419,9 @@ export function BillCard({
                 onClick={handleMarkPaid}
                 className={cn(
                   "group relative py-2.5 px-4 rounded-xl font-medium text-sm transition-all duration-200",
-                  "bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30",
-                  "active:scale-[0.98] active:bg-white/25",
-                  "flex items-center justify-center gap-2",
-                  "shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]",
-                  "hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_0_20px_rgba(255,255,255,0.1)]"
+                  "bg-transparent hover:bg-white/[0.05] border border-white/20",
+                  "active:scale-[0.98]",
+                  "flex items-center justify-center gap-2"
                 )}
                 title={bill.is_autopay ? "Confirm Auto-Paid" : "Mark as Paid"}
               >
@@ -454,6 +459,7 @@ export function BillListItem({
   riskType,
 }: BillCardProps) {
   const { canUsePaymentLinks } = useSubscription();
+  const { accentColor } = useTheme();
   const daysLeft = getDaysUntilDue(bill.due_date);
   const urgency = getUrgency(daysLeft);
   const priceChange = getPriceChange(bill.amount, bill.previous_amount);
@@ -571,7 +577,7 @@ export function BillListItem({
             <RefreshCw className="w-3.5 h-3.5 text-zinc-400 flex-shrink-0" />
           )}
           {bill.payment_url && !isPaid && (
-            <ExternalLink className="w-3.5 h-3.5 text-violet-400 flex-shrink-0" />
+            <ExternalLink className="w-3.5 h-3.5 flex-shrink-0" style={{ color: accentColor }} />
           )}
           {priceChange && !isPaid && (
             <span
@@ -606,10 +612,12 @@ export function BillListItem({
               onClick={handlePayNow}
               className={cn(
                 "flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200",
-                "bg-gradient-to-r from-violet-500 to-violet-400 text-white",
-                "hover:from-violet-400 hover:to-violet-300",
+                "text-white",
                 "active:scale-95"
               )}
+              style={{
+                background: accentColor,
+              }}
             >
               <ExternalLink className="w-4 h-4" />
               Pay
@@ -633,9 +641,9 @@ export function BillListItem({
             onClick={handleMarkPaid}
             className={cn(
               "flex items-center gap-1.5 px-2 py-2 rounded-xl text-sm font-medium transition-all duration-200",
-              "bg-zinc-100 dark:bg-white/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20",
-              "text-zinc-600 dark:text-white/80 hover:text-emerald-600 dark:hover:text-emerald-300",
-              "border border-zinc-200 dark:border-white/10 hover:border-emerald-300 dark:hover:border-emerald-500/30",
+              "bg-transparent hover:bg-white/[0.05]",
+              "text-white",
+              "border border-white/20",
               "active:scale-95"
             )}
             title={bill.is_autopay ? 'Confirm Auto-Paid' : 'Mark as Paid'}

@@ -88,6 +88,12 @@ export const SKIP_KEYWORDS = [
   'your payment has been',
   'transaction complete',
   'paid in full',
+  // E-commerce / shipping — not bills
+  'order shipped',
+  'delivery confirmation',
+  'tracking number',
+  'receipt for your purchase',
+  'refund processed',
 ];
 
 // ============================================================================
@@ -396,7 +402,18 @@ export const GENERAL_AMOUNT_PATTERNS = [
   /(?:USD|US\$)\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{2})?)/gi,
   // Amount with keywords
   /(?:amount|total|due|balance|payment)[:\s]*\$?\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{2})?)/gi,
+  // Non-USD currencies: €, £, ¥
+  /[€£¥]\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{2})?)/g,
+  /(?:EUR|GBP|JPY)\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{2})?)/gi,
 ];
+
+// Currency symbol to code mapping for display
+export const CURRENCY_SYMBOLS: Record<string, string> = {
+  '$': 'USD',
+  '€': 'EUR',
+  '£': 'GBP',
+  '¥': 'JPY',
+};
 
 // ============================================================================
 // DATE EXTRACTION PATTERNS
@@ -418,6 +435,13 @@ export const DATE_PATTERNS = [
 
   // "due in X days"
   /due\s+in\s+(\d+)\s+days?/gi,
+
+  // Natural language: "due the 15th", "due on the 15th" — capture includes ordinal suffix
+  /due\s+(?:on\s+)?the\s+(\d{1,2}(?:st|nd|rd|th))/gi,
+  // "due next month" (handled as relative in extractDateCandidates)
+  /due\s+(next\s+month)/gi,
+  // "payment due on March 15" (without year)
+  new RegExp(`(?:payment\\s+)?due\\s+on\\s+(${MONTH_NAMES}\\s+\\d{1,2})(?!\\s*\\d)`, 'gi'),
 
   // MEDIUM PRIORITY: Date near dollar amount
   new RegExp(`\\$[\\d,]+\\.?\\d*\\s+(${MONTH_NAMES}\\s+\\d{1,2}(?:,?\\s*\\d{4})?|\\d{1,2}[\\/\\-]\\d{1,2}[\\/\\-]\\d{2,4})`, 'gi'),

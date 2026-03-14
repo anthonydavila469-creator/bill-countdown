@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-[#08080c] text-white">
+    <div className="min-h-screen bg-[#0F0A1E] text-white">
       {/* Navigation */}
       <nav className="border-b border-white/5">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -36,7 +36,7 @@ export default function TermsPage() {
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="mb-12">
           <h1 className="text-4xl font-bold tracking-tight mb-4">Terms of Service</h1>
-          <p className="text-zinc-500 text-sm">Last updated: February 2026</p>
+          <p className="text-zinc-500 text-sm">Last updated: March 2026</p>
         </div>
 
         <div className="prose prose-invert max-w-none space-y-10">
@@ -54,20 +54,20 @@ export default function TermsPage() {
             <h2 className="text-2xl font-semibold text-white mb-4">1. Service Description</h2>
             <div className="space-y-4 text-zinc-300 leading-relaxed">
               <p>
-                Duezo is an AI-powered bill tracking application that helps you manage and track
+                Duezo is a bill tracking application that helps you manage and track
                 bill due dates. The Service includes:
               </p>
               <ul className="list-disc list-inside space-y-2 ml-2">
                 <li>Manual bill creation and tracking with countdown cards</li>
-                <li>Optional Gmail integration to automatically detect bills from your inbox</li>
-                <li>AI-powered extraction of bill details (amounts, due dates, categories)</li>
+                <li>Optional Gmail integration to detect bills from your inbox</li>
+                <li>Bill detail extraction (amounts, due dates, categories)</li>
                 <li>Payment reminders and notifications</li>
-                <li>Analytics and spending insights (Pro plan)</li>
-                <li>Calendar view and payment history (Pro plan)</li>
+                <li>Calendar view and payment history</li>
+                <li>Home screen widgets</li>
               </ul>
               <p>
                 Duezo is a bill <em>tracking</em> tool. We do not process payments, transfer funds,
-                or act as a financial institution.
+                or act as a financial institution. Duezo is free to use.
               </p>
             </div>
           </section>
@@ -90,93 +90,9 @@ export default function TermsPage() {
             </div>
           </section>
 
-          {/* Free vs Pro Tiers */}
-          <section>
-            <h2 className="text-2xl font-semibold text-white mb-4">3. Free and Pro Plans</h2>
-            <div className="space-y-4 text-zinc-300 leading-relaxed">
-              <p>Duezo offers two tiers:</p>
-              <div className="rounded-xl border border-white/10 overflow-hidden">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-white/10 bg-white/[0.02]">
-                      <th className="text-left p-4 font-medium text-white">Feature</th>
-                      <th className="text-left p-4 font-medium text-white">Free</th>
-                      <th className="text-left p-4 font-medium text-white">Pro</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/5">
-                    <tr>
-                      <td className="p-4 text-zinc-300">Bills</td>
-                      <td className="p-4 text-zinc-400">Up to 5</td>
-                      <td className="p-4 text-zinc-400">Unlimited</td>
-                    </tr>
-                    <tr>
-                      <td className="p-4 text-zinc-300">Gmail sync</td>
-                      <td className="p-4 text-zinc-400">1 sync</td>
-                      <td className="p-4 text-zinc-400">Unlimited + daily auto-sync</td>
-                    </tr>
-                    <tr>
-                      <td className="p-4 text-zinc-300">Calendar view</td>
-                      <td className="p-4 text-zinc-400">Not included</td>
-                      <td className="p-4 text-zinc-400">Included</td>
-                    </tr>
-                    <tr>
-                      <td className="p-4 text-zinc-300">Analytics &amp; insights</td>
-                      <td className="p-4 text-zinc-400">Not included</td>
-                      <td className="p-4 text-zinc-400">Included</td>
-                    </tr>
-                    <tr>
-                      <td className="p-4 text-zinc-300">Payment history</td>
-                      <td className="p-4 text-zinc-400">Not included</td>
-                      <td className="p-4 text-zinc-400">Included</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <p>
-                The Free plan is available indefinitely at no cost. We reserve the right to adjust
-                plan features with reasonable notice.
-              </p>
-            </div>
-          </section>
-
-          {/* Payment Terms */}
-          <section>
-            <h2 className="text-2xl font-semibold text-white mb-4">4. Payment Terms</h2>
-            <div className="space-y-4 text-zinc-300 leading-relaxed">
-              <p>
-                Pro subscriptions are billed through Stripe. By subscribing to a Pro plan, you agree
-                to the following:
-              </p>
-              <ul className="list-disc list-inside space-y-2 ml-2">
-                <li>
-                  Subscriptions are available as monthly ($4.99/month) or annual ($39.99/year) plans.
-                </li>
-                <li>
-                  Payment is charged at the beginning of each billing cycle.
-                </li>
-                <li>
-                  Subscriptions automatically renew unless cancelled before the next billing date.
-                </li>
-                <li>
-                  You can cancel your subscription at any time from Settings. Your Pro features
-                  remain active until the end of the current billing period.
-                </li>
-                <li>
-                  Refunds are handled on a case-by-case basis. Contact us at support@duezo.app for
-                  refund requests.
-                </li>
-              </ul>
-              <p>
-                All payment processing is handled securely by Stripe. We never store your full
-                credit card information.
-              </p>
-            </div>
-          </section>
-
           {/* Acceptable Use */}
           <section>
-            <h2 className="text-2xl font-semibold text-white mb-4">5. Acceptable Use</h2>
+            <h2 className="text-2xl font-semibold text-white mb-4">3. Acceptable Use</h2>
             <div className="space-y-4 text-zinc-300 leading-relaxed">
               <p>You agree not to:</p>
               <ul className="list-disc list-inside space-y-2 ml-2">
@@ -195,7 +111,7 @@ export default function TermsPage() {
 
           {/* Limitation of Liability */}
           <section>
-            <h2 className="text-2xl font-semibold text-white mb-4">6. Limitation of Liability</h2>
+            <h2 className="text-2xl font-semibold text-white mb-4">4. Limitation of Liability</h2>
             <div className="space-y-4 text-zinc-300 leading-relaxed">
               <p>
                 Duezo is provided &ldquo;as is&rdquo; and &ldquo;as available&rdquo; without
@@ -203,16 +119,12 @@ export default function TermsPage() {
               </p>
               <ul className="list-disc list-inside space-y-2 ml-2">
                 <li>
-                  We do not guarantee that bill information extracted by AI will be 100% accurate.
+                  We do not guarantee that bill information will be 100% accurate.
                   Always verify amounts and due dates before making payments.
                 </li>
                 <li>
                   We are not responsible for late fees, missed payments, or financial losses
                   resulting from reliance on the Service.
-                </li>
-                <li>
-                  Our total liability to you shall not exceed the amount you paid for the Service in
-                  the 12 months preceding the claim.
                 </li>
               </ul>
               <p>
@@ -224,7 +136,7 @@ export default function TermsPage() {
 
           {/* Changes to Terms */}
           <section>
-            <h2 className="text-2xl font-semibold text-white mb-4">7. Changes to These Terms</h2>
+            <h2 className="text-2xl font-semibold text-white mb-4">5. Changes to These Terms</h2>
             <p className="text-zinc-300 leading-relaxed">
               We may update these Terms from time to time. We will notify you of material changes by
               email or through a notice within the application. Continued use of Duezo after changes
@@ -235,7 +147,7 @@ export default function TermsPage() {
 
           {/* Contact */}
           <section>
-            <h2 className="text-2xl font-semibold text-white mb-4">8. Contact Us</h2>
+            <h2 className="text-2xl font-semibold text-white mb-4">6. Contact Us</h2>
             <p className="text-zinc-300 leading-relaxed">
               If you have any questions about these Terms, please contact us at{' '}
               <a

@@ -25,7 +25,7 @@ export type BillAIResult = {
     | null;
   amountDue: number | null;
   dueDate: string | null;
-  currency: "USD" | null;
+  currency: "USD" | "EUR" | "GBP" | "JPY" | null;
   accountHint: string | null;
   paymentStatus: "DUE" | "SCHEDULED" | "PAID" | "UNKNOWN";
   paymentLink: string | null;

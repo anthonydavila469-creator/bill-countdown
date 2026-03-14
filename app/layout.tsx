@@ -70,7 +70,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#08080c" },
+    { media: "(prefers-color-scheme: dark)", color: "#0F0A1E" },
     { media: "(prefers-color-scheme: light)", color: "#8B5CF6" },
   ],
 };
@@ -88,7 +88,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#08080c]`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#0F0A1E]`}
       >
         <ThemeProvider>
           <SubscriptionProvider>

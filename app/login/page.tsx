@@ -102,14 +102,14 @@ export default function LoginPage() {
   // Show loading state until mounted to prevent hydration mismatch
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-[#08080c] flex items-center justify-center">
+      <div className="min-h-screen bg-[#0F0A1E] flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-violet-500/30 border-t-violet-500 rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#08080c] text-white flex">
+    <div className="min-h-screen bg-[#0F0A1E] text-white flex">
       {/* Left side - Form */}
       <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-md space-y-8">
@@ -184,7 +184,7 @@ export default function LoginPage() {
               <div className="w-full border-t border-white/10" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-[#08080c] text-zinc-500">
+              <span className="px-4 bg-[#0F0A1E] text-zinc-500">
                 or continue with email
               </span>
             </div>

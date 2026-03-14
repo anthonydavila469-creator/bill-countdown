@@ -171,7 +171,7 @@ export default function CalendarPage() {
   // Skip full-page loading state to prevent flash - content loads quickly
 
   return (
-    <div className="min-h-screen bg-[#08080c]">
+    <div className="min-h-screen bg-[#0F0A1E]">
       {/* Sidebar */}
       <aside className="fixed left-0 top-0 bottom-0 w-64 bg-[#0c0c10] border-r border-white/5 hidden lg:flex flex-col">
         {/* Logo */}
@@ -278,10 +278,10 @@ export default function CalendarPage() {
       {/* Main content */}
       <main className="lg:ml-64 h-screen overflow-y-auto overscroll-none pb-28 pt-[env(safe-area-inset-top)]">
         {/* Header */}
-        <header className="sticky top-0 z-40 bg-[#08080c]">
+        <header className="sticky top-0 z-40 bg-[#0F0A1E]">
           {/* Safe area for notch */}
-          <div className="h-[env(safe-area-inset-top)] bg-[#08080c]" />
-          <div className="flex items-center justify-between px-6 h-16 bg-[#08080c]/80 backdrop-blur-xl border-b border-white/5">
+          <div className="h-[env(safe-area-inset-top)] bg-[#0F0A1E]" />
+          <div className="flex items-center justify-between px-6 h-16 bg-[#0F0A1E]/80 backdrop-blur-xl border-b border-white/5">
             {/* Mobile logo */}
             <div className="lg:hidden flex items-center gap-2.5">
               <Image

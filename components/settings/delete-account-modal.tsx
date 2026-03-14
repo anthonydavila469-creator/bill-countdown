@@ -8,7 +8,7 @@ interface DeleteAccountModalProps {
   isOpen: boolean;
   userEmail: string;
   onClose: () => void;
-  onConfirm: () => Promise<void>;
+  onConfirm: (password: string) => Promise<void>;
 }
 
 export function DeleteAccountModal({
@@ -19,15 +19,17 @@ export function DeleteAccountModal({
 }: DeleteAccountModalProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [confirmText, setConfirmText] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const confirmPhrase = 'DELETE';
-  const isConfirmed = confirmText === confirmPhrase;
+  const isConfirmed = confirmText === confirmPhrase && password.length > 0;
 
   // Reset state when modal opens/closes
   useEffect(() => {
     if (!isOpen) {
       setConfirmText('');
+      setPassword('');
       setError(null);
       setIsDeleting(false);
     }
@@ -63,7 +65,7 @@ export function DeleteAccountModal({
     setError(null);
 
     try {
-      await onConfirm();
+      await onConfirm(password);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete account');
       setIsDeleting(false);
@@ -162,6 +164,26 @@ export function DeleteAccountModal({
                       isConfirmed
                         ? 'border-red-500/50 focus:ring-red-500/30'
                         : 'border-white/10 focus:ring-white/20',
+                      'disabled:opacity-50'
+                    )}
+                  />
+                </div>
+
+                {/* Password confirmation */}
+                <div>
+                  <label className="block text-sm text-zinc-400 mb-2">
+                    Enter your password to confirm:
+                  </label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={isDeleting}
+                    placeholder="Your account password"
+                    className={cn(
+                      'w-full px-4 py-3 bg-white/5 border rounded-xl text-white placeholder-zinc-600',
+                      'focus:outline-none focus:ring-2 transition-all',
+                      'border-white/10 focus:ring-white/20',
                       'disabled:opacity-50'
                     )}
                   />

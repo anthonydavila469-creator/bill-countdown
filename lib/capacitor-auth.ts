@@ -1,21 +1,18 @@
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
-import { App } from '@capacitor/app';
 import { SupabaseClient } from '@supabase/supabase-js';
 
 // Module-level store for pending transfer key (native OAuth only)
 let pendingTransferKey: string | null = null;
-
-// App URL scheme for deep link callback
-const APP_SCHEME = 'app.duezo';
 
 /**
  * Handle OAuth sign-in for both web and native Capacitor.
  *
  * On web: standard redirect flow.
  * On native (iPad/iPhone): opens SFSafariViewController via @capacitor/browser.
- * After OAuth completes, the server redirects to the app's URL scheme,
- * which triggers the appUrlOpen listener to retrieve tokens.
+ * After OAuth completes in the browser, tokens are stored server-side via a
+ * transfer key. When the user returns to the app, we retrieve the tokens and
+ * set the session in the WKWebView.
  */
 export async function signInWithOAuthNative(
   supabase: SupabaseClient,
@@ -47,7 +44,7 @@ export async function signInWithOAuthNative(
 
   if (isNative && data?.url) {
     // Open in SFSafariViewController — Google/Apple allow this (not embedded WKWebView).
-    // Use fullScreen to ensure visibility on both iPhone and iPad compatibility mode.
+    // Use fullScreen to ensure visibility/browser events fire correctly on iPad.
     await Browser.open({ url: data.url, presentationStyle: 'fullscreen' });
   }
 
@@ -55,12 +52,11 @@ export async function signInWithOAuthNative(
 }
 
 /**
- * Listen for the app returning via deep link (appUrlOpen) after OAuth completes.
- * This replaces the unreliable browserPageLoaded/browserFinished events
- * which don't fire consistently on iPad compatibility mode.
+ * Listen for the app returning to foreground and retrieve the auth session.
+ * Used on login/signup pages in native Capacitor to detect when OAuth completes.
  *
- * The server-side callback redirects to app.duezo://auth-callback?transfer_key=...
- * which triggers this listener to fetch tokens and set the session.
+ * After SFSafariViewController closes, we fetch the stored session tokens via
+ * the transfer API and set them in the WKWebView's Supabase client.
  */
 export function listenForAuthReturn(
   supabase: SupabaseClient,
@@ -71,69 +67,30 @@ export function listenForAuthReturn(
 
   let resolved = false;
 
-  const tryResolveSession = async (transferKey: string) => {
+  const tryResolveSession = async () => {
     if (resolved) return;
 
-    // Fetch tokens via transfer API
-    try {
-      const res = await fetch(`/api/auth/transfer?key=${transferKey}`);
-      if (res.ok) {
-        const { access_token, refresh_token } = await res.json();
-        await supabase.auth.setSession({ access_token, refresh_token });
-        resolved = true;
-        pendingTransferKey = null;
-        try { await Browser.close(); } catch { /* may already be closed */ }
-        onAuthenticated();
-        return;
-      }
-    } catch { /* transfer not ready, fall through */ }
-
-    // Retry once after a short delay (race condition: redirect may arrive before DB write)
-    await new Promise((r) => setTimeout(r, 1500));
-    try {
-      const res = await fetch(`/api/auth/transfer?key=${transferKey}`);
-      if (res.ok) {
-        const { access_token, refresh_token } = await res.json();
-        await supabase.auth.setSession({ access_token, refresh_token });
-        resolved = true;
-        pendingTransferKey = null;
-        try { await Browser.close(); } catch { /* may already be closed */ }
-        onAuthenticated();
-        return;
-      }
-    } catch { /* give up */ }
-  };
-
-  // Primary: listen for deep link callback via @capacitor/app
-  // The server redirects to app.duezo://auth-callback?transfer_key=xxx
-  const appUrlListener = App.addListener('appUrlOpen', async (event) => {
-    if (resolved) return;
-
-    const url = new URL(event.url);
-    if (url.pathname === '/auth-callback' || url.host === 'auth-callback') {
-      const transferKey = url.searchParams.get('transfer_key');
-      if (transferKey) {
-        await tryResolveSession(transferKey);
-      }
+    // Try transfer-based auth (primary method — bridges SFVC ↔ WKWebView)
+    if (pendingTransferKey) {
+      try {
+        const res = await fetch('/api/auth/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ transfer_key: pendingTransferKey }),
+        });
+        if (res.ok) {
+          const { access_token, refresh_token } = await res.json();
+          await supabase.auth.setSession({ access_token, refresh_token });
+          resolved = true;
+          pendingTransferKey = null;
+          try { await Browser.close(); } catch { /* may already be closed */ }
+          onAuthenticated();
+          return;
+        }
+      } catch { /* transfer not ready yet, fall through */ }
     }
-  });
 
-  // Fallback: listen for browser dismissed without completing auth
-  const browserListener = Browser.addListener('browserFinished', async () => {
-    // Give a moment for appUrlOpen to fire first (it should arrive before browserFinished)
-    await new Promise((r) => setTimeout(r, 2000));
-    if (!resolved && onDismissed) {
-      pendingTransferKey = null;
-      onDismissed();
-    }
-  });
-
-  // Fallback: visibility change (app returning to foreground)
-  const checkSession = async () => {
-    if (document.visibilityState !== 'visible' || resolved) return;
-    await new Promise((r) => setTimeout(r, 1500));
-
-    // Check if we have a session (might have been set by appUrlOpen already)
+    // Fallback: check if session exists (e.g. email/password login, or session already set)
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       resolved = true;
@@ -143,11 +100,42 @@ export function listenForAuthReturn(
     }
   };
 
+  const checkSession = async () => {
+    if (document.visibilityState !== 'visible') return;
+    // Delay to let the auth callback complete on the server
+    await new Promise((r) => setTimeout(r, 1000));
+    await tryResolveSession();
+  };
+
+  // Listen for browser closed event (SFSafariViewController dismissed)
+  // Listen for pages loading inside the SFSafariViewController.
+  // When the auth callback page loads ("Returning to Duezo..."), the server has
+  // already stored the tokens — we can fetch them and close the browser immediately.
+  // This fires for every page load inside the SFVC (including the Apple auth page
+  // itself), but tryResolveSession is a no-op until tokens exist.
+  const pageLoadedListener = Browser.addListener('browserPageLoaded', async () => {
+    if (resolved || !pendingTransferKey) return;
+    // Wait briefly for the server to finish writing the token row
+    await new Promise((r) => setTimeout(r, 800));
+    await tryResolveSession();
+  });
+
+  const browserListener = Browser.addListener('browserFinished', async () => {
+    await new Promise((r) => setTimeout(r, 500));
+    await tryResolveSession();
+    // If we didn't resolve (auth failed/cancelled), reset the loading state
+    if (!resolved && onDismissed) {
+      pendingTransferKey = null;
+      onDismissed();
+    }
+  });
+
+  // Listen for app returning to foreground
   document.addEventListener('visibilitychange', checkSession);
 
   return () => {
     document.removeEventListener('visibilitychange', checkSession);
-    appUrlListener.then(h => h.remove()).catch(() => {});
+    pageLoadedListener.then(h => h.remove()).catch(() => {});
     browserListener.then(h => h.remove()).catch(() => {});
   };
 }

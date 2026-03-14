@@ -184,7 +184,7 @@ export const COLOR_THEMES: Record<ColorThemeId, ColorTheme> = {
   },
 };
 
-export const DEFAULT_COLOR_THEME: ColorThemeId = 'onyx';
+export const DEFAULT_COLOR_THEME: ColorThemeId = 'amethyst';
 
 export type RecurrenceInterval = 'weekly' | 'biweekly' | 'monthly' | 'yearly';
 
@@ -429,7 +429,7 @@ export const DEFAULT_URGENCY_COLORS: UrgencyColors = {
 };
 
 // Legacy - now derived from theme
-export const DEFAULT_ACCENT_COLOR = COLOR_THEMES.onyx.accentColor;
+export const DEFAULT_ACCENT_COLOR = COLOR_THEMES.amethyst.accentColor;
 
 export const DEFAULT_DASHBOARD_LAYOUT: DashboardLayout = {
   cardSize: 'default',

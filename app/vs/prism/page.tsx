@@ -51,7 +51,7 @@ function Cell({ value }: { value: string | boolean }) {
 
 export default function VsPrismPage() {
   return (
-    <main className="min-h-screen bg-[#08080c] text-white">
+    <main className="min-h-screen bg-[#0F0A1E] text-white">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

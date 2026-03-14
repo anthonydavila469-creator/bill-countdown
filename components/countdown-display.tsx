@@ -26,7 +26,8 @@ interface CountdownDisplayProps {
   urgency: BillUrgency;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
-  colorMode?: NumberColorMode;
+  colorMode?: NumberColorMode | 'custom';
+  customColor?: string;
 }
 
 const sizeStyles = {
@@ -36,12 +37,12 @@ const sizeStyles = {
     gap: 'gap-0',
   },
   md: {
-    number: 'text-6xl',
+    number: 'text-7xl',
     label: 'text-sm',
     gap: 'gap-0.5',
   },
   lg: {
-    number: 'text-7xl md:text-8xl',
+    number: 'text-8xl md:text-9xl',
     label: 'text-base',
     gap: 'gap-1',
   },
@@ -53,6 +54,7 @@ export function CountdownDisplay({
   size = 'md',
   className,
   colorMode = 'white',
+  customColor,
 }: CountdownDisplayProps) {
   const styles = sizeStyles[size];
   const isOverdue = daysLeft < 0;
@@ -89,6 +91,12 @@ export function CountdownDisplay({
         return {
           ...baseStyle,
           color: `var(${urgencyCssVar})`,
+          textShadow: '0 2px 10px rgba(0,0,0,0.3)',
+        };
+      case 'custom':
+        return {
+          ...baseStyle,
+          color: customColor || 'white',
           textShadow: '0 2px 10px rgba(0,0,0,0.3)',
         };
       case 'white':

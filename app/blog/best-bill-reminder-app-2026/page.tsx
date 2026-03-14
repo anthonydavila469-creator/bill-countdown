@@ -95,7 +95,7 @@ export default function BestBillReminderApp2026Page() {
   };
 
   return (
-    <main className="min-h-screen bg-[#08080c] text-white">
+    <main className="min-h-screen bg-[#0F0A1E] text-white">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

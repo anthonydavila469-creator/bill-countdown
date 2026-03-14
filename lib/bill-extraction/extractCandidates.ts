@@ -348,6 +348,52 @@ export function extractDateCandidates(text: string): DateCandidate[] {
         continue;
       }
 
+      // Handle "next month" (relative)
+      if (/^next\s+month$/i.test(dateStr)) {
+        const dueDate = new Date();
+        dueDate.setMonth(dueDate.getMonth() + 1);
+        dueDate.setDate(1); // first of next month
+        const isoDate = dueDate.toISOString().split('T')[0];
+
+        if (!seenDates.has(isoDate)) {
+          seenDates.add(isoDate);
+          const context = extractContext(text, match.index);
+          candidates.push({
+            value: isoDate,
+            context,
+            keywordScore: scoreDateContext(context),
+            patternPriority: i,
+            isRelative: true,
+          });
+        }
+        continue;
+      }
+
+      // Handle ordinal day-only: "15th" / "1st" / "2nd" / "3rd" → current or next month
+      if (/^\d{1,2}(?:st|nd|rd|th)$/i.test(dateStr)) {
+        const dayOfMonth = parseInt(dateStr);
+        const now = new Date();
+        const dueDate = new Date(now.getFullYear(), now.getMonth(), dayOfMonth);
+        // If that day has passed this month, use next month
+        if (dueDate.getTime() < now.getTime() - 7 * 24 * 60 * 60 * 1000) {
+          dueDate.setMonth(dueDate.getMonth() + 1);
+        }
+        const isoDate = dueDate.toISOString().split('T')[0];
+
+        if (!seenDates.has(isoDate)) {
+          seenDates.add(isoDate);
+          const context = extractContext(text, match.index);
+          candidates.push({
+            value: isoDate,
+            context,
+            keywordScore: scoreDateContext(context),
+            patternPriority: i,
+            isRelative: true,
+          });
+        }
+        continue;
+      }
+
       // Skip dates that are part of a billing period date range
       if (isPartOfDateRange(text, match.index, dateStr)) {
         continue;
