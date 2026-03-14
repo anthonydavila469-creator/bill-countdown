@@ -96,6 +96,7 @@ export default function NotificationsSettingsPage() {
   } = useSubscription();
 
   const saveSettings = useCallback(async (settingsToSave: NotificationSettings) => {
+    console.log('[Duezo] saveSettings called with reminder_days:', settingsToSave.reminder_days, 'email:', settingsToSave.email_enabled);
     setSaveStatus('saving');
     try {
       const res = await fetch('/api/notifications/settings', {
@@ -103,6 +104,7 @@ export default function NotificationsSettingsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settingsToSave),
       });
+      console.log('[Duezo] Save response:', res.status);
       if (res.ok) {
         setSaveStatus('saved');
         if (savedIndicatorRef.current) clearTimeout(savedIndicatorRef.current);
@@ -149,9 +151,14 @@ export default function NotificationsSettingsPage() {
 
   // Debounced auto-save on settings change
   useEffect(() => {
-    if (isInitialLoadRef.current) return;
+    if (isInitialLoadRef.current) {
+      console.log('[Duezo] Skipping auto-save (initial load)');
+      return;
+    }
+    console.log('[Duezo] Auto-save triggered, saving in 500ms:', JSON.stringify(settings.reminder_days));
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
+      console.log('[Duezo] Auto-save executing now');
       saveSettings(settings);
     }, 500);
     return () => {

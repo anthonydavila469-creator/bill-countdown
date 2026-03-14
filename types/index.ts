@@ -477,11 +477,11 @@ export interface BillNotification {
 }
 
 export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
-  email_enabled: true,
+  email_enabled: false,
   push_enabled: false,
   lead_days: 3,
   reminder_days: [3],
-  timezone: 'America/New_York',
+  timezone: 'America/Chicago',
   auto_sync_enabled: true,
 };
 
