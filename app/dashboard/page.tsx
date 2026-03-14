@@ -681,13 +681,13 @@ export default function DashboardPage() {
                   const heroCountdownColor = isHeroOverdue ? '#EF4444'
                     : heroDays <= 3 ? '#F59E0B'
                     : heroDays <= 7 ? '#EAB308'
-                    : '#22C55E';
+                    : '#FFFFFF';
                   return (
                   <div className="relative mb-6">
                     {/* Ambient gradient orb behind hero */}
                     <div
                       className="absolute -top-16 left-1/2 -translate-x-1/2 w-80 h-80 rounded-full blur-[100px] animate-ambient-pulse pointer-events-none"
-                      style={{ backgroundColor: isHeroOverdue ? 'rgba(239,68,68,0.25)' : 'rgba(124,58,237,0.3)' }}
+                      style={{ backgroundColor: isHeroOverdue ? 'rgba(239,68,68,0.25)' : hexToRgba(accentColor, 0.3) }}
                     />
 
                     <div
@@ -700,13 +700,13 @@ export default function DashboardPage() {
                         minHeight: '25vh',
                         background: isHeroOverdue
                           ? 'linear-gradient(135deg, rgba(127,29,29,0.5) 0%, rgba(153,27,27,0.3) 50%, rgba(127,29,29,0.5) 100%)'
-                          : 'linear-gradient(135deg, #4C1D95 0%, #7C3AED 50%, #6D28D9 100%)',
+                          : `linear-gradient(135deg, ${accentColor} 0%, ${hexToRgba(accentColor, 0.8)} 50%, ${accentColor} 100%)`,
                         border: isHeroOverdue
                           ? '1px solid rgba(239,68,68,0.4)'
-                          : '1px solid rgba(167,139,250,0.35)',
+                          : `1px solid ${hexToRgba(accentColor, 0.35)}`,
                         boxShadow: isHeroOverdue
                           ? '0 8px 40px rgba(239,68,68,0.3), 0 0 80px rgba(239,68,68,0.1)'
-                          : '0 8px 40px rgba(124,58,237,0.35), 0 0 80px rgba(139,92,246,0.15)',
+                          : `0 8px 40px ${hexToRgba(accentColor, 0.35)}, 0 0 80px ${hexToRgba(accentColor, 0.15)}`,
                       }}
                     >
                       {/* Glossy highlight at top */}
@@ -714,18 +714,18 @@ export default function DashboardPage() {
                       {/* Inner glow orbs */}
                       <div
                         className="absolute -bottom-20 -right-20 w-60 h-60 rounded-full blur-[80px] pointer-events-none"
-                        style={{ backgroundColor: isHeroOverdue ? 'rgba(239,68,68,0.15)' : 'rgba(167,139,250,0.2)' }}
+                        style={{ backgroundColor: isHeroOverdue ? 'rgba(239,68,68,0.15)' : hexToRgba(accentColor, 0.2) }}
                       />
                       <div
                         className="absolute -top-10 -left-10 w-40 h-40 rounded-full blur-[60px] pointer-events-none"
-                        style={{ backgroundColor: isHeroOverdue ? 'rgba(239,68,68,0.1)' : 'rgba(124,58,237,0.25)' }}
+                        style={{ backgroundColor: isHeroOverdue ? 'rgba(239,68,68,0.1)' : hexToRgba(accentColor, 0.25) }}
                       />
 
                       <div className="relative z-10 flex flex-col h-full justify-between">
                         {/* Top: label */}
                         <p className={cn(
                           'text-xs font-semibold uppercase tracking-widest mb-2',
-                          isHeroOverdue ? 'text-red-300' : 'text-violet-200'
+                          isHeroOverdue ? 'text-red-300' : 'text-white/70'
                         )}>
                           {isHeroOverdue ? 'Overdue' : 'Next Up'}
                         </p>
