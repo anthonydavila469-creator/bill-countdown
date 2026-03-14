@@ -111,12 +111,7 @@ export function BillDetailModal({
                     daysLeft={daysLeft}
                     urgency={urgency}
                     size="lg"
-                    colorMode={
-                      (urgency === 'overdue' || urgency === 'urgent')
-                        ? 'urgency'
-                        : 'custom'
-                    }
-                    customColor={accentColor}
+                    colorMode="gradient"
                   />
                 </div>
               </div>

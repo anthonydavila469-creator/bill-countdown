@@ -121,8 +121,8 @@ function TimelineBillRow({
   const daysLeft = getDaysUntilDue(bill.due_date);
   const urgency = getUrgency(daysLeft);
   const isOverdue = daysLeft < 0;
-  const isUrgent = daysLeft >= 0 && daysLeft <= 3;
-  const isSoon = daysLeft > 3 && daysLeft <= 7;
+  const isUrgent = daysLeft >= 0 && daysLeft <= 5;
+  const isSoon = daysLeft > 5 && daysLeft <= 10;
   const { icon: IconComponent } = getBillIcon(bill);
 
   // Urgency-based colors

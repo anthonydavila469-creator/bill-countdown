@@ -255,7 +255,7 @@ export function CalendarDay({
             {sortedBills.slice(0, 3).map((bill) => {
               const daysLeft = getDaysUntilDue(bill.due_date);
               const isProjected = 'isProjected' in bill && bill.isProjected;
-              const dotColor = daysLeft < 0 ? '#EF4444' : daysLeft <= 3 ? '#F59E0B' : daysLeft <= 7 ? '#EAB308' : '#22C55E';
+              const dotColor = daysLeft < 0 ? '#EF4444' : daysLeft <= 5 ? '#F59E0B' : daysLeft <= 10 ? '#EAB308' : '#22C55E';
 
               return (
                 <div

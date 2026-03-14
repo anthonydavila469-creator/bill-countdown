@@ -91,8 +91,8 @@ export function getRiskBills(
       continue;
     }
 
-    // Check for urgent (0-3 days)
-    if (daysLeft <= 3) {
+    // Check for urgent (0-5 days)
+    if (daysLeft <= 5) {
       const message =
         daysLeft === 0
           ? `${bill.name} is due today`
@@ -144,7 +144,7 @@ export function hasLatePaymentRisk(bill: Bill): boolean {
   if (bill.is_paid) return false;
 
   const daysLeft = getDaysUntilDue(bill.due_date);
-  const isUrgentOrOverdue = daysLeft <= 3;
+  const isUrgentOrOverdue = daysLeft <= 5;
   const isManualPayment = !bill.is_autopay;
 
   return isUrgentOrOverdue && isManualPayment;
@@ -163,7 +163,7 @@ export function getBillRiskType(
   const daysLeft = getDaysUntilDue(bill.due_date);
 
   if (daysLeft < 0) return 'overdue';
-  if (daysLeft <= 3) return 'urgent';
+  if (daysLeft <= 5) return 'urgent';
   if (daysLeft <= 7 && isForgotLastMonth(bill, allBills)) {
     return 'forgot_last_month';
   }

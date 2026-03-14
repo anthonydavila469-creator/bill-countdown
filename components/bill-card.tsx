@@ -189,12 +189,7 @@ export function BillCard({
               daysLeft={daysLeft}
               urgency={urgency}
               size="sm"
-              colorMode="custom"
-              customColor={
-                daysLeft < 0 ? '#EF4444'
-                  : daysLeft <= 3 ? '#F59E0B'
-                  : 'var(--accent-primary)'
-              }
+              colorMode="gradient"
             />
           </div>
         </div>
@@ -336,12 +331,7 @@ export function BillCard({
             daysLeft={daysLeft}
             urgency={urgency}
             size="lg"
-            colorMode="custom"
-            customColor={
-              daysLeft < 0 ? '#EF4444'
-                : daysLeft <= 3 ? '#F59E0B'
-                : 'var(--accent-primary)'
-            }
+            colorMode="gradient"
           />
         </div>
 

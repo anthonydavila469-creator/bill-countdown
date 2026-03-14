@@ -33,8 +33,8 @@ export function getDaysUntilDue(dueDate: string): number {
 // Get urgency level based on days left
 export function getUrgency(daysLeft: number): BillUrgency {
   if (daysLeft < 0) return 'overdue';
-  if (daysLeft <= 3) return 'urgent';
-  if (daysLeft <= 7) return 'soon';
+  if (daysLeft <= 5) return 'urgent';
+  if (daysLeft <= 10) return 'soon';
   if (daysLeft <= 30) return 'safe';
   return 'distant';
 }
