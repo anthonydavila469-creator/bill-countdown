@@ -26,7 +26,7 @@ export function BillDetailModal({
   onDelete,
   onMarkPaid,
 }: BillDetailModalProps) {
-  const { accentColor } = useTheme();
+  const { accentColor, cardGradient } = useTheme();
   const [isMarkingPaid, setIsMarkingPaid] = useState(false);
 
   // Prevent body scroll when modal is open
@@ -83,9 +83,17 @@ export function BillDetailModal({
               'animate-in fade-in zoom-in-95 duration-200'
             )}
           >
-            {/* Header with gradient */}
-            <GradientCard urgency={urgency} className="rounded-none rounded-t-2xl" accentColor={accentColor}>
-              <div className="p-6 pb-8">
+            {/* Header with theme gradient */}
+            <div
+              className="relative rounded-t-2xl overflow-hidden"
+              style={{
+                background: urgency === 'overdue'
+                  ? 'linear-gradient(135deg, rgba(127,29,29,0.8), rgba(185,28,28,0.6))'
+                  : cardGradient,
+              }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-b from-white/[0.08] to-transparent pointer-events-none" />
+              <div className="relative p-6 pb-8">
                 <div className="flex items-start justify-between mb-4">
                   <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
                     <BillIcon className={cn("w-8 h-8", colorClass)} />
@@ -115,7 +123,7 @@ export function BillDetailModal({
                   />
                 </div>
               </div>
-            </GradientCard>
+            </div>
 
             {/* Content */}
             <div className="p-6 space-y-4">
