@@ -34,6 +34,8 @@ import {
   Check,
 } from 'lucide-react';
 import { useSubscription } from '@/hooks/use-subscription';
+import { Paywall } from '@/components/paywall';
+import { UpgradeModal } from '@/components/upgrade-modal';
 import { cn } from '@/lib/utils';
 
 // Swipe-to-pay card wrapper
@@ -203,8 +205,13 @@ export default function DashboardPage() {
   const { accentColor } = useTheme();
   const {
     canAddBill,
+    isPro,
+    isIosApp,
     refreshSubscription,
   } = useSubscription();
+
+  // Paywall state — show after first bill creation
+  const [showPaywall, setShowPaywall] = useState(false);
 
   // Use optimistic mutations hook
   const {
@@ -330,10 +337,16 @@ export default function DashboardPage() {
 
   // Handle adding/updating a bill
   const handleBillSuccess = async (bill: Bill) => {
+    const wasFirstBill = bills.length === 0 && !editingBill;
     // Refresh bills from context and subscription state (for bill count)
     await refetch();
     await refreshSubscription();
     setEditingBill(null);
+
+    // Show paywall after first bill creation on iOS (non-Pro users only)
+    if (wasFirstBill && isIosApp && !isPro) {
+      setTimeout(() => setShowPaywall(true), 600);
+    }
   };
 
   // Handle deleting a bill
@@ -914,6 +927,15 @@ export default function DashboardPage() {
           onMarkPaid={handleMarkPaidFromPayNow}
         />
       )}
+
+      {/* Paywall — shown after first bill creation */}
+      <Paywall
+        isOpen={showPaywall}
+        onClose={() => setShowPaywall(false)}
+      />
+
+      {/* Upgrade Modal — triggered by feature gates */}
+      <UpgradeModal />
 
       {/* Onboarding Modal for first-time users */}
       {showOnboardingModal && (

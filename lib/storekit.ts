@@ -1,21 +1,20 @@
 /**
- * StoreKit IAP Service — Scaffolding for iOS In-App Purchases
+ * StoreKit IAP Service — RevenueCat-powered iOS In-App Purchases
  *
- * TODO: Install @capawesome-team/capacitor-purchases or similar StoreKit plugin
- *       e.g. `npm install @capawesome-team/capacitor-purchases && npx cap sync`
- * TODO: Create products in App Store Connect matching the product IDs below
- * TODO: Add server-side receipt validation endpoint (e.g. /api/iap/validate)
+ * Uses @revenuecat/purchases-capacitor for StoreKit 2 integration.
+ * Web/Android gracefully no-op — Stripe handles web subscriptions.
  */
 
 import { Capacitor } from '@capacitor/core';
+import type { PurchasesPackage, PurchasesStoreProduct } from '@revenuecat/purchases-typescript-internal-esm';
 
 // ---------------------------------------------------------------------------
 // Product definitions
 // ---------------------------------------------------------------------------
 
 export const IAP_PRODUCTS = {
-  MONTHLY: 'app.duezo.pro.monthly',   // $4.99/month
-  YEARLY: 'app.duezo.pro.yearly',     // $39.99/year
+  MONTHLY: 'app.duezo.pro.monthly',   // $3.99/month
+  YEARLY: 'app.duezo.pro.yearly',     // $19.99/year (7-day free trial)
 } as const;
 
 export type IAPProductId = (typeof IAP_PRODUCTS)[keyof typeof IAP_PRODUCTS];
@@ -24,8 +23,8 @@ export interface IAPProduct {
   productId: IAPProductId;
   title: string;
   description: string;
-  price: string;        // formatted, e.g. "$4.99"
-  priceRaw: number;     // numeric, e.g. 4.99
+  price: string;        // formatted, e.g. "$3.99"
+  priceRaw: number;     // numeric, e.g. 3.99
   currency: string;
   period: 'monthly' | 'yearly';
 }
@@ -34,7 +33,6 @@ export interface IAPPurchaseResult {
   success: boolean;
   transactionId?: string;
   productId?: IAPProductId;
-  receipt?: string;
   error?: string;
 }
 
@@ -44,53 +42,93 @@ export interface IAPRestoreResult {
   error?: string;
 }
 
+export interface RevenueCatCustomerInfo {
+  isPro: boolean;
+  expirationDate: string | null;
+  isTrialing: boolean;
+}
+
 // ---------------------------------------------------------------------------
-// StoreKit Service
+// StoreKit Service (RevenueCat)
 // ---------------------------------------------------------------------------
 
 class StoreKitService {
+  private initialized = false;
+
   /**
    * Returns true only when running inside the native iOS Capacitor shell.
-   * On web / Android / SSR this is always false.
    */
   get isAvailable(): boolean {
     return Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios';
   }
 
   /**
-   * Fetch available products from the App Store.
-   * Falls back gracefully on web — returns an empty array.
-   *
-   * @returns Array of IAPProduct or empty array when not on iOS.
+   * Initialize RevenueCat SDK. Must be called before any purchases.
+   * Safe to call multiple times — only initializes once.
    */
-  async fetchProducts(): Promise<IAPProduct[]> {
-    if (!this.isAvailable) {
-      // Web fallback — Stripe handles subscriptions on web
-      return [];
-    }
+  async initialize(appUserId?: string): Promise<void> {
+    if (!this.isAvailable || this.initialized) return;
 
     try {
-      // TODO: Replace with actual plugin call once installed, e.g.:
-      // const { Purchases } = await import('@capawesome-team/capacitor-purchases');
-      // const { products } = await Purchases.getProducts({
-      //   productIdentifiers: Object.values(IAP_PRODUCTS),
-      // });
-      // return products.map(mapPluginProduct);
+      const { Purchases } = await import('@revenuecat/purchases-capacitor');
+      const apiKey = process.env.NEXT_PUBLIC_REVENUCAT_API_KEY || 'your_revenucat_api_key_here';
 
-      // Scaffold stub — returns empty until plugin is installed
-      console.warn('[StoreKit] Plugin not installed — fetchProducts() returning empty');
-      return [];
+      await Purchases.configure({
+        apiKey,
+        appUserID: appUserId ?? undefined,
+      });
+
+      this.initialized = true;
     } catch (err) {
-      console.error('[StoreKit] fetchProducts() error:', err);
+      console.error('[RevenueCat] initialize() error:', err);
+    }
+  }
+
+  /**
+   * Fetch available products from RevenueCat offerings.
+   * Falls back gracefully on web — returns an empty array.
+   */
+  async fetchProducts(): Promise<IAPProduct[]> {
+    if (!this.isAvailable) return [];
+
+    try {
+      await this.initialize();
+      const { Purchases } = await import('@revenuecat/purchases-capacitor');
+      const offerings = await Purchases.getOfferings();
+
+      if (!offerings.current?.availablePackages?.length) {
+        console.warn('[RevenueCat] No offerings/packages available');
+        return [];
+      }
+
+      return offerings.current.availablePackages
+        .filter((pkg: PurchasesPackage) => {
+          const id = pkg.product.identifier;
+          return id === IAP_PRODUCTS.MONTHLY || id === IAP_PRODUCTS.YEARLY;
+        })
+        .map((pkg: PurchasesPackage) => {
+          const product: PurchasesStoreProduct = pkg.product;
+          const productId = product.identifier as IAPProductId;
+          const isMonthly = productId === IAP_PRODUCTS.MONTHLY;
+
+          return {
+            productId,
+            title: product.title ?? (isMonthly ? 'Pro Monthly' : 'Pro Annual'),
+            description: product.description ?? (isMonthly ? '$3.99/month' : '$19.99/year'),
+            price: product.priceString ?? (isMonthly ? '$3.99' : '$19.99'),
+            priceRaw: product.price,
+            currency: product.currencyCode || 'USD',
+            period: isMonthly ? 'monthly' : 'yearly',
+          };
+        });
+    } catch (err) {
+      console.error('[RevenueCat] fetchProducts() error:', err);
       return [];
     }
   }
 
   /**
-   * Initiate a purchase for a given product ID.
-   * No-ops gracefully on web.
-   *
-   * @param productId - One of IAP_PRODUCTS.MONTHLY or IAP_PRODUCTS.YEARLY
+   * Purchase a product by ID.
    */
   async purchaseProduct(productId: IAPProductId): Promise<IAPPurchaseResult> {
     if (!this.isAvailable) {
@@ -98,27 +136,41 @@ class StoreKitService {
     }
 
     try {
-      // TODO: Replace with actual plugin call once installed, e.g.:
-      // const { Purchases } = await import('@capawesome-team/capacitor-purchases');
-      // const result = await Purchases.purchaseProduct({ productIdentifier: productId });
-      // return { success: true, transactionId: result.transactionId, productId, receipt: result.receipt };
+      await this.initialize();
+      const { Purchases } = await import('@revenuecat/purchases-capacitor');
 
-      console.warn('[StoreKit] Plugin not installed — purchaseProduct() is a no-op');
-      return { success: false, error: 'StoreKit plugin not yet installed' };
+      // Get offerings to find the right package
+      const offerings = await Purchases.getOfferings();
+      const pkg = offerings.current?.availablePackages?.find(
+        (p: PurchasesPackage) => p.product.identifier === productId
+      );
+
+      if (!pkg) {
+        return { success: false, error: 'Product not found in offerings' };
+      }
+
+      const { customerInfo } = await Purchases.purchasePackage({ aPackage: pkg });
+
+      // Check if the pro entitlement is now active
+      const isPro = customerInfo.entitlements.active['pro'] !== undefined;
+
+      return {
+        success: isPro,
+        productId,
+        error: isPro ? undefined : 'Purchase completed but entitlement not active',
+      };
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
-      // Don't treat user-cancelled as an error
-      if (message.includes('cancelled') || message.includes('cancel')) {
+      if (message.includes('cancelled') || message.includes('cancel') || message.includes('PURCHASE_CANCELLED')) {
         return { success: false, error: 'Purchase cancelled by user' };
       }
-      console.error('[StoreKit] purchaseProduct() error:', err);
+      console.error('[RevenueCat] purchaseProduct() error:', err);
       return { success: false, error: message };
     }
   }
 
   /**
    * Restore previously completed purchases.
-   * No-ops gracefully on web.
    */
   async restorePurchases(): Promise<IAPRestoreResult> {
     if (!this.isAvailable) {
@@ -126,18 +178,71 @@ class StoreKitService {
     }
 
     try {
-      // TODO: Replace with actual plugin call once installed, e.g.:
-      // const { Purchases } = await import('@capawesome-team/capacitor-purchases');
-      // const { purchases } = await Purchases.restorePurchases();
-      // const ids = purchases.map(p => p.productIdentifier as IAPProductId);
-      // return { success: true, restoredProductIds: ids };
+      await this.initialize();
+      const { Purchases } = await import('@revenuecat/purchases-capacitor');
+      const { customerInfo } = await Purchases.restorePurchases();
 
-      console.warn('[StoreKit] Plugin not installed — restorePurchases() is a no-op');
-      return { success: false, restoredProductIds: [], error: 'StoreKit plugin not yet installed' };
+      const isPro = customerInfo.entitlements.active['pro'] !== undefined;
+      const restoredIds: IAPProductId[] = [];
+
+      if (isPro) {
+        // Determine which product is active from the entitlement
+        const proEntitlement = customerInfo.entitlements.active['pro'];
+        if (proEntitlement) {
+          const pid = proEntitlement.productIdentifier as IAPProductId;
+          if (pid === IAP_PRODUCTS.MONTHLY || pid === IAP_PRODUCTS.YEARLY) {
+            restoredIds.push(pid);
+          }
+        }
+      }
+
+      return { success: isPro, restoredProductIds: restoredIds };
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
-      console.error('[StoreKit] restorePurchases() error:', err);
+      console.error('[RevenueCat] restorePurchases() error:', err);
       return { success: false, restoredProductIds: [], error: message };
+    }
+  }
+
+  /**
+   * Get current customer subscription info from RevenueCat.
+   */
+  async getCustomerInfo(): Promise<RevenueCatCustomerInfo> {
+    if (!this.isAvailable) {
+      return { isPro: false, expirationDate: null, isTrialing: false };
+    }
+
+    try {
+      await this.initialize();
+      const { Purchases } = await import('@revenuecat/purchases-capacitor');
+      const { customerInfo } = await Purchases.getCustomerInfo();
+
+      const proEntitlement = customerInfo.entitlements.active['pro'];
+      const isPro = proEntitlement !== undefined;
+
+      return {
+        isPro,
+        expirationDate: proEntitlement?.expirationDate ?? null,
+        isTrialing: proEntitlement?.periodType === 'TRIAL',
+      };
+    } catch (err) {
+      console.error('[RevenueCat] getCustomerInfo() error:', err);
+      return { isPro: false, expirationDate: null, isTrialing: false };
+    }
+  }
+
+  /**
+   * Set the RevenueCat app user ID (call after auth).
+   */
+  async setAppUserId(userId: string): Promise<void> {
+    if (!this.isAvailable) return;
+
+    try {
+      await this.initialize();
+      const { Purchases } = await import('@revenuecat/purchases-capacitor');
+      await Purchases.logIn({ appUserID: userId });
+    } catch (err) {
+      console.error('[RevenueCat] setAppUserId() error:', err);
     }
   }
 }

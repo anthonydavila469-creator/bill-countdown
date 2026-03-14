@@ -396,7 +396,8 @@ export interface DashboardLayout {
 }
 
 // Subscription types
-export type SubscriptionStatus = 'free' | 'active' | 'canceled' | 'past_due';
+export type SubscriptionStatus = 'free' | 'active' | 'canceled' | 'past_due' | 'trialing' | 'expired' | 'billing_issue';
+export type SubscriptionTier = 'free' | 'pro';
 export type SubscriptionPlan = 'monthly' | 'yearly' | null;
 
 export interface UserPreferences {
@@ -414,6 +415,10 @@ export interface UserPreferences {
   subscription_cancel_at_period_end: boolean;
   gmail_syncs_used: number;
   trial_ends_at: string | null;
+  // RevenueCat subscription fields
+  subscription_tier: SubscriptionTier;
+  revenucat_customer_id: string | null;
+  subscription_expires_at: string | null;
   created_at: string;
   updated_at: string;
 }
