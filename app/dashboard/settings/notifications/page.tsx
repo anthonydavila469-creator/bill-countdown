@@ -41,6 +41,10 @@ const COMMON_TIMEZONES = [
   'Australia/Sydney',
 ];
 
+function areSettingsEqual(a: NotificationSettings, b: NotificationSettings) {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
 function Toggle({
   enabled,
   onChange,
@@ -112,9 +116,13 @@ export default function NotificationsSettingsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settingsToSave),
         keepalive: options?.keepalive,
+        cache: 'no-store',
       });
       console.log('[Duezo] Save response:', res.status);
       if (res.ok) {
+        const savedSettings = await res.json();
+        latestSettingsRef.current = savedSettings;
+        setSettings((prev) => (areSettingsEqual(prev, savedSettings) ? prev : savedSettings));
         setSaveStatus('saved');
         if (savedIndicatorRef.current) clearTimeout(savedIndicatorRef.current);
         savedIndicatorRef.current = setTimeout(() => setSaveStatus('idle'), 2000);
@@ -147,7 +155,13 @@ export default function NotificationsSettingsPage() {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await fetch('/api/notifications/settings');
+        const res = await fetch('/api/notifications/settings', {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache',
+            Pragma: 'no-cache',
+          },
+        });
         if (res.ok) {
           const data = await res.json();
           // Migrate: ensure reminder_days exists
