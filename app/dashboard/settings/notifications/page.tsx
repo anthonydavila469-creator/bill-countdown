@@ -88,6 +88,9 @@ export default function NotificationsSettingsPage() {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const savedIndicatorRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isInitialLoadRef = useRef(true);
+  const latestSettingsRef = useRef(settings);
+  const pendingSaveRef = useRef(false);
+  const inFlightSaveRef = useRef<Promise<void> | null>(null);
   const { isSupported, isSubscribed, subscribe, unsubscribe } = usePushNotifications();
   const {
     canUsePushNotifications,
@@ -95,26 +98,51 @@ export default function NotificationsSettingsPage() {
     canCustomizeReminders,
   } = useSubscription();
 
-  const saveSettings = useCallback(async (settingsToSave: NotificationSettings) => {
+  const saveSettings = useCallback(async (
+    settingsToSave: NotificationSettings,
+    options?: { keepalive?: boolean }
+  ) => {
+    latestSettingsRef.current = settingsToSave;
+    pendingSaveRef.current = false;
     console.log('[Duezo] saveSettings called with reminder_days:', settingsToSave.reminder_days, 'email:', settingsToSave.email_enabled);
     setSaveStatus('saving');
-    try {
+    const request = (async () => {
       const res = await fetch('/api/notifications/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settingsToSave),
+        keepalive: options?.keepalive,
       });
       console.log('[Duezo] Save response:', res.status);
       if (res.ok) {
         setSaveStatus('saved');
         if (savedIndicatorRef.current) clearTimeout(savedIndicatorRef.current);
         savedIndicatorRef.current = setTimeout(() => setSaveStatus('idle'), 2000);
+        return;
       }
-    } catch (err) {
+      throw new Error(`Failed to save notification settings (${res.status})`);
+    })().catch((err) => {
       console.error('Failed to save:', err);
       setSaveStatus('idle');
+      throw err;
+    }).finally(() => {
+      if (inFlightSaveRef.current === request) {
+        inFlightSaveRef.current = null;
+      }
+    });
+
+    inFlightSaveRef.current = request;
+
+    try {
+      await request;
+    } catch {
+      // Error state is already handled above.
     }
   }, []);
+
+  useEffect(() => {
+    latestSettingsRef.current = settings;
+  }, [settings]);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -156,8 +184,10 @@ export default function NotificationsSettingsPage() {
       return;
     }
     console.log('[Duezo] Auto-save triggered, saving in 500ms:', JSON.stringify(settings.reminder_days));
+    pendingSaveRef.current = true;
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
+      pendingSaveRef.current = false;
       console.log('[Duezo] Auto-save executing now');
       saveSettings(settings);
     }, 500);
@@ -165,6 +195,31 @@ export default function NotificationsSettingsPage() {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, [settings, saveSettings]);
+
+  useEffect(() => {
+    const flushPendingSave = () => {
+      if (isInitialLoadRef.current || !pendingSaveRef.current) {
+        return;
+      }
+
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+        debounceRef.current = null;
+      }
+
+      console.log('[Duezo] Flushing pending save before page exit');
+      void saveSettings(latestSettingsRef.current, { keepalive: true });
+    };
+
+    window.addEventListener('pagehide', flushPendingSave);
+    window.addEventListener('beforeunload', flushPendingSave);
+
+    return () => {
+      window.removeEventListener('pagehide', flushPendingSave);
+      window.removeEventListener('beforeunload', flushPendingSave);
+      flushPendingSave();
+    };
+  }, [saveSettings]);
 
   const handlePushToggle = useCallback(async (enabled: boolean) => {
     if (enabled) {
@@ -184,8 +239,6 @@ export default function NotificationsSettingsPage() {
     if (updated.length === 0) return;
     const newSettings = { ...settings, reminder_days: updated, lead_days: Math.min(...updated) };
     setSettings(newSettings);
-    // Force immediate save — don't rely on useEffect debounce
-    saveSettings(newSettings);
   };
 
   if (isLoading) {

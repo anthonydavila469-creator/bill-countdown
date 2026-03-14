@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { NextResponse } from 'next/server';
 import { DEFAULT_NOTIFICATION_SETTINGS, type NotificationSettings } from '@/types';
 
@@ -51,6 +52,7 @@ export async function GET() {
 // PUT /api/notifications/settings - Update notification settings
 export async function PUT(request: Request) {
   try {
+    console.log('[notifications/settings][PUT] request received');
     const supabase = await createClient();
 
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -63,6 +65,7 @@ export async function PUT(request: Request) {
     }
 
     const body = await request.json() as Partial<NotificationSettings>;
+    console.log('[notifications/settings][PUT] auth user:', user.id, 'body:', body);
 
     // Get existing settings and merge
     const { data: existing } = await supabase
@@ -99,8 +102,12 @@ export async function PUT(request: Request) {
       }
     }
 
+    // Use the service role client after auth succeeds so writes are not sensitive to
+    // RLS/upsert edge cases, while still scoping the update to the authenticated user.
+    const adminSupabase = createAdminClient();
+
     // Upsert preferences with new notification settings
-    const { data: preferences, error } = await supabase
+    const { data: preferences, error } = await adminSupabase
       .from('user_preferences')
       .upsert({
         user_id: user.id,
@@ -111,6 +118,8 @@ export async function PUT(request: Request) {
       .select('notification_settings')
       .single();
 
+    console.log('[notifications/settings][PUT] upsert result:', { preferences, error });
+
     if (error) {
       console.error('Error updating notification settings:', error);
       return NextResponse.json(
@@ -119,7 +128,10 @@ export async function PUT(request: Request) {
       );
     }
 
-    return NextResponse.json(preferences?.notification_settings ?? newSettings);
+    const responseSettings = preferences?.notification_settings ?? newSettings;
+    console.log('[notifications/settings][PUT] response payload:', responseSettings);
+
+    return NextResponse.json(responseSettings);
   } catch (error) {
     console.error('Unexpected error:', error);
     return NextResponse.json(
