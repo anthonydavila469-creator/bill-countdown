@@ -799,7 +799,7 @@ export default function DashboardPage() {
                       style={{ boxShadow: '0 4px 20px rgba(20,184,166,0.08)' }}>
                       <div className="absolute -top-6 -right-6 w-16 h-16 rounded-full blur-2xl bg-teal-500/15 pointer-events-none" />
                       <p className="text-[10px] font-bold uppercase tracking-widest text-teal-400/80 mb-1">Total</p>
-                      <p className={`font-black text-teal-400 tabular-nums tracking-tighter leading-tight ${totalDue >= 100000 ? 'text-xs' : totalDue >= 10000 ? 'text-sm' : totalDue >= 1000 ? 'text-base' : 'text-xl'}`}>{formatCurrency(totalDue)}</p>
+                      <p className={`font-black text-teal-400 tabular-nums tracking-tight ${totalDue >= 100000 ? 'text-sm' : totalDue >= 10000 ? 'text-lg' : 'text-2xl'}`}>{formatCurrency(totalDue)}</p>
                     </div>
                   </div>
                   );
