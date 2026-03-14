@@ -396,8 +396,60 @@ export interface DashboardLayout {
 }
 
 // Subscription types
-export type SubscriptionStatus = 'free' | 'active' | 'canceled' | 'past_due';
+export type SubscriptionStatus =
+  | 'free'
+  | 'active'
+  | 'trialing'
+  | 'canceled'
+  | 'past_due'
+  | 'billing_issue'
+  | 'expired';
 export type SubscriptionPlan = 'monthly' | 'yearly' | null;
+
+export type RevenueCatWebhookEventType =
+  | 'TEST'
+  | 'INITIAL_PURCHASE'
+  | 'RENEWAL'
+  | 'PRODUCT_CHANGE'
+  | 'CANCELLATION'
+  | 'UNCANCELLATION'
+  | 'NON_RENEWING_PURCHASE'
+  | 'SUBSCRIPTION_PAUSED'
+  | 'EXPIRATION'
+  | 'BILLING_ISSUE'
+  | 'TRANSFER'
+  | 'SUBSCRIBER_ALIAS'
+  | 'REFUND'
+  | 'REFUND_REVERSED'
+  | 'TEMPORARY_ENTITLEMENT_GRANT'
+  | 'INVOICE_ISSUANCE'
+  | 'VIRTUAL_CURRENCY_TRANSACTION'
+  | 'PREPAID_PURCHASE'
+  | 'SUBSCRIPTION_EXTENDED'
+  | 'RENEWAL_EXTENDED';
+
+export interface RevenueCatWebhookEvent {
+  type: RevenueCatWebhookEventType;
+  app_user_id: string;
+  original_app_user_id?: string | null;
+  aliases?: string[] | null;
+  transferred_from?: string[] | null;
+  transferred_to?: string[] | null;
+  entitlement_ids?: string[] | null;
+  product_id?: string | null;
+  period_type?: string | null;
+  expiration_at_ms?: number | null;
+  purchased_at_ms?: number | null;
+  event_timestamp_ms?: number | null;
+  cancellation_reason?: string | null;
+  store?: string | null;
+  environment?: string | null;
+}
+
+export interface RevenueCatWebhookPayload {
+  api_version?: string;
+  event: RevenueCatWebhookEvent;
+}
 
 export interface UserPreferences {
   id: string;
