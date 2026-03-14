@@ -30,7 +30,14 @@ export async function GET() {
       );
     }
 
-    const settings = preferences?.notification_settings ?? DEFAULT_NOTIFICATION_SETTINGS;
+    const raw = preferences?.notification_settings ?? {};
+    // Migrate old schemas that are missing newer fields
+    const settings: NotificationSettings = {
+      ...DEFAULT_NOTIFICATION_SETTINGS,
+      ...raw,
+      // Ensure reminder_days always exists (migrate from lead_days)
+      reminder_days: raw.reminder_days ?? [raw.lead_days ?? DEFAULT_NOTIFICATION_SETTINGS.lead_days],
+    };
     return NextResponse.json(settings);
   } catch (error) {
     console.error('Unexpected error:', error);
