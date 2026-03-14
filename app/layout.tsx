@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     siteName: "Duezo",
     images: [
       {
-        url: "/og-card.png",
+        url: "/og-duezo-v2.png",
         width: 1200,
         height: 630,
         alt: "Duezo — Bill Tracking Made Beautiful",
@@ -53,7 +53,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Duezo — Never Miss a Bill Payment Again",
     description: "Simple bill tracking with countdown timers. No bank login required. Know exactly when every bill is due.",
-    images: ["/og-card.png"],
+    images: ["/og-duezo-v2.png"],
   },
   robots: {
     index: true,
