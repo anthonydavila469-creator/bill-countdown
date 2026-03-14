@@ -432,7 +432,7 @@ export default function DashboardPage() {
               className="group-hover:scale-105 transition-transform duration-300"
             />
             <span className="text-lg font-bold text-white tracking-tight">
-              Due<span style={{ color: accentColor }}>zo</span>
+              Due<span style={{ color: '#A78BFA' }}>zo</span>
             </span>
           </Link>
         </div>
