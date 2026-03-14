@@ -111,7 +111,7 @@ export default function NotificationsSettingsPage() {
     console.log('[Duezo] saveSettings called with reminder_days:', settingsToSave.reminder_days, 'email:', settingsToSave.email_enabled);
     setSaveStatus('saving');
     const request = (async () => {
-      const res = await fetch('/api/notifications/settings', {
+      const res = await fetch(`/api/notifications/settings?t=${Date.now()}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settingsToSave),
@@ -155,7 +155,7 @@ export default function NotificationsSettingsPage() {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await fetch('/api/notifications/settings', {
+        const res = await fetch(`/api/notifications/settings?t=${Date.now()}`, {
           cache: 'no-store',
           headers: {
             'Cache-Control': 'no-cache',
@@ -284,7 +284,7 @@ export default function NotificationsSettingsPage() {
                 </div>
               )}
               {saveStatus === 'saved' && (
-                <div className="flex items-center gap-1.5 text-xs text-emerald-400">
+                <div className="flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-xs text-emerald-400">
                   <Check className="w-3 h-3" />
                   Saved
                 </div>
