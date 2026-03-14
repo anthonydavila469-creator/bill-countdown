@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import {
-  Bell,
   Mail,
   Smartphone,
   Clock,
@@ -12,7 +11,6 @@ import {
   Check,
   ArrowLeft,
   Loader2,
-  Crown,
   Info,
 } from 'lucide-react';
 import { NotificationSettings, DEFAULT_NOTIFICATION_SETTINGS } from '@/types';
@@ -86,15 +84,35 @@ function Toggle({
 export default function NotificationsSettingsPage() {
   const [settings, setSettings] = useState<NotificationSettings>(DEFAULT_NOTIFICATION_SETTINGS);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [hasChanges, setHasChanges] = useState(false);
-  const [savedSettings, setSavedSettings] = useState<NotificationSettings>(DEFAULT_NOTIFICATION_SETTINGS);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const savedIndicatorRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isInitialLoadRef = useRef(true);
   const { isSupported, isSubscribed, subscribe, unsubscribe } = usePushNotifications();
   const {
     canUsePushNotifications,
     canUseDailyAutoSync,
     canCustomizeReminders,
   } = useSubscription();
+
+  const saveSettings = useCallback(async (settingsToSave: NotificationSettings) => {
+    setSaveStatus('saving');
+    try {
+      const res = await fetch('/api/notifications/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settingsToSave),
+      });
+      if (res.ok) {
+        setSaveStatus('saved');
+        if (savedIndicatorRef.current) clearTimeout(savedIndicatorRef.current);
+        savedIndicatorRef.current = setTimeout(() => setSaveStatus('idle'), 2000);
+      }
+    } catch (err) {
+      console.error('Failed to save:', err);
+      setSaveStatus('idle');
+    }
+  }, []);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -107,12 +125,13 @@ export default function NotificationsSettingsPage() {
             data.reminder_days = [data.lead_days ?? 3];
           }
           setSettings(data);
-          setSavedSettings(data);
         }
       } catch (err) {
         console.error('Failed to fetch notification settings:', err);
       } finally {
         setIsLoading(false);
+        // Allow auto-save after initial load + timezone detection settle
+        setTimeout(() => { isInitialLoadRef.current = false; }, 600);
       }
     };
     fetchSettings();
@@ -128,31 +147,17 @@ export default function NotificationsSettingsPage() {
     }
   }, [isLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Track changes
+  // Debounced auto-save on settings change
   useEffect(() => {
-    setHasChanges(JSON.stringify(settings) !== JSON.stringify(savedSettings));
-  }, [settings, savedSettings]);
-
-  const handleSave = useCallback(async () => {
-    setIsSaving(true);
-    try {
-      const res = await fetch('/api/notifications/settings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(settings),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setSavedSettings(data);
-        setSettings(data);
-        setHasChanges(false);
-      }
-    } catch (err) {
-      console.error('Failed to save:', err);
-    } finally {
-      setIsSaving(false);
-    }
-  }, [settings]);
+    if (isInitialLoadRef.current) return;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      saveSettings(settings);
+    }, 500);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [settings, saveSettings]);
 
   const handlePushToggle = useCallback(async (enabled: boolean) => {
     if (enabled) {
@@ -192,8 +197,22 @@ export default function NotificationsSettingsPage() {
           >
             <ArrowLeft className="w-4 h-4 text-zinc-400" />
           </Link>
-          <div>
-            <h1 className="text-2xl font-bold text-white">Notification Preferences</h1>
+          <div className="flex-1">
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold text-white">Notification Preferences</h1>
+              {saveStatus === 'saving' && (
+                <div className="flex items-center gap-1.5 text-xs text-zinc-400 animate-pulse">
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  Saving...
+                </div>
+              )}
+              {saveStatus === 'saved' && (
+                <div className="flex items-center gap-1.5 text-xs text-emerald-400">
+                  <Check className="w-3 h-3" />
+                  Saved
+                </div>
+              )}
+            </div>
             <p className="text-sm text-zinc-500 mt-1">Customize when and how you get reminded</p>
           </div>
         </div>
@@ -350,25 +369,6 @@ export default function NotificationsSettingsPage() {
             </div>
           </div>
 
-          {/* Save button */}
-          <button
-            onClick={handleSave}
-            disabled={!hasChanges || isSaving}
-            className={cn(
-              'w-full py-3 rounded-xl font-semibold text-sm transition-all duration-200',
-              hasChanges
-                ? 'bg-gradient-to-r from-violet-500 to-violet-500 text-white hover:opacity-90 shadow-lg shadow-violet-500/20'
-                : 'bg-white/5 text-zinc-600 cursor-not-allowed'
-            )}
-          >
-            {isSaving ? (
-              <Loader2 className="w-4 h-4 animate-spin mx-auto" />
-            ) : hasChanges ? (
-              'Save Changes'
-            ) : (
-              'No Changes'
-            )}
-          </button>
         </div>
       </div>
     </div>
