@@ -129,7 +129,7 @@ function TimelineBillRow({
   const urgencyColor = isOverdue ? '#EF4444'
     : isUrgent ? '#F59E0B'
     : isSoon ? '#EAB308'
-    : '#22C55E';
+    : accentColor;
 
   return (
     <SwipeBillCard bill={bill} onClick={onClick} onMarkPaid={onMarkPaid}>
@@ -681,7 +681,7 @@ export default function DashboardPage() {
                   const heroCountdownColor = isHeroOverdue ? '#EF4444'
                     : heroDays <= 3 ? '#F59E0B'
                     : heroDays <= 7 ? '#EAB308'
-                    : '#FFFFFF';
+                    : accentColor;
                   return (
                   <div className="relative mb-6">
                     {/* Ambient gradient orb behind hero */}
