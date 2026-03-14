@@ -169,12 +169,14 @@ export function RiskAlerts({
           onClick={() => setIsCollapsed(false)}
           className={cn(
             'group relative w-full flex items-center justify-between gap-4 px-5 py-4 rounded-2xl',
-            'bg-gradient-to-r from-rose-500/[0.08] via-[#0c0c10] to-amber-500/[0.08]',
-            'border border-rose-500/20 hover:border-rose-400/40',
+            'border border-red-500/30 hover:border-red-400/50',
             'transition-all duration-300',
-            'hover:shadow-[0_0_30px_rgba(244,63,94,0.15)]',
             'animate-in fade-in slide-in-from-top-2 duration-300'
           )}
+          style={{
+            background: 'linear-gradient(135deg, rgba(239,68,68,0.18) 0%, rgba(245,158,11,0.12) 50%, rgba(239,68,68,0.15) 100%)',
+            boxShadow: '0 4px 30px rgba(239,68,68,0.15), 0 0 60px rgba(245,158,11,0.08)',
+          }}
         >
           {/* Left accent glow line */}
           <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full bg-gradient-to-b from-rose-500 via-violet-500 to-amber-500 shadow-[0_0_12px_rgba(244,63,94,0.5)]" />
@@ -222,14 +224,16 @@ export function RiskAlerts({
       <div
         className={cn(
           'relative rounded-2xl overflow-hidden',
-          'bg-gradient-to-br from-[#0c0c12] via-[#0f0f18] to-[#0c0c12]',
-          'border border-white/[0.08]',
-          'shadow-[0_8px_32px_rgba(0,0,0,0.4)]',
+          'border border-red-500/25',
           'animate-in fade-in slide-in-from-top-2 duration-500'
         )}
+        style={{
+          background: 'linear-gradient(160deg, rgba(239,68,68,0.12) 0%, rgba(15,10,26,0.95) 30%, rgba(15,10,26,0.95) 70%, rgba(245,158,11,0.08) 100%)',
+          boxShadow: '0 8px 40px rgba(239,68,68,0.12), 0 0 60px rgba(245,158,11,0.06)',
+        }}
       >
         {/* Top gradient accent line */}
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-rose-500/40 to-transparent" />
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-red-500/60 via-orange-500/40 to-red-500/60" />
 
         {/* Noise texture overlay */}
         <div className="absolute inset-0 opacity-[0.015] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIi8+PC9maWx0ZXI+PHJlY3Qgd2lkdGg9IjMwMCIgaGVpZ2h0PSIzMDAiIGZpbHRlcj0idXJsKCNhKSIgb3BhY2l0eT0iMSIvPjwvc3ZnPg==')] pointer-events-none" />

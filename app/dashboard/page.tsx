@@ -122,25 +122,45 @@ function TimelineBillRow({
   const urgency = getUrgency(daysLeft);
   const isOverdue = daysLeft < 0;
   const isUrgent = daysLeft >= 0 && daysLeft <= 3;
+  const isSoon = daysLeft > 3 && daysLeft <= 7;
   const { icon: IconComponent } = getBillIcon(bill);
+
+  // Urgency-based colors
+  const urgencyColor = isOverdue ? '#EF4444'
+    : isUrgent ? '#F59E0B'
+    : isSoon ? '#EAB308'
+    : '#22C55E';
 
   return (
     <SwipeBillCard bill={bill} onClick={onClick} onMarkPaid={onMarkPaid}>
       <div
         className={cn(
-          'flex items-center gap-4 p-4 rounded-2xl backdrop-blur-xl cursor-pointer',
+          'relative flex items-center gap-4 p-4 rounded-2xl backdrop-blur-xl cursor-pointer',
           'transition-all duration-300 hover:scale-[1.01]',
           isOverdue
-            ? 'bg-[rgba(127,29,29,0.35)] border border-red-500/40'
-            : isUrgent
-              ? 'bg-[rgba(255,255,255,0.05)] animate-pulse-amber'
-              : 'bg-[rgba(255,255,255,0.05)]'
+            ? 'bg-[rgba(127,29,29,0.25)]'
+            : 'bg-white/[0.04]'
         )}
-        style={!isOverdue && !isUrgent ? { border: `1px solid ${hexToRgba(accentColor, 0.2)}` } : undefined}
+        style={{
+          border: `1px solid ${isOverdue ? 'rgba(239,68,68,0.3)' : hexToRgba(accentColor, 0.15)}`,
+          boxShadow: `0 2px 16px ${isOverdue ? 'rgba(239,68,68,0.1)' : 'rgba(0,0,0,0.2)'}`,
+        }}
       >
-        {/* Icon */}
-        <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center">
-          <IconComponent className="w-5 h-5 text-white/80" />
+        {/* Colored left border accent */}
+        <div
+          className="absolute left-0 top-3 bottom-3 w-[3px] rounded-r-full"
+          style={{ backgroundColor: urgencyColor }}
+        />
+
+        {/* Icon with colored circular background */}
+        <div
+          className="flex-shrink-0 w-11 h-11 rounded-xl backdrop-blur-sm flex items-center justify-center ml-1"
+          style={{
+            backgroundColor: `${urgencyColor}18`,
+            border: `1px solid ${urgencyColor}30`,
+          }}
+        >
+          <IconComponent className="w-5 h-5" style={{ color: urgencyColor }} />
         </div>
 
         {/* Name + Amount */}
@@ -151,22 +171,17 @@ function TimelineBillRow({
           </p>
         </div>
 
-        {/* Urgency countdown */}
+        {/* Urgency countdown — BOLD and colored */}
         <div className="text-right flex-shrink-0">
           <span
-            className={cn(
-              'text-3xl font-extrabold tabular-nums',
-              isOverdue ? 'text-red-400' : isUrgent ? 'text-amber-400' : ''
-            )}
-            style={!isOverdue && !isUrgent ? { color: accentColor } : undefined}
+            className="text-3xl font-black tabular-nums"
+            style={{ color: urgencyColor }}
           >
             {Math.abs(daysLeft)}
           </span>
           <p
-            className={cn(
-              'text-[10px] font-semibold uppercase tracking-wider',
-              isOverdue ? 'text-red-400' : 'text-zinc-500'
-            )}
+            className="text-[10px] font-bold uppercase tracking-wider"
+            style={{ color: urgencyColor }}
           >
             {isOverdue
               ? `${Math.abs(daysLeft) === 1 ? 'day' : 'days'} late`
@@ -658,12 +673,21 @@ export default function DashboardPage() {
             return (
               <>
                 {/* Hero "Next Up" card */}
-                {heroBill && (
+                {heroBill && (() => {
+                  const heroDays = getDaysUntilDue(heroBill.due_date);
+                  const heroUrgency = getUrgency(heroDays);
+                  const isHeroOverdue = heroDays < 0;
+                  // Urgency-based countdown color
+                  const heroCountdownColor = isHeroOverdue ? '#EF4444'
+                    : heroDays <= 3 ? '#F59E0B'
+                    : heroDays <= 7 ? '#EAB308'
+                    : '#22C55E';
+                  return (
                   <div className="relative mb-6">
                     {/* Ambient gradient orb behind hero */}
                     <div
                       className="absolute -top-16 left-1/2 -translate-x-1/2 w-80 h-80 rounded-full blur-[100px] animate-ambient-pulse pointer-events-none"
-                      style={{ backgroundColor: hexToRgba(accentColor, 0.2) }}
+                      style={{ backgroundColor: isHeroOverdue ? 'rgba(239,68,68,0.25)' : 'rgba(124,58,237,0.3)' }}
                     />
 
                     <div
@@ -671,41 +695,49 @@ export default function DashboardPage() {
                       className={cn(
                         'relative overflow-hidden rounded-3xl p-6 sm:p-8 cursor-pointer backdrop-blur-xl',
                         'transition-all duration-300 hover:scale-[1.01]',
-                        getDaysUntilDue(heroBill.due_date) < 0
-                          ? 'bg-[rgba(127,29,29,0.3)] border border-red-500/30'
-                          : 'bg-[rgba(255,255,255,0.05)]'
                       )}
                       style={{
                         minHeight: '25vh',
-                        ...(getDaysUntilDue(heroBill.due_date) >= 0 && {
-                          border: `1px solid ${hexToRgba(accentColor, 0.25)}`,
-                        }),
-                        boxShadow: getDaysUntilDue(heroBill.due_date) < 0
-                          ? '0 8px 40px rgba(127,29,29,0.4)'
-                          : `0 8px 40px ${hexToRgba(accentColor, 0.15)}`,
+                        background: isHeroOverdue
+                          ? 'linear-gradient(135deg, rgba(127,29,29,0.5) 0%, rgba(153,27,27,0.3) 50%, rgba(127,29,29,0.5) 100%)'
+                          : 'linear-gradient(135deg, #4C1D95 0%, #7C3AED 50%, #6D28D9 100%)',
+                        border: isHeroOverdue
+                          ? '1px solid rgba(239,68,68,0.4)'
+                          : '1px solid rgba(167,139,250,0.35)',
+                        boxShadow: isHeroOverdue
+                          ? '0 8px 40px rgba(239,68,68,0.3), 0 0 80px rgba(239,68,68,0.1)'
+                          : '0 8px 40px rgba(124,58,237,0.35), 0 0 80px rgba(139,92,246,0.15)',
                       }}
                     >
-                      {/* Accent aura glow inside card */}
-                      {getDaysUntilDue(heroBill.due_date) >= 0 && (
-                        <div
-                          className="absolute -bottom-20 -right-20 w-60 h-60 rounded-full blur-[80px] pointer-events-none"
-                          style={{ backgroundColor: hexToRgba(accentColor, 0.15) }}
-                        />
-                      )}
+                      {/* Glossy highlight at top */}
+                      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+                      {/* Inner glow orbs */}
+                      <div
+                        className="absolute -bottom-20 -right-20 w-60 h-60 rounded-full blur-[80px] pointer-events-none"
+                        style={{ backgroundColor: isHeroOverdue ? 'rgba(239,68,68,0.15)' : 'rgba(167,139,250,0.2)' }}
+                      />
+                      <div
+                        className="absolute -top-10 -left-10 w-40 h-40 rounded-full blur-[60px] pointer-events-none"
+                        style={{ backgroundColor: isHeroOverdue ? 'rgba(239,68,68,0.1)' : 'rgba(124,58,237,0.25)' }}
+                      />
 
                       <div className="relative z-10 flex flex-col h-full justify-between">
                         {/* Top: label */}
-                        <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: hexToRgba(accentColor, 0.8) }}>
-                          {getDaysUntilDue(heroBill.due_date) < 0 ? 'Overdue' : 'Next Up'}
+                        <p className={cn(
+                          'text-xs font-semibold uppercase tracking-widest mb-2',
+                          isHeroOverdue ? 'text-red-300' : 'text-violet-200'
+                        )}>
+                          {isHeroOverdue ? 'Overdue' : 'Next Up'}
                         </p>
 
                         {/* Center: countdown + name */}
                         <div className="flex-1 flex flex-col items-center justify-center py-4">
                           <CountdownDisplay
-                            daysLeft={getDaysUntilDue(heroBill.due_date)}
-                            urgency={getUrgency(getDaysUntilDue(heroBill.due_date))}
+                            daysLeft={heroDays}
+                            urgency={heroUrgency}
                             size="lg"
-                            colorMode={getDaysUntilDue(heroBill.due_date) < 0 ? 'urgency' : 'gradient'}
+                            colorMode="custom"
+                            customColor={heroCountdownColor}
                           />
                           <h2 className="text-2xl sm:text-3xl font-bold text-white mt-3">
                             {heroBill.name}
@@ -724,7 +756,7 @@ export default function DashboardPage() {
                               e.stopPropagation();
                               handleMarkAsPaidFromCard(heroBill);
                             }}
-                            className="w-full py-3.5 rounded-2xl font-bold text-base text-white transition-all duration-200 active:scale-[0.98] border border-white/20 bg-transparent hover:bg-white/[0.05]"
+                            className="w-full py-3.5 rounded-2xl font-bold text-base text-white transition-all duration-200 active:scale-[0.98] border border-white/30 bg-white/[0.08] hover:bg-white/[0.15] backdrop-blur-sm"
                           >
                             <Check className="w-5 h-5 inline-block mr-2 -mt-0.5" />
                             Mark as Paid
@@ -733,22 +765,41 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   </div>
-                )}
+                  );
+                })()}
 
-                {/* Quick summary pill */}
-                {mounted && (
-                  <div className="flex justify-center mb-6">
-                    <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/[0.06] border border-white/[0.08] backdrop-blur-sm">
-                      <span className="text-sm font-medium text-zinc-300">
-                        {billsThisMonth.length} bill{billsThisMonth.length === 1 ? '' : 's'} left this month
-                      </span>
-                      <span className="text-zinc-600">•</span>
-                      <span className="text-sm font-semibold text-white">
-                        {formatCurrency(totalDue)}
-                      </span>
+                {/* Summary Stats Bar */}
+                {mounted && (() => {
+                  const dueSoonCount = unpaidBills.filter(b => {
+                    const d = getDaysUntilDue(b.due_date);
+                    return d >= 0 && d <= 7;
+                  }).length;
+                  return (
+                  <div className="grid grid-cols-3 gap-3 mb-6">
+                    {/* DUE SOON */}
+                    <div className="relative overflow-hidden rounded-2xl p-4 backdrop-blur-xl bg-white/[0.04] border border-orange-500/20"
+                      style={{ boxShadow: '0 4px 20px rgba(245,158,11,0.08)' }}>
+                      <div className="absolute -top-6 -right-6 w-16 h-16 rounded-full blur-2xl bg-orange-500/15 pointer-events-none" />
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-orange-400/80 mb-1">Due Soon</p>
+                      <p className="text-2xl font-black text-orange-400 tabular-nums">{dueSoonCount}</p>
+                    </div>
+                    {/* ACTIVE */}
+                    <div className="relative overflow-hidden rounded-2xl p-4 backdrop-blur-xl bg-white/[0.04] border border-violet-500/20"
+                      style={{ boxShadow: '0 4px 20px rgba(139,92,246,0.08)' }}>
+                      <div className="absolute -top-6 -right-6 w-16 h-16 rounded-full blur-2xl bg-violet-500/15 pointer-events-none" />
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-violet-400/80 mb-1">Active</p>
+                      <p className="text-2xl font-black text-violet-400 tabular-nums">{unpaidBills.length}</p>
+                    </div>
+                    {/* TOTAL DUE */}
+                    <div className="relative overflow-hidden rounded-2xl p-4 backdrop-blur-xl bg-white/[0.04] border border-teal-500/20"
+                      style={{ boxShadow: '0 4px 20px rgba(20,184,166,0.08)' }}>
+                      <div className="absolute -top-6 -right-6 w-16 h-16 rounded-full blur-2xl bg-teal-500/15 pointer-events-none" />
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-teal-400/80 mb-1">Total</p>
+                      <p className="text-2xl font-black text-teal-400 tabular-nums tracking-tight">{formatCurrency(totalDue)}</p>
                     </div>
                   </div>
-                )}
+                  );
+                })()}
 
                 {/* Recurring Detection Banner */}
                 {recurringSuggestions.length > 0 && (
@@ -767,7 +818,7 @@ export default function DashboardPage() {
                   {/* This Week */}
                   {thisWeekBills.length > 0 && (
                     <div>
-                      <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-3 px-1">This Week</h3>
+                      <h3 className="text-xs font-bold uppercase tracking-widest text-violet-400/70 mb-3 px-1">This Week</h3>
                       <div className="space-y-2">
                         {thisWeekBills.map((bill) => (
                           <TimelineBillRow
@@ -785,7 +836,7 @@ export default function DashboardPage() {
                   {/* Next Week */}
                   {nextWeekBills.length > 0 && (
                     <div>
-                      <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-3 px-1">Next Week</h3>
+                      <h3 className="text-xs font-bold uppercase tracking-widest text-violet-400/50 mb-3 px-1">Next Week</h3>
                       <div className="space-y-2">
                         {nextWeekBills.map((bill) => (
                           <TimelineBillRow
@@ -803,7 +854,7 @@ export default function DashboardPage() {
                   {/* Later */}
                   {laterBills.length > 0 && (
                     <div>
-                      <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-3 px-1">Later</h3>
+                      <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500/60 mb-3 px-1">Later</h3>
                       <div className="space-y-2">
                         {laterBills.map((bill) => (
                           <TimelineBillRow
