@@ -16,6 +16,15 @@ async function writePayloadWithRetry(payload: WidgetPayloadV1, theme: string) {
 
   for (let attempt = 1; attempt <= WIDGET_SYNC_MAX_ATTEMPTS; attempt += 1) {
     try {
+      console.log(
+        '[Duezo] Widget payload sync attempt',
+        JSON.stringify({
+          attempt,
+          theme,
+          upcomingCount: payload.upcoming.length,
+          nextBillId: payload.nextBill?.id ?? null,
+        })
+      );
       await DuezoWidgetBridge.syncPayload({
         payload: JSON.stringify(payload),
         theme,
@@ -61,6 +70,7 @@ export async function syncWidgetPayload(
   try {
     const normalizedBills = normalizeBillsForWidgetSync(bills);
     const pluginAvailable = Capacitor.isPluginAvailable(WIDGET_BRIDGE_NAME);
+    const nextBill = normalizedBills.find((bill) => !bill.is_paid) ?? null;
 
     console.log(
       '[Duezo] syncWidgetPayload requested',
@@ -69,15 +79,31 @@ export async function syncWidgetPayload(
         inputBills: Array.isArray(bills) ? bills.length : 0,
         normalizedBills: normalizedBills.length,
         pluginAvailable,
+        nextBillId: nextBill?.id ?? null,
       })
     );
 
     if (!pluginAvailable) {
-      console.warn('[Duezo] Widget bridge plugin is not available on native platform');
+      console.warn(
+        '[Duezo] Widget bridge plugin is not available on native platform',
+        JSON.stringify({
+          pluginName: WIDGET_BRIDGE_NAME,
+          platform: Capacitor.getPlatform(),
+        })
+      );
       return;
     }
 
     const payload = buildWidgetPayload(normalizedBills, lastMonthTotal);
+    console.log(
+      '[Duezo] syncWidgetPayload built payload',
+      JSON.stringify({
+        theme,
+        totalDue: payload.totals.totalDue,
+        upcomingCount: payload.upcoming.length,
+        nextBillId: payload.nextBill?.id ?? null,
+      })
+    );
     await writePayloadWithRetry(payload, theme);
   } catch (e) {
     console.warn('[Duezo] Widget payload sync failed:', e);

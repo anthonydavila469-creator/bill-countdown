@@ -20,7 +20,9 @@ public class DuezoWidgetBridge: CAPPlugin, CAPBridgedPlugin {
     ]
 
     private func sharedDefaults() -> UserDefaults? {
-        UserDefaults(suiteName: appGroupId)
+        let defaults = UserDefaults(suiteName: appGroupId)
+        NSLog("[DuezoWidgetBridge] sharedDefaults appGroup=%@ available=%@", appGroupId, defaults != nil ? "true" : "false")
+        return defaults
     }
 
     private func reloadWidgets(reason: String) {
@@ -60,6 +62,7 @@ public class DuezoWidgetBridge: CAPPlugin, CAPBridgedPlugin {
 
     @objc func syncPayload(_ call: CAPPluginCall) {
         guard let payload = call.getString("payload") else {
+            NSLog("[DuezoWidgetBridge] syncPayload rejected: missing payload string")
             call.reject("Missing payload string")
             return
         }
@@ -67,8 +70,20 @@ public class DuezoWidgetBridge: CAPPlugin, CAPBridgedPlugin {
         NSLog("[DuezoWidgetBridge] syncPayload called with theme: %@ payloadBytes: %d", themeValue, payload.lengthOfBytes(using: .utf8))
 
         guard let defaults = sharedDefaults() else {
+            NSLog("[DuezoWidgetBridge] syncPayload rejected: failed to access App Group %@", appGroupId)
             call.reject("Failed to access App Group")
             return
+        }
+
+        if let payloadData = payload.data(using: .utf8),
+           let payloadObject = try? JSONSerialization.jsonObject(with: payloadData, options: []),
+           let payloadDictionary = payloadObject as? [String: Any] {
+            let upcomingCount = (payloadDictionary["upcoming"] as? [Any])?.count ?? 0
+            let nextBill = payloadDictionary["nextBill"] as? [String: Any]
+            let nextBillId = nextBill?["id"] as? String ?? "nil"
+            NSLog("[DuezoWidgetBridge] syncPayload decoded payload upcomingCount=%d nextBillId=%@", upcomingCount, nextBillId)
+        } else {
+            NSLog("[DuezoWidgetBridge] syncPayload payload JSON could not be parsed for debug logging")
         }
 
         defaults.set(payload, forKey: payloadKey)
@@ -116,6 +131,7 @@ public class DuezoWidgetBridge: CAPPlugin, CAPBridgedPlugin {
 
     @objc func clearBills(_ call: CAPPluginCall) {
         guard let defaults = sharedDefaults() else {
+            NSLog("[DuezoWidgetBridge] clearBills rejected: failed to access App Group %@", appGroupId)
             call.reject("Failed to access App Group")
             return
         }

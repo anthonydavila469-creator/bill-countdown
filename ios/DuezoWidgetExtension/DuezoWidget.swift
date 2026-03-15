@@ -84,25 +84,28 @@ final class DuezoWidgetStore {
 
     init() {
         self.defaults = UserDefaults(suiteName: Self.appGroupId) ?? .standard
+        NSLog("[DuezoWidget] Store initialized appGroup=%@ usingSharedDefaults=%@", Self.appGroupId, defaults != .standard ? "true" : "false")
     }
 
     func readTheme() -> String {
-        defaults.string(forKey: Self.themeKey) ?? "emerald"
+        let theme = defaults.string(forKey: Self.themeKey) ?? "emerald"
+        NSLog("[DuezoWidget] readTheme=%@", theme)
+        return theme
     }
 
     func readPayload() -> DuezoWidgetPayload? {
         guard let json = defaults.string(forKey: Self.payloadKey),
               let data = json.data(using: .utf8) else {
-            print("[DuezoWidget] No v1 payload found in shared defaults")
+            NSLog("[DuezoWidget] No v1 payload found in shared defaults")
             return nil
         }
 
         do {
             let payload = try JSONDecoder().decode(DuezoWidgetPayload.self, from: data)
-            print("[DuezoWidget] Loaded v1 payload with \(payload.upcoming.count) upcoming bills")
+            NSLog("[DuezoWidget] Loaded v1 payload upcomingCount=%d nextBillId=%@", payload.upcoming.count, payload.nextBill?.id ?? "nil")
             return payload
         } catch {
-            print("[DuezoWidget] Failed to decode v1 payload: \(error)")
+            NSLog("[DuezoWidget] Failed to decode v1 payload: %@", String(describing: error))
             return nil
         }
     }
@@ -180,7 +183,7 @@ struct DuezoProvider: TimelineProvider {
 
     private func loadEntry() -> DuezoEntry {
         let store = DuezoWidgetStore()
-        print("[DuezoWidget] loadEntry hasSynced=\(store.hasSynced) theme=\(store.readTheme())")
+        NSLog("[DuezoWidget] loadEntry hasSynced=%@ theme=%@", store.hasSynced ? "true" : "false", store.readTheme())
 
         // Try v1 payload first
         if let payload = store.readPayload() {
@@ -196,14 +199,14 @@ struct DuezoProvider: TimelineProvider {
                     .filter { !$0.is_paid }
                     .sorted { ($0.dueDate ?? .distantFuture) < ($1.dueDate ?? .distantFuture) }
                 let payload = legacyBillsToPayload(unpaid)
-                print("[DuezoWidget] Loaded legacy bills fallback count=\(unpaid.count)")
+                NSLog("[DuezoWidget] Loaded legacy bills fallback count=%d", unpaid.count)
                 return DuezoEntry(date: Date(), payload: payload, bills: unpaid, error: nil)
             } catch {
-                print("[DuezoWidget] Failed to decode legacy bills: \(error)")
+                NSLog("[DuezoWidget] Failed to decode legacy bills: %@", String(describing: error))
             }
         }
 
-        print("[DuezoWidget] No synced widget data found, returning empty entry")
+        NSLog("[DuezoWidget] No synced widget data found, returning empty entry")
         return DuezoEntry.empty
     }
 
@@ -314,7 +317,7 @@ enum WidgetTheme: String, CaseIterable {
 
     static func current() -> WidgetTheme {
         guard let defaults = UserDefaults(suiteName: DuezoWidgetStore.appGroupId) else {
-            print("[DuezoWidget] ❌ Can't access App Group for theme")
+            NSLog("[DuezoWidget] Can't access App Group for theme")
             return .onyx
         }
         let raw = defaults.string(forKey: DuezoWidgetStore.themeKey)

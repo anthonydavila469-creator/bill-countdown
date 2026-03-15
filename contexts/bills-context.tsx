@@ -212,7 +212,13 @@ export function BillsProvider({ children }: BillsProviderProps) {
   }, [state.lastFetched, refetch]);
 
   useEffect(() => {
-    if (!Capacitor.isNativePlatform() || state.loading) {
+    if (!Capacitor.isNativePlatform()) {
+      console.log('[Duezo] bills-context widget sync skipped: not native platform');
+      return;
+    }
+
+    if (state.loading) {
+      console.log('[Duezo] bills-context widget sync skipped: bills still loading');
       return;
     }
 
@@ -234,7 +240,12 @@ export function BillsProvider({ children }: BillsProviderProps) {
 
         console.log(
           '[Duezo] bills-context widget sync scheduled',
-          JSON.stringify({ theme, bills: state.bills.length, lastFetched: state.lastFetched })
+          JSON.stringify({
+            theme,
+            bills: state.bills.length,
+            unpaidBills: state.bills.filter((bill) => !bill.is_paid).length,
+            lastFetched: state.lastFetched,
+          })
         );
 
         await syncWidgetPayload(state.bills, theme);
