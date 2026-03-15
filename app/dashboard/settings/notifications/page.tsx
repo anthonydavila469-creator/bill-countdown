@@ -358,13 +358,13 @@ export default function NotificationsSettingsPage() {
                     key={opt.value}
                     type="button"
                     onClick={() => toggleReminderDay(opt.value)}
-                    disabled={!canCustomizeReminders}
+                    disabled={false}
                     className={cn(
                       'flex items-center gap-2 px-3 py-2.5 h-11 rounded-xl text-sm font-medium transition-all duration-200 border',
                       isActive
                         ? 'bg-violet-500/15 border-violet-500/30 text-violet-300'
                         : 'bg-white/[0.02] border-white/[0.06] text-zinc-500 hover:text-zinc-300 hover:border-white/[0.1]',
-                      !canCustomizeReminders && 'opacity-50 cursor-not-allowed'
+                      false && 'opacity-50 cursor-not-allowed'
                     )}
                   >
                     <div
