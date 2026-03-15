@@ -1,15 +1,25 @@
 import { createAdminClient } from '@/lib/supabase/admin';
-import { extractBillFromEmail } from '@/lib/ai/extract-bill';
 import { getEmailConnection } from '@/lib/email/tokens';
 import { processEmail } from '@/lib/bill-extraction';
 import type { EmailProviderName } from '@/lib/email/providers';
-import type { BillCategory, RecurrenceInterval } from '@/types';
-import type { FieldConfidence, FieldEvidence, NormalizedEmail, ParseRunResult, ParsedBillFields, VendorTemplate } from '@/types/parser';
+import type { BillCategory } from '@/types';
+import type {
+  AiVerificationResult,
+  FieldConfidence,
+  FieldEvidence,
+  ParseRunResult,
+  ParsedBillFields,
+  ReviewReason,
+  VendorTemplate,
+} from '@/types/parser';
+import { verifyDeterministicExtraction } from './aiVerify';
 import { classifyEmail } from './classifyEmail';
+import { normalizeEmail } from './normalize';
 import { executeTemplate } from './executeTemplate';
+import { insertParsedBill, reconcileBill, updateParsedBill } from './reconcile';
 import { resolveVendor } from './resolveVendor';
+import { queueBillReview } from './reviewQueue';
 import { scoreDeterministicResult } from './scoreDeterministic';
-import { normalizeWhitespace, parseFromAddress } from './utils';
 
 type PipelineInputEmail = {
   gmail_message_id: string;
@@ -27,16 +37,8 @@ function mapCategory(value: unknown): BillCategory | null {
   return valid.includes(normalized as BillCategory) ? (normalized as BillCategory) : 'other';
 }
 
-function mapRecurrence(value: unknown): RecurrenceInterval | null {
-  if (typeof value !== 'string') return null;
-  const normalized = value.toLowerCase();
-  const valid: RecurrenceInterval[] = ['weekly', 'biweekly', 'monthly', 'yearly'];
-  return valid.includes(normalized as RecurrenceInterval) ? (normalized as RecurrenceInterval) : null;
-}
-
-async function upsertRawEmail(userId: string, email: PipelineInputEmail): Promise<{ id: string } | null> {
+async function upsertRawEmail(userId: string, email: PipelineInputEmail, bodyCleaned: string): Promise<{ id: string } | null> {
   const admin = createAdminClient();
-  const bodyCleaned = normalizeWhitespace([email.body_plain || '', email.body_html || ''].join(' '));
 
   const { data, error } = await admin
     .from('emails_raw')
@@ -66,38 +68,6 @@ async function markProcessed(emailId: string): Promise<void> {
   await admin.from('emails_raw').update({ processed_at: new Date().toISOString() }).eq('id', emailId);
 }
 
-async function createBillFromParsedFields(userId: string, email: PipelineInputEmail, fields: ParsedBillFields): Promise<string | null> {
-  if (!fields.name || !fields.due_date) return null;
-
-  const admin = createAdminClient();
-  const userClient = createAdminClient();
-  const connection = await getEmailConnection(userClient, userId);
-  const source = (connection?.email_provider || 'gmail') as EmailProviderName;
-
-  const { data, error } = await admin
-    .from('bills')
-    .insert({
-      user_id: userId,
-      name: fields.name,
-      amount: fields.amount ?? null,
-      due_date: fields.due_date,
-      category: fields.category ?? null,
-      is_recurring: fields.is_recurring ?? false,
-      recurrence_interval: fields.recurrence_interval ?? null,
-      source,
-      gmail_message_id: email.gmail_message_id,
-    })
-    .select('id')
-    .single();
-
-  if (error) {
-    console.error('[PARSER] Failed to create bill', error);
-    return null;
-  }
-
-  return data.id;
-}
-
 async function logParseRun(payload: {
   emailId: string | null;
   userId: string;
@@ -116,6 +86,15 @@ async function logParseRun(payload: {
   fieldConfidence: FieldConfidence;
   evidence: FieldEvidence[];
   rawAiOutput?: Record<string, unknown> | null;
+  bodyHash: string;
+  domFingerprint: string;
+  textFingerprint: string;
+  subjectShape: string;
+  aiCorrections?: Partial<ParsedBillFields>;
+  reconciliationDecision?: 'insert' | 'update' | 'skip' | 'review' | null;
+  reconciliationConfidence?: number | null;
+  reconciledBillId?: string | null;
+  reviewReason?: ReviewReason | null;
 }): Promise<string | null> {
   const admin = createAdminClient();
   const { data, error } = await admin
@@ -131,7 +110,7 @@ async function logParseRun(payload: {
       template_id: payload.templateId ?? null,
       template_match_confidence: payload.templateMatchConfidence ?? null,
       ai_model: payload.aiUsed ? 'claude-sonnet-4-20250514' : null,
-      ai_prompt_version: payload.aiUsed ? 'extract-bill-v1' : null,
+      ai_prompt_version: payload.aiUsed ? 'verify-bill-v1' : null,
       ai_used: payload.aiUsed,
       ai_mode: payload.aiMode ?? null,
       ai_confidence: payload.aiConfidence ?? null,
@@ -142,6 +121,15 @@ async function logParseRun(payload: {
       field_confidence: payload.fieldConfidence,
       evidence_json: { evidence: payload.evidence },
       raw_ai_output: payload.rawAiOutput ?? null,
+      body_hash: payload.bodyHash,
+      dom_fingerprint: payload.domFingerprint,
+      text_fingerprint: payload.textFingerprint,
+      subject_shape: payload.subjectShape,
+      ai_corrections: payload.aiCorrections ?? {},
+      reconciliation_decision: payload.reconciliationDecision ?? null,
+      reconciliation_confidence: payload.reconciliationConfidence ?? null,
+      reconciled_bill_id: payload.reconciledBillId ?? null,
+      review_reason: payload.reviewReason ?? null,
     })
     .select('id')
     .single();
@@ -177,55 +165,33 @@ async function loadTemplates(vendorId: string | null, emailType: string, userId:
   return (data as VendorTemplate[]).filter((template) => template.scope === 'global' || template.owner_user_id === userId);
 }
 
-function toNormalizedEmail(userId: string, provider: EmailProviderName, emailId: string, email: PipelineInputEmail): NormalizedEmail {
-  const parsed = parseFromAddress(email.from);
-  return {
-    id: emailId,
-    userId,
-    provider,
-    providerMessageId: email.gmail_message_id,
-    subject: email.subject,
-    from: email.from,
-    fromName: parsed.fromName,
-    fromEmail: parsed.fromEmail,
-    senderDomain: parsed.senderDomain,
-    receivedAt: email.date,
-    headers: {},
-    bodyPlain: email.body_plain || '',
-    bodyHtml: email.body_html || null,
-    bodyText: normalizeWhitespace([email.subject, email.body_plain || '', email.body_html || ''].join(' ')),
-  };
-}
-
-function mergeAiResult(fields: ParsedBillFields, fieldConfidence: FieldConfidence, aiResult: Awaited<ReturnType<typeof extractBillFromEmail>>): {
+function mergeAiVerification(fields: ParsedBillFields, fieldConfidence: FieldConfidence, aiResult: AiVerificationResult): {
   fields: ParsedBillFields;
   fieldConfidence: FieldConfidence;
-  rawAiOutput: Record<string, unknown> | null;
-  aiConfidence: number;
 } {
-  if (!aiResult.success) {
-    return { fields, fieldConfidence, rawAiOutput: null, aiConfidence: 0 };
+  const nextFields = { ...fields, ...aiResult.fields };
+  const nextConfidence = { ...fieldConfidence };
+
+  for (const key of Object.keys(aiResult.corrections) as Array<keyof ParsedBillFields>) {
+    nextConfidence[key] = Math.max(nextConfidence[key] ?? 0, aiResult.confidence);
   }
 
-  return {
-    fields: {
-      ...fields,
-      name: aiResult.bill.name || fields.name,
-      amount: aiResult.bill.amount ?? fields.amount ?? null,
-      due_date: aiResult.bill.due_date || fields.due_date,
-      category: mapCategory(aiResult.bill.category) || fields.category,
-      is_recurring: aiResult.bill.is_recurring,
-      recurrence_interval: mapRecurrence(aiResult.bill.recurrence_interval) || fields.recurrence_interval,
-    },
-    fieldConfidence: {
-      ...fieldConfidence,
-      name: Math.max(fieldConfidence.name ?? 0, aiResult.bill.confidence),
-      amount: Math.max(fieldConfidence.amount ?? 0, aiResult.bill.confidence),
-      due_date: Math.max(fieldConfidence.due_date ?? 0, aiResult.bill.confidence),
-    },
-    rawAiOutput: aiResult.bill as unknown as Record<string, unknown>,
-    aiConfidence: aiResult.bill.confidence,
-  };
+  if (aiResult.accepted) {
+    if (nextFields.name) nextConfidence.name = Math.max(nextConfidence.name ?? 0, aiResult.confidence);
+    if (nextFields.amount != null) nextConfidence.amount = Math.max(nextConfidence.amount ?? 0, aiResult.confidence);
+    if (nextFields.due_date) nextConfidence.due_date = Math.max(nextConfidence.due_date ?? 0, aiResult.confidence);
+  }
+
+  return { fields: nextFields, fieldConfidence: nextConfidence };
+}
+
+function deriveReviewReason(fields: ParsedBillFields, baseReason?: ReviewReason | null, aiResult?: AiVerificationResult | null): ReviewReason {
+  if (baseReason) return baseReason;
+  if (aiResult?.disagreements.includes('name')) return 'vendor_mismatch';
+  if (aiResult && aiResult.disagreements.length > 0) return 'ai_disagreement';
+  if (fields.amount == null) return 'missing_amount';
+  if (!fields.due_date) return 'missing_due_date';
+  return 'low_confidence';
 }
 
 export async function parseEmailPipeline(options: {
@@ -236,9 +202,34 @@ export async function parseEmailPipeline(options: {
   deferLegacyFallback?: boolean;
 }): Promise<ParseRunResult> {
   const admin = createAdminClient();
-  const rawEmail = await upsertRawEmail(options.userId, options.email);
   const connection = await getEmailConnection(admin, options.userId);
-  const normalized = toNormalizedEmail(options.userId, connection?.email_provider || 'gmail', rawEmail?.id || options.email.gmail_message_id, options.email);
+  const provider = (connection?.email_provider || 'gmail') as EmailProviderName;
+
+  const normalizedPreview = normalizeEmail({
+    id: options.email.gmail_message_id,
+    userId: options.userId,
+    provider,
+    providerMessageId: options.email.gmail_message_id,
+    subject: options.email.subject,
+    from: options.email.from,
+    receivedAt: options.email.date,
+    bodyPlain: options.email.body_plain || '',
+    bodyHtml: options.email.body_html || '',
+  });
+
+  const rawEmail = await upsertRawEmail(options.userId, options.email, normalizedPreview.bodyText);
+  const normalized = normalizeEmail({
+    id: rawEmail?.id || options.email.gmail_message_id,
+    userId: options.userId,
+    provider,
+    providerMessageId: options.email.gmail_message_id,
+    subject: options.email.subject,
+    from: options.email.from,
+    receivedAt: options.email.date,
+    bodyPlain: options.email.body_plain || '',
+    bodyHtml: options.email.body_html || '',
+  });
+
   const classification = classifyEmail(normalized);
 
   if (!classification.isBillRelated) {
@@ -251,6 +242,10 @@ export async function parseEmailPipeline(options: {
       parsedFields: {},
       fieldConfidence: {},
       evidence: classification.evidence,
+      bodyHash: normalized.bodyHash,
+      domFingerprint: normalized.domFingerprint,
+      textFingerprint: normalized.textFingerprint,
+      subjectShape: normalized.subjectShape,
     });
     if (rawEmail?.id) await markProcessed(rawEmail.id);
     return {
@@ -286,6 +281,11 @@ export async function parseEmailPipeline(options: {
         parsedFields: {},
         fieldConfidence: {},
         evidence: [...classification.evidence, ...vendor.evidence],
+        bodyHash: normalized.bodyHash,
+        domFingerprint: normalized.domFingerprint,
+        textFingerprint: normalized.textFingerprint,
+        subjectShape: normalized.subjectShape,
+        reviewReason: 'low_confidence',
       });
       return {
         accepted: false,
@@ -301,6 +301,7 @@ export async function parseEmailPipeline(options: {
         parsedFields: {},
         fieldConfidence: {},
         evidence: [...classification.evidence, ...vendor.evidence],
+        reviewReason: 'low_confidence',
       };
     }
 
@@ -336,6 +337,11 @@ export async function parseEmailPipeline(options: {
       },
       evidence: [...classification.evidence, ...vendor.evidence],
       rawAiOutput: fallbackResult.extraction?.ai_raw_response ? { raw: fallbackResult.extraction.ai_raw_response } : null,
+      bodyHash: normalized.bodyHash,
+      domFingerprint: normalized.domFingerprint,
+      textFingerprint: normalized.textFingerprint,
+      subjectShape: normalized.subjectShape,
+      reviewReason: fallbackResult.route === 'needs_review' ? 'low_confidence' : null,
     });
 
     return {
@@ -362,6 +368,8 @@ export async function parseEmailPipeline(options: {
       },
       evidence: [...classification.evidence, ...vendor.evidence],
       fallbackResult,
+      rawAiOutput: fallbackResult.extraction?.ai_raw_response ? { raw: fallbackResult.extraction.ai_raw_response } : null,
+      reviewReason: fallbackResult.route === 'needs_review' ? 'low_confidence' : null,
     };
   }
 
@@ -376,33 +384,84 @@ export async function parseEmailPipeline(options: {
   let fields = { ...best.fields };
   let fieldConfidence = { ...best.fieldConfidence };
   let createdBillId: string | null = null;
+  let matchedBillId: string | null = null;
   let rawAiOutput: Record<string, unknown> | null = null;
   let aiConfidence: number | null = null;
   let aiUsed = false;
+  let reviewReason: ReviewReason | null = null;
+  let aiResult: AiVerificationResult | null = null;
+  let reconciliationDecision: 'insert' | 'update' | 'skip' | 'review' | null = null;
+  let reconciliationConfidence: number | null = null;
 
-  if (scored.decision === 'ai_verify' && !options.skipAI) {
-    aiUsed = true;
-    const aiResult = await extractBillFromEmail({
-      id: rawEmail?.id || options.email.gmail_message_id,
-      from: options.email.from,
-      subject: options.email.subject,
-      body: normalizeWhitespace([options.email.body_plain || '', options.email.body_html || ''].join(' ')),
-    });
-    const merged = mergeAiResult(fields, fieldConfidence, aiResult);
-    fields = merged.fields;
-    fieldConfidence = merged.fieldConfidence;
-    rawAiOutput = merged.rawAiOutput;
-    aiConfidence = merged.aiConfidence;
-    if (aiResult.success && aiResult.bill.name && aiResult.bill.due_date) {
-      scored.decision = aiResult.bill.confidence >= 0.75 ? 'accept' : 'review';
+  if (scored.decision === 'ai_verify') {
+    if (options.skipAI) {
+      scored.decision = 'review';
+      reviewReason = 'low_confidence';
+    } else {
+      aiUsed = true;
+      aiResult = await verifyDeterministicExtraction({
+        email: normalized,
+        fields,
+        fieldConfidence,
+        evidence: [...classification.evidence, ...vendor.evidence, ...best.evidence],
+      });
+      const merged = mergeAiVerification(fields, fieldConfidence, aiResult);
+      fields = merged.fields;
+      fieldConfidence = merged.fieldConfidence;
+      rawAiOutput = aiResult.rawResponse;
+      aiConfidence = aiResult.confidence;
+
+      if (aiResult.accepted && fields.name && fields.due_date) {
+        scored.decision = 'accept';
+      } else {
+        scored.decision = 'review';
+        reviewReason = deriveReviewReason(fields, 'ai_disagreement', aiResult);
+      }
     }
   }
 
   if (scored.decision === 'accept') {
-    createdBillId = await createBillFromParsedFields(options.userId, options.email, fields);
-    if (rawEmail?.id) await markProcessed(rawEmail.id);
+    const reconciliation = await reconcileBill({
+      userId: options.userId,
+      emailMessageId: options.email.gmail_message_id,
+      fields,
+    });
+    reconciliationDecision = reconciliation.decision;
+    reconciliationConfidence = reconciliation.confidence;
+    matchedBillId = reconciliation.matchedBillId ?? null;
+
+    if (reconciliation.decision === 'skip') {
+      createdBillId = null;
+    } else if (reconciliation.decision === 'update' && reconciliation.matchedBillId) {
+      createdBillId = await updateParsedBill({
+        billId: reconciliation.matchedBillId,
+        emailMessageId: options.email.gmail_message_id,
+        fields: reconciliation.appliedFields || fields,
+      });
+      if (!createdBillId) {
+        scored.decision = 'review';
+        reviewReason = 'low_confidence';
+      }
+      matchedBillId = createdBillId;
+    } else if (reconciliation.decision === 'review') {
+      scored.decision = 'review';
+      reviewReason = reconciliation.reviewReason || 'duplicate_uncertain';
+    } else {
+      createdBillId = await insertParsedBill({
+        userId: options.userId,
+        provider,
+        emailMessageId: options.email.gmail_message_id,
+        fields,
+      });
+      if (!createdBillId) {
+        scored.decision = 'review';
+        reviewReason = 'low_confidence';
+      }
+      matchedBillId = createdBillId;
+    }
   }
 
+  const finalReviewReason = scored.decision === 'review' ? deriveReviewReason(fields, reviewReason, aiResult) : null;
   const parseRunId = await logParseRun({
     emailId: rawEmail?.id || null,
     userId: options.userId,
@@ -419,15 +478,39 @@ export async function parseEmailPipeline(options: {
     decision: scored.decision,
     parsedFields: fields,
     fieldConfidence,
-    evidence: [...classification.evidence, ...vendor.evidence, ...best.evidence],
+    evidence: [...classification.evidence, ...vendor.evidence, ...best.evidence, ...(aiResult?.evidence || [])],
     rawAiOutput,
+    bodyHash: normalized.bodyHash,
+    domFingerprint: normalized.domFingerprint,
+    textFingerprint: normalized.textFingerprint,
+    subjectShape: normalized.subjectShape,
+    aiCorrections: aiResult?.corrections || {},
+    reconciliationDecision,
+    reconciliationConfidence,
+    reconciledBillId: matchedBillId,
+    reviewReason: finalReviewReason,
   });
+
+  if (scored.decision === 'review' && parseRunId) {
+    await queueBillReview({
+      userId: options.userId,
+      emailParseRunId: parseRunId,
+      billId: matchedBillId,
+      reviewReason: finalReviewReason || 'low_confidence',
+      suggestedFields: fields,
+    });
+  }
+
+  if (rawEmail?.id) {
+    await markProcessed(rawEmail.id);
+  }
 
   return {
     accepted: scored.decision === 'accept',
     decision: scored.decision,
     mode: aiUsed ? 'ai_verify' : 'deterministic',
     createdBillId,
+    matchedBillId,
     parseRunId,
     reason: scored.decision,
     emailType: classification.type,
@@ -441,7 +524,15 @@ export async function parseEmailPipeline(options: {
     aiUsed,
     parsedFields: fields,
     fieldConfidence,
-    evidence: [...classification.evidence, ...vendor.evidence, ...best.evidence],
+    evidence: [...classification.evidence, ...vendor.evidence, ...best.evidence, ...(aiResult?.evidence || [])],
     rawAiOutput,
+    reviewReason: finalReviewReason,
+    reconciliation: reconciliationDecision ? {
+      decision: reconciliationDecision,
+      confidence: reconciliationConfidence || 0,
+      matchedBillId,
+      reviewReason: finalReviewReason,
+      appliedFields: fields,
+    } : undefined,
   };
 }

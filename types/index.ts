@@ -213,6 +213,8 @@ export interface Bill {
   generated_next: boolean; // Flag to prevent duplicate generation
   source: BillSource;
   gmail_message_id: string | null;
+  account_last4?: string | null;
+  review_reason?: string | null;
   payment_url: string | null;
   is_autopay: boolean; // Whether bill is on automatic payment
   previous_amount: number | null; // Previous amount for price change detection

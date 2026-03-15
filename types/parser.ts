@@ -27,6 +27,10 @@ export interface NormalizedEmail {
   bodyPlain: string;
   bodyHtml?: string | null;
   bodyText: string;
+  bodyHash: string;
+  domFingerprint: string;
+  textFingerprint: string;
+  subjectShape: string;
 }
 
 export interface FieldEvidence {
@@ -54,6 +58,34 @@ export interface ParsedBillFields {
 export type FieldConfidence = Partial<Record<keyof ParsedBillFields, number>>;
 
 export type ParseDecision = 'accept' | 'ai_verify' | 'review' | 'rejected';
+export type ReconciliationDecision = 'insert' | 'update' | 'skip' | 'review';
+
+export type ReviewReason =
+  | 'duplicate_uncertain'
+  | 'low_confidence'
+  | 'ai_disagreement'
+  | 'missing_amount'
+  | 'missing_due_date'
+  | 'vendor_mismatch';
+
+export interface ReconciliationResult {
+  decision: ReconciliationDecision;
+  confidence: number;
+  matchedBillId?: string | null;
+  reviewReason?: ReviewReason | null;
+  appliedFields?: ParsedBillFields;
+  details?: Record<string, unknown>;
+}
+
+export interface AiVerificationResult {
+  accepted: boolean;
+  confidence: number;
+  fields: ParsedBillFields;
+  corrections: Partial<ParsedBillFields>;
+  disagreements: Array<keyof ParsedBillFields | string>;
+  evidence: FieldEvidence[];
+  rawResponse: Record<string, unknown> | null;
+}
 
 export interface ParseRunResult {
   accepted: boolean;
@@ -61,6 +93,7 @@ export interface ParseRunResult {
   mode: 'deterministic' | 'ai_verify' | 'ai_extract' | 'legacy_fallback';
   createdBillId?: string | null;
   parseRunId?: string | null;
+  matchedBillId?: string | null;
   reason?: string;
   emailType: EmailType;
   classifierConfidence: number;
@@ -75,6 +108,8 @@ export interface ParseRunResult {
   fieldConfidence: FieldConfidence;
   evidence: FieldEvidence[];
   rawAiOutput?: Record<string, unknown> | null;
+  reviewReason?: ReviewReason | null;
+  reconciliation?: ReconciliationResult;
   fallbackResult?: unknown;
 }
 
