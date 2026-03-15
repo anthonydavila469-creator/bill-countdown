@@ -47,8 +47,8 @@ export async function GET() {
       admin.from('bills').select('id', { count: 'exact', head: true })
         .gte('created_at', todayISO),
 
-      // Gmail connections
-      admin.from('gmail_tokens').select('id', { count: 'exact', head: true }),
+      // Email connections (all providers)
+      admin.from('gmail_tokens').select('id, email_provider'),
 
       // Active users (users with bills created in last 7 days)
       admin.from('bills').select('user_id')
@@ -82,12 +82,23 @@ export async function GET() {
       new Date(b.signupDate).getTime() - new Date(a.signupDate).getTime()
     );
 
+    // Break out email connections by provider
+    const emailConnections = gmailConnectionsRes.data || [];
+    const emailByProvider = {
+      gmail: emailConnections.filter((r: { email_provider: string }) => (r.email_provider || 'gmail') === 'gmail').length,
+      yahoo: emailConnections.filter((r: { email_provider: string }) => r.email_provider === 'yahoo').length,
+      outlook: emailConnections.filter((r: { email_provider: string }) => r.email_provider === 'outlook').length,
+    };
+
     return NextResponse.json({
       totalUsers: totalUsersRes.count || 0,
       newUsersToday: newUsersTodayRes.count || 0,
       totalBills: totalBillsRes.count || 0,
       billsToday: billsTodayRes.count || 0,
-      gmailConnections: gmailConnectionsRes.count || 0,
+      gmailConnections: emailByProvider.gmail,
+      yahooConnections: emailByProvider.yahoo,
+      outlookConnections: emailByProvider.outlook,
+      totalEmailConnections: emailConnections.length,
       activeUsers: activeUserIds.size,
       users,
     });

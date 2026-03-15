@@ -29,6 +29,9 @@ interface AdminStats {
   totalBills: number;
   billsToday: number;
   gmailConnections: number;
+  yahooConnections: number;
+  outlookConnections: number;
+  totalEmailConnections: number;
   activeUsers: number;
   users: {
     id: string;
@@ -140,7 +143,7 @@ export default function AdminDashboardPage() {
     { icon: UserPlus, label: 'New Users Today', value: stats.newUsersToday, gradient: 'from-emerald-500/80 to-teal-600/80' },
     { icon: Receipt, label: 'Total Bills', value: stats.totalBills, gradient: 'from-blue-500/80 to-indigo-600/80' },
     { icon: FilePlus, label: 'Bills Added Today', value: stats.billsToday, gradient: 'from-amber-500/80 to-orange-600/80' },
-    { icon: Mail, label: 'Gmail Connections', value: stats.gmailConnections, gradient: 'from-red-500/80 to-rose-600/80' },
+    { icon: Mail, label: 'Email Connections', value: stats.totalEmailConnections, gradient: 'from-red-500/80 to-rose-600/80' },
     { icon: Activity, label: 'Active Users (7d)', value: stats.activeUsers, gradient: 'from-cyan-500/80 to-blue-600/80' },
   ];
 
@@ -199,6 +202,25 @@ export default function AdminDashboardPage() {
             {statCards.map((card, i) => (
               <StatCard key={card.label} {...card} index={i} />
             ))}
+          </div>
+        </section>
+
+        {/* Email Provider Breakdown */}
+        <section className="mb-8">
+          <h3 className="text-white/70 text-sm font-medium mb-3">Email Providers</h3>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="bg-white/5 rounded-xl p-3 text-center border border-white/10">
+              <div className="text-2xl font-bold text-red-400">{stats.gmailConnections}</div>
+              <div className="text-xs text-white/50">Gmail</div>
+            </div>
+            <div className="bg-white/5 rounded-xl p-3 text-center border border-white/10">
+              <div className="text-2xl font-bold text-purple-400">{stats.yahooConnections}</div>
+              <div className="text-xs text-white/50">Yahoo</div>
+            </div>
+            <div className="bg-white/5 rounded-xl p-3 text-center border border-white/10">
+              <div className="text-2xl font-bold text-blue-400">{stats.outlookConnections}</div>
+              <div className="text-xs text-white/50">Outlook</div>
+            </div>
           </div>
         </section>
 
