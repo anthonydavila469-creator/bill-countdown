@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Bell,
   Mail,
@@ -13,6 +13,7 @@ import {
 import { NotificationSettings, DEFAULT_NOTIFICATION_SETTINGS } from '@/types';
 import { cn } from '@/lib/utils';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
+import { createClient } from '@/lib/supabase/client';
 
 const REMINDER_OPTIONS = [
   { value: 1, label: '1 day before' },
@@ -128,12 +129,29 @@ export function NotificationSection() {
   const [settings, setSettings] = useState<NotificationSettings>(DEFAULT_NOTIFICATION_SETTINGS);
   const [isLoading, setIsLoading] = useState(true);
   const { isSupported, subscribe, unsubscribe } = usePushNotifications();
+  const supabaseRef = useRef(createClient());
+
+  // Get auth headers for Capacitor webview (cookies don't always work)
+  const getAuthHeaders = useCallback(async (): Promise<Record<string, string>> => {
+    try {
+      const { data: { session } } = await supabaseRef.current.auth.getSession();
+      if (session?.access_token) {
+        return {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        };
+      }
+    } catch {}
+    return { 'Content-Type': 'application/json' };
+  }, []);
 
   useEffect(() => {
     const fetchSettings = async () => {
       try {
+        const headers = await getAuthHeaders();
         const res = await fetch(`/api/notifications/settings?t=${Date.now()}`, {
           cache: 'no-store',
+          headers,
         });
         if (res.ok) {
           const data = await res.json();
@@ -146,27 +164,30 @@ export function NotificationSection() {
       }
     };
     fetchSettings();
-  }, []);
+  }, [getAuthHeaders]);
 
   const saveSettings = useCallback(async (newSettings: NotificationSettings) => {
     // Update UI immediately
     setSettings(newSettings);
-    // Save to server
+    // Save to server with auth token
     try {
+      const headers = await getAuthHeaders();
       const res = await fetch(`/api/notifications/settings?t=${Date.now()}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(newSettings),
         cache: 'no-store',
       });
       if (res.ok) {
         const saved = await res.json();
         setSettings(saved);
+      } else {
+        console.error('Failed to save notification settings:', res.status);
       }
     } catch (err) {
       console.error('Failed to save notification settings:', err);
     }
-  }, []);
+  }, [getAuthHeaders]);
 
   if (isLoading) {
     return (

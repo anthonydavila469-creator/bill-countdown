@@ -28,14 +28,33 @@ function normalizeNotificationSettings(raw: Partial<NotificationSettings> | null
   };
 }
 
+// Helper: get user from cookies OR Authorization header
+async function getAuthUser(request?: Request) {
+  // Try cookie-based auth first
+  const supabase = await createClient();
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (user) return { user, supabase };
+
+  // Fall back to Bearer token (Capacitor webview doesn't always send cookies)
+  if (request) {
+    const authHeader = request.headers.get('Authorization');
+    if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.slice(7);
+      const adminSb = createAdminClient();
+      const { data: { user: tokenUser }, error: tokenError } = await adminSb.auth.getUser(token);
+      if (tokenUser) return { user: tokenUser, supabase };
+    }
+  }
+
+  return { user: null, supabase };
+}
+
 // GET /api/notifications/settings - Get notification settings
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const supabase = await createClient();
+    const { user, supabase } = await getAuthUser(request);
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -80,11 +99,9 @@ export async function GET() {
 export async function PUT(request: Request) {
   try {
     console.log('[notifications/settings][PUT] request received');
-    const supabase = await createClient();
+    const { user, supabase } = await getAuthUser(request);
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
