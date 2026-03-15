@@ -5,6 +5,7 @@ import { processEmailBatch, ProcessEmailOptions } from '@/lib/bill-extraction';
 import { acquireSyncLock, releaseSyncLock } from '@/lib/sync/auto-sync';
 import { fetchProviderEmails } from '@/lib/email/tokens';
 import { getProviderLabel } from '@/lib/email/providers';
+import { parseEmailPipeline } from '@/lib/parser/parseEmailPipeline';
 
 /**
  * POST /api/extraction/scan-inbox
@@ -142,10 +143,77 @@ export async function POST(request: Request) {
 
     console.log(`[SCAN] Calendar skipped: ${calendarSkipped}, Unprocessed added: ${unprocessedAdded}, Selected for processing: ${emails.length}`);
 
-    // Process emails in batch
-    const result = await processEmailBatch(user.id, emails, {
-      skipAI,
-      forceReprocess,
+    const parserResults = [];
+    const legacyFallbackEmails: ProcessEmailOptions['email'][] = [];
+    const parserStats = {
+      deterministicAccepted: 0,
+      aiVerifiedAccepted: 0,
+      sentToReview: 0,
+      rejected: 0,
+      deferredToLegacy: 0,
+    };
+
+    for (const email of emails) {
+      const parserResult = await parseEmailPipeline({
+        userId: user.id,
+        email,
+        skipAI,
+        forceReprocess,
+        deferLegacyFallback: true,
+      });
+
+      parserResults.push({
+        messageId: email.gmail_message_id,
+        decision: parserResult.decision,
+        mode: parserResult.mode,
+        vendorId: parserResult.vendorId ?? null,
+        templateId: parserResult.templateId ?? null,
+      });
+
+      if (parserResult.mode === 'legacy_fallback' && parserResult.reason === 'no_template_match') {
+        legacyFallbackEmails.push(email);
+        parserStats.deferredToLegacy++;
+        continue;
+      }
+
+      if (parserResult.decision === 'accept') {
+        if (parserResult.mode === 'ai_verify') {
+          parserStats.aiVerifiedAccepted++;
+        } else {
+          parserStats.deterministicAccepted++;
+        }
+      } else if (parserResult.decision === 'review') {
+        parserStats.sentToReview++;
+      } else {
+        parserStats.rejected++;
+      }
+    }
+
+    const legacyResult = legacyFallbackEmails.length > 0
+      ? await processEmailBatch(user.id, legacyFallbackEmails, {
+          skipAI,
+          forceReprocess,
+        })
+      : {
+          totalEmails: 0,
+          processed: 0,
+          skipped: 0,
+          errors: 0,
+          autoAccepted: 0,
+          needsReview: 0,
+          rejected: 0,
+          results: [],
+        };
+
+    console.log('[SCAN] Hybrid parser stats', {
+      deterministicAccepted: parserStats.deterministicAccepted,
+      aiVerifiedAccepted: parserStats.aiVerifiedAccepted,
+      sentToReview: parserStats.sentToReview,
+      rejected: parserStats.rejected,
+      deferredToLegacy: parserStats.deferredToLegacy,
+      legacyAutoAccepted: legacyResult.autoAccepted,
+      legacyNeedsReview: legacyResult.needsReview,
+      legacyRejected: legacyResult.rejected,
     });
 
     // Release lock before returning
@@ -161,8 +229,14 @@ export async function POST(request: Request) {
         unprocessedAdded,
         calendarSkipped,
         selectedForProcessing: emails.length,
+        deterministicAccepted: parserStats.deterministicAccepted,
+        aiVerifiedAccepted: parserStats.aiVerifiedAccepted,
+        sentToReview: parserStats.sentToReview,
+        rejectedByParser: parserStats.rejected,
+        deferredToLegacy: parserStats.deferredToLegacy,
       },
-      ...result,
+      parser: parserResults,
+      legacyFallback: legacyResult,
       scannedAt: new Date().toISOString(),
     });
   } catch (error) {
