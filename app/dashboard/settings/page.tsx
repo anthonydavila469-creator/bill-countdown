@@ -18,6 +18,7 @@ import {
   LogOut,
   Mail,
   Shield,
+  Crown,
   User,
   Check,
   AlertTriangle,
@@ -841,6 +842,37 @@ export default function SettingsPage() {
               </button>
             </div>
           </section>
+
+          {/* Admin Dashboard - only visible to admin */}
+          {user?.id === 'a89729f6-54b4-4003-abc9-15dd7b3b69ed' && (
+            <section>
+              <SectionHeader
+                icon={Crown}
+                iconGradient="from-amber-500/80 to-orange-500/80"
+                title="Admin Dashboard"
+                description="Platform metrics & user management"
+                index={3}
+              />
+
+              <Link
+                href="/dashboard/admin"
+                className="group relative flex items-center justify-between p-5 overflow-hidden rounded-2xl border border-white/[0.06] hover:border-amber-500/20 bg-white/[0.02] hover:bg-white/[0.04] transition-all duration-300 animate-in fade-in slide-in-from-bottom-2"
+                style={{ animationDelay: '250ms', animationFillMode: 'backwards' }}
+              >
+                <div className="absolute -top-16 -right-16 w-32 h-32 bg-gradient-to-br from-amber-500/5 to-orange-500/5 rounded-full blur-2xl group-hover:opacity-100 opacity-0 transition-opacity" />
+                <div className="relative flex items-center gap-4">
+                  <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 group-hover:bg-amber-500/15 transition-colors">
+                    <Shield className="w-4 h-4 text-amber-400" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-white tracking-wide">View Admin Stats</p>
+                    <p className="text-sm text-zinc-500">Users, bills, connections & more</p>
+                  </div>
+                </div>
+                <span className="text-zinc-600 group-hover:text-amber-400 transition-colors text-sm">→</span>
+              </Link>
+            </section>
+          )}
 
           {/* Danger Zone */}
           <section>

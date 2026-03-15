@@ -56,7 +56,7 @@ BEGIN
   ) THEN
     ALTER TABLE public.user_preferences
     ADD CONSTRAINT user_preferences_email_provider_check
-    CHECK (email_provider IN (''gmail'', ''yahoo'', ''outlook''));
+    CHECK (email_provider IN ('gmail', 'yahoo', 'outlook'));
   END IF;
 END $$;
 
