@@ -9,8 +9,6 @@ import { createClient } from '@/lib/supabase/client';
 import {
   Users,
   UserPlus,
-  Receipt,
-  FilePlus,
   Mail,
   Activity,
   ArrowLeft,
@@ -18,6 +16,11 @@ import {
   Loader2,
   Crown,
   Calendar,
+  TrendingUp,
+  DollarSign,
+  Heart,
+  Zap,
+  BarChart3,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -26,47 +29,76 @@ const ADMIN_USER_ID = 'a89729f6-54b4-4003-abc9-15dd7b3b69ed';
 interface AdminStats {
   totalUsers: number;
   newUsersToday: number;
-  totalBills: number;
-  billsToday: number;
-  gmailConnections: number;
-  yahooConnections: number;
-  outlookConnections: number;
+  activeUsers7d: number;
+  activeUsers30d: number;
+  proSubscribers: number;
+  conversionRate: number;
+  retentionRate30d: number;
   totalEmailConnections: number;
-  activeUsers: number;
+  emailByProvider: { gmail: number; yahoo: number; outlook: number };
+  scanSuccessRate: number;
+  totalScans: number;
+  dailySignups: Record<string, number>;
   users: {
     id: string;
-    billCount: number;
     signupDate: string;
+    isActive: boolean;
+    hasEmail: boolean;
   }[];
 }
 
-interface StatCardProps {
+function MetricCard({
+  icon: Icon,
+  label,
+  value,
+  suffix,
+  gradient,
+  index,
+}: {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
-  value: number;
+  value: string | number;
+  suffix?: string;
   gradient: string;
   index: number;
-}
-
-function StatCard({ icon: Icon, label, value, gradient, index }: StatCardProps) {
+}) {
   return (
     <div
       className="group relative overflow-hidden rounded-2xl border border-white/[0.06] hover:border-white/[0.12] bg-white/[0.02] hover:bg-white/[0.04] transition-all duration-300 animate-in fade-in slide-in-from-bottom-3"
-      style={{ animationDelay: `${index * 80}ms`, animationFillMode: 'backwards' }}
+      style={{ animationDelay: `${index * 60}ms`, animationFillMode: 'backwards' }}
     >
-      {/* Gradient glow on hover */}
       <div className={cn('absolute -top-12 -right-12 w-32 h-32 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br', gradient)} />
-
       <div className="relative p-5">
-        <div className="flex items-center justify-between mb-4">
-          <div className={cn('p-2.5 rounded-xl bg-gradient-to-br', gradient)}>
+        <div className="flex items-center justify-between mb-3">
+          <div className={cn('p-2 rounded-xl bg-gradient-to-br', gradient)}>
             <Icon className="w-4 h-4 text-white" />
           </div>
         </div>
-        <p className="text-3xl font-bold text-white tracking-tight mb-1">
-          {value.toLocaleString()}
+        <p className="text-3xl font-bold text-white tracking-tight mb-0.5">
+          {typeof value === 'number' ? value.toLocaleString() : value}
+          {suffix && <span className="text-lg text-zinc-400 ml-0.5">{suffix}</span>}
         </p>
         <p className="text-sm text-zinc-500 font-medium">{label}</p>
+      </div>
+    </div>
+  );
+}
+
+function SectionHeader({ icon: Icon, gradient, title, subtitle }: {
+  icon: React.ComponentType<{ className?: string }>;
+  gradient: string;
+  title: string;
+  subtitle: string;
+}) {
+  return (
+    <div className="flex items-center gap-4 mb-5">
+      <div className={cn('relative p-3 rounded-2xl bg-gradient-to-br', gradient)}>
+        <Icon className="w-5 h-5 text-white relative z-10" />
+        <div className={cn('absolute inset-0 rounded-2xl bg-gradient-to-br blur-xl opacity-40', gradient)} />
+      </div>
+      <div>
+        <h3 className="text-lg font-semibold text-white tracking-tight">{title}</h3>
+        <p className="text-sm text-zinc-500">{subtitle}</p>
       </div>
     </div>
   );
@@ -83,10 +115,7 @@ export default function AdminDashboardPage() {
   const fetchStats = useCallback(async () => {
     try {
       const res = await fetch('/api/admin/stats');
-      if (res.status === 403) {
-        router.push('/dashboard');
-        return;
-      }
+      if (res.status === 403) { router.push('/dashboard'); return; }
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
       setStats(data);
@@ -99,38 +128,26 @@ export default function AdminDashboardPage() {
     }
   }, [router]);
 
-  // Auth check + initial fetch
   useEffect(() => {
     const init = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user || user.id !== ADMIN_USER_ID) {
-        router.push('/dashboard');
-        return;
-      }
+      if (!user || user.id !== ADMIN_USER_ID) { router.push('/dashboard'); return; }
       fetchStats();
     };
     init();
   }, [supabase.auth, router, fetchStats]);
 
-  // Auto-refresh every 30 seconds
   useEffect(() => {
-    const interval = setInterval(() => {
-      fetchStats();
-    }, 30000);
+    const interval = setInterval(fetchStats, 30000);
     return () => clearInterval(interval);
   }, [fetchStats]);
-
-  const handleManualRefresh = () => {
-    setIsRefreshing(true);
-    fetchStats();
-  };
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#0F0A1E] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="w-8 h-8 text-violet-500 animate-spin" />
-          <p className="text-zinc-400">Loading admin stats...</p>
+          <p className="text-zinc-400">Loading dashboard...</p>
         </div>
       </div>
     );
@@ -138,117 +155,100 @@ export default function AdminDashboardPage() {
 
   if (!stats) return null;
 
-  const statCards: Omit<StatCardProps, 'index'>[] = [
-    { icon: Users, label: 'Total Users', value: stats.totalUsers, gradient: 'from-violet-500/80 to-purple-600/80' },
-    { icon: UserPlus, label: 'New Users Today', value: stats.newUsersToday, gradient: 'from-emerald-500/80 to-teal-600/80' },
-    { icon: Receipt, label: 'Total Bills', value: stats.totalBills, gradient: 'from-blue-500/80 to-indigo-600/80' },
-    { icon: FilePlus, label: 'Bills Added Today', value: stats.billsToday, gradient: 'from-amber-500/80 to-orange-600/80' },
-    { icon: Mail, label: 'Email Connections', value: stats.totalEmailConnections, gradient: 'from-red-500/80 to-rose-600/80' },
-    { icon: Activity, label: 'Active Users (7d)', value: stats.activeUsers, gradient: 'from-cyan-500/80 to-blue-600/80' },
-  ];
-
   return (
     <div className="min-h-screen bg-[#0F0A1E]">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-[#0F0A1E]/80 backdrop-blur-xl border-b border-white/5">
         <div className="flex items-center justify-between px-6 h-16">
-          <Link
-            href="/dashboard/settings"
-            className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors"
-          >
+          <Link href="/dashboard/settings" className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
             <ArrowLeft className="w-5 h-5" />
             <span className="text-sm hidden sm:inline">Settings</span>
           </Link>
-
           <div className="flex items-center gap-2">
             <Crown className="w-5 h-5 text-amber-400" />
-            <h1 className="text-lg font-semibold text-white">Admin Dashboard</h1>
+            <h1 className="text-lg font-semibold text-white">Command Center</h1>
           </div>
-
-          <button
-            onClick={handleManualRefresh}
-            disabled={isRefreshing}
-            className="p-2 text-zinc-400 hover:text-white transition-colors"
-          >
+          <button onClick={() => { setIsRefreshing(true); fetchStats(); }} disabled={isRefreshing} className="p-2 text-zinc-400 hover:text-white transition-colors">
             <RefreshCw className={cn('w-5 h-5', isRefreshing && 'animate-spin')} />
           </button>
         </div>
       </header>
 
-      {/* Content */}
       <div className="p-6 max-w-2xl mx-auto space-y-10 pb-28 pt-2">
-        {/* Last updated */}
+        {/* Live indicator */}
         <div className="flex items-center justify-center gap-2 text-xs text-zinc-600">
           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          <span>
-            Auto-refreshing · Updated {lastRefresh.toLocaleTimeString()}
-          </span>
+          <span>Live · Updated {lastRefresh.toLocaleTimeString()}</span>
         </div>
 
-        {/* Stats Grid */}
+        {/* Growth Section */}
         <section>
-          <div className="flex items-center gap-4 mb-5">
-            <div className="relative p-3 rounded-2xl bg-gradient-to-br from-violet-500/80 to-purple-600/80">
-              <Activity className="w-5 h-5 text-white relative z-10" />
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-violet-500/80 to-purple-600/80 blur-xl opacity-40" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-white tracking-tight">Overview</h3>
-              <p className="text-sm text-zinc-500">Real-time platform metrics</p>
-            </div>
-          </div>
-
+          <SectionHeader icon={TrendingUp} gradient="from-violet-500/80 to-purple-600/80" title="Growth" subtitle="User acquisition & engagement" />
           <div className="grid grid-cols-2 gap-3">
-            {statCards.map((card, i) => (
-              <StatCard key={card.label} {...card} index={i} />
-            ))}
+            <MetricCard icon={Users} label="Total Users" value={stats.totalUsers} gradient="from-violet-500/80 to-purple-600/80" index={0} />
+            <MetricCard icon={UserPlus} label="New Today" value={stats.newUsersToday} gradient="from-emerald-500/80 to-teal-600/80" index={1} />
+            <MetricCard icon={Activity} label="Active (7d)" value={stats.activeUsers7d} gradient="from-cyan-500/80 to-blue-600/80" index={2} />
+            <MetricCard icon={Activity} label="Active (30d)" value={stats.activeUsers30d} gradient="from-blue-500/80 to-indigo-600/80" index={3} />
           </div>
         </section>
 
-        {/* Email Provider Breakdown */}
-        <section className="mb-8">
-          <h3 className="text-white/70 text-sm font-medium mb-3">Email Providers</h3>
+        {/* Revenue Section */}
+        <section>
+          <SectionHeader icon={DollarSign} gradient="from-emerald-500/80 to-green-600/80" title="Revenue" subtitle="Monetization & conversions" />
+          <div className="grid grid-cols-2 gap-3">
+            <MetricCard icon={Crown} label="Pro Subscribers" value={stats.proSubscribers} gradient="from-amber-500/80 to-orange-600/80" index={4} />
+            <MetricCard icon={TrendingUp} label="Conversion Rate" value={stats.conversionRate} suffix="%" gradient="from-emerald-500/80 to-green-600/80" index={5} />
+          </div>
+        </section>
+
+        {/* Retention Section */}
+        <section>
+          <SectionHeader icon={Heart} gradient="from-rose-500/80 to-pink-600/80" title="Retention" subtitle="Are users coming back?" />
+          <div className="grid grid-cols-2 gap-3">
+            <MetricCard icon={Heart} label="30d Retention" value={stats.retentionRate30d} suffix="%" gradient="from-rose-500/80 to-pink-600/80" index={6} />
+            <MetricCard icon={Mail} label="Email Connected" value={stats.totalEmailConnections} gradient="from-red-500/80 to-rose-600/80" index={7} />
+          </div>
+        </section>
+
+        {/* Product Health */}
+        <section>
+          <SectionHeader icon={Zap} gradient="from-amber-500/80 to-yellow-600/80" title="Product Health" subtitle="Is the AI working?" />
+          <div className="grid grid-cols-2 gap-3">
+            <MetricCard icon={Zap} label="Scan Success" value={stats.scanSuccessRate} suffix="%" gradient="from-amber-500/80 to-yellow-600/80" index={8} />
+            <MetricCard icon={BarChart3} label="Total Scans" value={stats.totalScans} gradient="from-orange-500/80 to-amber-600/80" index={9} />
+          </div>
+        </section>
+
+        {/* Email Providers */}
+        <section>
+          <SectionHeader icon={Mail} gradient="from-blue-500/80 to-indigo-600/80" title="Email Providers" subtitle="Connection breakdown" />
           <div className="grid grid-cols-3 gap-3">
-            <div className="bg-white/5 rounded-xl p-3 text-center border border-white/10">
-              <div className="text-2xl font-bold text-red-400">{stats.gmailConnections}</div>
-              <div className="text-xs text-white/50">Gmail</div>
+            <div className="bg-white/[0.03] rounded-xl p-4 text-center border border-white/[0.06]">
+              <div className="text-2xl font-bold text-red-400">{stats.emailByProvider.gmail}</div>
+              <div className="text-xs text-zinc-500 mt-1">Gmail</div>
             </div>
-            <div className="bg-white/5 rounded-xl p-3 text-center border border-white/10">
-              <div className="text-2xl font-bold text-purple-400">{stats.yahooConnections}</div>
-              <div className="text-xs text-white/50">Yahoo</div>
+            <div className="bg-white/[0.03] rounded-xl p-4 text-center border border-white/[0.06]">
+              <div className="text-2xl font-bold text-purple-400">{stats.emailByProvider.yahoo}</div>
+              <div className="text-xs text-zinc-500 mt-1">Yahoo</div>
             </div>
-            <div className="bg-white/5 rounded-xl p-3 text-center border border-white/10">
-              <div className="text-2xl font-bold text-blue-400">{stats.outlookConnections}</div>
-              <div className="text-xs text-white/50">Outlook</div>
+            <div className="bg-white/[0.03] rounded-xl p-4 text-center border border-white/[0.06]">
+              <div className="text-2xl font-bold text-blue-400">{stats.emailByProvider.outlook}</div>
+              <div className="text-xs text-zinc-500 mt-1">Outlook</div>
             </div>
           </div>
         </section>
 
         {/* Users List */}
         <section>
-          <div className="flex items-center gap-4 mb-5">
-            <div className="relative p-3 rounded-2xl bg-gradient-to-br from-blue-500/80 to-cyan-500/80">
-              <Users className="w-5 h-5 text-white relative z-10" />
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/80 to-cyan-500/80 blur-xl opacity-40" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-white tracking-tight">Users</h3>
-              <p className="text-sm text-zinc-500">{stats.users.length} registered users</p>
-            </div>
-          </div>
-
-          <div
-            className="rounded-2xl border border-white/[0.06] overflow-hidden animate-in fade-in slide-in-from-bottom-3 duration-500"
-            style={{ animationDelay: '500ms', animationFillMode: 'backwards' }}
-          >
-            {/* Table header */}
-            <div className="grid grid-cols-3 gap-4 px-5 py-3 bg-white/[0.03] border-b border-white/[0.06]">
-              <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">User ID</span>
-              <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider text-center">Bills</span>
-              <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider text-right">Signed Up</span>
+          <SectionHeader icon={Users} gradient="from-violet-500/80 to-blue-600/80" title="Users" subtitle={`${stats.users.length} registered`} />
+          <div className="rounded-2xl border border-white/[0.06] overflow-hidden">
+            <div className="grid grid-cols-4 gap-2 px-5 py-3 bg-white/[0.03] border-b border-white/[0.06]">
+              <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">User</span>
+              <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider text-center">Email</span>
+              <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider text-center">Status</span>
+              <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider text-right">Joined</span>
             </div>
 
-            {/* User rows */}
             {stats.users.length === 0 ? (
               <div className="px-5 py-8 text-center text-zinc-500 text-sm">No users yet</div>
             ) : (
@@ -256,7 +256,7 @@ export default function AdminDashboardPage() {
                 <div
                   key={user.id}
                   className={cn(
-                    'grid grid-cols-3 gap-4 px-5 py-3.5 hover:bg-white/[0.03] transition-colors',
+                    'grid grid-cols-4 gap-2 px-5 py-3 hover:bg-white/[0.03] transition-colors',
                     i < stats.users.length - 1 && 'border-b border-white/[0.04]'
                   )}
                 >
@@ -267,26 +267,29 @@ export default function AdminDashboardPage() {
                       </span>
                     </div>
                     <span className="text-sm text-zinc-300 font-mono truncate">
-                      {user.id.substring(0, 8)}...
+                      {user.id.substring(0, 8)}
                     </span>
                   </div>
                   <div className="flex items-center justify-center">
-                    <span className={cn(
-                      'text-sm font-semibold px-2.5 py-0.5 rounded-full',
-                      user.billCount > 0
-                        ? 'text-violet-300 bg-violet-500/10'
-                        : 'text-zinc-500 bg-white/[0.03]'
-                    )}>
-                      {user.billCount}
-                    </span>
+                    {user.hasEmail ? (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Connected</span>
+                    ) : (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-white/[0.03] text-zinc-600">None</span>
+                    )}
                   </div>
-                  <div className="flex items-center justify-end gap-1.5 text-zinc-500">
-                    <Calendar className="w-3 h-3 flex-shrink-0" />
+                  <div className="flex items-center justify-center">
+                    {user.isActive ? (
+                      <span className="flex items-center gap-1 text-xs text-emerald-400">
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                        Active
+                      </span>
+                    ) : (
+                      <span className="text-xs text-zinc-600">Inactive</span>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-end text-zinc-500">
                     <span className="text-sm">
-                      {new Date(user.signupDate).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                      })}
+                      {new Date(user.signupDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                     </span>
                   </div>
                 </div>
