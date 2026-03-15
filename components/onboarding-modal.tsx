@@ -50,14 +50,14 @@ export function OnboardingModal({
       </button>
     </div>,
 
-    // Step 2: Connect Gmail
-    <div key="gmail" className="text-center">
+    // Step 2: Connect Email
+    <div key="email" className="text-center">
       <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-violet-500/20 to-amber-500/20 border border-violet-500/30 flex items-center justify-center">
         <Mail className="w-8 h-8 text-violet-400" />
       </div>
-      <h2 className="text-2xl font-bold text-white mb-3">Connect Gmail</h2>
+      <h2 className="text-2xl font-bold text-white mb-3">Connect Your Email</h2>
       <p className="text-zinc-400 leading-relaxed max-w-sm mx-auto mb-8">
-        We&apos;ll automatically find bills in your inbox and keep your due dates up to date.
+        Connect Gmail, Yahoo, or Outlook. We&apos;ll automatically find bills in your inbox and keep your due dates up to date.
       </p>
       <div className="flex flex-col gap-3">
         {isGmailConnected ? (
@@ -74,7 +74,7 @@ export function OnboardingModal({
             className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-violet-500 to-amber-500 text-white font-semibold hover:opacity-90 transition-opacity"
           >
             <Mail className="w-4 h-4" />
-            Connect Gmail
+            Connect Email
           </button>
         )}
         <button

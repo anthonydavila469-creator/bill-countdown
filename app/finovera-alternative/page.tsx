@@ -192,7 +192,7 @@ export default function FioveraAlternativePage() {
           {[
             {
               icon: Mail,
-              title: 'Connect Gmail',
+              title: 'Connect Email',
               desc: 'Duezo reads your email inbox for bill notifications — Netflix, rent, insurance, utilities. Anything that sends you an email.',
             },
             {
@@ -257,7 +257,7 @@ export default function FioveraAlternativePage() {
         <div className="bg-gradient-to-br from-violet-500/10 to-purple-500/10 border border-violet-500/20 rounded-2xl p-10 text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to Replace Finovera?</h2>
           <p className="text-zinc-400 mb-8 max-w-md mx-auto">
-            Start your free trial. Connect Gmail in 30 seconds. Your bills show up automatically.
+            Start your free trial. Connect your email in 30 seconds. Your bills show up automatically.
           </p>
           <Link
             href="/signup"

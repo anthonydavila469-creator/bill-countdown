@@ -110,7 +110,7 @@ const features = [
     icon: Mail,
     title: 'AI Email Sync',
     description:
-      'Connect Gmail and let AI automatically detect and extract bills from your inbox.',
+      'Connect your email and let AI automatically detect and extract bills from your inbox.',
     gradient: 'from-violet-500 to-violet-500',
   },
   {
@@ -447,7 +447,7 @@ export default function LandingPage() {
                 </li>
                 <li className="flex items-center gap-3 text-zinc-300">
                   <Check className="w-5 h-5 text-violet-400 flex-shrink-0" />
-                  <span>AI-powered Gmail sync</span>
+                  <span>AI-powered email sync</span>
                 </li>
                 <li className="flex items-center gap-3 text-zinc-300">
                   <Check className="w-5 h-5 text-violet-400 flex-shrink-0" />
