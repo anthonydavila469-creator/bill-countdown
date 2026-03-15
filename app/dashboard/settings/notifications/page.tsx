@@ -253,6 +253,10 @@ export default function NotificationsSettingsPage() {
     if (updated.length === 0) return;
     const newSettings = { ...settings, reminder_days: updated, lead_days: Math.min(...updated) };
     setSettings(newSettings);
+    // Save immediately — don't rely on debounce (Capacitor kills it on navigation)
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    pendingSaveRef.current = false;
+    saveSettings(newSettings);
   };
 
   if (isLoading) {
