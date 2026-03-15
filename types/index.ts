@@ -404,6 +404,7 @@ export type SubscriptionStatus =
   | 'past_due'
   | 'billing_issue'
   | 'expired';
+export type SubscriptionTier = 'free' | 'pro';
 export type SubscriptionPlan = 'monthly' | 'yearly' | null;
 
 export type RevenueCatWebhookEventType =
@@ -466,6 +467,10 @@ export interface UserPreferences {
   subscription_cancel_at_period_end: boolean;
   gmail_syncs_used: number;
   trial_ends_at: string | null;
+  // RevenueCat subscription fields
+  subscription_tier: SubscriptionTier;
+  revenucat_customer_id: string | null;
+  subscription_expires_at: string | null;
   created_at: string;
   updated_at: string;
 }

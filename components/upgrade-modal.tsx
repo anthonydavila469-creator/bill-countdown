@@ -1,6 +1,16 @@
 'use client';
 
-// Upgrade modal stripped — app is free with all features unlocked
+import { useSubscription } from '@/hooks/use-subscription';
+import { Paywall } from './paywall';
+
 export function UpgradeModal() {
-  return null;
+  const { upgradeModalOpen, upgradeModalFeature, hideUpgradeModal } = useSubscription();
+
+  return (
+    <Paywall
+      isOpen={upgradeModalOpen}
+      onClose={hideUpgradeModal}
+      triggerFeature={upgradeModalFeature ?? undefined}
+    />
+  );
 }

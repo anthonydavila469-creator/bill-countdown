@@ -1,96 +1,154 @@
-import crypto from 'node:crypto';
-import { headers } from 'next/headers';
-import { NextResponse } from 'next/server';
-import { applyRevenueCatWebhookEvent } from '@/lib/storekit';
-import type { RevenueCatWebhookPayload } from '@/types';
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic';
 
-function timingSafeEqual(left: string, right: string): boolean {
-  const leftBuffer = Buffer.from(left);
-  const rightBuffer = Buffer.from(right);
-
-  if (leftBuffer.length !== rightBuffer.length) {
-    return false;
+// Lazy-init Supabase to avoid build-time env var errors
+let _supabase: SupabaseClient | null = null;
+function getSupabase() {
+  if (!_supabase) {
+    _supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
   }
-
-  return crypto.timingSafeEqual(leftBuffer, rightBuffer);
+  return _supabase;
 }
 
-function isValidWebhookAuthorization(
-  authorizationHeader: string | null,
-  secret: string
-): boolean {
-  if (!authorizationHeader) {
-    return false;
-  }
+// RevenueCat webhook event types
+type RevenueCatEventType =
+  | 'INITIAL_PURCHASE'
+  | 'RENEWAL'
+  | 'CANCELLATION'
+  | 'EXPIRATION'
+  | 'BILLING_ISSUE'
+  | 'PRODUCT_CHANGE'
+  | 'SUBSCRIBER_ALIAS'
+  | 'SUBSCRIPTION_PAUSED'
+  | 'SUBSCRIPTION_EXTENDED'
+  | 'TRANSFER'
+  | 'NON_RENEWING_PURCHASE'
+  | 'TEST';
 
-  if (timingSafeEqual(authorizationHeader, secret)) {
-    return true;
-  }
-
-  const bearerValue = authorizationHeader.startsWith('Bearer ')
-    ? authorizationHeader.slice('Bearer '.length)
-    : authorizationHeader;
-
-  return timingSafeEqual(bearerValue, secret);
+interface RevenueCatEvent {
+  type: RevenueCatEventType;
+  app_user_id: string;
+  product_id: string;
+  expiration_at_ms: number | null;
+  period_type: 'TRIAL' | 'INTRO' | 'NORMAL';
+  purchased_at_ms: number;
+  store: string;
+  environment: string;
 }
 
-export async function POST(request: Request) {
-  const webhookSecret =
-    process.env.REVENUECAT_WEBHOOK_SECRET ??
-    process.env.REVENUECAT_AUTHORIZATION_HEADER;
+interface RevenueCatWebhookBody {
+  api_version: string;
+  event: RevenueCatEvent;
+}
 
-  if (!webhookSecret) {
-    console.error('Missing RevenueCat webhook secret configuration');
-    return NextResponse.json(
-      { error: 'Webhook secret not configured' },
-      { status: 500 }
-    );
-  }
+export async function POST(request: NextRequest) {
+  // Verify webhook authorization
+  const authHeader = request.headers.get('authorization');
+  const expectedSecret = process.env.REVENUCAT_WEBHOOK_SECRET;
 
-  const headersList = await headers();
-  const authorizationHeader = headersList.get('authorization');
-
-  if (!isValidWebhookAuthorization(authorizationHeader, webhookSecret)) {
-    console.error('Invalid RevenueCat webhook authorization header');
-    return NextResponse.json(
-      { error: 'Invalid webhook authorization' },
-      { status: 401 }
-    );
-  }
-
-  let payload: RevenueCatWebhookPayload;
-
-  try {
-    payload = (await request.json()) as RevenueCatWebhookPayload;
-  } catch (error) {
-    console.error('Failed to parse RevenueCat webhook payload:', error);
-    return NextResponse.json(
-      { error: 'Invalid JSON payload' },
-      { status: 400 }
-    );
-  }
-
-  if (!payload?.event?.type || !payload.event.app_user_id) {
-    return NextResponse.json(
-      { error: 'Missing RevenueCat event payload' },
-      { status: 400 }
-    );
+  if (expectedSecret && authHeader !== `Bearer ${expectedSecret}`) {
+    console.error('[RevenueCat Webhook] Invalid authorization header');
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
-    const result = await applyRevenueCatWebhookEvent(payload.event);
-    return NextResponse.json({
-      received: true,
-      handled: result.handled,
-      reason: result.reason ?? null,
-    });
-  } catch (error) {
-    console.error('Error processing RevenueCat webhook:', error);
-    return NextResponse.json(
-      { error: 'Webhook processing failed' },
-      { status: 500 }
-    );
+    const body = (await request.json()) as RevenueCatWebhookBody;
+    const { event } = body;
+
+    if (!event?.type || !event?.app_user_id) {
+      console.error('[RevenueCat Webhook] Missing event type or app_user_id');
+      // Return 200 to prevent retries for malformed events
+      return NextResponse.json({ received: true });
+    }
+
+    const userId = event.app_user_id;
+    const expiresAt = event.expiration_at_ms
+      ? new Date(event.expiration_at_ms).toISOString()
+      : null;
+
+    console.log(`[RevenueCat Webhook] ${event.type} for user ${userId}, product: ${event.product_id}`);
+
+    switch (event.type) {
+      case 'INITIAL_PURCHASE':
+      case 'RENEWAL':
+      case 'PRODUCT_CHANGE':
+      case 'SUBSCRIPTION_EXTENDED': {
+        const status = event.period_type === 'TRIAL' ? 'trialing' : 'active';
+        await updateSubscription(userId, {
+          subscription_status: status,
+          subscription_tier: 'pro',
+          subscription_expires_at: expiresAt,
+          revenucat_customer_id: userId,
+        });
+        break;
+      }
+
+      case 'CANCELLATION': {
+        // User cancelled but may still have access until period ends
+        await updateSubscription(userId, {
+          subscription_status: 'active', // Still active until expiration
+          subscription_tier: 'pro',
+          subscription_expires_at: expiresAt,
+        });
+        break;
+      }
+
+      case 'EXPIRATION': {
+        await updateSubscription(userId, {
+          subscription_status: 'expired',
+          subscription_tier: 'free',
+          subscription_expires_at: expiresAt,
+        });
+        break;
+      }
+
+      case 'BILLING_ISSUE': {
+        await updateSubscription(userId, {
+          subscription_status: 'billing_issue',
+          subscription_tier: 'pro', // Keep pro access during grace period
+          subscription_expires_at: expiresAt,
+        });
+        break;
+      }
+
+      default:
+        // Handle other events silently
+        console.log(`[RevenueCat Webhook] Unhandled event type: ${event.type}`);
+        break;
+    }
+
+    // Always return 200 — RevenueCat retries on non-200
+    return NextResponse.json({ received: true });
+  } catch (err) {
+    console.error('[RevenueCat Webhook] Error processing webhook:', err);
+    // Return 200 to prevent infinite retries on parse errors
+    return NextResponse.json({ received: true });
+  }
+}
+
+interface SubscriptionUpdate {
+  subscription_status: string;
+  subscription_tier: string;
+  subscription_expires_at: string | null;
+  revenucat_customer_id?: string;
+}
+
+async function updateSubscription(userId: string, update: SubscriptionUpdate) {
+  const { error } = await getSupabase()
+    .from('user_preferences')
+    .update({
+      ...update,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error(`[RevenueCat Webhook] Failed to update subscription for ${userId}:`, error);
+    throw error;
   }
 }
