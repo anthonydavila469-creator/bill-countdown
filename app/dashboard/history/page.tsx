@@ -646,16 +646,16 @@ export default function HistoryPage() {
             <div className="p-4 rounded-xl bg-gradient-to-br from-violet-500/10 to-violet-500/10 border border-white/5">
               <div className="flex items-center gap-3 mb-3">
                 <Mail className="w-5 h-5 text-violet-400" />
-                <span className="text-sm font-medium text-white">Gmail Sync</span>
+                <span className="text-sm font-medium text-white">Email Sync</span>
               </div>
               <p className="text-xs text-zinc-400 mb-3">
-                Connect Gmail to automatically detect bills from your inbox.
+                Connect Gmail, Yahoo, or Outlook to automatically detect bills.
               </p>
               <Link
                 href="/dashboard/settings"
                 className="block w-full px-3 py-2 text-sm font-medium bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-white text-center"
               >
-                Connect Gmail
+                Connect Email
               </Link>
             </div>
           </div>

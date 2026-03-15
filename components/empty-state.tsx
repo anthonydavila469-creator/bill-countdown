@@ -40,7 +40,7 @@ export function NoBillsEmpty({ onAddBill }: { onAddBill: () => void }) {
     <EmptyState
       icon="📭"
       title="No bills yet"
-      description="Connect Gmail or add your first bill to start tracking due dates."
+      description="Connect your email or add your first bill to start tracking due dates."
       actionLabel="Add Bill"
       onAction={onAddBill}
     />
