@@ -41,7 +41,7 @@ export function ErrorState({
 export function GmailSyncError({ onRetry }: { onRetry?: () => void }) {
   return (
     <ErrorState
-      title="Gmail sync failed"
+      title="Email sync failed"
       description="We couldn't sync your inbox. Give it another shot."
       onRetry={onRetry}
     />
