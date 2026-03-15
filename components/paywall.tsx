@@ -205,7 +205,7 @@ export function Paywall({ isOpen, onClose, triggerFeature }: PaywallProps) {
                   )}
                 </div>
                 <p className="text-white font-semibold text-sm">Monthly</p>
-                <p className="text-xl font-bold text-white mt-1">$4.99</p>
+                <p className="text-xl font-bold text-white mt-1">$3.99</p>
                 <p className="text-xs text-zinc-500 mt-0.5">per month</p>
               </button>
 
@@ -245,7 +245,7 @@ export function Paywall({ isOpen, onClose, triggerFeature }: PaywallProps) {
                 <p className="text-xl font-bold text-white mt-1">$19.99</p>
                 <p className="text-xs text-zinc-500 mt-0.5">per year</p>
                 <p className="text-[10px] font-semibold text-violet-400 mt-1.5 uppercase tracking-wide">
-                  Save 67%
+                  Save 58%
                 </p>
               </button>
             </div>
@@ -340,7 +340,7 @@ export function Paywall({ isOpen, onClose, triggerFeature }: PaywallProps) {
               <p className="text-[10px] text-zinc-600 text-center mt-4 leading-relaxed px-4">
                 {isAnnual
                   ? '$19.99/year. Cancel anytime.'
-                  : '$4.99/month. Cancel anytime.'}
+                  : '$3.99/month. Cancel anytime.'}
                 {' '}Payment will be charged to your Apple ID account.
               </p>
             </div>
