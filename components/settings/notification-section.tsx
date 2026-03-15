@@ -1,27 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import {
-  Bell,
-  Mail,
-  Smartphone,
-  Clock,
-  ChevronDown,
-  Info,
-  RefreshCw,
-  Check,
-  Loader2,
-} from 'lucide-react';
+import { Bell, RefreshCw } from 'lucide-react';
 import { NotificationSettings, DEFAULT_NOTIFICATION_SETTINGS } from '@/types';
 import { cn } from '@/lib/utils';
-import { usePushNotifications } from '@/hooks/use-push-notifications';
 import { createClient } from '@/lib/supabase/client';
-
-const REMINDER_OPTIONS = [
-  { value: 1, label: '1 day before' },
-  { value: 3, label: '3 days before' },
-  { value: 7, label: '7 days before' },
-];
 
 function SectionHeader({
   icon: Icon,
@@ -53,23 +36,19 @@ function SectionHeader({
 function Toggle({
   enabled,
   onChange,
-  disabled = false,
-  color = '#8B5CF6',
+  color = '#10b981',
 }: {
   enabled: boolean;
   onChange: (enabled: boolean) => void;
-  disabled?: boolean;
   color?: string;
 }) {
   return (
     <button
       type="button"
-      onClick={() => !disabled && onChange(!enabled)}
-      disabled={disabled}
+      onClick={() => onChange(!enabled)}
       className={cn(
         'relative w-14 h-8 rounded-full transition-all duration-300',
-        !enabled && 'bg-white/10',
-        disabled && 'opacity-50 cursor-not-allowed'
+        !enabled && 'bg-white/10'
       )}
       style={enabled ? { backgroundColor: color } : undefined}
     >
@@ -83,42 +62,11 @@ function Toggle({
   );
 }
 
-function FieldRow({
-  icon: Icon,
-  label,
-  description,
-  children,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  description?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="group flex items-center justify-between p-4 bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.06] hover:border-white/[0.1] rounded-2xl transition-all duration-300">
-      <div className="flex items-center gap-4">
-        <div className="p-2.5 rounded-xl bg-white/[0.04] group-hover:bg-white/[0.06] transition-colors">
-          <Icon className="w-4 h-4 text-zinc-400" />
-        </div>
-        <div>
-          <p className="font-medium text-white tracking-wide">{label}</p>
-          {description && <p className="text-sm text-zinc-500">{description}</p>}
-        </div>
-      </div>
-      {children}
-    </div>
-  );
-}
-
 export function NotificationSection() {
-  const [settings, setSettings] = useState<NotificationSettings>(DEFAULT_NOTIFICATION_SETTINGS);
+  const [autoSync, setAutoSync] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
-  const { isSupported, subscribe, unsubscribe } = usePushNotifications();
   const supabase = useRef(createClient()).current;
-  const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Load settings directly from Supabase (no API route needed)
   useEffect(() => {
     const load = async () => {
       try {
@@ -133,14 +81,10 @@ export function NotificationSection() {
 
         if (data?.notification_settings) {
           const raw = data.notification_settings as Partial<NotificationSettings>;
-          setSettings({
-            ...DEFAULT_NOTIFICATION_SETTINGS,
-            ...raw,
-            reminder_days: Array.isArray(raw.reminder_days) ? raw.reminder_days : [raw.lead_days ?? 3],
-          });
+          setAutoSync(raw.auto_sync_enabled ?? true);
         }
       } catch (err) {
-        console.error('Failed to load notification settings:', err);
+        console.error('Failed to load settings:', err);
       } finally {
         setIsLoading(false);
       }
@@ -148,137 +92,50 @@ export function NotificationSection() {
     load();
   }, [supabase]);
 
-  // Save directly to Supabase (bypasses API route entirely)
-  const save = useCallback(async (newSettings: NotificationSettings) => {
-    setSettings(newSettings);
-    setSaveStatus('saving');
-
+  const toggleAutoSync = useCallback(async (enabled: boolean) => {
+    setAutoSync(enabled);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.error('No user for save');
-        setSaveStatus('error');
-        return;
-      }
+      if (!user) return;
 
-      const { error } = await supabase
+      await supabase
         .from('user_preferences')
         .upsert({
           user_id: user.id,
-          notification_settings: newSettings,
+          notification_settings: {
+            ...DEFAULT_NOTIFICATION_SETTINGS,
+            auto_sync_enabled: enabled,
+          },
         }, { onConflict: 'user_id' });
-
-      if (error) {
-        console.error('Supabase save failed:', error);
-        setSaveStatus('error');
-        return;
-      }
-
-      setSaveStatus('saved');
-      if (savedTimer.current) clearTimeout(savedTimer.current);
-      savedTimer.current = setTimeout(() => setSaveStatus('idle'), 2000);
     } catch (err) {
-      console.error('Save error:', err);
-      setSaveStatus('error');
+      console.error('Failed to save auto-sync:', err);
     }
   }, [supabase]);
 
   if (isLoading) {
     return (
       <section>
-        <SectionHeader icon={Bell} iconGradient="from-violet-500/80 to-amber-500/80" title="Notifications" description="Get reminded about upcoming bills" />
-        <div className="animate-pulse space-y-3">
-          <div className="h-16 bg-white/[0.02] rounded-2xl" />
-          <div className="h-16 bg-white/[0.02] rounded-2xl" />
-        </div>
+        <SectionHeader icon={Bell} iconGradient="from-violet-500/80 to-amber-500/80" title="Sync" description="Keep your bills up to date" />
+        <div className="animate-pulse h-16 bg-white/[0.02] rounded-2xl" />
       </section>
     );
   }
 
-  const currentReminderDay = settings.reminder_days?.[0] ?? settings.lead_days ?? 3;
-
   return (
     <section>
-      <SectionHeader icon={Bell} iconGradient="from-violet-500/80 to-amber-500/80" title="Notifications" description="Get reminded about upcoming bills" />
+      <SectionHeader icon={Bell} iconGradient="from-violet-500/80 to-amber-500/80" title="Sync" description="Keep your bills up to date" />
 
-      <div className="space-y-3">
-        {/* Save status indicator */}
-        {saveStatus === 'saving' && (
-          <div className="flex items-center gap-2 text-xs text-zinc-400 px-1">
-            <Loader2 className="w-3 h-3 animate-spin" /> Saving...
+      <div className="group flex items-center justify-between p-4 bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.06] hover:border-white/[0.1] rounded-2xl transition-all duration-300">
+        <div className="flex items-center gap-4">
+          <div className="p-2.5 rounded-xl bg-white/[0.04] group-hover:bg-white/[0.06] transition-colors">
+            <RefreshCw className="w-4 h-4 text-zinc-400" />
           </div>
-        )}
-        {saveStatus === 'saved' && (
-          <div className="flex items-center gap-2 text-xs text-emerald-400 px-1">
-            <Check className="w-3 h-3" /> Saved
-          </div>
-        )}
-        {saveStatus === 'error' && (
-          <div className="text-xs text-red-400 px-1">Failed to save — try again</div>
-        )}
-
-        {/* Email Reminders */}
-        <FieldRow icon={Mail} label="Email Reminders" description="Receive bill reminders via email">
-          <Toggle enabled={settings.email_enabled} onChange={(v) => save({ ...settings, email_enabled: v })} color="#8B5CF6" />
-        </FieldRow>
-
-        {/* Push Notifications */}
-        <FieldRow icon={Smartphone} label="Push Notifications" description="Get notified when bills are due">
-          <Toggle
-            enabled={settings.push_enabled}
-            onChange={async (enabled) => {
-              if (isSupported && enabled) await subscribe();
-              else if (isSupported && !enabled) await unsubscribe();
-              save({ ...settings, push_enabled: enabled });
-            }}
-            color="#8b5cf6"
-          />
-        </FieldRow>
-
-        {/* Auto-Sync */}
-        <FieldRow icon={RefreshCw} label="Auto-Sync Bills" description="Automatically scan for bills daily">
-          <Toggle enabled={settings.auto_sync_enabled ?? false} onChange={(v) => save({ ...settings, auto_sync_enabled: v })} color="#10b981" />
-        </FieldRow>
-
-        {/* Remind Me — Simple Dropdown */}
-        <FieldRow icon={Clock} label="Remind Me" description="When to remind before due date">
-          <div className="relative">
-            <select
-              value={currentReminderDay}
-              onChange={(e) => {
-                const day = Number(e.target.value);
-                save({ ...settings, reminder_days: [day], lead_days: day });
-              }}
-              className={cn(
-                'appearance-none pl-4 pr-10 py-2.5 min-w-[160px]',
-                'bg-white/[0.04] hover:bg-white/[0.08]',
-                'border border-white/[0.08] hover:border-white/[0.15]',
-                'rounded-xl text-white text-sm font-medium tracking-wide',
-                'focus:outline-none focus:ring-2 focus:ring-violet-500/30',
-                'cursor-pointer transition-all duration-200'
-              )}
-            >
-              {REMINDER_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value} className="bg-zinc-900 text-white">
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
-          </div>
-        </FieldRow>
-
-        {/* Info */}
-        <div className="relative p-4 rounded-xl bg-violet-500/[0.03] border border-violet-500/10">
-          <div className="flex items-start gap-3">
-            <div className="p-1.5 rounded-lg bg-violet-500/10">
-              <Info className="w-3.5 h-3.5 text-violet-400" />
-            </div>
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              Reminders are sent at 9 AM in your timezone.
-            </p>
+          <div>
+            <p className="font-medium text-white tracking-wide">Auto-Sync Bills</p>
+            <p className="text-sm text-zinc-500">Automatically scan your email for bills daily</p>
           </div>
         </div>
+        <Toggle enabled={autoSync} onChange={toggleAutoSync} />
       </div>
     </section>
   );
