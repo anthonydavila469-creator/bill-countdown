@@ -60,16 +60,11 @@ export async function GET() {
       admin.from('user_preferences').select('user_id, subscription_status')
         .eq('subscription_status', 'active'),
 
-      // Total scan runs (email parse attempts)
-      admin.from('email_parse_runs')
-        .select('id', { count: 'exact', head: true })
-        .catch(() => ({ count: 0, data: null, error: null })),
+      // Total scan runs (placeholder until hybrid parser tables exist)
+      Promise.resolve({ count: 0, data: null, error: null }),
 
-      // Successful scans (accepted decisions)
-      admin.from('email_parse_runs')
-        .select('id', { count: 'exact', head: true })
-        .eq('decision', 'accept')
-        .catch(() => ({ count: 0, data: null, error: null })),
+      // Successful scans (placeholder)
+      Promise.resolve({ count: 0, data: null, error: null }),
 
       // Signups last 30 days (for growth chart)
       admin.from('user_preferences').select('user_id, created_at')
