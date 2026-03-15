@@ -6,7 +6,7 @@ import {
   Mail,
   Smartphone,
   Clock,
-  Check,
+  ChevronDown,
   Info,
   RefreshCw,
 } from 'lucide-react';
@@ -14,11 +14,10 @@ import { NotificationSettings, DEFAULT_NOTIFICATION_SETTINGS } from '@/types';
 import { cn } from '@/lib/utils';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
 
-const REMINDER_DAY_OPTIONS = [
-  { value: 7, label: '7 days before' },
-  { value: 3, label: '3 days before' },
+const REMINDER_OPTIONS = [
   { value: 1, label: '1 day before' },
-  { value: 0, label: 'Day of (AM)' },
+  { value: 3, label: '3 days before' },
+  { value: 7, label: '7 days before' },
 ];
 
 // Section header with gradient icon
@@ -27,19 +26,14 @@ function SectionHeader({
   iconGradient,
   title,
   description,
-  index = 0,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   iconGradient: string;
   title: string;
   description: string;
-  index?: number;
 }) {
   return (
-    <div
-      className="flex items-center justify-between mb-5 animate-in fade-in slide-in-from-bottom-2 duration-500"
-      style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'backwards' }}
-    >
+    <div className="flex items-center justify-between mb-5 animate-in fade-in slide-in-from-bottom-2 duration-500">
       <div className="flex items-center gap-4">
         <div className={cn('relative p-3 rounded-2xl bg-gradient-to-br', iconGradient)}>
           <Icon className="w-5 h-5 text-white relative z-10" />
@@ -133,13 +127,14 @@ function FieldRow({
 export function NotificationSection() {
   const [settings, setSettings] = useState<NotificationSettings>(DEFAULT_NOTIFICATION_SETTINGS);
   const [isLoading, setIsLoading] = useState(true);
-  const { isSupported, isSubscribed, subscribe, unsubscribe } = usePushNotifications();
+  const { isSupported, subscribe, unsubscribe } = usePushNotifications();
 
-  // Fetch settings on mount
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await fetch('/api/notifications/settings');
+        const res = await fetch(`/api/notifications/settings?t=${Date.now()}`, {
+          cache: 'no-store',
+        });
         if (res.ok) {
           const data = await res.json();
           setSettings(data);
@@ -153,47 +148,25 @@ export function NotificationSection() {
     fetchSettings();
   }, []);
 
-  const updateSettings = useCallback(async (newSettings: NotificationSettings) => {
+  const saveSettings = useCallback(async (newSettings: NotificationSettings) => {
+    // Update UI immediately
     setSettings(newSettings);
+    // Save to server
     try {
-      await fetch('/api/notifications/settings', {
+      const res = await fetch(`/api/notifications/settings?t=${Date.now()}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newSettings),
+        cache: 'no-store',
       });
+      if (res.ok) {
+        const saved = await res.json();
+        setSettings(saved);
+      }
     } catch (err) {
-      console.error('Failed to update notification settings:', err);
+      console.error('Failed to save notification settings:', err);
     }
   }, []);
-
-  const handleEmailToggle = useCallback(async (enabled: boolean) => {
-    await updateSettings({ ...settings, email_enabled: enabled });
-  }, [settings, updateSettings]);
-
-  const handlePushToggle = useCallback(async (enabled: boolean) => {
-    if (enabled) {
-      const success = await subscribe();
-      if (success) {
-        await updateSettings({ ...settings, push_enabled: true });
-      }
-    } else {
-      await unsubscribe();
-      await updateSettings({ ...settings, push_enabled: false });
-    }
-  }, [settings, updateSettings, subscribe, unsubscribe]);
-
-  const handleReminderDaysToggle = useCallback(async (day: number) => {
-    const current = settings.reminder_days ?? [settings.lead_days];
-    const updated = current.includes(day)
-      ? current.filter((d) => d !== day)
-      : [...current, day].sort((a, b) => b - a);
-    if (updated.length === 0) return;
-    await updateSettings({ ...settings, reminder_days: updated, lead_days: Math.min(...updated) });
-  }, [settings, updateSettings]);
-
-  const handleAutoSyncToggle = useCallback(async (enabled: boolean) => {
-    await updateSettings({ ...settings, auto_sync_enabled: enabled });
-  }, [settings, updateSettings]);
 
   if (isLoading) {
     return (
@@ -212,6 +185,8 @@ export function NotificationSection() {
     );
   }
 
+  const currentReminderDay = settings.reminder_days?.[0] ?? settings.lead_days ?? 3;
+
   return (
     <section>
       <SectionHeader
@@ -222,135 +197,83 @@ export function NotificationSection() {
       />
 
       <div className="space-y-3">
-        {/* Email Notifications */}
-        <FieldRow
-          icon={Mail}
-          label="Email Reminders"
-          description="Receive bill reminders via email"
-          index={0}
-        >
+        {/* Email Reminders */}
+        <FieldRow icon={Mail} label="Email Reminders" description="Receive bill reminders via email" index={0}>
           <Toggle
             enabled={settings.email_enabled}
-            onChange={handleEmailToggle}
+            onChange={(v) => saveSettings({ ...settings, email_enabled: v })}
             color="#8B5CF6"
           />
         </FieldRow>
 
         {/* Push Notifications */}
-        <FieldRow
-          icon={Smartphone}
-          label="Push Notifications"
-          description="Get notified when bills are due"
-          index={1}
-        >
+        <FieldRow icon={Smartphone} label="Push Notifications" description="Get notified when bills are due" index={1}>
           <Toggle
             enabled={settings.push_enabled}
             onChange={async (enabled) => {
               if (isSupported && enabled) {
-                const success = await subscribe();
-                if (success) {
-                  await updateSettings({ ...settings, push_enabled: true });
-                } else {
-                  // Save preference even if subscription fails
-                  await updateSettings({ ...settings, push_enabled: true });
-                }
+                await subscribe();
               } else if (isSupported && !enabled) {
                 await unsubscribe();
-                await updateSettings({ ...settings, push_enabled: false });
-              } else {
-                // Not supported — still save the preference
-                await updateSettings({ ...settings, push_enabled: enabled });
               }
+              saveSettings({ ...settings, push_enabled: enabled });
             }}
             color="#8b5cf6"
           />
         </FieldRow>
 
-        {/* Auto-Sync Bills */}
-        <FieldRow
-          icon={RefreshCw}
-          label="Auto-Sync Bills"
-          description="Automatically scan Gmail for bills daily"
-          index={2}
-        >
+        {/* Auto-Sync */}
+        <FieldRow icon={RefreshCw} label="Auto-Sync Bills" description="Automatically scan for bills daily" index={2}>
           <Toggle
             enabled={settings.auto_sync_enabled ?? false}
-            onChange={handleAutoSyncToggle}
+            onChange={(v) => saveSettings({ ...settings, auto_sync_enabled: v })}
             color="#10b981"
           />
         </FieldRow>
 
-        {/* Reminder Timing - Multi-select */}
-        <div
-          className="group p-4 bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.06] hover:border-white/[0.1] rounded-2xl transition-all duration-300 animate-in fade-in slide-in-from-bottom-2"
-          style={{ animationDelay: '225ms', animationFillMode: 'backwards' }}
-        >
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4">
-              <div className="p-2.5 rounded-xl bg-white/[0.04] group-hover:bg-white/[0.06] transition-colors">
-                <Clock className="w-4 h-4 text-zinc-400" />
-              </div>
-              <div>
-                <p className="font-medium text-white tracking-wide">Reminder Timing</p>
-                <p className="text-sm text-zinc-500">When to send reminders</p>
-              </div>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-2 ml-14">
-            {REMINDER_DAY_OPTIONS.map((opt) => {
-              const activeDays = settings.reminder_days ?? [settings.lead_days];
-              const isActive = activeDays.includes(opt.value);
-              return (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => handleReminderDaysToggle(opt.value)}
-                  className={cn(
-                    'flex items-center gap-2 px-3 py-2.5 h-11 rounded-xl text-sm font-medium transition-all duration-200 border',
-                    isActive
-                      ? 'bg-violet-500/15 border-violet-500/30 text-violet-300'
-                      : 'bg-white/[0.02] border-white/[0.06] text-zinc-500 hover:text-zinc-300 hover:border-white/[0.1]'
-                  )}
-                >
-                  <div
-                    className={cn(
-                      'w-4 h-4 rounded border flex items-center justify-center transition-all',
-                      isActive
-                        ? 'bg-violet-500 border-violet-500'
-                        : 'border-white/20'
-                    )}
-                  >
-                    {isActive && <Check className="w-3 h-3 text-white" />}
-                  </div>
+        {/* Remind Me — Simple Dropdown */}
+        <FieldRow icon={Clock} label="Remind Me" description="When to remind before due date" index={3}>
+          <div className="relative">
+            <select
+              value={currentReminderDay}
+              onChange={(e) => {
+                const day = Number(e.target.value);
+                saveSettings({
+                  ...settings,
+                  reminder_days: [day],
+                  lead_days: day,
+                });
+              }}
+              className={cn(
+                'appearance-none pl-4 pr-10 py-2.5 min-w-[160px]',
+                'bg-white/[0.04] hover:bg-white/[0.08]',
+                'border border-white/[0.08] hover:border-white/[0.15]',
+                'rounded-xl text-white text-sm font-medium tracking-wide',
+                'focus:outline-none focus:ring-2 focus:ring-violet-500/30',
+                'cursor-pointer transition-all duration-200'
+              )}
+            >
+              {REMINDER_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value} className="bg-zinc-900 text-white">
                   {opt.label}
-                </button>
-              );
-            })}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
           </div>
-        </div>
+        </FieldRow>
 
-        {/* Info tip */}
-        <div
-          className="relative p-4 rounded-xl bg-violet-500/[0.03] border border-violet-500/10 animate-in fade-in slide-in-from-bottom-2"
-          style={{ animationDelay: '375ms', animationFillMode: 'backwards' }}
+        {/* Info */}
+        <div className="relative p-4 rounded-xl bg-violet-500/[0.03] border border-violet-500/10 animate-in fade-in slide-in-from-bottom-2"
+          style={{ animationDelay: '300ms', animationFillMode: 'backwards' }}
         >
-          <div className="absolute top-2 left-2 w-2 h-2 border-l border-t border-violet-400/30 rounded-tl-sm" />
-          <div className="absolute top-2 right-2 w-2 h-2 border-r border-t border-violet-400/30 rounded-tr-sm" />
-          <div className="absolute bottom-2 left-2 w-2 h-2 border-l border-b border-violet-400/30 rounded-bl-sm" />
-          <div className="absolute bottom-2 right-2 w-2 h-2 border-r border-b border-violet-400/30 rounded-br-sm" />
-
           <div className="flex items-start gap-3">
             <div className="p-1.5 rounded-lg bg-violet-500/10">
               <Info className="w-3.5 h-3.5 text-violet-400" />
             </div>
-            <div>
-              <p className="text-sm text-violet-300/90 font-medium mb-1">
-                About Notifications
-              </p>
-              <p className="text-xs text-zinc-400 leading-relaxed">
-                Reminders are sent at 9 AM in your timezone. Push notifications require browser permission.
-              </p>
-            </div>
+            <p className="text-xs text-zinc-400 leading-relaxed">
+              Reminders are sent at 9 AM in your timezone.
+            </p>
           </div>
         </div>
       </div>
