@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 import { processEmailBatch, ProcessEmailOptions } from '@/lib/bill-extraction';
 import { acquireSyncLock, releaseSyncLock } from '@/lib/sync/auto-sync';
 import { fetchProviderEmails } from '@/lib/email/tokens';
-import { getProviderLabel } from '@/lib/email/providers';
+import { getProviderLabel, YahooImapPendingError, YAHOO_IMAP_PENDING_MESSAGE } from '@/lib/email/providers';
 import { parseEmailPipeline } from '@/lib/parser/parseEmailPipeline';
 
 /**
@@ -60,6 +60,15 @@ export async function POST(request: Request) {
           { error: 'Gmail not connected', code: 'GMAIL_NOT_CONNECTED' },
           { status: 400 }
         );
+      }
+
+      if (error instanceof YahooImapPendingError) {
+        return NextResponse.json({
+          status: 'provider_pending',
+          provider: 'yahoo',
+          message: YAHOO_IMAP_PENDING_MESSAGE,
+          bills: [],
+        }, { status: 200 });
       }
 
       throw error;

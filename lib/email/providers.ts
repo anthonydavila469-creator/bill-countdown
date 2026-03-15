@@ -40,6 +40,18 @@ export interface EmailProvider {
   fetchEmails(accessToken: string, options?: { maxResults?: number; daysBack?: number; emailAddress?: string }): Promise<ProviderEmail[]>;
 }
 
+export const YAHOO_IMAP_PENDING_MESSAGE =
+  "Yahoo email scanning is being activated. Add bills manually for now — we'll notify you when auto-import is ready.";
+
+export class YahooImapPendingError extends Error {
+  readonly provider = 'yahoo' as const;
+
+  constructor(message = YAHOO_IMAP_PENDING_MESSAGE) {
+    super(message);
+    this.name = 'YahooImapPendingError';
+  }
+}
+
 const BILL_KEYWORDS = [
   'bill',
   'billing',
@@ -560,6 +572,12 @@ class YahooProvider implements EmailProvider {
       }
 
       return emails;
+    } catch (error) {
+      if (error instanceof YahooImapPendingError) {
+        throw error;
+      }
+
+      throw new YahooImapPendingError();
     } finally {
       imapClient.close();
     }
