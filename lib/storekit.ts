@@ -13,7 +13,7 @@ import type { PurchasesPackage, PurchasesStoreProduct } from '@revenuecat/purcha
 // ---------------------------------------------------------------------------
 
 export const IAP_PRODUCTS = {
-  MONTHLY: 'app.duezo.pro.monthly',   // $3.99/month
+  MONTHLY: 'app.duezo.pro.monthly',   // $4.99/month
   YEARLY: 'app.duezo.pro.yearly',     // $19.99/year (7-day free trial)
 } as const;
 
@@ -23,8 +23,8 @@ export interface IAPProduct {
   productId: IAPProductId;
   title: string;
   description: string;
-  price: string;        // formatted, e.g. "$3.99"
-  priceRaw: number;     // numeric, e.g. 3.99
+  price: string;        // formatted, e.g. "$4.99"
+  priceRaw: number;     // numeric, e.g. 4.99
   currency: string;
   period: 'monthly' | 'yearly';
 }
@@ -114,8 +114,8 @@ class StoreKitService {
           return {
             productId,
             title: product.title ?? (isMonthly ? 'Pro Monthly' : 'Pro Annual'),
-            description: product.description ?? (isMonthly ? '$3.99/month' : '$19.99/year'),
-            price: product.priceString ?? (isMonthly ? '$3.99' : '$19.99'),
+            description: product.description ?? (isMonthly ? '$4.99/month' : '$19.99/year'),
+            price: product.priceString ?? (isMonthly ? '$4.99' : '$19.99'),
             priceRaw: product.price,
             currency: product.currencyCode || 'USD',
             period: isMonthly ? 'monthly' : 'yearly',
