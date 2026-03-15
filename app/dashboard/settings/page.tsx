@@ -37,6 +37,27 @@ import { DeleteAccountModal } from '@/components/settings/delete-account-modal';
 import { ParsedBill } from '@/types';
 import { useBillsContext } from '@/contexts/bills-context';
 
+type EmailProviderName = 'gmail' | 'yahoo' | 'outlook';
+
+interface EmailConnectionState {
+  provider: EmailProviderName;
+  email: string;
+}
+
+const EMAIL_PROVIDERS: Array<{
+  name: EmailProviderName;
+  label: string;
+  color: string;
+}> = [
+  { name: 'gmail', label: 'Gmail', color: '#EA4335' },
+  { name: 'yahoo', label: 'Yahoo Mail', color: '#6001D2' },
+  { name: 'outlook', label: 'Microsoft Outlook', color: '#0078D4' },
+];
+
+function getProviderLabel(provider: EmailProviderName): string {
+  return EMAIL_PROVIDERS.find((item) => item.name === provider)?.label || 'Email';
+}
+
 // Premium section header component - matches CustomizationSection
 function SectionHeader({
   icon: Icon,
@@ -243,22 +264,24 @@ export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   // Settings state
-  const [isGmailConnected, setIsGmailConnected] = useState(false);
+  const [emailConnection, setEmailConnection] = useState<EmailConnectionState | null>(null);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isForceRescanning, setIsForceRescanning] = useState(false);
   const [showForceRescanConfirm, setShowForceRescanConfirm] = useState(false);
 
-  // Check authentication and Gmail connection status
+  // Check authentication and connected email provider status
   useEffect(() => {
     const checkAuth = async () => {
-      // Check URL param for gmail=connected (set by OAuth callback)
       const urlParams = new URLSearchParams(window.location.search);
       const gmailJustConnected = urlParams.get('gmail') === 'connected';
+      const providerFromUrl = (urlParams.get('provider') as EmailProviderName | null) || 'gmail';
 
-      // If URL says we just connected, set state immediately for instant UI feedback
       if (gmailJustConnected) {
-        setIsGmailConnected(true);
+        setEmailConnection((current) => current || {
+          provider: providerFromUrl,
+          email: '',
+        });
       }
 
       const { data: { user } } = await supabase.auth.getUser();
@@ -270,15 +293,21 @@ export default function SettingsPage() {
 
       setUser(user);
 
-      // Check if Gmail is connected from database
       const { data: gmailToken } = await supabase
         .from('gmail_tokens')
-        .select('id')
+        .select('email, email_provider')
         .eq('user_id', user.id)
         .single();
 
-      // Set connected if we have a token OR if URL param says connected
-      setIsGmailConnected(!!gmailToken || gmailJustConnected);
+      if (gmailToken) {
+        setEmailConnection({
+          provider: (gmailToken.email_provider || 'gmail') as EmailProviderName,
+          email: gmailToken.email || user.email || '',
+        });
+      } else if (!gmailJustConnected) {
+        setEmailConnection(null);
+      }
+
       setIsLoading(false);
     };
 
@@ -291,24 +320,22 @@ export default function SettingsPage() {
     router.push('/');
   };
 
-  // Gmail handlers
-  const handleConnectGmail = async () => {
+  const handleConnectProvider = async (provider: EmailProviderName) => {
+    const connectUrl = `${window.location.origin}/api/email/connect?provider=${provider}`;
+
     if (Capacitor.isNativePlatform()) {
-      // On native iOS: open in SFSafariViewController to satisfy Guideline 4.0
-      const gmailAuthUrl = `${window.location.origin}/api/gmail/connect`;
-      await Browser.open({ url: gmailAuthUrl, presentationStyle: 'fullscreen' });
+      await Browser.open({ url: connectUrl, presentationStyle: 'fullscreen' });
     } else {
-      // On web: standard redirect
-      window.location.href = '/api/gmail/connect';
+      window.location.href = connectUrl;
     }
   };
 
-  const handleDisconnectGmail = async () => {
+  const handleDisconnectEmail = async () => {
     try {
-      await fetch('/api/gmail/disconnect', { method: 'POST' });
-      setIsGmailConnected(false);
+      await fetch('/api/email/disconnect', { method: 'POST' });
+      setEmailConnection(null);
     } catch (error) {
-      console.error('Failed to disconnect Gmail:', error);
+      console.error('Failed to disconnect email provider:', error);
     }
   };
 
@@ -460,22 +487,21 @@ export default function SettingsPage() {
           </ul>
         </nav>
 
-        {/* Gmail sync status - only show if not connected */}
-        {!isGmailConnected && (
+        {!emailConnection && (
           <div className="p-4 border-t border-white/5">
             <div className="p-4 rounded-xl bg-gradient-to-br from-violet-500/10 to-violet-500/10 border border-white/5">
               <div className="flex items-center gap-3 mb-3">
                 <Mail className="w-5 h-5 text-violet-400" />
-                <span className="text-sm font-medium text-white">Gmail Sync</span>
+                <span className="text-sm font-medium text-white">Email Sync</span>
               </div>
               <p className="text-xs text-zinc-400 mb-3">
-                Connect Gmail to automatically detect bills from your inbox.
+                Connect Gmail, Yahoo Mail, or Outlook to detect bills from your inbox.
               </p>
               <Link
                 href="/dashboard/settings"
                 className="block w-full px-3 py-2 text-sm font-medium bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-white text-center"
               >
-                Connect Gmail
+                Connect Email
               </Link>
             </div>
           </div>
@@ -524,12 +550,12 @@ export default function SettingsPage() {
 
         {/* Content */}
         <div className="p-6 max-w-2xl mx-auto space-y-10">
-          {/* Gmail Connection */}
+          {/* Email Connection */}
           <section>
             <SectionHeader
               icon={Mail}
-              iconGradient="from-red-500/80 to-violet-500/80"
-              title="Gmail Connection"
+              iconGradient="from-violet-500/80 to-blue-500/80"
+              title="Email Connection"
               description="Automatically detect bills from your inbox"
               index={0}
             />
@@ -543,19 +569,12 @@ export default function SettingsPage() {
               <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDEwIEwgNDAgMTAgTSAxMCAwIEwgMTAgNDAgTSAwIDIwIEwgNDAgMjAgTSAyMCAwIEwgMjAgNDAgTSAwIDMwIEwgNDAgMzAgTSAzMCAwIEwgMzAgNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjAxKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-50" />
 
               <div className="relative p-6">
-                {!isGmailConnected ? (
+                {!emailConnection ? (
                   <>
-                    {/* Not connected state */}
                     <div className="flex items-start gap-5 mb-6">
-                      <div className="relative flex-shrink-0">
-                        <div className="absolute inset-0 bg-white/20 rounded-2xl blur-xl" />
-                        <div className="relative w-14 h-14 rounded-2xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center">
-                          <GoogleIcon className="w-7 h-7 text-white" />
-                        </div>
-                      </div>
                       <div className="pt-1">
                         <h3 className="font-semibold text-white tracking-wide mb-1">
-                          Connect your Google account
+                          Choose an email provider
                         </h3>
                         <p className="text-sm text-zinc-400 leading-relaxed">
                           We&apos;ll scan your inbox for bill-related emails and automatically
@@ -598,23 +617,38 @@ export default function SettingsPage() {
                       </div>
                     </div>
 
-                    {/* Connect button */}
-                    <button
-                      onClick={handleConnectGmail}
-                      className="group relative w-full flex items-center justify-center gap-3 px-5 py-3.5 overflow-hidden rounded-xl font-medium transition-all duration-300"
-                    >
-                      <div className="absolute inset-0 bg-white" />
-                      <div className="absolute inset-0 bg-gradient-to-r from-zinc-100 to-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                      <div className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] bg-gradient-to-r from-transparent via-black/5 to-transparent transition-transform duration-700" />
-                      <GoogleIcon className="w-5 h-5 text-zinc-800 relative z-10" />
-                      <span className="relative z-10 text-zinc-800 font-semibold tracking-wide">
-                        Connect with Google
-                      </span>
-                    </button>
+                    <div className="grid gap-3">
+                      {EMAIL_PROVIDERS.map((provider) => (
+                        <button
+                          key={provider.name}
+                          onClick={() => handleConnectProvider(provider.name)}
+                          className="group relative w-full flex items-center justify-between gap-4 px-5 py-4 overflow-hidden rounded-xl font-medium transition-all duration-300 border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.05]"
+                        >
+                          <div
+                            className="absolute inset-y-0 left-0 w-1"
+                            style={{ backgroundColor: provider.color }}
+                          />
+                          <div className="flex items-center gap-3 relative z-10">
+                            <div
+                              className="w-10 h-10 rounded-2xl flex items-center justify-center text-white font-semibold"
+                              style={{ backgroundColor: provider.color }}
+                            >
+                              {provider.name === 'gmail' ? 'G' : provider.name === 'yahoo' ? 'Y' : 'O'}
+                            </div>
+                            <div className="text-left">
+                              <p className="text-white font-semibold">{provider.label}</p>
+                              <p className="text-sm text-zinc-500">
+                                Read-only bill detection and sync
+                              </p>
+                            </div>
+                          </div>
+                          <ExternalLink className="w-4 h-4 text-zinc-500 relative z-10" />
+                        </button>
+                      ))}
+                    </div>
                   </>
                 ) : (
                   <>
-                    {/* Connected state */}
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
                       <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                         <div className="relative flex-shrink-0">
@@ -624,8 +658,12 @@ export default function SettingsPage() {
                           </div>
                         </div>
                         <div className="min-w-0">
-                          <p className="font-semibold text-white tracking-wide text-sm sm:text-base truncate">{user?.email}</p>
-                          <p className="text-xs sm:text-sm text-zinc-500">Gmail connected and syncing</p>
+                          <p className="font-semibold text-white tracking-wide text-sm sm:text-base truncate">
+                            Connected: {getProviderLabel(emailConnection.provider)} ({emailConnection.email})
+                          </p>
+                          <p className="text-xs sm:text-sm text-zinc-500">
+                            {getProviderLabel(emailConnection.provider)} connected and syncing
+                          </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 self-start sm:self-auto flex-shrink-0">
@@ -650,7 +688,7 @@ export default function SettingsPage() {
                         </span>
                       </button>
                       <button
-                        onClick={handleDisconnectGmail}
+                        onClick={handleDisconnectEmail}
                         className="px-3 sm:px-5 py-3 sm:py-3.5 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/[0.15] text-zinc-400 hover:text-white font-medium rounded-xl transition-all duration-300 text-sm sm:text-base"
                       >
                         Disconnect

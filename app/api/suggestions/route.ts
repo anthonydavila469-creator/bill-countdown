@@ -1,12 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
-import {
-  fetchBillEmails,
-  refreshAccessToken,
-  extractEmailBody,
-  getHeader,
-} from '@/lib/gmail/client';
 import { processAllBillsRateLimited } from '@/lib/ai/process-bills';
 import { NextResponse } from 'next/server';
+import { fetchProviderEmails } from '@/lib/email/tokens';
+import { getProviderLabel } from '@/lib/email/providers';
 
 // POST /api/suggestions - Scan emails using the new extraction engine
 export async function POST(request: Request) {
@@ -29,52 +25,32 @@ export async function POST(request: Request) {
     const daysBack = Math.min(body.daysBack || 60, 180);
     const skipAI = body.skipAI ?? false; // Default to real AI extraction
 
-    // Get stored Gmail tokens
-    const { data: tokenData, error: tokenError } = await supabase
-      .from('gmail_tokens')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
+    let providerName = 'gmail';
 
-    if (tokenError || !tokenData) {
+    let fetched;
+    try {
+      fetched = await fetchProviderEmails(supabase, user.id, { maxResults, daysBack });
+      providerName = fetched.connection.email_provider;
+    } catch (error) {
+      if (error instanceof Error && error.message === 'EMAIL_NOT_CONNECTED') {
+        return NextResponse.json(
+          { error: 'Gmail not connected', code: 'GMAIL_NOT_CONNECTED' },
+          { status: 400 }
+        );
+      }
+
+      throw error;
+    }
+
+    if (!fetched) {
       return NextResponse.json(
         { error: 'Gmail not connected', code: 'GMAIL_NOT_CONNECTED' },
         { status: 400 }
       );
     }
+    const messages = fetched.emails;
 
-    let accessToken = tokenData.access_token;
-
-    // Check if token is expired and refresh if needed
-    const expiresAt = new Date(tokenData.expires_at).getTime();
-    if (Date.now() >= expiresAt - 60000) {
-      try {
-        const newTokens = await refreshAccessToken(tokenData.refresh_token);
-        accessToken = newTokens.access_token;
-
-        await supabase
-          .from('gmail_tokens')
-          .update({
-            access_token: newTokens.access_token,
-            expires_at: new Date(newTokens.expires_at).toISOString(),
-          })
-          .eq('user_id', user.id);
-      } catch (refreshError) {
-        console.error('Failed to refresh token:', refreshError);
-        return NextResponse.json(
-          {
-            error: 'Failed to refresh Gmail access. Please reconnect Gmail.',
-            code: 'TOKEN_REFRESH_FAILED',
-          },
-          { status: 401 }
-        );
-      }
-    }
-
-    // Fetch bill-related emails from Gmail
-    const messages = await fetchBillEmails(accessToken, maxResults, daysBack);
-
-    console.log(`[Suggestions] Gmail returned ${messages.length} messages`);
+    console.log(`[Suggestions] ${getProviderLabel(fetched.connection.email_provider)} returned ${messages.length} messages`);
 
     // Filter out calendar emails and deduplicate
     const seenIds = new Set<string>();
@@ -89,8 +65,8 @@ export async function POST(request: Request) {
     for (const msg of messages) {
       if (!seenIds.has(msg.id)) {
         seenIds.add(msg.id);
-        const from = getHeader(msg, 'From');
-        const subject = getHeader(msg, 'Subject');
+        const from = msg.from;
+        const subject = msg.subject;
 
         // Skip Google Calendar emails
         const fromLower = from.toLowerCase();
@@ -102,14 +78,12 @@ export async function POST(request: Request) {
           continue;
         }
 
-        const bodyContent = extractEmailBody(msg);
-
         emails.push({
           gmail_message_id: msg.id,
           subject,
           from,
-          date: new Date(parseInt(msg.internalDate)).toISOString(),
-          body_plain: bodyContent,
+          date: msg.date,
+          body_plain: msg.body,
         });
       }
     }
@@ -194,6 +168,7 @@ export async function POST(request: Request) {
       const email = emailMap.get(bill.source_email_id);
       return {
         gmail_message_id: bill.source_email_id,
+        provider: providerName,
         name_guess: bill.name,
         amount_guess: bill.amount,
         due_date_guess: bill.due_date,
@@ -212,6 +187,7 @@ export async function POST(request: Request) {
     // Log summary for debugging
     console.log('[Suggestions] Summary:', JSON.stringify({
       gmailFetched: messages.length,
+      provider: providerName,
       afterCalendarFilter: emails.length,
       alreadyAddedAsBills: addedMessageIds.size,
       ignoredSuggestions: ignoredMessageIds.size,
@@ -229,6 +205,7 @@ export async function POST(request: Request) {
       processed: filteredEmails.length,
       suggestionsReturned: suggestions.length,
       scannedAt: new Date().toISOString(),
+      provider: providerName,
     });
   } catch (error) {
     console.error('Suggestions scan error:', error);

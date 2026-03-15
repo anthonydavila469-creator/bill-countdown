@@ -355,7 +355,7 @@ export function BillCard({
               )}
 
               {/* Source indicator */}
-              {bill.source === 'gmail' && (
+              {bill.source !== 'manual' && (
                 <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-md bg-white/20 text-white/80 whitespace-nowrap">
                   email
                 </span>

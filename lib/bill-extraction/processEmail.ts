@@ -5,6 +5,7 @@
 
 import { Bill, BillCategory } from '@/types';
 import { createClient } from '@/lib/supabase/server';
+import { getEmailConnection } from '@/lib/email/tokens';
 import {
   ProcessEmailOptions,
   ExtractionPipelineResult,
@@ -204,6 +205,7 @@ async function createBillFromExtraction(
   gmailMessageId: string
 ): Promise<string | null> {
   const supabase = await createClient();
+  const connection = await getEmailConnection(supabase, userId);
 
   // Use corrected values if available, otherwise extracted values
   const name = extraction.user_corrected_name || extraction.extracted_name;
@@ -229,7 +231,7 @@ async function createBillFromExtraction(
       amount,
       due_date: dueDate,
       category,
-      source: 'gmail',
+      source: connection?.email_provider || 'gmail',
       gmail_message_id: gmailMessageId,
       is_recurring: false,
       payment_url: paymentUrl,

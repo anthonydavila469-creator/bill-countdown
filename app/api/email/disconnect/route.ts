@@ -1,6 +1,6 @@
+import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { clearEmailConnection } from '@/lib/email/tokens';
-import { NextResponse } from 'next/server';
 
 export async function POST() {
   try {
@@ -18,10 +18,10 @@ export async function POST() {
 
     return NextResponse.json({
       success: true,
-      message: 'Gmail disconnected successfully',
+      message: 'Email provider disconnected successfully',
     });
   } catch (error) {
-    console.error('Gmail disconnect error:', error);
-    return NextResponse.json({ error: 'Failed to disconnect Gmail' }, { status: 500 });
+    console.error('Email disconnect error:', error);
+    return NextResponse.json({ error: 'Failed to disconnect email provider' }, { status: 500 });
   }
 }

@@ -28,13 +28,13 @@ type OnboardingStep = 'welcome' | 'gmail_sync' | 'templates' | 'setup' | 'creati
 interface OnboardingScreenProps {
   onComplete: () => void;
   onAddManually: () => void;
-  isGmailConnected?: boolean;
+  isEmailConnected?: boolean;
 }
 
 export function OnboardingScreen({
   onComplete,
   onAddManually,
-  isGmailConnected = false,
+  isEmailConnected = false,
 }: OnboardingScreenProps) {
   const { addToast } = useToast();
   const { refreshSubscription } = useSubscription();
@@ -187,7 +187,7 @@ export function OnboardingScreen({
             onBack={handleBackToWelcome}
             onComplete={handleGmailComplete}
             onSkip={handleGmailSkip}
-            isGmailConnected={isGmailConnected}
+            isEmailConnected={isEmailConnected}
           />
         )}
 

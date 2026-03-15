@@ -57,7 +57,7 @@ export function AddBillModal({
       const url = editBill ? `/api/bills/${editBill.id}` : '/api/bills';
       const method = editBill ? 'PUT' : 'POST';
 
-      // Include gmail_message_id if creating from a suggestion
+      // Include gmail_message_id if creating from an email suggestion
       const payload = gmailMessageId && !editBill
         ? { ...data, gmail_message_id: gmailMessageId, source: 'gmail' }
         : data;

@@ -1,15 +1,10 @@
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { NextResponse } from 'next/server';
-import {
-  fetchBillEmails,
-  refreshAccessToken,
-  extractEmailBody,
-  extractEmailHtml,
-  getHeader,
-} from '@/lib/gmail/client';
 import { processEmailBatch, ProcessEmailOptions } from '@/lib/bill-extraction';
 import { acquireSyncLock, releaseSyncLock } from '@/lib/sync/auto-sync';
+import { fetchProviderEmails } from '@/lib/email/tokens';
+import { getProviderLabel } from '@/lib/email/providers';
 
 /**
  * POST /api/extraction/scan-inbox
@@ -51,59 +46,26 @@ export async function POST(request: Request) {
     const skipAI = body.skipAI || false;
     const forceReprocess = body.forceReprocess || false;
 
-    // Get stored Gmail tokens
-    const { data: tokenData, error: tokenError } = await supabase
-      .from('gmail_tokens')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
-
-    if (tokenError || !tokenData) {
-      // Release lock before returning
+    let fetched;
+    try {
+      fetched = await fetchProviderEmails(supabase, user.id, { maxResults, daysBack });
+    } catch (error) {
       if (lockAcquired && userId) {
         await releaseSyncLock(adminClient, userId);
       }
-      return NextResponse.json(
-        { error: 'Gmail not connected', code: 'GMAIL_NOT_CONNECTED' },
-        { status: 400 }
-      );
-    }
 
-    let accessToken = tokenData.access_token;
-
-    // Check if token is expired and refresh if needed
-    const expiresAt = new Date(tokenData.expires_at).getTime();
-    if (Date.now() >= expiresAt - 60000) {
-      try {
-        const newTokens = await refreshAccessToken(tokenData.refresh_token);
-        accessToken = newTokens.access_token;
-
-        // Update stored token
-        await supabase
-          .from('gmail_tokens')
-          .update({
-            access_token: newTokens.access_token,
-            expires_at: new Date(newTokens.expires_at).toISOString(),
-          })
-          .eq('user_id', user.id);
-      } catch {
-        // Release lock before returning
-        if (lockAcquired && userId) {
-          await releaseSyncLock(adminClient, userId);
-        }
+      if (error instanceof Error && error.message === 'EMAIL_NOT_CONNECTED') {
         return NextResponse.json(
-          {
-            error: 'Failed to refresh Gmail access. Please reconnect Gmail.',
-            code: 'TOKEN_REFRESH_FAILED',
-          },
-          { status: 401 }
+          { error: 'Gmail not connected', code: 'GMAIL_NOT_CONNECTED' },
+          { status: 400 }
         );
       }
+
+      throw error;
     }
 
-    // Fetch bill-related emails from Gmail
-    const messages = await fetchBillEmails(accessToken, maxResults, daysBack);
-    console.log(`[SCAN] Gmail returned ${messages.length} messages`);
+    const messages = fetched.emails;
+    console.log(`[SCAN] ${getProviderLabel(fetched.connection.email_provider)} returned ${messages.length} messages`);
 
     // Also fetch unprocessed emails from emails_raw that may have been missed
     const { data: unprocessedEmails } = await supabase
@@ -124,8 +86,8 @@ export async function POST(request: Request) {
       if (seenIds.has(msg.id)) continue;
       seenIds.add(msg.id);
 
-      const from = getHeader(msg, 'From');
-      const subject = getHeader(msg, 'Subject');
+      const from = msg.from;
+      const subject = msg.subject;
 
       // Skip Google Calendar notification emails
       const fromLower = from.toLowerCase();
@@ -138,16 +100,13 @@ export async function POST(request: Request) {
         continue;
       }
 
-      const body = extractEmailBody(msg);
-      const htmlBody = extractEmailHtml(msg);
-
       emails.push({
         gmail_message_id: msg.id,
         subject,
         from,
-        date: new Date(parseInt(msg.internalDate)).toISOString(),
-        body_plain: body,
-        body_html: htmlBody,
+        date: msg.date,
+        body_plain: msg.body,
+        body_html: msg.body_html,
       });
     }
 
@@ -197,6 +156,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       summary: {
         fetchedFromGmail: messages.length,
+        provider: fetched.connection.email_provider,
         unprocessedFromDb: unprocessedEmails?.length || 0,
         unprocessedAdded,
         calendarSkipped,

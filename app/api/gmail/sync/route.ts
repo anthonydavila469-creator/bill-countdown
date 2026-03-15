@@ -1,22 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
-import {
-  fetchBillEmails,
-  refreshAccessToken,
-  extractEmailBody,
-  getHeader,
-  GmailMessage,
-} from '@/lib/gmail/client';
 import { NextResponse } from 'next/server';
 import { isRateLimited } from '@/lib/rate-limit';
-
-interface EmailData {
-  id: string;
-  subject: string;
-  from: string;
-  date: string;
-  snippet: string;
-  body: string;
-}
+import { fetchProviderEmails, getEmailConnection } from '@/lib/email/tokens';
+import { getProviderLabel } from '@/lib/email/providers';
 
 // POST /api/gmail/sync - Fetch bill-related emails from Gmail
 export async function POST() {
@@ -41,59 +27,14 @@ export async function POST() {
       );
     }
 
-    // Get stored Gmail tokens
-    const { data: tokenData, error: tokenError } = await supabase
-      .from('gmail_tokens')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
-
-    if (tokenError || !tokenData) {
+    const connection = await getEmailConnection(supabase, user.id);
+    if (!connection) {
       return NextResponse.json(
         { error: 'Gmail not connected' },
         { status: 400 }
       );
     }
-
-    let accessToken = tokenData.access_token;
-
-    // Check if token is expired and refresh if needed
-    const expiresAt = new Date(tokenData.expires_at).getTime();
-    if (Date.now() >= expiresAt - 60000) {
-      // Refresh if expiring within 1 minute
-      try {
-        const newTokens = await refreshAccessToken(tokenData.refresh_token);
-        accessToken = newTokens.access_token;
-
-        // Update stored token
-        await supabase
-          .from('gmail_tokens')
-          .update({
-            access_token: newTokens.access_token,
-            expires_at: new Date(newTokens.expires_at).toISOString(),
-          })
-          .eq('user_id', user.id);
-      } catch (refreshError) {
-        console.error('Failed to refresh token:', refreshError);
-        return NextResponse.json(
-          { error: 'Failed to refresh Gmail access. Please reconnect Gmail.' },
-          { status: 401 }
-        );
-      }
-    }
-
-    // Fetch bill-related emails
-    const messages = await fetchBillEmails(accessToken, 20);
-
-    // Transform messages to a simpler format
-    const emails: EmailData[] = messages.map((msg: GmailMessage) => ({
-      id: msg.id,
-      subject: getHeader(msg, 'Subject'),
-      from: getHeader(msg, 'From'),
-      date: new Date(parseInt(msg.internalDate)).toISOString(),
-      snippet: msg.snippet,
-      body: extractEmailBody(msg),
-    }));
+    const { emails } = await fetchProviderEmails(supabase, user.id, { maxResults: 20 });
 
     // Update last sync time
     await supabase
@@ -104,6 +45,7 @@ export async function POST() {
     return NextResponse.json({
       emails,
       count: emails.length,
+      provider: connection.email_provider,
       syncedAt: new Date().toISOString(),
     });
   } catch (error) {
@@ -130,14 +72,8 @@ export async function GET() {
       );
     }
 
-    // Get stored Gmail tokens
-    const { data: tokenData, error: tokenError } = await supabase
-      .from('gmail_tokens')
-      .select('email, last_sync_at, created_at')
-      .eq('user_id', user.id)
-      .single();
-
-    if (tokenError || !tokenData) {
+    const tokenData = await getEmailConnection(supabase, user.id);
+    if (!tokenData) {
       return NextResponse.json({
         connected: false,
       });
@@ -146,6 +82,8 @@ export async function GET() {
     return NextResponse.json({
       connected: true,
       email: tokenData.email,
+      provider: tokenData.email_provider,
+      providerLabel: getProviderLabel(tokenData.email_provider),
       lastSyncAt: tokenData.last_sync_at,
       connectedAt: tokenData.created_at,
     });

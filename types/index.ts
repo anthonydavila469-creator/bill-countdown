@@ -188,7 +188,7 @@ export const DEFAULT_COLOR_THEME: ColorThemeId = 'amethyst';
 
 export type RecurrenceInterval = 'weekly' | 'biweekly' | 'monthly' | 'yearly';
 
-export type BillSource = 'manual' | 'gmail';
+export type BillSource = 'manual' | 'gmail' | 'yahoo' | 'outlook';
 
 export type PaidMethod = 'manual' | 'autopay';
 
@@ -331,6 +331,7 @@ export interface ParsedBill {
   category: BillCategory | null;
   is_recurring: boolean;
   recurrence_interval: RecurrenceInterval | null;
+  source?: BillSource;
   payment_url?: string | null;  // Payment link from email
   confidence: number; // 0-1 confidence score
   source_email_id: string;
@@ -339,6 +340,7 @@ export interface ParsedBill {
 // Rule-based bill suggestion from email scanning
 export interface BillSuggestion {
   gmail_message_id: string;
+  provider?: BillSource;
   email_subject: string;
   email_from: string;
   email_date: string;
@@ -457,6 +459,12 @@ export interface UserPreferences {
   is_pro: boolean;
   color_theme: ColorThemeId;
   dashboard_layout: DashboardLayout;
+  email_provider: 'gmail' | 'yahoo' | 'outlook';
+  email_connected: boolean;
+  gmail_connected: boolean;
+  gmail_access_token: string | null;
+  gmail_refresh_token: string | null;
+  gmail_token_expires_at: string | null;
   // Stripe subscription fields
   stripe_customer_id: string | null;
   stripe_subscription_id: string | null;
