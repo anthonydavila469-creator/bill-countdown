@@ -58,6 +58,29 @@ const BILL_KEYWORDS = [
   'subscription',
 ];
 
+function extractSearchTerms(field: 'subject' | 'from'): string[] {
+  const terms = new Set<string>();
+  const pattern = new RegExp(`${field}:\(([^)]+)\)`, 'gi');
+
+  for (const query of BILL_SEARCH_QUERIES) {
+    for (const match of query.matchAll(pattern)) {
+      const clause = match[1];
+      const rawTerms = clause.match(/"[^"]+"|[A-Za-z0-9@._'-]+/g) || [];
+
+      for (const rawTerm of rawTerms) {
+        const term = rawTerm.replace(/^"|"$/g, '').trim();
+        if (!term || term.toUpperCase() === 'OR') continue;
+        terms.add(term);
+      }
+    }
+  }
+
+  return [...terms];
+}
+
+const BILL_SUBJECT_SEARCH_TERMS = extractSearchTerms('subject');
+const BILL_FROM_SEARCH_TERMS = extractSearchTerms('from');
+
 const OUTLOOK_SELECT =
   'id,subject,receivedDateTime,from,bodyPreview,body';
 
@@ -252,15 +275,14 @@ class GmailProvider implements EmailProvider {
 
 class YahooImapClient {
   private socket: TLSSocket | null = null;
-  private buffer = '';
+  private buffer = Buffer.alloc(0);
   private tagCounter = 0;
 
   async connect(): Promise<void> {
     this.socket = await new Promise<TLSSocket>((resolve, reject) => {
       const socket = connectTls(993, 'imap.mail.yahoo.com', { servername: 'imap.mail.yahoo.com' }, () => resolve(socket));
-      socket.setEncoding('utf8');
-      socket.on('data', (chunk: string) => {
-        this.buffer += chunk;
+      socket.on('data', (chunk: Buffer) => {
+        this.buffer = Buffer.concat([this.buffer, chunk]);
       });
       socket.once('error', reject);
     });
@@ -270,7 +292,9 @@ class YahooImapClient {
 
   async authenticate(email: string, accessToken: string): Promise<void> {
     const xoauth = Buffer.from(`user=${email}\u0001auth=Bearer ${accessToken}\u0001\u0001`).toString('base64');
-    await this.runCommand(`AUTHENTICATE XOAUTH2 ${xoauth}`);
+    await this.runCommand(`AUTHENTICATE XOAUTH2 ${xoauth}`, {
+      allowContinuation: true,
+    });
   }
 
   async selectInbox(): Promise<void> {
@@ -282,19 +306,52 @@ class YahooImapClient {
       month: 'short',
       timeZone: 'UTC',
     })}-${sinceDate.getUTCFullYear()}`;
-    const response = await this.runCommand(`UID SEARCH SINCE ${imapDate}`);
-    const match = response.match(/\* SEARCH ?([0-9 ]*)/i);
-    if (!match?.[1]) return [];
-    return match[1].trim().split(/\s+/).filter(Boolean);
+    return this.search(`SINCE ${imapDate}`);
+  }
+
+  async searchBillUids(sinceDate: Date): Promise<string[]> {
+    const imapDate = `${String(sinceDate.getUTCDate()).padStart(2, '0')}-${sinceDate.toLocaleString('en-US', {
+      month: 'short',
+      timeZone: 'UTC',
+    })}-${sinceDate.getUTCFullYear()}`;
+    const uidSet = new Set<string>();
+
+    for (const term of BILL_SUBJECT_SEARCH_TERMS) {
+      const uids = await this.search(`SINCE ${imapDate} SUBJECT ${this.quote(term)}`);
+      for (const uid of uids) {
+        uidSet.add(uid);
+      }
+    }
+
+    for (const term of BILL_FROM_SEARCH_TERMS) {
+      const uids = await this.search(`SINCE ${imapDate} FROM ${this.quote(term)}`);
+      for (const uid of uids) {
+        uidSet.add(uid);
+      }
+    }
+
+    return [...uidSet].sort((left, right) => Number(left) - Number(right));
   }
 
   async fetchRawEmail(uid: string): Promise<string> {
-    const response = await this.runCommand(`UID FETCH ${uid} (BODY.PEEK[]<0.65536>)`);
-    const literalMatch = response.match(/\{(\d+)\}\r?\n([\s\S]*)\r?\n[A-Z0-9]+ (OK|NO|BAD)/i);
-    if (!literalMatch?.[2]) {
+    const response = await this.runCommand(`UID FETCH ${uid} (BODY.PEEK[])`);
+    const responseText = response.toString('utf8');
+    const literalMatch = responseText.match(/BODY(?:\.PEEK)?\[\]\s+\{(\d+)\}\r?\n/i);
+
+    if (!literalMatch || literalMatch.index === undefined) {
       throw new Error(`Failed to parse Yahoo IMAP response for UID ${uid}`);
     }
-    return literalMatch[2].replace(/\r?\n\)\s*$/m, '');
+
+    const literalLength = Number.parseInt(literalMatch[1], 10);
+    const literalStart = literalMatch.index + literalMatch[0].length;
+    const literalPrefix = Buffer.byteLength(responseText.slice(0, literalStart), 'utf8');
+    const literalEnd = literalPrefix + literalLength;
+
+    if (response.length < literalEnd) {
+      throw new Error(`Yahoo IMAP returned an incomplete message body for UID ${uid}`);
+    }
+
+    return response.subarray(literalPrefix, literalEnd).toString('utf8');
   }
 
   close(): void {
@@ -308,7 +365,19 @@ class YahooImapClient {
     }
   }
 
-  private async runCommand(command: string): Promise<string> {
+  private async search(criteria: string): Promise<string[]> {
+    const response = await this.runCommand(`UID SEARCH ${criteria}`);
+    const responseText = response.toString('utf8');
+    const matches = [...responseText.matchAll(/\* SEARCH ?([0-9 ]*)/gi)];
+    const values = matches.flatMap((match) => (match[1] || '').trim().split(/\s+/).filter(Boolean));
+    return [...new Set(values)];
+  }
+
+  private quote(value: string): string {
+    return `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+  }
+
+  private async runCommand(command: string, options: { allowContinuation?: boolean } = {}): Promise<Buffer> {
     if (!this.socket) {
       throw new Error('Yahoo IMAP socket is not connected');
     }
@@ -317,10 +386,14 @@ class YahooImapClient {
     const tag = `A${String(this.tagCounter).padStart(4, '0')}`;
     const startIndex = this.buffer.length;
     this.socket.write(`${tag} ${command}\r\n`);
-    await this.waitForPattern(new RegExp(`(?:^|\\r?\\n)${tag} (OK|NO|BAD)`, 'i'));
-    const response = this.buffer.slice(startIndex);
+    const response = await this.waitForTaggedResponse(tag, startIndex);
+    const responseText = response.toString('utf8');
 
-    if (new RegExp(`(?:^|\\r?\\n)${tag} (NO|BAD)`, 'i').test(response)) {
+    if (!options.allowContinuation && /(?:^|\r?\n)\+ /i.test(responseText)) {
+      throw new Error(`Yahoo IMAP command requires unsupported continuation: ${command}`);
+    }
+
+    if (new RegExp(`(?:^|\\r?\\n)${tag} (NO|BAD)`, 'i').test(responseText)) {
       throw new Error(`Yahoo IMAP command failed: ${command}`);
     }
 
@@ -329,7 +402,7 @@ class YahooImapClient {
 
   private async waitForPattern(pattern: RegExp): Promise<void> {
     for (let attempt = 0; attempt < 200; attempt += 1) {
-      if (pattern.test(this.buffer)) {
+      if (pattern.test(this.buffer.toString('utf8'))) {
         return;
       }
 
@@ -337,6 +410,22 @@ class YahooImapClient {
     }
 
     throw new Error('Yahoo IMAP timed out waiting for server response');
+  }
+
+  private async waitForTaggedResponse(tag: string, startIndex: number): Promise<Buffer> {
+    const completionPattern = new RegExp(`(?:^|\\r?\\n)${tag} (OK|NO|BAD)(?: .*)?(?:\\r?\\n)?$`, 'i');
+
+    for (let attempt = 0; attempt < 200; attempt += 1) {
+      const response = this.buffer.subarray(startIndex);
+
+      if (completionPattern.test(response.toString('utf8'))) {
+        return response;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 25));
+    }
+
+    throw new Error(`Yahoo IMAP timed out waiting for command completion: ${tag}`);
   }
 }
 
@@ -452,19 +541,20 @@ class YahooProvider implements EmailProvider {
       await imapClient.authenticate(options.emailAddress, accessToken);
       await imapClient.selectInbox();
 
-      const uids = await imapClient.searchSince(buildAfterDate(options.daysBack ?? 30));
+      const uids = await imapClient.searchBillUids(buildAfterDate(options.daysBack ?? 30));
       const selectedUids = uids.slice(-(options.maxResults ?? 100)).reverse();
       const emails: ProviderEmail[] = [];
 
       for (const uid of selectedUids) {
         const rawEmail = await imapClient.fetchRawEmail(uid);
         const parsed = parseRawEmail(rawEmail);
+        const parsedDate = new Date(parsed.date);
 
         if (looksLikeBillEmail([parsed.subject, parsed.from, parsed.snippet, parsed.body])) {
           emails.push({
             ...parsed,
             id: uid,
-            date: new Date(parsed.date).toISOString(),
+            date: Number.isNaN(parsedDate.getTime()) ? new Date().toISOString() : parsedDate.toISOString(),
           });
         }
       }
