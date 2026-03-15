@@ -9,6 +9,8 @@ import {
   ChevronDown,
   Info,
   RefreshCw,
+  Check,
+  Loader2,
 } from 'lucide-react';
 import { NotificationSettings, DEFAULT_NOTIFICATION_SETTINGS } from '@/types';
 import { cn } from '@/lib/utils';
@@ -21,7 +23,6 @@ const REMINDER_OPTIONS = [
   { value: 7, label: '7 days before' },
 ];
 
-// Section header with gradient icon
 function SectionHeader({
   icon: Icon,
   iconGradient,
@@ -34,7 +35,7 @@ function SectionHeader({
   description: string;
 }) {
   return (
-    <div className="flex items-center justify-between mb-5 animate-in fade-in slide-in-from-bottom-2 duration-500">
+    <div className="flex items-center justify-between mb-5">
       <div className="flex items-center gap-4">
         <div className={cn('relative p-3 rounded-2xl bg-gradient-to-br', iconGradient)}>
           <Icon className="w-5 h-5 text-white relative z-10" />
@@ -49,7 +50,6 @@ function SectionHeader({
   );
 }
 
-// Toggle switch component
 function Toggle({
   enabled,
   onChange,
@@ -74,43 +74,28 @@ function Toggle({
       style={enabled ? { backgroundColor: color } : undefined}
     >
       {enabled && (
-        <div
-          className="absolute inset-0 rounded-full blur-md opacity-50"
-          style={{ backgroundColor: color }}
-        />
+        <div className="absolute inset-0 rounded-full blur-md opacity-50" style={{ backgroundColor: color }} />
       )}
-      <div
-        className={cn(
-          'absolute top-1 w-6 h-6 rounded-full transition-all duration-300',
-          'bg-white shadow-lg',
-          enabled ? 'left-7' : 'left-1'
-        )}
-      >
+      <div className={cn('absolute top-1 w-6 h-6 rounded-full transition-all duration-300 bg-white shadow-lg', enabled ? 'left-7' : 'left-1')}>
         <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white to-zinc-200" />
       </div>
     </button>
   );
 }
 
-// Field row wrapper
 function FieldRow({
   icon: Icon,
   label,
   description,
   children,
-  index = 0,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   description?: string;
   children: React.ReactNode;
-  index?: number;
 }) {
   return (
-    <div
-      className="group flex items-center justify-between p-4 bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.06] hover:border-white/[0.1] rounded-2xl transition-all duration-300 animate-in fade-in slide-in-from-bottom-2"
-      style={{ animationDelay: `${index * 75}ms`, animationFillMode: 'backwards' }}
-    >
+    <div className="group flex items-center justify-between p-4 bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.06] hover:border-white/[0.1] rounded-2xl transition-all duration-300">
       <div className="flex items-center gap-4">
         <div className="p-2.5 rounded-xl bg-white/[0.04] group-hover:bg-white/[0.06] transition-colors">
           <Icon className="w-4 h-4 text-zinc-400" />
@@ -128,76 +113,80 @@ function FieldRow({
 export function NotificationSection() {
   const [settings, setSettings] = useState<NotificationSettings>(DEFAULT_NOTIFICATION_SETTINGS);
   const [isLoading, setIsLoading] = useState(true);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const { isSupported, subscribe, unsubscribe } = usePushNotifications();
-  const supabaseRef = useRef(createClient());
+  const supabase = useRef(createClient()).current;
+  const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Get auth headers for Capacitor webview (cookies don't always work)
-  const getAuthHeaders = useCallback(async (): Promise<Record<string, string>> => {
-    try {
-      const { data: { session } } = await supabaseRef.current.auth.getSession();
-      if (session?.access_token) {
-        return {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        };
-      }
-    } catch {}
-    return { 'Content-Type': 'application/json' };
-  }, []);
-
+  // Load settings directly from Supabase (no API route needed)
   useEffect(() => {
-    const fetchSettings = async () => {
+    const load = async () => {
       try {
-        const headers = await getAuthHeaders();
-        const res = await fetch(`/api/notifications/settings?t=${Date.now()}`, {
-          cache: 'no-store',
-          headers,
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setSettings(data);
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { setIsLoading(false); return; }
+
+        const { data } = await supabase
+          .from('user_preferences')
+          .select('notification_settings')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (data?.notification_settings) {
+          const raw = data.notification_settings as Partial<NotificationSettings>;
+          setSettings({
+            ...DEFAULT_NOTIFICATION_SETTINGS,
+            ...raw,
+            reminder_days: Array.isArray(raw.reminder_days) ? raw.reminder_days : [raw.lead_days ?? 3],
+          });
         }
       } catch (err) {
-        console.error('Failed to fetch notification settings:', err);
+        console.error('Failed to load notification settings:', err);
       } finally {
         setIsLoading(false);
       }
     };
-    fetchSettings();
-  }, [getAuthHeaders]);
+    load();
+  }, [supabase]);
 
-  const saveSettings = useCallback(async (newSettings: NotificationSettings) => {
-    // Update UI immediately
+  // Save directly to Supabase (bypasses API route entirely)
+  const save = useCallback(async (newSettings: NotificationSettings) => {
     setSettings(newSettings);
-    // Save to server with auth token
+    setSaveStatus('saving');
+
     try {
-      const headers = await getAuthHeaders();
-      const res = await fetch(`/api/notifications/settings?t=${Date.now()}`, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify(newSettings),
-        cache: 'no-store',
-      });
-      if (res.ok) {
-        const saved = await res.json();
-        setSettings(saved);
-      } else {
-        console.error('Failed to save notification settings:', res.status);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.error('No user for save');
+        setSaveStatus('error');
+        return;
       }
+
+      const { error } = await supabase
+        .from('user_preferences')
+        .upsert({
+          user_id: user.id,
+          notification_settings: newSettings,
+        }, { onConflict: 'user_id' });
+
+      if (error) {
+        console.error('Supabase save failed:', error);
+        setSaveStatus('error');
+        return;
+      }
+
+      setSaveStatus('saved');
+      if (savedTimer.current) clearTimeout(savedTimer.current);
+      savedTimer.current = setTimeout(() => setSaveStatus('idle'), 2000);
     } catch (err) {
-      console.error('Failed to save notification settings:', err);
+      console.error('Save error:', err);
+      setSaveStatus('error');
     }
-  }, [getAuthHeaders]);
+  }, [supabase]);
 
   if (isLoading) {
     return (
       <section>
-        <SectionHeader
-          icon={Bell}
-          iconGradient="from-violet-500/80 to-amber-500/80"
-          title="Notifications"
-          description="Get reminded about upcoming bills"
-        />
+        <SectionHeader icon={Bell} iconGradient="from-violet-500/80 to-amber-500/80" title="Notifications" description="Get reminded about upcoming bills" />
         <div className="animate-pulse space-y-3">
           <div className="h-16 bg-white/[0.02] rounded-2xl" />
           <div className="h-16 bg-white/[0.02] rounded-2xl" />
@@ -210,60 +199,55 @@ export function NotificationSection() {
 
   return (
     <section>
-      <SectionHeader
-        icon={Bell}
-        iconGradient="from-violet-500/80 to-amber-500/80"
-        title="Notifications"
-        description="Get reminded about upcoming bills"
-      />
+      <SectionHeader icon={Bell} iconGradient="from-violet-500/80 to-amber-500/80" title="Notifications" description="Get reminded about upcoming bills" />
 
       <div className="space-y-3">
+        {/* Save status indicator */}
+        {saveStatus === 'saving' && (
+          <div className="flex items-center gap-2 text-xs text-zinc-400 px-1">
+            <Loader2 className="w-3 h-3 animate-spin" /> Saving...
+          </div>
+        )}
+        {saveStatus === 'saved' && (
+          <div className="flex items-center gap-2 text-xs text-emerald-400 px-1">
+            <Check className="w-3 h-3" /> Saved
+          </div>
+        )}
+        {saveStatus === 'error' && (
+          <div className="text-xs text-red-400 px-1">Failed to save — try again</div>
+        )}
+
         {/* Email Reminders */}
-        <FieldRow icon={Mail} label="Email Reminders" description="Receive bill reminders via email" index={0}>
-          <Toggle
-            enabled={settings.email_enabled}
-            onChange={(v) => saveSettings({ ...settings, email_enabled: v })}
-            color="#8B5CF6"
-          />
+        <FieldRow icon={Mail} label="Email Reminders" description="Receive bill reminders via email">
+          <Toggle enabled={settings.email_enabled} onChange={(v) => save({ ...settings, email_enabled: v })} color="#8B5CF6" />
         </FieldRow>
 
         {/* Push Notifications */}
-        <FieldRow icon={Smartphone} label="Push Notifications" description="Get notified when bills are due" index={1}>
+        <FieldRow icon={Smartphone} label="Push Notifications" description="Get notified when bills are due">
           <Toggle
             enabled={settings.push_enabled}
             onChange={async (enabled) => {
-              if (isSupported && enabled) {
-                await subscribe();
-              } else if (isSupported && !enabled) {
-                await unsubscribe();
-              }
-              saveSettings({ ...settings, push_enabled: enabled });
+              if (isSupported && enabled) await subscribe();
+              else if (isSupported && !enabled) await unsubscribe();
+              save({ ...settings, push_enabled: enabled });
             }}
             color="#8b5cf6"
           />
         </FieldRow>
 
         {/* Auto-Sync */}
-        <FieldRow icon={RefreshCw} label="Auto-Sync Bills" description="Automatically scan for bills daily" index={2}>
-          <Toggle
-            enabled={settings.auto_sync_enabled ?? false}
-            onChange={(v) => saveSettings({ ...settings, auto_sync_enabled: v })}
-            color="#10b981"
-          />
+        <FieldRow icon={RefreshCw} label="Auto-Sync Bills" description="Automatically scan for bills daily">
+          <Toggle enabled={settings.auto_sync_enabled ?? false} onChange={(v) => save({ ...settings, auto_sync_enabled: v })} color="#10b981" />
         </FieldRow>
 
         {/* Remind Me — Simple Dropdown */}
-        <FieldRow icon={Clock} label="Remind Me" description="When to remind before due date" index={3}>
+        <FieldRow icon={Clock} label="Remind Me" description="When to remind before due date">
           <div className="relative">
             <select
               value={currentReminderDay}
               onChange={(e) => {
                 const day = Number(e.target.value);
-                saveSettings({
-                  ...settings,
-                  reminder_days: [day],
-                  lead_days: day,
-                });
+                save({ ...settings, reminder_days: [day], lead_days: day });
               }}
               className={cn(
                 'appearance-none pl-4 pr-10 py-2.5 min-w-[160px]',
@@ -285,9 +269,7 @@ export function NotificationSection() {
         </FieldRow>
 
         {/* Info */}
-        <div className="relative p-4 rounded-xl bg-violet-500/[0.03] border border-violet-500/10 animate-in fade-in slide-in-from-bottom-2"
-          style={{ animationDelay: '300ms', animationFillMode: 'backwards' }}
-        >
+        <div className="relative p-4 rounded-xl bg-violet-500/[0.03] border border-violet-500/10">
           <div className="flex items-start gap-3">
             <div className="p-1.5 rounded-lg bg-violet-500/10">
               <Info className="w-3.5 h-3.5 text-violet-400" />
