@@ -56,9 +56,10 @@ export async function GET(request: Request) {
       `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings?gmail=connected&provider=${providerName}&provider_connected=${providerLabel}`
     );
   } catch (error) {
-    console.error('Email OAuth callback error:', error);
+    const errMsg = error instanceof Error ? error.message : String(error);
+    console.error('Email OAuth callback error:', errMsg);
     return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings?error=callback_failed`
+      `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings?error=callback_failed&details=${encodeURIComponent(errMsg)}`
     );
   }
 }

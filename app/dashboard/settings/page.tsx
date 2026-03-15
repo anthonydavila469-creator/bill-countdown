@@ -275,6 +275,14 @@ export default function SettingsPage() {
   useEffect(() => {
     const checkAuth = async () => {
       const urlParams = new URLSearchParams(window.location.search);
+      const oauthError = urlParams.get('error');
+      const errorDetails = urlParams.get('details');
+      if (oauthError) {
+        console.error('Email OAuth error:', oauthError, errorDetails);
+        alert(`Email connection failed: ${errorDetails || oauthError}`);
+        // Clean URL
+        window.history.replaceState({}, '', window.location.pathname);
+      }
       const gmailJustConnected = urlParams.get('gmail') === 'connected';
       const providerFromUrl = (urlParams.get('provider') as EmailProviderName | null) || 'gmail';
 
