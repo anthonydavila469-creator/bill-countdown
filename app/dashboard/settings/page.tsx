@@ -694,22 +694,25 @@ export default function SettingsPage() {
                               className={`relative w-12 h-12 rounded-xl bg-gradient-to-br ${provider.gradient} flex items-center justify-center shadow-lg`}
                             >
                               {provider.name === 'gmail' && (
-                                <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none">
-                                  <path d="M22 6L12 13L2 6V4L12 11L22 4V6Z" fill="white" opacity="0.9"/>
-                                  <path d="M2 6L12 13L22 6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-                                  <rect x="2" y="4" width="20" height="16" rx="3" stroke="white" strokeWidth="1.5" fill="none" opacity="0.6"/>
+                                <svg viewBox="0 0 48 48" className="w-7 h-7">
+                                  <path fill="#4caf50" d="M45,16.2l-5,2.75l-5,4.75L35,40h7c1.657,0,3-1.343,3-3V16.2z"/>
+                                  <path fill="#1e88e5" d="M3,16.2l3.614,1.71L13,23.7V40H6c-1.657,0-3-1.343-3-3V16.2z"/>
+                                  <polygon fill="#e53935" points="35,11.2 24,19.45 13,11.2 12,17 13,23.7 24,31.95 35,23.7 36,17"/>
+                                  <path fill="#c62828" d="M3,12.298V16.2l10,7.5V11.2L9.876,8.859C9.132,8.301,8.228,8,7.298,8h0C4.924,8,3,9.924,3,12.298z"/>
+                                  <path fill="#fbc02d" d="M45,12.298V16.2l-10,7.5V11.2l3.124-2.341C38.868,8.301,39.772,8,40.702,8h0 C43.076,8,45,9.924,45,12.298z"/>
                                 </svg>
                               )}
                               {provider.name === 'yahoo' && (
-                                <svg viewBox="0 0 24 24" className="w-6 h-6" fill="white">
-                                  <path d="M12 16L7.5 6H10L12 11L14 6H16.5L12 16Z" opacity="0.95"/>
-                                  <circle cx="12" cy="19" r="1.5" opacity="0.95"/>
-                                </svg>
+                                <span className="text-2xl font-black text-white tracking-tighter leading-none">Y!</span>
                               )}
                               {provider.name === 'outlook' && (
-                                <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none">
-                                  <rect x="3" y="5" width="18" height="14" rx="2.5" stroke="white" strokeWidth="1.5" opacity="0.6"/>
-                                  <path d="M3 7L12 13L21 7" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none" opacity="0.9"/>
+                                <svg viewBox="0 0 48 48" className="w-7 h-7">
+                                  <path fill="#1976d2" d="M28,13h14.533C43.343,13,44,13.657,44,14.467v19.066C44,34.343,43.343,35,42.533,35H28V13z"/>
+                                  <rect width="14" height="22" x="28" y="13" fill="#2196f3"/>
+                                  <polygon fill="#e3f2fd" points="28,13 28,35 42.533,35 44,34 44,14"/>
+                                  <path fill="#1565c0" d="M4,41.5h21c1.105,0,2-0.895,2-2v-31c0-1.105-0.895-2-2-2H4c-1.105,0-2,0.895-2,2v31 C2,40.605,2.895,41.5,4,41.5z"/>
+                                  <ellipse cx="14.5" cy="24.5" fill="#e3f2fd" rx="7.5" ry="9.5"/>
+                                  <ellipse cx="14.5" cy="24.5" fill="#1565c0" rx="5" ry="7"/>
                                 </svg>
                               )}
                             </div>
