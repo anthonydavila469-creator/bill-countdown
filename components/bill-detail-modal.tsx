@@ -217,7 +217,7 @@ export function BillDetailModal({
               {/* Source */}
               <div className="pt-2 border-t border-white/5">
                 <p className="text-xs text-zinc-500">
-                  Added {bill.source === 'gmail' ? 'from email' : 'manually'} •{' '}
+                  Added {bill.source !== 'manual' ? 'from email' : 'manually'} •{' '}
                   {new Date(bill.created_at).toLocaleDateString()}
                 </p>
               </div>

@@ -1,19 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/contexts/theme-context";
 import { SubscriptionProvider } from "@/contexts/subscription-context";
 import { ToastProvider } from "@/components/ui/toast";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: {
@@ -88,7 +77,11 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#0F0A1E]`}
+        className="antialiased bg-[#0F0A1E]"
+        style={{
+          ['--font-geist-sans' as string]: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+          ['--font-geist-mono' as string]: '"SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace',
+        }}
       >
         <ThemeProvider>
           <SubscriptionProvider>

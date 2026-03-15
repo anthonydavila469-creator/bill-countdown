@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { ParsedBill, categoryEmojis, BillCategory } from '@/types';
 import { getFallbackPaymentUrl, isValidPaymentUrl } from '@/lib/vendor-payment-urls';
+import { getEmailConnection } from '@/lib/email/tokens';
 
 // POST /api/bills/import - Import multiple parsed bills
 export async function POST(request: Request) {
@@ -65,6 +66,9 @@ export async function POST(request: Request) {
 
     console.log(`Importing ${newBills.length} new bills (filtered out ${parsedBills.length - newBills.length} duplicates)`);
 
+    const connection = await getEmailConnection(supabase, user.id);
+    const emailSource = connection?.email_provider || 'gmail';
+
     // Transform parsed bills to database format
     const billsToInsert = newBills.map((bill) => ({
       user_id: user.id,
@@ -76,7 +80,7 @@ export async function POST(request: Request) {
       is_paid: false,
       is_recurring: bill.is_recurring ?? false,
       recurrence_interval: bill.recurrence_interval || null,
-      source: 'gmail',
+      source: bill.source || emailSource,
       gmail_message_id: bill.source_email_id || null,
       payment_url: (bill.payment_url && isValidPaymentUrl(bill.payment_url))
         ? bill.payment_url

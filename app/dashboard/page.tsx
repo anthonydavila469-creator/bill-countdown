@@ -422,11 +422,11 @@ export default function DashboardPage() {
   // Show onboarding for new users with no bills
   if (showOnboarding && hasCheckedOnboarding) {
     return (
-      <OnboardingScreen
-        onComplete={handleOnboardingComplete}
-        onAddManually={handleAddManuallyFromOnboarding}
-        isGmailConnected={isGmailConnected}
-      />
+        <OnboardingScreen
+          onComplete={handleOnboardingComplete}
+          onAddManually={handleAddManuallyFromOnboarding}
+          isEmailConnected={isGmailConnected}
+        />
     );
   }
 

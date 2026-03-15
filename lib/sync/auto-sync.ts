@@ -4,13 +4,6 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import {
-  fetchBillEmails,
-  refreshAccessToken,
-  extractEmailBody,
-  extractEmailHtml,
-  getHeader,
-} from '@/lib/gmail/client';
 import { processEmailBatch, ProcessEmailOptions } from '@/lib/bill-extraction';
 import {
   isKnownBillerDomain,
@@ -18,6 +11,8 @@ import {
   isPromotionalEmail,
 } from './known-billers';
 import type { SyncResult } from '@/types';
+import { ensureValidAccessToken, getEmailConnection } from '@/lib/email/tokens';
+import { getProvider, getProviderLabel } from '@/lib/email/providers';
 
 /**
  * Pre-filter result for tracking statistics
@@ -25,16 +20,6 @@ import type { SyncResult } from '@/types';
 interface PreFilterResult {
   passed: ProcessEmailOptions['email'][];
   filteredCount: number;
-}
-
-/**
- * Gmail token data from database
- */
-interface GmailTokenData {
-  access_token: string;
-  refresh_token: string;
-  expires_at: string;
-  email: string;
 }
 
 /**
@@ -204,14 +189,8 @@ export async function performAutoSync(
   const syncLogId = await createSyncLog(supabase, userId, syncType);
 
   try {
-    // Get stored Gmail tokens
-    const { data: tokenData, error: tokenError } = await supabase
-      .from('gmail_tokens')
-      .select('access_token, refresh_token, expires_at, email')
-      .eq('user_id', userId)
-      .single();
-
-    if (tokenError || !tokenData) {
+    const connection = await getEmailConnection(supabase, userId);
+    if (!connection) {
       const errorMsg = 'Gmail not connected';
       if (syncLogId) {
         await updateSyncLog(supabase, syncLogId, {
@@ -231,56 +210,42 @@ export async function performAutoSync(
       };
     }
 
-    let accessToken = (tokenData as GmailTokenData).access_token;
-
-    // Check if token is expired and refresh if needed
-    const expiresAt = new Date((tokenData as GmailTokenData).expires_at).getTime();
-    if (Date.now() >= expiresAt - 60000) {
-      try {
-        const newTokens = await refreshAccessToken(
-          (tokenData as GmailTokenData).refresh_token
-        );
-        accessToken = newTokens.access_token;
-
-        // Update stored token
-        await supabase
-          .from('gmail_tokens')
-          .update({
-            access_token: newTokens.access_token,
-            expires_at: new Date(newTokens.expires_at).toISOString(),
-          })
-          .eq('user_id', userId);
-      } catch {
-        const errorMsg = 'Failed to refresh Gmail token';
-        if (syncLogId) {
-          await updateSyncLog(supabase, syncLogId, {
-            status: 'failed',
-            error_message: errorMsg,
-          });
-        }
-
-        // Update auto_sync_error
-        await supabase
-          .from('gmail_tokens')
-          .update({ auto_sync_error: errorMsg })
-          .eq('user_id', userId);
-
-        return {
-          success: false,
-          syncLogId: syncLogId || undefined,
-          emailsFetched: 0,
-          emailsFiltered: 0,
-          emailsProcessed: 0,
-          billsCreated: 0,
-          billsNeedsReview: 0,
-          error: errorMsg,
-        };
+    let validConnection;
+    try {
+      validConnection = await ensureValidAccessToken(supabase, userId, connection);
+    } catch {
+      const errorMsg = 'Failed to refresh Gmail token';
+      if (syncLogId) {
+        await updateSyncLog(supabase, syncLogId, {
+          status: 'failed',
+          error_message: errorMsg,
+        });
       }
+
+      await supabase
+        .from('gmail_tokens')
+        .update({ auto_sync_error: errorMsg })
+        .eq('user_id', userId);
+
+      return {
+        success: false,
+        syncLogId: syncLogId || undefined,
+        emailsFetched: 0,
+        emailsFiltered: 0,
+        emailsProcessed: 0,
+        billsCreated: 0,
+        billsNeedsReview: 0,
+        error: errorMsg,
+      };
     }
 
-    // Fetch bill-related emails from Gmail
-    const messages = await fetchBillEmails(accessToken, maxResults, daysBack);
-    console.log(`[AUTO-SYNC] Gmail returned ${messages.length} messages for user ${userId}`);
+    const provider = getProvider(validConnection.email_provider);
+    const messages = await provider.fetchEmails(validConnection.access_token, {
+      maxResults,
+      daysBack,
+      emailAddress: validConnection.email,
+    });
+    console.log(`[AUTO-SYNC] ${getProviderLabel(validConnection.email_provider)} returned ${messages.length} messages for user ${userId}`);
 
     // Transform messages to extraction format
     const emails: ProcessEmailOptions['email'][] = [];
@@ -290,18 +255,13 @@ export async function performAutoSync(
       if (seenIds.has(msg.id)) continue;
       seenIds.add(msg.id);
 
-      const from = getHeader(msg, 'From');
-      const subject = getHeader(msg, 'Subject');
-      const body = extractEmailBody(msg);
-      const htmlBody = extractEmailHtml(msg);
-
       emails.push({
         gmail_message_id: msg.id,
-        subject,
-        from,
-        date: new Date(parseInt(msg.internalDate)).toISOString(),
-        body_plain: body,
-        body_html: htmlBody,
+        subject: msg.subject,
+        from: msg.from,
+        date: msg.date,
+        body_plain: msg.body,
+        body_html: msg.body_html,
       });
     }
 

@@ -15,11 +15,19 @@ import {
   RefreshCw,
 } from 'lucide-react';
 
+type EmailProviderName = 'gmail' | 'yahoo' | 'outlook';
+
+const EMAIL_PROVIDERS: Array<{ name: EmailProviderName; label: string; color: string }> = [
+  { name: 'gmail', label: 'Gmail', color: '#EA4335' },
+  { name: 'yahoo', label: 'Yahoo Mail', color: '#6001D2' },
+  { name: 'outlook', label: 'Microsoft Outlook', color: '#0078D4' },
+];
+
 interface GmailSyncStepProps {
   onBack: () => void;
   onComplete: (importedBills: Bill[]) => void;
   onSkip: () => void;
-  isGmailConnected: boolean;
+  isEmailConnected: boolean;
 }
 
 type SyncStatus = 'idle' | 'connecting' | 'syncing' | 'parsing' | 'success' | 'no_bills' | 'error';
@@ -28,39 +36,31 @@ export function GmailSyncStep({
   onBack,
   onComplete,
   onSkip,
-  isGmailConnected,
+  isEmailConnected,
 }: GmailSyncStepProps) {
   const { canSyncGmail, incrementGmailSyncs } = useSubscription();
   const [status, setStatus] = useState<SyncStatus>('idle');
   const [foundBills, setFoundBills] = useState<Bill[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  // Start sync automatically if Gmail is already connected
+  // Start sync automatically if an email provider is already connected
   useEffect(() => {
-    if (isGmailConnected && status === 'idle') {
+    if (isEmailConnected && status === 'idle') {
       handleSync();
     }
-  }, [isGmailConnected]);
+  }, [isEmailConnected]);
 
-  const handleConnect = async () => {
+  const handleConnect = async (provider: EmailProviderName) => {
     setStatus('connecting');
     setError(null);
 
     try {
-      const response = await fetch('/api/gmail/connect');
-      const data = await response.json();
-
-      if (data.url) {
-        // Store return path for OAuth callback
-        localStorage.setItem('gmail_oauth_return', '/dashboard?onboarding=gmail_sync');
-        window.location.href = data.url;
-      } else {
-        throw new Error('Failed to get OAuth URL');
-      }
+      localStorage.setItem('gmail_oauth_return', '/dashboard?onboarding=gmail_sync');
+      window.location.href = `/api/email/connect?provider=${provider}`;
     } catch (err) {
-      console.error('Gmail connect error:', err);
+      console.error('Email connect error:', err);
       setStatus('error');
-      setError('Failed to connect to Gmail. Please try again.');
+      setError('Failed to connect your email provider. Please try again.');
     }
   };
 
@@ -69,7 +69,6 @@ export function GmailSyncStep({
     setError(null);
 
     try {
-      // Fetch emails from Gmail
       const syncResponse = await fetch('/api/gmail/sync', {
         method: 'POST',
       });
@@ -100,9 +99,9 @@ export function GmailSyncStep({
         setStatus('no_bills');
       }
     } catch (err) {
-      console.error('Gmail sync error:', err);
+      console.error('Email sync error:', err);
       setStatus('error');
-      setError('Failed to sync bills from Gmail. Please try again.');
+      setError('Failed to sync bills from email. Please try again.');
     }
   };
 
@@ -136,18 +135,27 @@ export function GmailSyncStep({
               <div className="absolute -inset-2 bg-gradient-to-br from-violet-500/30 to-violet-500/30 rounded-3xl blur-xl -z-10" />
             </div>
             <h2 className="text-xl font-bold text-white mb-2">
-              Connect Gmail
+              Connect Email
             </h2>
             <p className="text-white/50 mb-8">
-              We&apos;ll scan your inbox for bill-related emails and automatically import them.
+              Pick Gmail, Yahoo Mail, or Outlook. We&apos;ll scan your inbox for bill-related emails and automatically import them.
             </p>
-            <button
-              onClick={handleConnect}
-              className="w-full py-4 rounded-xl font-semibold bg-gradient-to-r from-violet-500 to-violet-500 text-white hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
-            >
-              <Mail className="w-5 h-5" />
-              Connect Gmail
-            </button>
+            <div className="space-y-3">
+              {EMAIL_PROVIDERS.map((provider) => (
+                <button
+                  key={provider.name}
+                  onClick={() => handleConnect(provider.name)}
+                  className="w-full py-4 px-4 rounded-xl font-semibold text-white transition-opacity flex items-center justify-between gap-3"
+                  style={{ backgroundColor: provider.color }}
+                >
+                  <span className="flex items-center gap-3">
+                    <Mail className="w-5 h-5" />
+                    {provider.label}
+                  </span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              ))}
+            </div>
           </div>
         );
 
@@ -156,7 +164,7 @@ export function GmailSyncStep({
           <div className="text-center py-8">
             <Loader2 className="w-12 h-12 text-violet-400 animate-spin mx-auto mb-4" />
             <h2 className="text-xl font-bold text-white mb-2">Connecting...</h2>
-            <p className="text-white/50">Opening Gmail authorization...</p>
+            <p className="text-white/50">Opening email authorization...</p>
           </div>
         );
 
@@ -296,7 +304,7 @@ export function GmailSyncStep({
             <ChevronLeft className="w-5 h-5" />
           </button>
           <div>
-            <h2 className="text-xl font-bold text-white">Gmail Sync</h2>
+            <h2 className="text-xl font-bold text-white">Email Sync</h2>
             <p className="text-sm text-white/50">Import bills from your inbox</p>
           </div>
         </div>

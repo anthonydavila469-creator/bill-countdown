@@ -186,9 +186,9 @@ export function BillImportModal({
       if (!response.ok) {
         const data = await response.json();
         if (data.code === 'GMAIL_NOT_CONNECTED') {
-          throw new Error('Gmail is not connected. Please connect Gmail in Settings.');
+          throw new Error('No email provider is connected. Connect Gmail, Yahoo Mail, or Outlook in Settings.');
         } else if (data.code === 'TOKEN_REFRESH_FAILED') {
-          throw new Error('Gmail access expired. Please reconnect Gmail in Settings.');
+          throw new Error('Email access expired. Reconnect your provider in Settings.');
         }
         throw new Error(data.error || 'Failed to scan emails');
       }
