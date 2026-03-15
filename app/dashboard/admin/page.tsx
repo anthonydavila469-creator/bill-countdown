@@ -212,10 +212,10 @@ export default function AdminDashboardPage() {
 
         {/* Product Health */}
         <section>
-          <SectionHeader icon={Zap} gradient="from-amber-500/80 to-yellow-600/80" title="Product Health" subtitle="Is the AI working?" />
+          <SectionHeader icon={Zap} gradient="from-amber-500/80 to-yellow-600/80" title="Product Health" subtitle="Bill detection quality" />
           <div className="grid grid-cols-2 gap-3">
-            <MetricCard icon={Zap} label="Scan Success" value={stats.scanSuccessRate} suffix="%" gradient="from-amber-500/80 to-yellow-600/80" index={8} />
-            <MetricCard icon={BarChart3} label="Total Scans" value={stats.totalScans} gradient="from-orange-500/80 to-amber-600/80" index={9} />
+            <MetricCard icon={Zap} label="Parse Quality" value={stats.scanSuccessRate} suffix="%" gradient="from-amber-500/80 to-yellow-600/80" index={8} />
+            <MetricCard icon={BarChart3} label="Total Bills" value={stats.totalScans} gradient="from-orange-500/80 to-amber-600/80" index={9} />
           </div>
         </section>
 

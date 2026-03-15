@@ -47,7 +47,7 @@ export async function GET() {
         .gte('created_at', todayISO),
 
       // Email connections (all providers)
-      admin.from('gmail_tokens').select('id, email_provider'),
+      admin.from('gmail_tokens').select('id, user_id, email_provider'),
 
       // Active users (7d) — users who logged in or added bills recently
       admin.from('bills').select('user_id')
@@ -60,11 +60,12 @@ export async function GET() {
       admin.from('user_preferences').select('user_id, subscription_status')
         .eq('subscription_status', 'active'),
 
-      // Total scan runs (placeholder until hybrid parser tables exist)
-      Promise.resolve({ count: 0, data: null, error: null }),
+      // Total bills (as proxy for scan success until parser tables exist)
+      admin.from('bills').select('id', { count: 'exact', head: true }),
 
-      // Successful scans (placeholder)
-      Promise.resolve({ count: 0, data: null, error: null }),
+      // Bills with amounts (successfully parsed)
+      admin.from('bills').select('id', { count: 'exact', head: true })
+        .not('amount', 'is', null),
 
       // Signups last 30 days (for growth chart)
       admin.from('user_preferences').select('user_id, created_at')
@@ -97,9 +98,9 @@ export async function GET() {
     const proUsers = (proUsersRes.data || []).length;
     const conversionRate = totalUsers > 0 ? ((proUsers / totalUsers) * 100) : 0;
 
-    // Scan success rate
-    const totalScans = (scanRunsRes as { count: number }).count || 0;
-    const successfulScans = (scanSuccessRes as { count: number }).count || 0;
+    // Parse quality: bills with amounts vs total bills
+    const totalScans = scanRunsRes.count || 0;
+    const successfulScans = scanSuccessRes.count || 0;
     const scanSuccessRate = totalScans > 0 ? ((successfulScans / totalScans) * 100) : 0;
 
     // 30d retention: users who signed up 8-30 days ago AND were active in last 7 days
@@ -121,7 +122,7 @@ export async function GET() {
 
     // Build users list with email connection status
     const connectedUserIds = new Set(
-      emailConnections.map((r: { id: string }) => r.id)
+      emailConnections.map((r: { user_id: string }) => r.user_id)
     );
     const users = (usersListRes.data || []).map((row: { user_id: string; created_at: string; notification_settings: unknown }) => ({
       id: row.user_id,
