@@ -50,33 +50,29 @@ const EMAIL_PROVIDERS: Array<{
   name: EmailProviderName;
   label: string;
   color: string;
-  gradient: string;
-  bgGlow: string;
+  logo: string;
   description: string;
 }> = [
   {
     name: 'gmail',
     label: 'Gmail',
     color: '#EA4335',
-    gradient: 'from-red-500 to-orange-500',
-    bgGlow: 'rgba(234, 67, 53, 0.15)',
-    description: 'Google account',
+    logo: '/logos/gmail.png',
+    description: 'Connect your Google account',
   },
   {
     name: 'yahoo',
     label: 'Yahoo Mail',
     color: '#6001D2',
-    gradient: 'from-purple-600 to-indigo-600',
-    bgGlow: 'rgba(96, 1, 210, 0.15)',
-    description: 'Yahoo account',
+    logo: '/logos/yahoo.png',
+    description: 'Connect your Yahoo account',
   },
   {
     name: 'outlook',
     label: 'Outlook',
     color: '#0078D4',
-    gradient: 'from-blue-500 to-cyan-500',
-    bgGlow: 'rgba(0, 120, 212, 0.15)',
-    description: 'Microsoft account',
+    logo: '/logos/outlook.png',
+    description: 'Connect your Microsoft account',
   },
 ];
 
@@ -662,81 +658,36 @@ export default function SettingsPage() {
                       </div>
                     </div>
 
-                    <div className="grid gap-3">
-                      {EMAIL_PROVIDERS.map((provider, index) => (
+                    <div className="space-y-3">
+                      {EMAIL_PROVIDERS.map((provider) => (
                         <button
                           key={provider.name}
                           onClick={() => handleConnectProvider(provider.name)}
-                          className="group relative w-full flex items-center gap-4 px-5 py-4 overflow-hidden rounded-2xl font-medium transition-all duration-300 border border-white/[0.08] hover:border-white/[0.15] bg-white/[0.02] hover:bg-white/[0.05]"
-                          style={{
-                            animationDelay: `${index * 80}ms`,
-                          }}
+                          className="group relative w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all duration-300 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] hover:border-white/[0.12]"
                         >
-                          {/* Hover glow effect */}
-                          <div
-                            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl"
-                            style={{ background: `radial-gradient(ellipse at 30% 50%, ${provider.bgGlow}, transparent 70%)` }}
-                          />
-
-                          {/* Left accent bar */}
-                          <div
-                            className="absolute inset-y-0 left-0 w-[3px] rounded-l-2xl transition-all duration-300 group-hover:w-[4px]"
-                            style={{ backgroundColor: provider.color }}
-                          />
-
-                          {/* Provider icon - branded circle with gradient + glow */}
-                          <div className="relative flex-shrink-0">
-                            <div
-                              className="absolute inset-0 rounded-xl blur-lg opacity-0 group-hover:opacity-60 transition-opacity duration-500"
-                              style={{ backgroundColor: provider.color }}
+                          {/* Logo */}
+                          <div className="relative flex-shrink-0 w-11 h-11 rounded-xl bg-white/[0.08] flex items-center justify-center overflow-hidden">
+                            <Image
+                              src={provider.logo}
+                              alt={provider.label}
+                              width={28}
+                              height={28}
+                              className="object-contain"
                             />
-                            <div
-                              className={`relative w-12 h-12 rounded-xl bg-gradient-to-br ${provider.gradient} flex items-center justify-center shadow-lg`}
-                            >
-                              {provider.name === 'gmail' && (
-                                <svg viewBox="0 0 48 48" className="w-7 h-7">
-                                  <path fill="#4caf50" d="M45,16.2l-5,2.75l-5,4.75L35,40h7c1.657,0,3-1.343,3-3V16.2z"/>
-                                  <path fill="#1e88e5" d="M3,16.2l3.614,1.71L13,23.7V40H6c-1.657,0-3-1.343-3-3V16.2z"/>
-                                  <polygon fill="#e53935" points="35,11.2 24,19.45 13,11.2 12,17 13,23.7 24,31.95 35,23.7 36,17"/>
-                                  <path fill="#c62828" d="M3,12.298V16.2l10,7.5V11.2L9.876,8.859C9.132,8.301,8.228,8,7.298,8h0C4.924,8,3,9.924,3,12.298z"/>
-                                  <path fill="#fbc02d" d="M45,12.298V16.2l-10,7.5V11.2l3.124-2.341C38.868,8.301,39.772,8,40.702,8h0 C43.076,8,45,9.924,45,12.298z"/>
-                                </svg>
-                              )}
-                              {provider.name === 'yahoo' && (
-                                <span className="text-2xl font-black text-white tracking-tighter leading-none">Y!</span>
-                              )}
-                              {provider.name === 'outlook' && (
-                                <svg viewBox="0 0 48 48" className="w-7 h-7">
-                                  <path fill="#1976d2" d="M28,13h14.533C43.343,13,44,13.657,44,14.467v19.066C44,34.343,43.343,35,42.533,35H28V13z"/>
-                                  <rect width="14" height="22" x="28" y="13" fill="#2196f3"/>
-                                  <polygon fill="#e3f2fd" points="28,13 28,35 42.533,35 44,34 44,14"/>
-                                  <path fill="#1565c0" d="M4,41.5h21c1.105,0,2-0.895,2-2v-31c0-1.105-0.895-2-2-2H4c-1.105,0-2,0.895-2,2v31 C2,40.605,2.895,41.5,4,41.5z"/>
-                                  <ellipse cx="14.5" cy="24.5" fill="#e3f2fd" rx="7.5" ry="9.5"/>
-                                  <ellipse cx="14.5" cy="24.5" fill="#1565c0" rx="5" ry="7"/>
-                                </svg>
-                              )}
-                            </div>
                           </div>
 
-                          {/* Text content */}
-                          <div className="flex-1 text-left relative z-10">
-                            <p className="text-[15px] text-white font-semibold tracking-wide group-hover:text-white transition-colors">
+                          {/* Text */}
+                          <div className="flex-1 text-left">
+                            <p className="text-[15px] text-white font-semibold">
                               {provider.label}
                             </p>
-                            <p className="text-xs text-zinc-500 group-hover:text-zinc-400 transition-colors mt-0.5">
+                            <p className="text-xs text-zinc-500 mt-0.5">
                               {provider.description}
                             </p>
                           </div>
 
-                          {/* Connect arrow */}
-                          <div className="relative z-10 flex items-center gap-2">
-                            <span className="text-xs font-medium text-zinc-600 group-hover:text-zinc-400 transition-colors hidden sm:block">
-                              Connect
-                            </span>
-                            <div className="w-8 h-8 rounded-lg bg-white/[0.04] group-hover:bg-white/[0.08] border border-white/[0.06] group-hover:border-white/[0.12] flex items-center justify-center transition-all duration-300">
-                              <ArrowRight className="w-3.5 h-3.5 text-zinc-500 group-hover:text-white group-hover:translate-x-0.5 transition-all duration-300" />
-                            </div>
-                          </div>
+                          {/* Arrow */}
+                          <ArrowRight className="w-4 h-4 text-zinc-600 group-hover:text-zinc-300 group-hover:translate-x-0.5 transition-all duration-200 flex-shrink-0" />
                         </button>
                       ))}
                     </div>
