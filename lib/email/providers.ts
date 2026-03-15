@@ -342,7 +342,7 @@ class YahooImapClient {
 
 class YahooProvider implements EmailProvider {
   readonly name = 'yahoo' as const;
-  private readonly scopes = ['openid', 'email', 'mail-r'];
+  private readonly scopes = ['openid', 'email'];
 
   getAuthUrl(): string {
     return buildOAuthUrl('https://api.login.yahoo.com/oauth2/request_auth', {
