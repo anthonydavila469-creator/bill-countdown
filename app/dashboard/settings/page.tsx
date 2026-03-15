@@ -29,6 +29,7 @@ import {
   ExternalLink,
   Lightbulb,
   RefreshCw,
+  ArrowRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BillImportModal } from '@/components/bill-import-modal';
@@ -49,10 +50,34 @@ const EMAIL_PROVIDERS: Array<{
   name: EmailProviderName;
   label: string;
   color: string;
+  gradient: string;
+  bgGlow: string;
+  description: string;
 }> = [
-  { name: 'gmail', label: 'Gmail', color: '#EA4335' },
-  { name: 'yahoo', label: 'Yahoo Mail', color: '#6001D2' },
-  { name: 'outlook', label: 'Microsoft Outlook', color: '#0078D4' },
+  {
+    name: 'gmail',
+    label: 'Gmail',
+    color: '#EA4335',
+    gradient: 'from-red-500 to-orange-500',
+    bgGlow: 'rgba(234, 67, 53, 0.15)',
+    description: 'Google account',
+  },
+  {
+    name: 'yahoo',
+    label: 'Yahoo Mail',
+    color: '#6001D2',
+    gradient: 'from-purple-600 to-indigo-600',
+    bgGlow: 'rgba(96, 1, 210, 0.15)',
+    description: 'Yahoo account',
+  },
+  {
+    name: 'outlook',
+    label: 'Outlook',
+    color: '#0078D4',
+    gradient: 'from-blue-500 to-cyan-500',
+    bgGlow: 'rgba(0, 120, 212, 0.15)',
+    description: 'Microsoft account',
+  },
 ];
 
 function getProviderLabel(provider: EmailProviderName): string {
@@ -638,31 +663,77 @@ export default function SettingsPage() {
                     </div>
 
                     <div className="grid gap-3">
-                      {EMAIL_PROVIDERS.map((provider) => (
+                      {EMAIL_PROVIDERS.map((provider, index) => (
                         <button
                           key={provider.name}
                           onClick={() => handleConnectProvider(provider.name)}
-                          className="group relative w-full flex items-center justify-between gap-4 px-5 py-4 overflow-hidden rounded-xl font-medium transition-all duration-300 border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.05]"
+                          className="group relative w-full flex items-center gap-4 px-5 py-4 overflow-hidden rounded-2xl font-medium transition-all duration-300 border border-white/[0.08] hover:border-white/[0.15] bg-white/[0.02] hover:bg-white/[0.05]"
+                          style={{
+                            animationDelay: `${index * 80}ms`,
+                          }}
                         >
+                          {/* Hover glow effect */}
                           <div
-                            className="absolute inset-y-0 left-0 w-1"
+                            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl"
+                            style={{ background: `radial-gradient(ellipse at 30% 50%, ${provider.bgGlow}, transparent 70%)` }}
+                          />
+
+                          {/* Left accent bar */}
+                          <div
+                            className="absolute inset-y-0 left-0 w-[3px] rounded-l-2xl transition-all duration-300 group-hover:w-[4px]"
                             style={{ backgroundColor: provider.color }}
                           />
-                          <div className="flex items-center gap-3 relative z-10">
+
+                          {/* Provider icon - branded circle with gradient + glow */}
+                          <div className="relative flex-shrink-0">
                             <div
-                              className="w-10 h-10 rounded-2xl flex items-center justify-center text-white font-semibold"
+                              className="absolute inset-0 rounded-xl blur-lg opacity-0 group-hover:opacity-60 transition-opacity duration-500"
                               style={{ backgroundColor: provider.color }}
+                            />
+                            <div
+                              className={`relative w-12 h-12 rounded-xl bg-gradient-to-br ${provider.gradient} flex items-center justify-center shadow-lg`}
                             >
-                              {provider.name === 'gmail' ? 'G' : provider.name === 'yahoo' ? 'Y' : 'O'}
-                            </div>
-                            <div className="text-left">
-                              <p className="text-white font-semibold">{provider.label}</p>
-                              <p className="text-sm text-zinc-500">
-                                Read-only bill detection and sync
-                              </p>
+                              {provider.name === 'gmail' && (
+                                <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none">
+                                  <path d="M22 6L12 13L2 6V4L12 11L22 4V6Z" fill="white" opacity="0.9"/>
+                                  <path d="M2 6L12 13L22 6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                                  <rect x="2" y="4" width="20" height="16" rx="3" stroke="white" strokeWidth="1.5" fill="none" opacity="0.6"/>
+                                </svg>
+                              )}
+                              {provider.name === 'yahoo' && (
+                                <svg viewBox="0 0 24 24" className="w-6 h-6" fill="white">
+                                  <path d="M12 16L7.5 6H10L12 11L14 6H16.5L12 16Z" opacity="0.95"/>
+                                  <circle cx="12" cy="19" r="1.5" opacity="0.95"/>
+                                </svg>
+                              )}
+                              {provider.name === 'outlook' && (
+                                <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none">
+                                  <rect x="3" y="5" width="18" height="14" rx="2.5" stroke="white" strokeWidth="1.5" opacity="0.6"/>
+                                  <path d="M3 7L12 13L21 7" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none" opacity="0.9"/>
+                                </svg>
+                              )}
                             </div>
                           </div>
-                          <ExternalLink className="w-4 h-4 text-zinc-500 relative z-10" />
+
+                          {/* Text content */}
+                          <div className="flex-1 text-left relative z-10">
+                            <p className="text-[15px] text-white font-semibold tracking-wide group-hover:text-white transition-colors">
+                              {provider.label}
+                            </p>
+                            <p className="text-xs text-zinc-500 group-hover:text-zinc-400 transition-colors mt-0.5">
+                              {provider.description}
+                            </p>
+                          </div>
+
+                          {/* Connect arrow */}
+                          <div className="relative z-10 flex items-center gap-2">
+                            <span className="text-xs font-medium text-zinc-600 group-hover:text-zinc-400 transition-colors hidden sm:block">
+                              Connect
+                            </span>
+                            <div className="w-8 h-8 rounded-lg bg-white/[0.04] group-hover:bg-white/[0.08] border border-white/[0.06] group-hover:border-white/[0.12] flex items-center justify-center transition-all duration-300">
+                              <ArrowRight className="w-3.5 h-3.5 text-zinc-500 group-hover:text-white group-hover:translate-x-0.5 transition-all duration-300" />
+                            </div>
+                          </div>
                         </button>
                       ))}
                     </div>
