@@ -322,9 +322,14 @@ export default function SettingsPage() {
   };
 
   const handleConnectProvider = async (provider: EmailProviderName) => {
-    const connectUrl = `${window.location.origin}/api/email/connect?provider=${provider}`;
+    let connectUrl = `${window.location.origin}/api/email/connect?provider=${provider}`;
 
     if (Capacitor.isNativePlatform()) {
+      // Pass auth token since in-app browser has no cookies
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        connectUrl += `&access_token=${session.access_token}`;
+      }
       await Browser.open({ url: connectUrl, presentationStyle: 'fullscreen' });
     } else {
       window.location.href = connectUrl;

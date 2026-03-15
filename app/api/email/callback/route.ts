@@ -16,7 +16,10 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const code = searchParams.get('code');
     const oauthError = searchParams.get('error');
-    const providerName = parseProvider(searchParams.get('state') || searchParams.get('provider'));
+    // State may be "provider" or "provider:userId" (from Capacitor flow)
+    const rawState = searchParams.get('state') || searchParams.get('provider') || 'gmail';
+    const [providerPart, userIdFromState] = rawState.includes(':') ? rawState.split(':', 2) : [rawState, null];
+    const providerName = parseProvider(providerPart);
 
     if (oauthError) {
       return NextResponse.redirect(
@@ -31,18 +34,22 @@ export async function GET(request: Request) {
     }
 
     const supabase = await createClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+    let userId: string;
 
-    if (authError || !user) {
-      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/login?error=unauthorized`);
+    if (userIdFromState) {
+      // Capacitor flow — user ID passed via state (in-app browser has no cookies)
+      userId = userIdFromState;
+    } else {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/login?error=unauthorized`);
+      }
+      userId = user.id;
     }
 
     const provider = getProvider(providerName);
     const tokens = await provider.exchangeCode(code);
-    await persistEmailConnection(supabase, user.id, providerName, tokens);
+    await persistEmailConnection(supabase, userId, providerName, tokens);
 
     const providerLabel = encodeURIComponent(getProviderLabel(providerName));
     return NextResponse.redirect(
