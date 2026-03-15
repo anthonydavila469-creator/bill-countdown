@@ -332,12 +332,18 @@ export default function SettingsPage() {
   const handleConnectProvider = async (provider: EmailProviderName) => {
     let connectUrl = `${window.location.origin}/api/email/connect?provider=${provider}`;
 
-    if (Capacitor.isNativePlatform()) {
-      // Pass auth token since in-app browser has no cookies
+    // Always try to attach the access token — works for both Capacitor and web
+    // In-app browsers and Capacitor webviews may not carry cookies
+    try {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.access_token) {
         connectUrl += `&access_token=${session.access_token}`;
       }
+    } catch (e) {
+      console.error('Failed to get session for email connect:', e);
+    }
+
+    if (Capacitor.isNativePlatform()) {
       await Browser.open({ url: connectUrl, presentationStyle: 'fullscreen' });
     } else {
       window.location.href = connectUrl;
