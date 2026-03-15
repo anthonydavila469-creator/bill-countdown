@@ -267,10 +267,10 @@ function WelcomeStep({
             </div>
             <div className="flex-1 text-left">
               <div className="flex items-center gap-2 mb-1">
-                <h3 className="font-semibold text-white">Sync from Gmail</h3>
+                <h3 className="font-semibold text-white">Connect Email</h3>
               </div>
               <p className="text-sm text-white/50">
-                Automatically import bills from your inbox
+                Gmail, Yahoo, or Outlook — scan your inbox for bills
               </p>
             </div>
             <ArrowRight className="w-5 h-5 text-violet-400 group-hover:translate-x-1 transition-transform" />

@@ -30,8 +30,28 @@ export const BILL_TEMPLATES: TemplateCategory[] = [
       { id: 'electric', name: 'Electric', emoji: '⚡', category: 'utilities', defaultDay: 15 },
       { id: 'water', name: 'Water', emoji: '💧', category: 'utilities', defaultDay: 15 },
       { id: 'gas', name: 'Gas', emoji: '🔥', category: 'utilities', defaultDay: 15 },
-      { id: 'internet', name: 'Internet', emoji: '📶', category: 'internet', defaultDay: 20 },
+      { id: 'trash-sewer', name: 'Trash/Sewer', emoji: '🗑️', category: 'utilities', defaultDay: 20 },
+    ],
+  },
+  {
+    id: 'phone',
+    label: 'Phone',
+    templates: [
+      { id: 'tmobile', name: 'T-Mobile', emoji: '📱', category: 'phone', defaultDay: 25 },
+      { id: 'att', name: 'AT&T', emoji: '📱', category: 'phone', defaultDay: 25 },
+      { id: 'verizon', name: 'Verizon', emoji: '📱', category: 'phone', defaultDay: 25 },
+      { id: 'cricket', name: 'Cricket', emoji: '📱', category: 'phone', defaultDay: 25 },
       { id: 'phone', name: 'Phone', emoji: '📱', category: 'phone', defaultDay: 25 },
+    ],
+  },
+  {
+    id: 'internet',
+    label: 'Internet & Cable',
+    templates: [
+      { id: 'internet', name: 'Internet', emoji: '📶', category: 'internet', defaultDay: 20 },
+      { id: 'comcast', name: 'Comcast/Xfinity', emoji: '📶', category: 'internet', defaultDay: 20 },
+      { id: 'spectrum', name: 'Spectrum', emoji: '📶', category: 'internet', defaultDay: 20 },
+      { id: 'cox', name: 'Cox', emoji: '📶', category: 'internet', defaultDay: 20 },
     ],
   },
   {
@@ -41,7 +61,15 @@ export const BILL_TEMPLATES: TemplateCategory[] = [
       { id: 'netflix', name: 'Netflix', emoji: '🎬', category: 'subscription', defaultDay: 15 },
       { id: 'spotify', name: 'Spotify', emoji: '🎵', category: 'subscription', defaultDay: 15 },
       { id: 'disney', name: 'Disney+', emoji: '✨', category: 'subscription', defaultDay: 15 },
-      { id: 'youtube', name: 'YouTube', emoji: '▶️', category: 'subscription', defaultDay: 15 },
+      { id: 'youtube-premium', name: 'YouTube Premium', emoji: '▶️', category: 'subscription', defaultDay: 15 },
+      { id: 'hulu', name: 'Hulu', emoji: '📺', category: 'subscription', defaultDay: 15 },
+      { id: 'amazon-prime', name: 'Amazon Prime', emoji: '📦', category: 'subscription', defaultDay: 15 },
+      { id: 'apple-music', name: 'Apple Music', emoji: '🎧', category: 'subscription', defaultDay: 15 },
+      { id: 'hbo-max', name: 'HBO Max', emoji: '🎬', category: 'subscription', defaultDay: 15 },
+      { id: 'paramount-plus', name: 'Paramount+', emoji: '📺', category: 'subscription', defaultDay: 15 },
+      { id: 'peacock', name: 'Peacock', emoji: '🦚', category: 'subscription', defaultDay: 15 },
+      { id: 'icloud', name: 'iCloud', emoji: '☁️', category: 'subscription', defaultDay: 15 },
+      { id: 'google-one', name: 'Google One', emoji: '☁️', category: 'subscription', defaultDay: 15 },
       { id: 'gym', name: 'Gym', emoji: '💪', category: 'health', defaultDay: 1 },
     ],
   },
@@ -51,7 +79,10 @@ export const BILL_TEMPLATES: TemplateCategory[] = [
     templates: [
       { id: 'credit-card', name: 'Credit Card', emoji: '💳', category: 'credit_card', defaultDay: 25 },
       { id: 'chase', name: 'Chase', emoji: '💳', category: 'credit_card', defaultDay: 25 },
+      { id: 'capital-one', name: 'Capital One', emoji: '💳', category: 'credit_card', defaultDay: 25 },
       { id: 'amex', name: 'Amex', emoji: '💳', category: 'credit_card', defaultDay: 25 },
+      { id: 'discover', name: 'Discover', emoji: '💳', category: 'credit_card', defaultDay: 25 },
+      { id: 'citi', name: 'Citi', emoji: '💳', category: 'credit_card', defaultDay: 25 },
     ],
   },
   {
@@ -59,7 +90,20 @@ export const BILL_TEMPLATES: TemplateCategory[] = [
     label: 'Insurance',
     templates: [
       { id: 'car-insurance', name: 'Car Insurance', emoji: '🚗', category: 'insurance', defaultDay: 15 },
+      { id: 'state-farm', name: 'State Farm', emoji: '🛡️', category: 'insurance', defaultDay: 15 },
+      { id: 'progressive', name: 'Progressive', emoji: '🛡️', category: 'insurance', defaultDay: 15 },
+      { id: 'geico', name: 'GEICO', emoji: '🦎', category: 'insurance', defaultDay: 15 },
       { id: 'health-insurance', name: 'Health Insurance', emoji: '🏥', category: 'insurance', defaultDay: 1 },
+      { id: 'renters-insurance', name: 'Renters Insurance', emoji: '🏢', category: 'insurance', defaultDay: 15 },
+    ],
+  },
+  {
+    id: 'loans',
+    label: 'Loans',
+    templates: [
+      { id: 'car-loan', name: 'Car Loan', emoji: '🚗', category: 'loan', defaultDay: 15 },
+      { id: 'student-loan', name: 'Student Loan', emoji: '🎓', category: 'loan', defaultDay: 15 },
+      { id: 'personal-loan', name: 'Personal Loan', emoji: '💰', category: 'loan', defaultDay: 15 },
     ],
   },
 ];

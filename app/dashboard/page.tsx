@@ -515,17 +515,17 @@ export default function DashboardPage() {
                   <div className="flex items-center justify-center w-8 h-8 rounded-lg" style={{ backgroundColor: hexToRgba(accentColor, 0.2), border: `1px solid ${hexToRgba(accentColor, 0.3)}` }}>
                     <Mail className="w-4 h-4" style={{ color: accentColor }} />
                   </div>
-                  <span className="text-sm font-semibold text-white">Gmail Sync</span>
+                  <span className="text-sm font-semibold text-white">Email Sync</span>
                 </div>
                 <p className="text-xs text-zinc-400 mb-3 leading-relaxed">
-                  Connect Gmail to automatically detect bills from your inbox.
+                  Connect Gmail, Yahoo, or Outlook to automatically detect bills.
                 </p>
                 <Link
                   href="/dashboard/settings"
                   className="block w-full px-3 py-2 text-sm font-semibold border border-white/10 hover:border-white/20 rounded-lg transition-all duration-200 text-white text-center"
                   style={{ background: hexToRgba(accentColor, 0.2) }}
                 >
-                  Connect Gmail
+                  Connect Email
                 </Link>
               </div>
             </div>
