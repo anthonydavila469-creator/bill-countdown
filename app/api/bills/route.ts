@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import { getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
 import { scheduleNotificationsForBillWithSettings } from '@/lib/notifications/scheduler';
 import { generateInAppReminders } from '@/lib/notifications/generate-reminders';
 import { getFallbackPaymentUrl } from '@/lib/vendor-payment-urls';
@@ -9,12 +10,10 @@ import type { Bill } from '@/types';
 // GET /api/bills - Get all bills for the current user
 export async function GET(request: Request) {
   try {
+    const { user } = await getAuthenticatedUser(request);
     const supabase = await createClient();
 
-    // Get current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -77,12 +76,10 @@ export async function GET(request: Request) {
 // POST /api/bills - Create a new bill
 export async function POST(request: Request) {
   try {
+    const { user } = await getAuthenticatedUser(request);
     const supabase = await createClient();
 
-    // Get current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }

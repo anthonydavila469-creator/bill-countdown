@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import { getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
 
 interface UnsubscribeRequest {
   endpoint: string;
@@ -8,11 +9,10 @@ interface UnsubscribeRequest {
 // POST /api/notifications/unsubscribe - Remove push subscription
 export async function POST(request: Request) {
   try {
+    const { user } = await getAuthenticatedUser(request);
     const supabase = await createClient();
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -53,13 +53,12 @@ export async function POST(request: Request) {
 }
 
 // DELETE /api/notifications/unsubscribe - Remove all push subscriptions for user
-export async function DELETE() {
+export async function DELETE(request: Request) {
   try {
+    const { user } = await getAuthenticatedUser(request);
     const supabase = await createClient();
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }

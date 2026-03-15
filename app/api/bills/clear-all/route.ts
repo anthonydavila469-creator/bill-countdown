@@ -1,17 +1,16 @@
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { NextResponse } from 'next/server';
+import { getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
 import { isRateLimited } from '@/lib/rate-limit';
 
 // DELETE /api/bills/clear-all - Delete all bills and related data for the current user
 export async function DELETE(request: Request) {
   try {
+    const { user } = await getAuthenticatedUser(request);
     const supabase = await createClient();
 
-    // Get current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }

@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import { getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
 
 interface SubscriptionRequest {
   endpoint: string;
@@ -12,11 +13,10 @@ interface SubscriptionRequest {
 // POST /api/notifications/subscribe - Save push subscription
 export async function POST(request: Request) {
   try {
+    const { user } = await getAuthenticatedUser(request);
     const supabase = await createClient();
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }

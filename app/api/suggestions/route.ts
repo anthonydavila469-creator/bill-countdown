@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { processAllBillsRateLimited } from '@/lib/ai/process-bills';
+import { getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
 import { NextResponse } from 'next/server';
 import { fetchProviderEmails } from '@/lib/email/tokens';
 import { getProviderLabel } from '@/lib/email/providers';
@@ -7,15 +8,10 @@ import { getProviderLabel } from '@/lib/email/providers';
 // POST /api/suggestions - Scan emails using the new extraction engine
 export async function POST(request: Request) {
   try {
+    const { user } = await getAuthenticatedUser(request);
     const supabase = await createClient();
 
-    // Verify user is authenticated
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import { getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
 import { ParsedBill, categoryEmojis, BillCategory } from '@/types';
 import { getFallbackPaymentUrl, isValidPaymentUrl } from '@/lib/vendor-payment-urls';
 import { getEmailConnection } from '@/lib/email/tokens';
@@ -7,15 +8,10 @@ import { getEmailConnection } from '@/lib/email/tokens';
 // POST /api/bills/import - Import multiple parsed bills
 export async function POST(request: Request) {
   try {
+    const { user } = await getAuthenticatedUser(request);
     const supabase = await createClient();
 
-    // Verify user is authenticated
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

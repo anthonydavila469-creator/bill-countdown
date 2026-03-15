@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import { getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
 import { getNextDueDate } from '@/lib/utils';
 import { scheduleNotificationsForBillWithSettings, cancelNotificationsForBill } from '@/lib/notifications/scheduler';
 import type { Bill } from '@/types';
@@ -12,6 +13,7 @@ interface RouteParams {
 export async function POST(request: Request, { params }: RouteParams) {
   try {
     const { id } = await params;
+    const { user } = await getAuthenticatedUser(request);
     const supabase = await createClient();
 
     // Parse optional request body for custom amount
@@ -25,10 +27,7 @@ export async function POST(request: Request, { params }: RouteParams) {
       // No body or invalid JSON - that's fine, use bill's amount
     }
 
-    // Get current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -199,12 +198,10 @@ export async function POST(request: Request, { params }: RouteParams) {
 export async function DELETE(request: Request, { params }: RouteParams) {
   try {
     const { id } = await params;
+    const { user } = await getAuthenticatedUser(request);
     const supabase = await createClient();
 
-    // Get current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }

@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
 import { NextResponse } from 'next/server';
 import { DEFAULT_NOTIFICATION_SETTINGS, type NotificationSettings } from '@/types';
 
@@ -28,31 +29,11 @@ function normalizeNotificationSettings(raw: Partial<NotificationSettings> | null
   };
 }
 
-// Helper: get user from cookies OR Authorization header
-async function getAuthUser(request?: Request) {
-  // Try cookie-based auth first
-  const supabase = await createClient();
-  const { data: { user }, error } = await supabase.auth.getUser();
-  if (user) return { user, supabase };
-
-  // Fall back to Bearer token (Capacitor webview doesn't always send cookies)
-  if (request) {
-    const authHeader = request.headers.get('Authorization');
-    if (authHeader?.startsWith('Bearer ')) {
-      const token = authHeader.slice(7);
-      const adminSb = createAdminClient();
-      const { data: { user: tokenUser }, error: tokenError } = await adminSb.auth.getUser(token);
-      if (tokenUser) return { user: tokenUser, supabase };
-    }
-  }
-
-  return { user: null, supabase };
-}
-
 // GET /api/notifications/settings - Get notification settings
 export async function GET(request: Request) {
   try {
-    const { user, supabase } = await getAuthUser(request);
+    const { user } = await getAuthenticatedUser(request);
+    const supabase = await createClient();
 
     if (!user) {
       return NextResponse.json(
@@ -99,7 +80,8 @@ export async function GET(request: Request) {
 export async function PUT(request: Request) {
   try {
     console.log('[notifications/settings][PUT] request received');
-    const { user, supabase } = await getAuthUser(request);
+    const { user } = await getAuthenticatedUser(request);
+    const supabase = await createClient();
 
     if (!user) {
       return NextResponse.json(
