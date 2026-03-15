@@ -52,27 +52,39 @@ const EMAIL_PROVIDERS: Array<{
   color: string;
   logo: string;
   description: string;
+  borderColor: string;
+  bgTint: string;
+  glowColor: string;
 }> = [
   {
     name: 'gmail',
     label: 'Gmail',
     color: '#EA4335',
     logo: '/logos/gmail.png',
-    description: 'Connect your Google account',
+    description: 'Google account',
+    borderColor: 'border-red-500/20 hover:border-red-500/40',
+    bgTint: 'bg-red-500/[0.04] hover:bg-red-500/[0.08]',
+    glowColor: 'rgba(234, 67, 53, 0.12)',
   },
   {
     name: 'yahoo',
     label: 'Yahoo Mail',
     color: '#6001D2',
     logo: '/logos/yahoo.png',
-    description: 'Connect your Yahoo account',
+    description: 'Yahoo account',
+    borderColor: 'border-purple-500/20 hover:border-purple-500/40',
+    bgTint: 'bg-purple-500/[0.04] hover:bg-purple-500/[0.08]',
+    glowColor: 'rgba(96, 1, 210, 0.12)',
   },
   {
     name: 'outlook',
     label: 'Outlook',
     color: '#0078D4',
     logo: '/logos/outlook.png',
-    description: 'Connect your Microsoft account',
+    description: 'Microsoft account',
+    borderColor: 'border-blue-500/20 hover:border-blue-500/40',
+    bgTint: 'bg-blue-500/[0.04] hover:bg-blue-500/[0.08]',
+    glowColor: 'rgba(0, 120, 212, 0.12)',
   },
 ];
 
@@ -663,31 +675,47 @@ export default function SettingsPage() {
                         <button
                           key={provider.name}
                           onClick={() => handleConnectProvider(provider.name)}
-                          className="group relative w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all duration-300 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] hover:border-white/[0.12]"
+                          className={`group relative w-full overflow-hidden rounded-2xl transition-all duration-300 border ${provider.borderColor} ${provider.bgTint}`}
                         >
-                          {/* Logo */}
-                          <div className="relative flex-shrink-0 w-11 h-11 rounded-xl bg-white/[0.08] flex items-center justify-center overflow-hidden">
-                            <Image
-                              src={provider.logo}
-                              alt={provider.label}
-                              width={28}
-                              height={28}
-                              className="object-contain"
-                            />
-                          </div>
+                          {/* Glow on hover */}
+                          <div
+                            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                            style={{ background: `radial-gradient(ellipse at 20% 50%, ${provider.glowColor}, transparent 70%)` }}
+                          />
 
-                          {/* Text */}
-                          <div className="flex-1 text-left">
-                            <p className="text-[15px] text-white font-semibold">
-                              {provider.label}
-                            </p>
-                            <p className="text-xs text-zinc-500 mt-0.5">
-                              {provider.description}
-                            </p>
-                          </div>
+                          <div className="relative flex items-center gap-4 px-5 py-5">
+                            {/* Logo container with brand-tinted background */}
+                            <div
+                              className="relative flex-shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center"
+                              style={{ backgroundColor: `${provider.color}15` }}
+                            >
+                              <Image
+                                src={provider.logo}
+                                alt={provider.label}
+                                width={36}
+                                height={36}
+                                className="object-contain drop-shadow-sm"
+                              />
+                            </div>
 
-                          {/* Arrow */}
-                          <ArrowRight className="w-4 h-4 text-zinc-600 group-hover:text-zinc-300 group-hover:translate-x-0.5 transition-all duration-200 flex-shrink-0" />
+                            {/* Text */}
+                            <div className="flex-1 text-left">
+                              <p className="text-base text-white font-semibold tracking-wide">
+                                {provider.label}
+                              </p>
+                              <p className="text-sm text-zinc-400 mt-0.5">
+                                {provider.description}
+                              </p>
+                            </div>
+
+                            {/* Connect pill */}
+                            <div
+                              className="flex-shrink-0 px-4 py-2 rounded-full text-xs font-semibold text-white/80 group-hover:text-white transition-colors duration-200"
+                              style={{ backgroundColor: `${provider.color}25`, border: `1px solid ${provider.color}40` }}
+                            >
+                              Connect
+                            </div>
+                          </div>
                         </button>
                       ))}
                     </div>
