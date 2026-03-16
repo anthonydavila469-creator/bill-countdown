@@ -694,6 +694,13 @@ export default function DashboardPage() {
 
             return (
               <>
+                {/* Today's date label */}
+                {mounted && (
+                  <p className="text-sm text-white/60 mb-3">
+                    {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                  </p>
+                )}
+
                 {/* Hero "Next Up" card */}
                 {heroBill && (() => {
                   const heroDays = getDaysUntilDue(heroBill.due_date);
