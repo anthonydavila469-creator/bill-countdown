@@ -7,7 +7,9 @@ import type { NotificationSettings, SyncResult } from '@/types';
 const DEFAULT_NOTIFICATION_SETTINGS_WITH_SYNC = {
   email_enabled: true,
   push_enabled: false,
+  remind_me: '3days',
   lead_days: 3,
+  reminder_days: [3],
   quiet_start: null,
   quiet_end: null,
   timezone: 'America/New_York',

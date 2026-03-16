@@ -2,12 +2,18 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
 import { NextResponse } from 'next/server';
-import { DEFAULT_NOTIFICATION_SETTINGS, type NotificationSettings } from '@/types';
+import { DEFAULT_NOTIFICATION_SETTINGS, type NotificationSettings, type ReminderPreference } from '@/types';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
+const VALID_REMIND_ME_VALUES = new Set<ReminderPreference>(['disabled', '1day', '3days', '7days']);
+
 function normalizeNotificationSettings(raw: Partial<NotificationSettings> | null | undefined): NotificationSettings {
+  const remindMe = VALID_REMIND_ME_VALUES.has(raw?.remind_me as ReminderPreference)
+    ? (raw?.remind_me as ReminderPreference)
+    : DEFAULT_NOTIFICATION_SETTINGS.remind_me;
+
   const reminderDays = Array.isArray(raw?.reminder_days)
     ? raw.reminder_days
     : [raw?.lead_days ?? DEFAULT_NOTIFICATION_SETTINGS.lead_days];
@@ -16,7 +22,9 @@ function normalizeNotificationSettings(raw: Partial<NotificationSettings> | null
     .filter((day) => typeof day === 'number' && day >= 0 && day <= 30)
     .sort((a, b) => b - a);
 
-  const normalizedReminderDays =
+  const normalizedReminderDays = remindMe === 'disabled'
+    ? []
+    :
     uniqueReminderDays.length > 0
       ? uniqueReminderDays
       : [...DEFAULT_NOTIFICATION_SETTINGS.reminder_days];
@@ -24,8 +32,11 @@ function normalizeNotificationSettings(raw: Partial<NotificationSettings> | null
   return {
     ...DEFAULT_NOTIFICATION_SETTINGS,
     ...raw,
+    remind_me: remindMe,
     reminder_days: normalizedReminderDays,
-    lead_days: Math.min(...normalizedReminderDays),
+    lead_days: normalizedReminderDays.length > 0
+      ? Math.min(...normalizedReminderDays)
+      : DEFAULT_NOTIFICATION_SETTINGS.lead_days,
   };
 }
 
@@ -108,6 +119,13 @@ export async function PUT(request: Request) {
       ...body,
     });
 
+    if (!VALID_REMIND_ME_VALUES.has(newSettings.remind_me)) {
+      return NextResponse.json(
+        { error: 'Invalid remind_me value' },
+        { status: 400 }
+      );
+    }
+
     // Validate settings
     if (typeof newSettings.lead_days !== 'number' || newSettings.lead_days < 0 || newSettings.lead_days > 30) {
       return NextResponse.json(
@@ -124,6 +142,19 @@ export async function PUT(request: Request) {
           { status: 400 }
         );
       }
+    }
+
+    if (newSettings.remind_me === 'disabled') {
+      newSettings.reminder_days = [];
+    } else if (newSettings.remind_me === '1day') {
+      newSettings.reminder_days = [1];
+      newSettings.lead_days = 1;
+    } else if (newSettings.remind_me === '3days') {
+      newSettings.reminder_days = [3];
+      newSettings.lead_days = 3;
+    } else if (newSettings.remind_me === '7days') {
+      newSettings.reminder_days = [7];
+      newSettings.lead_days = 7;
     }
 
     // Use the service role client after auth succeeds so writes are not sensitive to

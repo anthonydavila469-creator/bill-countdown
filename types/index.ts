@@ -510,10 +510,12 @@ export const DEFAULT_DASHBOARD_LAYOUT: DashboardLayout = {
 // Notification Types
 export type NotificationChannel = 'email' | 'push' | 'in_app';
 export type NotificationStatus = 'pending' | 'sent' | 'failed' | 'skipped';
+export type ReminderPreference = 'disabled' | '1day' | '3days' | '7days';
 
 export interface NotificationSettings {
   email_enabled: boolean;
   push_enabled: boolean;
+  remind_me: ReminderPreference;
   lead_days: number; // Days before due date to send reminder (legacy, single value)
   reminder_days: number[]; // Days before due date to send reminders (multi-select)
   timezone: string; // IANA timezone
@@ -546,6 +548,7 @@ export interface BillNotification {
 export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
   email_enabled: false,
   push_enabled: false,
+  remind_me: '3days',
   lead_days: 3,
   reminder_days: [3],
   timezone: 'America/Chicago',
