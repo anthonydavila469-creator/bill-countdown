@@ -27,7 +27,8 @@ function getDaysLeft(dueDate: string): number {
   today.setHours(0, 0, 0, 0);
   const due = new Date(dueDate + 'T00:00:00');
   const diff = due.getTime() - today.getTime();
-  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+  // Use floor so same-day = 0 (matches dashboard hero card behavior)
+  return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
 }
 
 function getUrgency(daysLeft: number): 'critical' | 'soon' | 'later' {

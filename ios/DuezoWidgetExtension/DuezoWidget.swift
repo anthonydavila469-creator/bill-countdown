@@ -643,7 +643,14 @@ struct LargeWidgetView: View {
     let theme: WidgetTheme
 
     private var displayBills: [DuezoWidgetPayload.UpcomingBill] {
-        Array(payload.upcoming.prefix(4))
+        // Skip the first bill if it's already shown in the "NEXT UP" hero section
+        let filtered: [DuezoWidgetPayload.UpcomingBill]
+        if let nextBill = payload.nextBill, let firstUpcoming = payload.upcoming.first, firstUpcoming.id == nextBill.id {
+            filtered = Array(payload.upcoming.dropFirst())
+        } else {
+            filtered = payload.upcoming
+        }
+        return Array(filtered.prefix(4))
     }
 
     var body: some View {
