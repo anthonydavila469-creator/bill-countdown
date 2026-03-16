@@ -696,9 +696,12 @@ export default function DashboardPage() {
               <>
                 {/* Today's date label */}
                 {mounted && (
-                  <p className="text-sm text-white/60 mb-3">
-                    {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-                  </p>
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.06] backdrop-blur-sm mb-3">
+                    <span className="text-sm">📅</span>
+                    <span className="text-sm text-white/80">
+                      {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                    </span>
+                  </div>
                 )}
 
                 {/* Hero "Next Up" card */}
