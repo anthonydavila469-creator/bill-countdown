@@ -3,8 +3,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Bell,
-  Mail,
-  Smartphone,
   Clock,
   ChevronDown,
   Info,
@@ -14,7 +12,6 @@ import {
 } from 'lucide-react';
 import { NotificationSettings, DEFAULT_NOTIFICATION_SETTINGS } from '@/types';
 import { cn } from '@/lib/utils';
-import { usePushNotifications } from '@/hooks/use-push-notifications';
 import { createClient } from '@/lib/supabase/client';
 
 // Get auth token — tries getSession first, falls back to getUser + session refresh
@@ -125,7 +122,6 @@ export function NotificationSection() {
   const [settings, setSettings] = useState<NotificationSettings>(DEFAULT_NOTIFICATION_SETTINGS);
   const [isLoading, setIsLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
-  const { isSupported, subscribe, unsubscribe } = usePushNotifications();
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Load via API route with Bearer token (works in Capacitor + web)
@@ -258,24 +254,6 @@ export function NotificationSection() {
           <div className="text-xs text-red-400 px-1">Failed to save — try again</div>
         )}
 
-        {/* Email Reminders */}
-        <FieldRow icon={Mail} label="Email Reminders" description="Receive bill reminders via email">
-          <Toggle enabled={settings.email_enabled} onChange={(v) => save({ ...settings, email_enabled: v })} color="#8B5CF6" />
-        </FieldRow>
-
-        {/* Push Notifications */}
-        <FieldRow icon={Smartphone} label="Push Notifications" description="Get notified when bills are due">
-          <Toggle
-            enabled={settings.push_enabled}
-            onChange={async (enabled) => {
-              if (isSupported && enabled) await subscribe();
-              else if (isSupported && !enabled) await unsubscribe();
-              save({ ...settings, push_enabled: enabled });
-            }}
-            color="#8b5cf6"
-          />
-        </FieldRow>
-
         {/* Auto-Sync */}
         <FieldRow icon={RefreshCw} label="Auto-Sync Bills" description="Automatically scan for bills daily">
           <Toggle enabled={settings.auto_sync_enabled ?? false} onChange={(v) => save({ ...settings, auto_sync_enabled: v })} color="#10b981" />
@@ -316,7 +294,7 @@ export function NotificationSection() {
               <Info className="w-3.5 h-3.5 text-violet-400" />
             </div>
             <p className="text-xs text-zinc-400 leading-relaxed">
-              Reminders are sent at 9 AM in your timezone. Push notifications require device permission.
+              Auto-sync scans your email daily for new bills. Push notifications coming soon!
             </p>
           </div>
         </div>
