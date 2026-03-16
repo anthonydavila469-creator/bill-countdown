@@ -17,6 +17,17 @@ import { cn } from '@/lib/utils';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
 import { createClient } from '@/lib/supabase/client';
 
+// Helper to get auth headers for API calls (works in both web and Capacitor)
+async function getAuthHeaders() {
+  const supabase = createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (session?.access_token) {
+    headers['Authorization'] = `Bearer ${session.access_token}`;
+  }
+  return headers;
+}
+
 const REMINDER_OPTIONS = [
   { value: 1, label: '1 day before' },
   { value: 3, label: '3 days before' },
@@ -111,22 +122,17 @@ export function NotificationSection() {
   const [isLoading, setIsLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const { isSupported, subscribe, unsubscribe } = usePushNotifications();
-  const supabase = useRef(createClient()).current;
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Load directly from Supabase (bypasses API route cookie issues)
+  // Load via API route (supports both cookie and Bearer auth)
   useEffect(() => {
     const load = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) { setIsLoading(false); return; }
+        const headers = await getAuthHeaders();
+        const res = await fetch('/api/preferences', { headers });
+        if (!res.ok) { setIsLoading(false); return; }
 
-        const { data } = await supabase
-          .from('user_preferences')
-          .select('notification_settings')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
+        const data = await res.json();
         if (data?.notification_settings) {
           const raw = data.notification_settings as Partial<NotificationSettings>;
           setSettings({
@@ -142,39 +148,23 @@ export function NotificationSection() {
       }
     };
     load();
-  }, [supabase]);
+  }, []);
 
-  // Save directly to Supabase (bypasses API route entirely)
+  // Save via API route (supports both cookie and Bearer auth for Capacitor)
   const save = useCallback(async (newSettings: NotificationSettings) => {
     setSettings(newSettings);
     setSaveStatus('saving');
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setSaveStatus('error'); return; }
+      const headers = await getAuthHeaders();
+      const res = await fetch('/api/preferences', {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({ notification_settings: newSettings }),
+      });
 
-      // Read existing preferences first to merge
-      const { data: existing } = await supabase
-        .from('user_preferences')
-        .select('notification_settings')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      const merged = {
-        ...DEFAULT_NOTIFICATION_SETTINGS,
-        ...(existing?.notification_settings as Partial<NotificationSettings> || {}),
-        ...newSettings,
-      };
-
-      const { error } = await supabase
-        .from('user_preferences')
-        .upsert({
-          user_id: user.id,
-          notification_settings: merged,
-        }, { onConflict: 'user_id' });
-
-      if (error) {
-        console.error('Save failed:', error);
+      if (!res.ok) {
+        console.error('Save failed:', res.status, await res.text());
         setSaveStatus('error');
         return;
       }
@@ -186,7 +176,7 @@ export function NotificationSection() {
       console.error('Save error:', err);
       setSaveStatus('error');
     }
-  }, [supabase]);
+  }, []);
 
   if (isLoading) {
     return (

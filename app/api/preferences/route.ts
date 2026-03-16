@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
 import {
@@ -7,11 +8,17 @@ import {
   DEFAULT_NOTIFICATION_SETTINGS,
 } from '@/types';
 
+// Use admin client for Bearer-auth requests (Capacitor) to bypass RLS,
+// since the server Supabase client only has cookie-based auth context.
+async function getDbClient(method: 'cookie' | 'bearer' | null) {
+  return method === 'bearer' ? createAdminClient() : await createClient();
+}
+
 // GET /api/preferences - Get user preferences (or defaults)
 export async function GET(request: Request) {
   try {
-    const { user } = await getAuthenticatedUser(request);
-    const supabase = await createClient();
+    const { user, method } = await getAuthenticatedUser(request);
+    const supabase = await getDbClient(method);
 
     if (!user) {
       return NextResponse.json(
@@ -59,8 +66,8 @@ export async function GET(request: Request) {
 // PUT /api/preferences - Update user preferences
 export async function PUT(request: Request) {
   try {
-    const { user } = await getAuthenticatedUser(request);
-    const supabase = await createClient();
+    const { user, method } = await getAuthenticatedUser(request);
+    const supabase = await getDbClient(method);
 
     if (!user) {
       return NextResponse.json(
