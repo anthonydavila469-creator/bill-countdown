@@ -2,100 +2,129 @@
 
 import { useEffect } from 'react';
 import { Capacitor } from '@capacitor/core';
+import { createClient } from '@/lib/supabase/client';
+
+async function registerTokenWithServer(deviceToken: string) {
+  const supabase = createClient();
+  const [sessionResult, userResult] = await Promise.all([
+    supabase.auth.getSession(),
+    supabase.auth.getUser(),
+  ]);
+
+  const accessToken = sessionResult.data.session?.access_token;
+  const userId = userResult.data.user?.id;
+
+  if (!accessToken || !userId) {
+    localStorage.setItem('pendingPushToken', deviceToken);
+    return;
+  }
+
+  const response = await fetch('/api/push/register', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({
+      deviceToken,
+      userId,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorPayload = await response.json().catch(() => ({}));
+    throw new Error(errorPayload.error || `Push registration failed (${response.status})`);
+  }
+
+  localStorage.setItem('pushToken', deviceToken);
+  localStorage.removeItem('pendingPushToken');
+}
 
 /**
- * Initializes push notifications when running as a native app.
- * Registers the device token with the server so we can send bill reminders.
+ * Initializes native push notifications and registers the device token with the backend.
  */
 export function PushNotificationInit() {
   useEffect(() => {
-    // Only initialize on native platforms (iOS/Android)
     if (!Capacitor.isNativePlatform()) {
       return;
     }
 
+    let isMounted = true;
+
     const initPush = async () => {
       try {
         const { PushNotifications } = await import('@capacitor/push-notifications');
-        const { Device } = await import('@capacitor/device');
 
-        // Check/request permissions
-        const permStatus = await PushNotifications.checkPermissions();
+        await PushNotifications.removeAllListeners();
 
-        if (permStatus.receive === 'prompt') {
-          const result = await PushNotifications.requestPermissions();
-          if (result.receive !== 'granted') {
-            console.log('Push notifications not granted');
+        PushNotifications.addListener('registration', async (token) => {
+          if (!isMounted) {
             return;
           }
-        } else if (permStatus.receive !== 'granted') {
-          return;
-        }
 
-        // Register for push with APNs
-        await PushNotifications.register();
-
-        // Handle APNs token — send to our backend
-        PushNotifications.addListener('registration', async (token) => {
-          console.log('APNs token received:', token.value.slice(0, 8) + '...');
-
-          // Cache locally
-          localStorage.setItem('pushToken', token.value);
-
-          // Get device ID for deduplication
-          let deviceId: string | undefined;
           try {
-            const info = await Device.getId();
-            deviceId = info.identifier;
-          } catch {
-            // Device ID is optional — continue without it
-          }
-
-          // Register with our server
-          try {
-            const response = await fetch('/api/notifications/register-device', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ token: token.value, deviceId }),
-            });
-
-            if (!response.ok) {
-              const err = await response.json();
-              console.error('Failed to register push token:', err);
-            } else {
-              console.log('Push token registered with server ✅');
-            }
-          } catch (err) {
-            console.error('Error sending token to server:', err);
+            await registerTokenWithServer(token.value);
+            console.log('APNs token registered with server');
+          } catch (error) {
+            console.error('Failed to register APNs token with backend:', error);
           }
         });
 
-        // Handle registration errors
-        PushNotifications.addListener('registrationError', (err) => {
-          console.error('Push registration error:', err);
+        PushNotifications.addListener('registrationError', (error) => {
+          console.error('Push registration error:', error);
         });
 
-        // Handle notifications received while app is in foreground
         PushNotifications.addListener('pushNotificationReceived', (notification) => {
-          console.log('Notification received in foreground:', notification.title);
+          console.log('Push notification received:', notification);
         });
 
-        // Handle notification tap — navigate to relevant screen
         PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
           const data = action.notification.data;
+          if (action.actionId === 'DISMISS_BILL_REMINDER') {
+            return;
+          }
           if (data?.url) {
             window.location.href = data.url;
-          } else if (data?.billId) {
+            return;
+          }
+          if (data?.billId) {
             window.location.href = `/dashboard?bill=${data.billId}`;
           }
         });
 
+        const permissionStatus = await PushNotifications.checkPermissions();
+        const finalStatus = permissionStatus.receive === 'prompt'
+          ? await PushNotifications.requestPermissions()
+          : permissionStatus;
+
+        if (finalStatus.receive !== 'granted') {
+          console.log('Push notifications not granted');
+          return;
+        }
+
+        const pendingToken = localStorage.getItem('pendingPushToken');
+        if (pendingToken) {
+          try {
+            await registerTokenWithServer(pendingToken);
+          } catch (error) {
+            console.error('Failed to flush cached APNs token:', error);
+          }
+        }
+
+        await PushNotifications.register();
       } catch (error) {
         console.error('Push init error:', error);
       }
     };
 
-    initPush();
+    void initPush();
+
+    return () => {
+      isMounted = false;
+      void import('@capacitor/push-notifications').then(({ PushNotifications }) => {
+        PushNotifications.removeAllListeners();
+      });
+    };
   }, []);
 
   return null;

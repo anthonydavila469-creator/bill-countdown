@@ -1,14 +1,15 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import { getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
 
 // POST /api/notifications/register-device
 // Saves an iOS APNs device token for the authenticated user
 export async function POST(request: Request) {
   try {
+    const { user } = await getAuthenticatedUser(request);
     const supabase = await createClient();
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -18,16 +19,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing token' }, { status: 400 });
     }
 
-    // Upsert — one row per user+token combo
     const { error } = await supabase
       .from('apns_tokens')
       .upsert({
         user_id: user.id,
-        token: body.token,
+        device_token: body.token,
         device_id: body.deviceId ?? null,
         updated_at: new Date().toISOString(),
       }, {
-        onConflict: 'user_id,token',
+        onConflict: 'device_token',
       });
 
     if (error) {
@@ -46,10 +46,10 @@ export async function POST(request: Request) {
 // Removes a device token (called on sign out)
 export async function DELETE(request: Request) {
   try {
+    const { user } = await getAuthenticatedUser(request);
     const supabase = await createClient();
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -62,7 +62,7 @@ export async function DELETE(request: Request) {
       .from('apns_tokens')
       .delete()
       .eq('user_id', user.id)
-      .eq('token', body.token);
+      .eq('device_token', body.token);
 
     return NextResponse.json({ success: true });
   } catch (err) {

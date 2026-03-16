@@ -1,7 +1,7 @@
 import { Resend } from 'resend';
 import type { Bill } from '@/types';
+import { formatBillDate, normalizeTimeZone } from './reminder-utils';
 
-// Lazy-loaded Resend client to avoid errors during build
 let resendClient: Resend | null = null;
 
 function getResendClient(): Resend {
@@ -20,36 +20,35 @@ interface SendEmailResult {
   error?: string;
 }
 
-/**
- * Send a bill reminder email
- */
 export async function sendBillReminderEmail(
   email: string,
   bill: Bill,
-  daysUntilDue: number
+  daysUntilDue: number,
+  options?: {
+    appUrl?: string;
+    timeZone?: string;
+  }
 ): Promise<SendEmailResult> {
   try {
+    const appUrl = options?.appUrl || process.env.NEXT_PUBLIC_APP_URL || 'https://duezo.app';
+    const timeZone = normalizeTimeZone(options?.timeZone);
+    const dayLabel = daysUntilDue === 1 ? 'day' : 'days';
     const dueText = daysUntilDue === 0
       ? 'today'
       : daysUntilDue === 1
         ? 'tomorrow'
         : `in ${daysUntilDue} days`;
 
-    const amountText = bill.amount
+    const amountText = bill.amount !== null
       ? `$${bill.amount.toFixed(2)}`
       : 'Amount not set';
 
-    const formattedDueDate = new Date(bill.due_date + 'T00:00:00').toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
+    const formattedDueDate = formatBillDate(bill.due_date, timeZone);
 
     const { data, error } = await getResendClient().emails.send({
-      from: 'Duezo <onboarding@resend.dev>',
+      from: 'Duezo <reminders@duezo.app>',
       to: email,
-      subject: `${bill.emoji} ${bill.name} is due ${dueText}`,
+      subject: `Duezo: ${bill.name} is due in ${daysUntilDue} ${dayLabel}`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -57,58 +56,65 @@ export async function sendBillReminderEmail(
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
           </head>
-          <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; background-color: #0F0A1E; color: #ffffff;">
-            <div style="max-width: 480px; margin: 0 auto; padding: 40px 20px;">
-              <div style="text-align: center; margin-bottom: 32px;">
-                <div style="font-size: 48px; margin-bottom: 8px;">${bill.emoji}</div>
-                <h1 style="font-size: 24px; font-weight: 600; margin: 0; color: #ffffff;">
-                  Bill Reminder
+          <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 24px; background-color: #f5f3ff; color: #111827;">
+            <div style="max-width: 560px; margin: 0 auto; background-color: #ffffff; border-radius: 20px; overflow: hidden; border: 1px solid #e9d5ff;">
+              <div style="padding: 28px 32px; background: linear-gradient(135deg, #6d28d9 0%, #8B5CF6 100%); color: #ffffff;">
+                <div style="font-size: 14px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.92;">Duezo Reminder</div>
+                <h1 style="font-size: 28px; line-height: 1.2; margin: 12px 0 0;">
+                  ${bill.name} is due ${dueText}
                 </h1>
               </div>
 
-              <div style="background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02)); border-radius: 16px; padding: 24px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 24px;">
-                <h2 style="font-size: 20px; font-weight: 600; margin: 0 0 16px 0; color: #ffffff;">
-                  ${bill.name}
-                </h2>
+              <div style="padding: 32px;">
+                <p style="font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
+                  Keep this one on your radar. Here are the bill details for today's reminder.
+                </p>
 
-                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                  <span style="color: rgba(255,255,255,0.6);">Amount</span>
-                  <span style="font-weight: 500; color: #ffffff;">${amountText}</span>
+                <div style="border: 1px solid #ede9fe; border-radius: 16px; padding: 20px 22px; background-color: #faf5ff; margin-bottom: 24px;">
+                  <div style="margin-bottom: 14px;">
+                    <div style="font-size: 13px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.06em;">Bill</div>
+                    <div style="font-size: 20px; font-weight: 700; color: #111827;">${bill.name}</div>
+                  </div>
+                  <div style="margin-bottom: 14px;">
+                    <div style="font-size: 13px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.06em;">Amount</div>
+                    <div style="font-size: 18px; font-weight: 600; color: #111827;">${amountText}</div>
+                  </div>
+                  <div style="margin-bottom: 14px;">
+                    <div style="font-size: 13px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.06em;">Due Date</div>
+                    <div style="font-size: 18px; font-weight: 600; color: #111827;">${formattedDueDate}</div>
+                  </div>
+                  <div>
+                    <div style="font-size: 13px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.06em;">Reminder</div>
+                    <div style="font-size: 18px; font-weight: 600; color: #8B5CF6;">Due in ${daysUntilDue} ${dayLabel}</div>
+                  </div>
                 </div>
 
-                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                  <span style="color: rgba(255,255,255,0.6);">Due Date</span>
-                  <span style="font-weight: 500; color: #ffffff;">${formattedDueDate}</span>
-                </div>
+                <a href="${appUrl}/dashboard" style="display: inline-block; background-color: #8B5CF6; color: #ffffff; text-decoration: none; padding: 14px 22px; border-radius: 12px; font-weight: 600; margin-bottom: 14px;">
+                  Open Duezo
+                </a>
 
-                <div style="display: flex; justify-content: space-between;">
-                  <span style="color: rgba(255,255,255,0.6);">Status</span>
-                  <span style="font-weight: 500; color: ${daysUntilDue <= 1 ? '#8B5CF6' : '#34d399'};">
-                    Due ${dueText}
-                  </span>
-                </div>
+                ${bill.payment_url ? `
+                <p style="margin: 16px 0 24px; font-size: 14px; line-height: 1.6;">
+                  Payment link: <a href="${bill.payment_url}" style="color: #7c3aed;">${bill.payment_url}</a>
+                </p>
+                ` : ''}
+
+                <p style="margin: 0; font-size: 13px; line-height: 1.6; color: #6b7280;">
+                  You're getting this because bill reminders are enabled in Duezo. Manage them in the app anytime.
+                </p>
               </div>
-
-              ${bill.payment_url ? `
-              <a href="${bill.payment_url}" style="display: block; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #ffffff; text-decoration: none; padding: 14px 24px; border-radius: 12px; font-weight: 500; text-align: center; margin-bottom: 24px;">
-                Pay Now
-              </a>
-              ` : ''}
-
-              <p style="text-align: center; color: rgba(255,255,255,0.4); font-size: 12px; margin: 0;">
-                Sent by <a href="https://duezo.app" style="color: rgba(255,255,255,0.6);">Duezo</a>
-              </p>
             </div>
           </body>
         </html>
       `,
       text: `
-Bill Reminder: ${bill.name}
+Duezo Reminder: ${bill.name}
 
-${bill.emoji} ${bill.name} is due ${dueText}
+${bill.name} is due ${dueText}
 
 Amount: ${amountText}
 Due Date: ${formattedDueDate}
+Open Duezo: ${appUrl}/dashboard
 
 ${bill.payment_url ? `Pay now: ${bill.payment_url}` : ''}
 

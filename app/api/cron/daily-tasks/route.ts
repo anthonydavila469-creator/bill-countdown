@@ -25,7 +25,7 @@ export async function POST(request: Request) {
 
     // Run bill reminders
     try {
-      const remindersRes = await fetch(`${baseUrl}/api/cron/send-bill-reminders`, {
+      const remindersRes = await fetch(`${baseUrl}/api/cron/send-reminders`, {
         method: 'POST',
         headers: { authorization: authHeader },
       });

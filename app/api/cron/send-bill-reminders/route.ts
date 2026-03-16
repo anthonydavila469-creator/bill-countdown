@@ -75,14 +75,14 @@ export async function POST(request: Request) {
           .eq('user_id', userId),
         supabase
           .from('apns_tokens')
-          .select('token')
+          .select('device_token')
           .eq('user_id', userId),
       ]);
 
       const userEmail = userResult.data?.user?.email;
       const settings: NotificationSettings = prefsResult.data?.notification_settings ?? DEFAULT_NOTIFICATION_SETTINGS;
       const pushSubscriptions: PushSubscription[] = (subsResult.data as PushSubscription[]) ?? [];
-      const apnsTokens: string[] = (apnsResult.data ?? []).map((r: { token: string }) => r.token);
+      const apnsTokens: string[] = (apnsResult.data ?? []).map((r: { device_token: string }) => r.device_token);
 
       // Process each notification for this user
       for (const notification of userNotifications) {
@@ -187,7 +187,7 @@ export async function POST(request: Request) {
                 .from('apns_tokens')
                 .delete()
                 .eq('user_id', userId)
-                .in('token', apnsResult.expiredTokens);
+                .in('device_token', apnsResult.expiredTokens);
             }
           }
 

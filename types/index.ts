@@ -447,6 +447,7 @@ export type NotificationStatus = 'pending' | 'sent' | 'failed' | 'skipped';
 export interface NotificationSettings {
   email_enabled: boolean;
   push_enabled: boolean;
+  remind_me: boolean;
   lead_days: number; // Days before due date to send reminder (legacy, single value)
   reminder_days: number[]; // Days before due date to send reminders (multi-select)
   timezone: string; // IANA timezone
@@ -479,6 +480,7 @@ export interface BillNotification {
 export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
   email_enabled: true,
   push_enabled: false,
+  remind_me: true,
   lead_days: 3,
   reminder_days: [3],
   timezone: 'America/New_York',
