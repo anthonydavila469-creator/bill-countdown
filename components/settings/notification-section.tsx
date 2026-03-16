@@ -300,7 +300,7 @@ export function NotificationSection() {
 
         <FieldRow icon={Smartphone} label="Push Notifications" description="Get push notifications when bills are coming due">
           <Toggle
-            enabled={settings.push_enabled && isSubscribed}
+            enabled={settings.push_enabled}
             onChange={(value) => void handlePushToggle(value)}
             disabled={!isSupported}
             color="#8B5CF6"

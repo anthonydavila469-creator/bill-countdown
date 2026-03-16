@@ -673,10 +673,16 @@ struct LargeWidgetView: View {
 
                 Spacer()
 
-                // Top-right: Total due
-                Text("$\(payload.totals.totalDue, specifier: "%.2f")")
-                    .font(.system(size: 20, weight: .black, design: .rounded))
-                    .foregroundColor(.white)
+                // Top-right: Total due with label
+                VStack(alignment: .trailing, spacing: 1) {
+                    Text("TOTAL DUE")
+                        .font(.system(size: 8, weight: .bold, design: .rounded))
+                        .foregroundColor(theme.accentColor.opacity(0.8))
+                        .tracking(0.5)
+                    Text("$\(payload.totals.totalDue, specifier: "%.2f")")
+                        .font(.system(size: 20, weight: .black, design: .rounded))
+                        .foregroundColor(.white)
+                }
             }
             .padding(.bottom, 6)
 
