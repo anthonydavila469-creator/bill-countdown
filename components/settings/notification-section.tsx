@@ -192,18 +192,28 @@ export function NotificationSection() {
         return;
       }
 
-      const { error } = await supabase
+      // Try update first (existing row), then insert with defaults if no row exists
+      const { data: updated, error: updateErr } = await supabase
         .from('user_preferences')
-        .upsert({
-          user_id: user.id,
-          notification_settings: newSettings,
-        }, { onConflict: 'user_id' });
+        .update({ notification_settings: newSettings })
+        .eq('user_id', user.id)
+        .select()
+        .maybeSingle();
 
-      if (error) {
-        console.error('Direct save also failed:', error);
-        setSaveStatus('error');
-        return;
+      if (updated) {
+        // Row existed and was updated successfully
+      } else {
+        // No existing row — insert with all required defaults
+        const { error: insertErr } = await supabase
+          .from('user_preferences')
+          .insert({
+            user_id: user.id,
+            notification_settings: newSettings,
+            color_theme: 'amethyst',
+          });
+        if (insertErr) throw insertErr;
       }
+      if (updateErr) throw updateErr;
 
       setSaveStatus('saved');
       if (savedTimer.current) clearTimeout(savedTimer.current);

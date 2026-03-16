@@ -86,11 +86,18 @@ export async function PUT(request: Request) {
       .eq('user_id', user.id)
       .single();
 
-    // If user is not pro, they cannot update customization settings
-    // (but we'll still let them save defaults / non-customization fields)
+    // If no existing row, include safe defaults so the upsert insert
+    // doesn't violate the chk_color_theme constraint (DB default is 'default'
+    // which is NOT in the allowed list — must be 'amethyst' or similar).
     const updateData: Record<string, unknown> = {
       user_id: user.id,
     };
+
+    if (!existing) {
+      updateData.color_theme = DEFAULT_COLOR_THEME;
+      updateData.dashboard_layout = DEFAULT_DASHBOARD_LAYOUT;
+      updateData.notification_settings = DEFAULT_NOTIFICATION_SETTINGS;
+    }
 
     // Color theme can be updated by anyone (themes are free)
     if (body.color_theme !== undefined) {
