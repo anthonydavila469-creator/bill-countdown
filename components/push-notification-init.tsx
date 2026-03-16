@@ -39,8 +39,7 @@ export function PushNotificationInit() {
           return;
         }
 
-        await PushNotifications.register();
-
+        // Add listeners BEFORE calling register() to avoid race condition
         PushNotifications.addListener('registration', async (token) => {
           console.log('APNs token received:', token.value.slice(0, 8) + '...');
 
@@ -80,6 +79,11 @@ export function PushNotificationInit() {
             window.location.href = `/dashboard?bill=${data.billId}`;
           }
         });
+
+        // Now register AFTER listeners are set up
+        console.log('[Push] Calling PushNotifications.register()...');
+        await PushNotifications.register();
+        console.log('[Push] register() called — waiting for APNs token...');
       } catch (error) {
         console.error('Push init error:', error);
       }
