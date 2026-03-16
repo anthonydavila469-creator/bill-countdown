@@ -17,15 +17,19 @@ import { cn } from '@/lib/utils';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
 import { createClient } from '@/lib/supabase/client';
 
-// Helper to get auth headers for API calls (works in both web and Capacitor)
-async function getAuthHeaders() {
+// Get auth token — tries getSession first, falls back to getUser + session refresh
+async function getAuthToken(): Promise<string | null> {
   const supabase = createClient();
+  
+  // Try getSession first
   const { data: { session } } = await supabase.auth.getSession();
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (session?.access_token) {
-    headers['Authorization'] = `Bearer ${session.access_token}`;
-  }
-  return headers;
+  if (session?.access_token) return session.access_token;
+  
+  // Session might be stale in Capacitor — try refreshing
+  const { data: refreshed } = await supabase.auth.refreshSession();
+  if (refreshed?.session?.access_token) return refreshed.session.access_token;
+  
+  return null;
 }
 
 const REMINDER_OPTIONS = [
@@ -124,11 +128,14 @@ export function NotificationSection() {
   const { isSupported, subscribe, unsubscribe } = usePushNotifications();
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Load via API route (supports both cookie and Bearer auth)
+  // Load via API route with Bearer token (works in Capacitor + web)
   useEffect(() => {
     const load = async () => {
       try {
-        const headers = await getAuthHeaders();
+        const token = await getAuthToken();
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        
         const res = await fetch('/api/preferences', { headers });
         if (!res.ok) { setIsLoading(false); return; }
 
@@ -150,21 +157,50 @@ export function NotificationSection() {
     load();
   }, []);
 
-  // Save via API route (supports both cookie and Bearer auth for Capacitor)
+  // Save via API route with Bearer token + fallback to direct Supabase
   const save = useCallback(async (newSettings: NotificationSettings) => {
     setSettings(newSettings);
     setSaveStatus('saving');
 
     try {
-      const headers = await getAuthHeaders();
+      const token = await getAuthToken();
+      
+      // Try API route first
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      
       const res = await fetch('/api/preferences', {
         method: 'PUT',
         headers,
         body: JSON.stringify({ notification_settings: newSettings }),
       });
 
-      if (!res.ok) {
-        console.error('Save failed:', res.status, await res.text());
+      if (res.ok) {
+        setSaveStatus('saved');
+        if (savedTimer.current) clearTimeout(savedTimer.current);
+        savedTimer.current = setTimeout(() => setSaveStatus('idle'), 2000);
+        return;
+      }
+
+      // API route failed — fall back to direct Supabase client write
+      console.warn('API save failed, trying direct Supabase write...');
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.error('No user found for direct write either');
+        setSaveStatus('error');
+        return;
+      }
+
+      const { error } = await supabase
+        .from('user_preferences')
+        .upsert({
+          user_id: user.id,
+          notification_settings: newSettings,
+        }, { onConflict: 'user_id' });
+
+      if (error) {
+        console.error('Direct save also failed:', error);
         setSaveStatus('error');
         return;
       }
