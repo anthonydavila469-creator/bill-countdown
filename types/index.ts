@@ -546,7 +546,7 @@ export interface BillNotification {
 }
 
 export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
-  email_enabled: false,
+  email_enabled: true,
   push_enabled: false,
   remind_me: '3days',
   lead_days: 3,

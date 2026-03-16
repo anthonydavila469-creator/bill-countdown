@@ -2,6 +2,32 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { Capacitor } from '@capacitor/core';
+import { createClient } from '@/lib/supabase/client';
+
+async function registerNativeDeviceToken(deviceToken: string) {
+  try {
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return;
+    }
+
+    const response = await fetch('/api/push/register-device', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ deviceToken, userId: user.id }),
+    });
+
+    if (!response.ok) {
+      console.error('Failed to register native push token with server');
+    }
+  } catch (error) {
+    console.error('Error registering native push token:', error);
+  }
+}
 
 interface UsePushNotificationsReturn {
   token: string | null;
@@ -30,13 +56,20 @@ export function usePushNotifications(): UsePushNotificationsReturn {
   }, []);
 
   useEffect(() => {
-    // Check for existing subscription on mount
-    if (typeof window !== 'undefined') {
-      const savedToken = localStorage.getItem('pushToken');
-      if (savedToken) {
-        setToken(savedToken);
-        setIsSubscribed(true);
-      }
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const savedToken = localStorage.getItem('pushToken');
+    if (savedToken) {
+      setToken(savedToken);
+      setIsSubscribed(true);
+      return;
+    }
+
+    if ('Notification' in window && Notification.permission === 'granted') {
+      setPermissionStatus('granted');
+      setIsSubscribed(true);
     }
   }, []);
 
@@ -60,6 +93,7 @@ export function usePushNotifications(): UsePushNotificationsReturn {
           setToken(tokenData.value);
           setIsSubscribed(true);
           localStorage.setItem('pushToken', tokenData.value);
+          void registerNativeDeviceToken(tokenData.value);
         });
 
         // Listen for registration errors
