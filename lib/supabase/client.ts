@@ -10,11 +10,6 @@ export function createClient() {
         sameSite: 'lax',
         secure: process.env.NODE_ENV === 'production',
       },
-      auth: {
-        // Disable Navigator.locks — causes timeout errors in Capacitor WebView
-        // and Safari background tabs. Falls back to tab-scoped locking instead.
-        lock: 'no-op' as any,
-      },
     }
   );
 }
