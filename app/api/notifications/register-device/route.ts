@@ -1,71 +1,36 @@
-import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
-import { getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
+import { createAdminClient } from '@/lib/supabase/admin';
 
-// POST /api/notifications/register-device
-// Saves an iOS APNs device token for the authenticated user
 export async function POST(request: Request) {
   try {
-    const { user } = await getAuthenticatedUser(request);
-    const supabase = await createClient();
-
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const { deviceToken, userId } = (await request.json()) as { deviceToken?: string; userId?: string };
+    if (!deviceToken || !userId) {
+      return NextResponse.json({ error: 'deviceToken and userId are required' }, { status: 400 });
     }
 
-    const body = await request.json() as { token: string; deviceId?: string };
-
-    if (!body.token) {
-      return NextResponse.json({ error: 'Missing token' }, { status: 400 });
-    }
-
-    // Upsert — one row per user+token combo
-    const { error } = await supabase
+    const supabase = createAdminClient();
+    const now = new Date().toISOString();
+    const { data, error } = await supabase
       .from('apns_tokens')
-      .upsert({
-        user_id: user.id,
-        token: body.token,
-        device_id: body.deviceId ?? null,
-        updated_at: new Date().toISOString(),
-      }, {
-        onConflict: 'user_id,token',
-      });
+      .upsert(
+        {
+          user_id: userId,
+          device_token: deviceToken,
+          updated_at: now,
+        },
+        {
+          onConflict: 'user_id,device_token',
+        }
+      )
+      .select('id')
+      .single();
 
     if (error) {
       console.error('Error saving APNs token:', error);
       return NextResponse.json({ error: 'Failed to save token' }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true });
-  } catch (err) {
-    console.error('Unexpected error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
-
-// DELETE /api/notifications/register-device
-// Removes a device token (called on sign out)
-export async function DELETE(request: Request) {
-  try {
-    const { user } = await getAuthenticatedUser(request);
-    const supabase = await createClient();
-
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const body = await request.json() as { token: string };
-    if (!body.token) {
-      return NextResponse.json({ error: 'Missing token' }, { status: 400 });
-    }
-
-    await supabase
-      .from('apns_tokens')
-      .delete()
-      .eq('user_id', user.id)
-      .eq('token', body.token);
-
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, token_id: data.id });
   } catch (err) {
     console.error('Unexpected error:', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

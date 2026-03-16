@@ -5,6 +5,10 @@
       "schedule": "0 8 * * *"
     },
     {
+      "path": "/api/cron/send-push-reminders",
+      "schedule": "15 8 * * *"
+    },
+    {
       "path": "/api/cron/daily-tasks",
       "schedule": "0 8 * * *"
     }

@@ -9,7 +9,6 @@ import type { Bill, NotificationSettings, PushSubscription, BillNotification } f
 // POST /api/cron/send-bill-reminders - Process and send pending notifications
 export async function POST(request: Request) {
   try {
-    // Verify cron secret
     const authHeader = request.headers.get('authorization');
     const expectedToken = `Bearer ${process.env.CRON_SECRET}`;
 
@@ -23,14 +22,13 @@ export async function POST(request: Request) {
     const supabase = createAdminClient();
     const now = new Date();
 
-    // Fetch pending queue items where scheduled_for <= now
     const { data: pendingNotifications, error: fetchError } = await supabase
       .from('bill_notifications_queue')
       .select('*')
       .eq('status', 'pending')
       .lte('scheduled_for', now.toISOString())
       .order('scheduled_for', { ascending: true })
-      .limit(100); // Process in batches
+      .limit(100);
 
     if (fetchError) {
       console.error('Failed to fetch pending notifications:', fetchError);
@@ -51,7 +49,6 @@ export async function POST(request: Request) {
       failed: 0,
     };
 
-    // Group notifications by user for efficiency
     const notificationsByUser = new Map<string, BillNotification[]>();
     for (const notification of pendingNotifications) {
       const userNotifications = notificationsByUser.get(notification.user_id) || [];
@@ -59,9 +56,7 @@ export async function POST(request: Request) {
       notificationsByUser.set(notification.user_id, userNotifications);
     }
 
-    // Process each user's notifications
     for (const [userId, userNotifications] of notificationsByUser) {
-      // Fetch user data, settings, and push subscriptions
       const [userResult, prefsResult, subsResult, apnsResult] = await Promise.all([
         supabase.auth.admin.getUserById(userId),
         supabase
@@ -75,20 +70,18 @@ export async function POST(request: Request) {
           .eq('user_id', userId),
         supabase
           .from('apns_tokens')
-          .select('token')
+          .select('device_token')
           .eq('user_id', userId),
       ]);
 
       const userEmail = userResult.data?.user?.email;
       const settings: NotificationSettings = prefsResult.data?.notification_settings ?? DEFAULT_NOTIFICATION_SETTINGS;
       const pushSubscriptions: PushSubscription[] = (subsResult.data as PushSubscription[]) ?? [];
-      const apnsTokens: string[] = (apnsResult.data ?? []).map((r: { token: string }) => r.token);
+      const apnsTokens: string[] = (apnsResult.data ?? []).map((row: { device_token: string }) => row.device_token);
 
-      // Process each notification for this user
       for (const notification of userNotifications) {
         results.processed++;
 
-        // Fetch the bill
         const { data: bill, error: billError } = await supabase
           .from('bills')
           .select('*')
@@ -96,24 +89,20 @@ export async function POST(request: Request) {
           .single();
 
         if (billError || !bill) {
-          // Bill was deleted, mark as skipped
           await updateNotificationStatus(supabase, notification.id, 'skipped', 'Bill not found');
           results.skipped++;
           continue;
         }
 
-        // Skip if bill is paid
         if ((bill as Bill).is_paid) {
           await updateNotificationStatus(supabase, notification.id, 'skipped', 'Bill already paid');
           results.skipped++;
           continue;
         }
 
-        // Calculate days until due
         const dueDate = new Date((bill as Bill).due_date + 'T00:00:00');
         const daysUntilDue = Math.ceil((dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 
-        // Send based on channel
         let sendResult: { success: boolean; error?: string } = { success: false };
 
         if (notification.channel === 'email') {
@@ -149,7 +138,6 @@ export async function POST(request: Request) {
           let totalSent = 0;
           let totalFailed = 0;
 
-          // Send via Web Push (VAPID) for browser subscribers
           if (hasVapid) {
             const pushResult = await sendBillReminderPushToAll(
               pushSubscriptions,
@@ -160,7 +148,6 @@ export async function POST(request: Request) {
             totalSent += pushResult.sent;
             totalFailed += pushResult.failed;
 
-            // Clean up expired VAPID subscriptions
             if (pushResult.expiredEndpoints.length > 0) {
               await supabase
                 .from('push_subscriptions')
@@ -170,24 +157,22 @@ export async function POST(request: Request) {
             }
           }
 
-          // Send via APNs for iOS devices
           if (hasApns) {
-            const apnsResult = await sendBillReminderAPNs(
+            const apnsPushResult = await sendBillReminderAPNs(
               apnsTokens,
               bill as Bill,
               daysUntilDue
             );
 
-            totalSent += apnsResult.sent;
-            totalFailed += apnsResult.failed;
+            totalSent += apnsPushResult.sent;
+            totalFailed += apnsPushResult.failed;
 
-            // Clean up expired APNs tokens
-            if (apnsResult.expiredTokens.length > 0) {
+            if (apnsPushResult.expiredTokens.length > 0) {
               await supabase
                 .from('apns_tokens')
                 .delete()
                 .eq('user_id', userId)
-                .in('token', apnsResult.expiredTokens);
+                .in('device_token', apnsPushResult.expiredTokens);
             }
           }
 
@@ -197,7 +182,6 @@ export async function POST(request: Request) {
           };
         }
 
-        // Update notification status
         if (sendResult.success) {
           await updateNotificationStatus(supabase, notification.id, 'sent');
           results.sent++;
@@ -234,7 +218,6 @@ async function updateNotificationStatus(
     .eq('id', notificationId);
 }
 
-// GET handler for testing (returns current queue stats)
 export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization');
   const expectedToken = `Bearer ${process.env.CRON_SECRET}`;
