@@ -46,14 +46,20 @@ class ApnsSender {
       const teamId = process.env.APNS_TEAM_ID;
       const keyId = process.env.APNS_KEY_ID;
       const keyPath = process.env.APNS_KEY_PATH;
+      const keyBase64 = process.env.APNS_KEY_BASE64;
 
-      if (!teamId || !keyId || !keyPath) {
-        console.error('[apns] Missing APNS_TEAM_ID, APNS_KEY_ID, or APNS_KEY_PATH');
+      if (!teamId || !keyId || (!keyPath && !keyBase64)) {
+        console.error('[apns] Missing APNS_TEAM_ID, APNS_KEY_ID, or APNS_KEY_PATH/APNS_KEY_BASE64');
         return null;
       }
 
       if (!this.signingKey) {
-        const privateKey = await readFile(keyPath, 'utf8');
+        let privateKey: string;
+        if (keyBase64) {
+          privateKey = Buffer.from(keyBase64, 'base64').toString('utf8');
+        } else {
+          privateKey = await readFile(keyPath!, 'utf8');
+        }
         this.signingKey = await importPKCS8(privateKey, 'ES256');
       }
 
