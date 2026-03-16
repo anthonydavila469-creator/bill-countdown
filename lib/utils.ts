@@ -17,7 +17,10 @@ export function hexToRgba(hex: string, alpha: number): string {
 
 // Calculate days until due date
 export function getDaysUntilDue(dueDate: string): number {
-  const due = new Date(dueDate);
+  // Use 'T00:00:00' suffix to parse as LOCAL midnight (not UTC)
+  // Without it, '2026-03-17' parses as UTC midnight = Mar 16 6PM in CT
+  const dateStr = dueDate.includes('T') ? dueDate : dueDate + 'T00:00:00';
+  const due = new Date(dateStr);
   const today = new Date();
 
   // Reset time to midnight for accurate day calculation
