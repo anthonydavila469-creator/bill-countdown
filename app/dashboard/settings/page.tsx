@@ -304,6 +304,10 @@ export default function SettingsPage() {
   const [isForceRescanning, setIsForceRescanning] = useState(false);
   const [showForceRescanConfirm, setShowForceRescanConfirm] = useState(false);
 
+  // Auto-scan state (triggers after OAuth redirect)
+  const [isAutoScanning, setIsAutoScanning] = useState(false);
+  const [autoScanNoResults, setAutoScanNoResults] = useState(false);
+
   // Check authentication and connected email provider status
   useEffect(() => {
     const checkAuth = async () => {
@@ -313,13 +317,13 @@ export default function SettingsPage() {
       if (oauthError) {
         console.error('Email OAuth error:', oauthError, errorDetails);
         alert(`Email connection failed: ${errorDetails || oauthError}`);
-        // Clean URL
+        // Clean URL for error case only — success params are handled by auto-scan useEffect
         window.history.replaceState({}, '', window.location.pathname);
       }
       const gmailJustConnected = urlParams.get('gmail') === 'connected';
       const providerFromUrl = (urlParams.get('provider') as EmailProviderName | null) || 'gmail';
 
-      if (gmailJustConnected) {
+      if (gmailJustConnected || urlParams.get('provider_connected')) {
         setEmailConnection((current) => current || {
           provider: providerFromUrl,
           email: '',
@@ -355,6 +359,57 @@ export default function SettingsPage() {
 
     checkAuth();
   }, [router, supabase.auth, supabase]);
+
+  // Auto-scan after OAuth provider connect
+  // Detects URL params like ?gmail=connected or ?provider_connected=Gmail
+  useEffect(() => {
+    if (isLoading || isAutoScanning) return;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const gmailJustConnected = urlParams.get('gmail') === 'connected';
+    const providerConnected = urlParams.get('provider_connected');
+
+    if (!gmailJustConnected && !providerConnected) return;
+
+    // Clear URL params immediately to prevent re-trigger on refresh
+    window.history.replaceState({}, '', window.location.pathname);
+
+    const runAutoScan = async () => {
+      setIsAutoScanning(true);
+      setAutoScanNoResults(false);
+
+      try {
+        const response = await fetch('/api/suggestions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ maxResults: 200, daysBack: 60, skipAI: false }),
+        });
+
+        if (!response.ok) {
+          console.error('Auto-scan failed:', await response.text());
+          setIsAutoScanning(false);
+          return;
+        }
+
+        const { suggestions } = await response.json();
+
+        setIsAutoScanning(false);
+
+        if (suggestions && suggestions.length > 0) {
+          // Open the import modal — it will re-fetch suggestions internally
+          setIsImportModalOpen(true);
+        } else {
+          // Show friendly "no bills found" message
+          setAutoScanNoResults(true);
+        }
+      } catch (error) {
+        console.error('Auto-scan error:', error);
+        setIsAutoScanning(false);
+      }
+    };
+
+    runAutoScan();
+  }, [isLoading]); // Only re-run when loading completes
 
   // Handle sign out
   const handleSignOut = async () => {
@@ -603,6 +658,62 @@ export default function SettingsPage() {
 
         {/* Content */}
         <div className="p-6 max-w-2xl mx-auto space-y-10">
+          {/* Auto-scan spinner after OAuth redirect */}
+          {isAutoScanning && (
+            <div className="relative overflow-hidden rounded-2xl border border-violet-500/20 bg-gradient-to-br from-violet-500/[0.06] to-blue-500/[0.04] p-8 animate-in fade-in duration-500">
+              <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDEwIEwgNDAgMTAgTSAxMCAwIEwgMTAgNDAgTSAwIDIwIEwgNDAgMjAgTSAyMCAwIEwgMjAgNDAgTSAwIDMwIEwgNDAgMzAgTSAzMCAwIEwgMzAgNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjAxKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-50" />
+              <div className="relative flex flex-col items-center text-center gap-4">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-violet-500/30 rounded-full blur-xl animate-pulse" />
+                  <div className="relative p-4 rounded-full bg-violet-500/10 border border-violet-500/20">
+                    <Mail className="w-8 h-8 text-violet-400 animate-pulse" />
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-white mb-1">Scanning your inbox...</h3>
+                  <p className="text-sm text-zinc-400">Looking for bills and due dates in your emails</p>
+                </div>
+                <div className="flex items-center gap-2 mt-1">
+                  <Loader2 className="w-4 h-4 text-violet-400 animate-spin" />
+                  <span className="text-xs text-zinc-500">This may take a moment</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* No bills found after auto-scan */}
+          {autoScanNoResults && (
+            <div className="relative overflow-hidden rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/[0.04] to-teal-500/[0.02] p-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+              <div className="flex items-start gap-4">
+                <div className="relative flex-shrink-0">
+                  <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                    <Check className="w-5 h-5 text-emerald-400" />
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-white mb-1">Email connected successfully!</h3>
+                  <p className="text-sm text-zinc-400 leading-relaxed mb-3">
+                    No bills found yet — that&apos;s okay! We&apos;ll automatically scan again tomorrow during auto-sync 
+                    and notify you when we find new bills.
+                  </p>
+                  <div className="flex items-center gap-2 text-xs text-zinc-500">
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Daily auto-sync is active</span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setAutoScanNoResults(false)}
+                  className="flex-shrink-0 p-1.5 text-zinc-500 hover:text-white transition-colors rounded-lg hover:bg-white/5"
+                >
+                  <span className="sr-only">Dismiss</span>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Email Connection */}
           <section>
             <SectionHeader
