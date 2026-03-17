@@ -482,7 +482,7 @@ struct WidgetBackground: View {
     }
 }
 
-/// Frosted glass panel for content sections
+/// Lighter inner glass card for bill rows
 struct GlassCard<Content: View>: View {
     var cornerRadius: CGFloat = 12
     var isWarmTheme: Bool = false
@@ -492,17 +492,17 @@ struct GlassCard<Content: View>: View {
         content()
             .background(
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .fill(Color.white.opacity(isWarmTheme ? 0.12 : 0.06))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                            .stroke(
-                                LinearGradient(
-                                    colors: [Color.white.opacity(0.18), Color.white.opacity(0.03)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ),
-                                lineWidth: 0.5
-                            )
+                    .fill(Color.white.opacity(isWarmTheme ? 0.15 : 0.08))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .stroke(
+                        LinearGradient(
+                            colors: [Color.white.opacity(0.22), Color.white.opacity(0.05)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 0.5
                     )
             )
     }
@@ -523,63 +523,80 @@ struct CountdownRing: View {
         return max(Double(days) / 30.0, 0.05)
     }
 
+    // Urgency-based colors: red when late, theme accent when fine
     private var primaryColor: Color {
-        if days < 0 { return Color(hex: 0xef4444) }
-        if days <= 2 { return Color(hex: 0xf87171) }
-        return theme.accentColor
+        days < 0 ? Color(hex: 0xef4444) : theme.accentColor
     }
 
-    private var thickWidth: CGFloat { lineWidth * 1.8 }
+    // Second gradient color for the arc
+    private var secondaryColor: Color {
+        if days < 0 { return Color(hex: 0xff6b6b) }
+        return .white.opacity(0.9)
+    }
+
+    private var thickWidth: CGFloat { lineWidth * 2.0 }
 
     var body: some View {
         ZStack {
-            // Subtle outer glow
+            // Outer glow — dramatic, multi-layered
             Circle()
                 .fill(
                     RadialGradient(
-                        colors: [primaryColor.opacity(0.2), .clear],
-                        center: .center, startRadius: size * 0.2, endRadius: size * 0.7
+                        colors: [primaryColor.opacity(0.35), primaryColor.opacity(0.08), .clear],
+                        center: .center, startRadius: size * 0.25, endRadius: size * 0.85
                     )
                 )
-                .frame(width: size * 1.3, height: size * 1.3)
-                .blur(radius: 10)
+                .frame(width: size * 1.5, height: size * 1.5)
+                .blur(radius: 12)
 
-            // Track
+            // Background track — subtle double ring
             Circle()
-                .stroke(Color.white.opacity(0.06), lineWidth: thickWidth)
+                .stroke(Color.white.opacity(0.08), lineWidth: thickWidth)
                 .frame(width: size, height: size)
 
-            // Progress arc
+            Circle()
+                .stroke(Color.white.opacity(0.03), lineWidth: thickWidth + 6)
+                .frame(width: size, height: size)
+
+            // Progress arc — thick with vivid gradient
             Circle()
                 .trim(from: 0, to: progress)
                 .stroke(
                     AngularGradient(
-                        colors: [primaryColor, primaryColor.opacity(0.5), primaryColor],
+                        colors: [
+                            primaryColor,
+                            primaryColor.opacity(0.9),
+                            secondaryColor,
+                            primaryColor.opacity(0.95),
+                            primaryColor,
+                        ],
                         center: .center
                     ),
                     style: StrokeStyle(lineWidth: thickWidth, lineCap: .round)
                 )
                 .frame(width: size, height: size)
                 .rotationEffect(.degrees(-90))
-                .shadow(color: primaryColor.opacity(0.6), radius: 8)
+                .shadow(color: primaryColor.opacity(0.7), radius: 10, x: 0, y: 0)
+                .shadow(color: primaryColor.opacity(0.3), radius: 20, x: 0, y: 0)
 
-            // Glowing end cap
+            // Bright end cap — glowing dot
             Circle()
                 .fill(
                     RadialGradient(
                         colors: [.white, primaryColor],
-                        center: .center, startRadius: 0, endRadius: thickWidth * 0.8
+                        center: .center, startRadius: 0, endRadius: thickWidth * 0.9
                     )
                 )
                 .frame(width: thickWidth, height: thickWidth)
-                .shadow(color: primaryColor, radius: 6)
+                .shadow(color: primaryColor, radius: 8)
+                .shadow(color: primaryColor.opacity(0.5), radius: 16)
                 .offset(y: -size / 2)
                 .rotationEffect(.degrees(-90 + 360 * progress))
 
-            // Number + label
+            // Inner content
             VStack(spacing: 0) {
                 Text("\(abs(days))")
-                    .font(.system(size: size * 0.36, weight: .black, design: .rounded))
+                    .font(.system(size: size * 0.38, weight: .black, design: .rounded))
                     .foregroundStyle(
                         LinearGradient(
                             colors: [.white, .white.opacity(0.85)],
@@ -587,13 +604,13 @@ struct CountdownRing: View {
                             endPoint: .bottom
                         )
                     )
-                    .shadow(color: primaryColor.opacity(0.5), radius: 10)
+                    .shadow(color: primaryColor.opacity(0.6), radius: 12)
 
                 if showLabel {
                     Text(days < 0 ? "LATE" : days == 1 ? "DAY" : "DAYS")
-                        .font(.system(size: size * 0.1, weight: .heavy, design: .rounded))
-                        .foregroundColor(.white.opacity(0.4))
-                        .tracking(2)
+                        .font(.system(size: size * 0.11, weight: .heavy, design: .rounded))
+                        .foregroundColor(.white.opacity(0.55))
+                        .tracking(2.5)
                 }
             }
         }
@@ -627,8 +644,8 @@ struct DuezoWidgetEntryView: View {
     }
 }
 
-// MARK: - Large Widget — "The Terminal"
-// Full fintech dashboard: hero bill with massive amount, stats strip, bill list with urgency bars.
+// MARK: - Large Widget V3 — "The Terminal"
+// Financial dashboard: stats header, dramatic hero ring, accent-bordered bill rows
 
 struct LargeWidgetView: View {
     let payload: DuezoWidgetPayload
@@ -646,140 +663,114 @@ struct LargeWidgetView: View {
 
     private var heroColor: Color {
         guard let bill = payload.nextBill else { return theme.accentColor }
-        if bill.daysLeft < 0 { return Color(hex: 0xef4444) }
-        if bill.daysLeft <= 2 { return Color(hex: 0xf87171) }
-        return theme.accentColor
+        return bill.daysLeft < 0 ? Color(hex: 0xef4444) : theme.accentColor
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // HEADER — brand + total
+            // Header — stats bar like a Bloomberg terminal
             HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 1) {
-                    HStack(spacing: 4) {
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 5) {
                         Image(systemName: "bolt.fill")
-                            .font(.system(size: 9, weight: .bold))
+                            .font(.system(size: 10, weight: .bold))
                             .foregroundColor(theme.accentColor)
-                            .shadow(color: theme.accentColor.opacity(0.6), radius: 3)
+                            .shadow(color: theme.accentColor.opacity(0.6), radius: 4)
                         Text("DUEZO")
-                            .font(.system(size: 10, weight: .black, design: .rounded))
-                            .foregroundColor(.white.opacity(0.8))
-                            .tracking(2.5)
+                            .font(.system(size: 12, weight: .black, design: .rounded))
+                            .foregroundColor(.white)
+                            .tracking(2)
                     }
-                    Text("\(payload.upcoming.count) bills upcoming")
+                    Text("\(payload.upcoming.count) upcoming")
                         .font(.system(size: 9, weight: .medium, design: .rounded))
-                        .foregroundColor(.white.opacity(0.3))
+                        .foregroundColor(.white.opacity(0.4))
                 }
 
                 Spacer()
 
-                // Total due — bold monospaced
-                VStack(alignment: .trailing, spacing: 1) {
-                    Text("TOTAL")
+                // Total due — premium stat display
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text("TOTAL DUE")
                         .font(.system(size: 7, weight: .bold, design: .rounded))
-                        .foregroundColor(.white.opacity(0.3))
+                        .foregroundColor(theme.accentColor.opacity(0.7))
                         .tracking(2)
                     Text("$\(payload.totals.totalDue, specifier: "%.2f")")
-                        .font(.system(size: 24, weight: .black, design: .monospaced))
+                        .font(.system(size: 22, weight: .black, design: .monospaced))
                         .foregroundColor(.white)
-                        .shadow(color: theme.accentColor.opacity(0.25), radius: 8)
+                        .shadow(color: theme.accentColor.opacity(0.3), radius: 8)
 
                     if let delta = payload.totals.deltaVsLastMonth, delta != 0 {
                         HStack(spacing: 3) {
                             Image(systemName: delta > 0 ? "arrow.up.right" : "arrow.down.right")
-                                .font(.system(size: 7, weight: .black))
-                            Text("$\(abs(delta), specifier: "%.0f")")
-                                .font(.system(size: 9, weight: .black, design: .monospaced))
+                                .font(.system(size: 7, weight: .bold))
+                            Text("$\(abs(delta), specifier: "%.0f") vs last mo")
+                                .font(.system(size: 8, weight: .medium))
                         }
-                        .foregroundColor(delta > 0 ? Color(hex: 0xef4444) : Color(hex: 0x22c55e))
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(
-                            RoundedRectangle(cornerRadius: 4, style: .continuous)
-                                .fill((delta > 0 ? Color(hex: 0xef4444) : Color(hex: 0x22c55e)).opacity(0.1))
-                        )
+                        .foregroundColor(delta > 0 ? Color(hex: 0xef4444).opacity(0.7) : Color(hex: 0x22c55e).opacity(0.7))
                     }
                 }
             }
-            .padding(.bottom, 10)
+            .padding(.bottom, 8)
 
-            // HERO BILL — the star of the show
+            // Hero ring row — dramatic
             if let bill = payload.nextBill {
-                HStack(spacing: 0) {
-                    // Countdown ring
-                    CountdownRing(days: bill.daysLeft, size: 72, lineWidth: 5, theme: theme)
-                        .padding(.trailing, 12)
+                HStack(spacing: 14) {
+                    CountdownRing(days: bill.daysLeft, size: 76, lineWidth: 6, theme: theme)
 
-                    // Bill info — stacked
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("NEXT DUE")
-                            .font(.system(size: 8, weight: .heavy, design: .rounded))
-                            .foregroundColor(heroColor.opacity(0.6))
-                            .tracking(2)
-
+                    VStack(alignment: .leading, spacing: 3) {
+                        HStack(spacing: 5) {
+                            Image(systemName: bill.daysLeft < 0 ? "flame.fill" : bill.daysLeft <= 3 ? "clock.badge.exclamationmark" : "clock")
+                                .font(.system(size: 9, weight: .bold))
+                                .foregroundColor(heroColor.opacity(0.8))
+                            Text("NEXT UP")
+                                .font(.system(size: 8, weight: .bold, design: .rounded))
+                                .foregroundColor(theme.isWarm ? .white.opacity(0.5) : heroColor.opacity(0.6))
+                                .tracking(1.5)
+                        }
                         Text(bill.vendor)
-                            .font(.system(size: 17, weight: .heavy, design: .rounded))
+                            .font(.system(size: 16, weight: .heavy, design: .rounded))
                             .foregroundColor(.white)
                             .lineLimit(1)
-
-                        // Massive amount
                         Text("$\(bill.amount, specifier: "%.2f")")
-                            .font(.system(size: 26, weight: .black, design: .monospaced))
+                            .font(.system(size: 20, weight: .black, design: .monospaced))
                             .foregroundColor(heroColor)
-                            .shadow(color: heroColor.opacity(0.4), radius: 10)
-                            .minimumScaleFactor(0.7)
-                            .lineLimit(1)
-
-                        HStack(spacing: 6) {
-                            Text(formatISODate(bill.dueDate))
-                                .font(.system(size: 10, weight: .medium, design: .rounded))
-                                .foregroundColor(.white.opacity(0.35))
-
-                            if bill.isAutopay == true {
-                                HStack(spacing: 2) {
-                                    Image(systemName: "arrow.triangle.2.circlepath")
-                                        .font(.system(size: 7, weight: .bold))
-                                    Text("AUTO")
-                                        .font(.system(size: 7, weight: .bold, design: .rounded))
-                                        .tracking(1)
-                                }
-                                .foregroundColor(.white.opacity(0.25))
-                            }
-                        }
+                            .shadow(color: heroColor.opacity(0.4), radius: 8)
+                        Text("Due \(formatISODate(bill.dueDate))")
+                            .font(.system(size: 10, weight: .medium, design: .rounded))
+                            .foregroundColor(.white.opacity(0.35))
                     }
 
                     Spacer()
                 }
-                .padding(.bottom, 10)
+                .padding(.bottom, 8)
             }
 
-            // SEPARATOR — neon gradient line
+            // Divider — gradient fade
             Rectangle()
                 .fill(
                     LinearGradient(
-                        colors: [heroColor.opacity(0.5), heroColor.opacity(0.1), .clear],
+                        colors: [heroColor.opacity(0.4), Color.white.opacity(0.08), .clear],
                         startPoint: .leading,
                         endPoint: .trailing
                     )
                 )
                 .frame(height: 1)
-                .shadow(color: heroColor.opacity(0.4), radius: 3)
-                .padding(.bottom, 8)
+                .shadow(color: heroColor.opacity(0.3), radius: 4)
+                .padding(.bottom, 7)
 
-            // BILL LIST — urgency-coded rows
+            // Bill rows — accent-bordered cards
             VStack(spacing: 5) {
                 ForEach(displayBills) { bill in
                     LargeBillRow(bill: bill, theme: theme)
                 }
             }
 
-            if payload.upcoming.count > displayBills.count + 1 {
-                let remaining = payload.upcoming.count - displayBills.count - 1
+            if payload.upcoming.count > 4 {
                 HStack {
                     Spacer()
-                    Text("+\(remaining) more")
-                        .font(.system(size: 9, weight: .bold, design: .rounded))
-                        .foregroundColor(.white.opacity(0.25))
+                    Text("+ \(payload.upcoming.count - 4) more")
+                        .font(.system(size: 10, weight: .bold, design: .rounded))
+                        .foregroundColor(.white.opacity(0.35))
                         .tracking(0.5)
                 }
                 .padding(.top, 4)
@@ -787,20 +778,20 @@ struct LargeWidgetView: View {
 
             Spacer(minLength: 0)
         }
-        .padding(14)
+        .padding(13)
         .containerBackground(for: .widget) {
             WidgetBackground(theme: theme, isOverdue: payload.nextBill?.daysLeft ?? 0 < 0)
         }
     }
 }
 
-// MARK: - Large Bill Row — Gradient urgency bar + compact layout
+// MARK: - Large Bill Row V3 — Accent Border Style
 
 struct LargeBillRow: View {
     let bill: DuezoWidgetPayload.UpcomingBill
     let theme: WidgetTheme
 
-    private var urgColor: Color {
+    private var stripColor: Color {
         switch bill.urgency {
         case .critical: return Color(hex: 0xef4444)
         case .soon:     return Color(hex: 0xfb923c)
@@ -808,62 +799,61 @@ struct LargeBillRow: View {
         }
     }
 
+    private var statusIcon: String {
+        switch bill.urgency {
+        case .critical: return "flame.fill"
+        case .soon:     return "clock.fill"
+        case .later:    return "checkmark.circle"
+        }
+    }
+
     var body: some View {
         HStack(spacing: 0) {
-            // Urgency heat bar — rounded left edge
-            RoundedRectangle(cornerRadius: 2)
-                .fill(
-                    LinearGradient(
-                        colors: [urgColor, urgColor.opacity(0.3)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-                .frame(width: 3)
-                .shadow(color: urgColor.opacity(0.6), radius: 4)
-                .padding(.vertical, 6)
+            // Left accent border — colored strip with glow
+            RoundedRectangle(cornerRadius: 1.5)
+                .fill(stripColor)
+                .frame(width: 3.5, height: 38)
+                .shadow(color: stripColor.opacity(0.7), radius: 5)
 
             HStack(spacing: 8) {
-                // Urgency dot
-                Circle()
-                    .fill(urgColor)
-                    .frame(width: 6, height: 6)
-                    .shadow(color: urgColor.opacity(0.7), radius: 3)
+                Image(systemName: statusIcon)
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(stripColor.opacity(0.8))
+                    .frame(width: 16)
 
-                VStack(alignment: .leading, spacing: 1) {
+                VStack(alignment: .leading, spacing: 2) {
                     Text(bill.vendor)
-                        .font(.system(size: 13, weight: .bold, design: .rounded))
-                        .foregroundColor(.white.opacity(0.9))
+                        .font(.system(size: 14, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
                         .lineLimit(1)
                     Text(formatISODate(bill.dueDate))
                         .font(.system(size: 9, weight: .medium, design: .rounded))
-                        .foregroundColor(.white.opacity(0.3))
+                        .foregroundColor(.white.opacity(0.4))
                 }
 
                 Spacer()
 
-                VStack(alignment: .trailing, spacing: 1) {
+                VStack(alignment: .trailing, spacing: 2) {
                     Text("$\(bill.amount, specifier: "%.2f")")
-                        .font(.system(size: 14, weight: .black, design: .monospaced))
-                        .foregroundColor(.white.opacity(0.9))
-
+                        .font(.system(size: 16, weight: .black, design: .monospaced))
+                        .foregroundColor(.white)
                     Text(dueInLabel(bill.daysLeft))
-                        .font(.system(size: 8, weight: .heavy, design: .rounded))
-                        .foregroundColor(urgColor.opacity(0.8))
+                        .font(.system(size: 9, weight: .bold, design: .rounded))
+                        .foregroundColor(theme.isWarm ? .white.opacity(0.8) : stripColor)
                         .tracking(0.5)
                 }
             }
             .padding(.leading, 8)
             .padding(.trailing, 10)
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 5)
         .background(
             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(Color.white.opacity(theme.isWarm ? 0.1 : 0.05))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .stroke(Color.white.opacity(0.04), lineWidth: 0.5)
-                )
+                .fill(Color.white.opacity(theme.isWarm ? 0.12 : 0.06))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .stroke(Color.white.opacity(0.06), lineWidth: 0.5)
         )
     }
 }
@@ -876,90 +866,63 @@ struct PlaceholderView: View {
 
     var body: some View {
         if hasSynced {
-            // All clear state — clean, celebratory
-            VStack(spacing: 8) {
-                Spacer()
-
+            VStack(spacing: 10) {
                 ZStack {
-                    // Glow behind icon
                     Circle()
                         .fill(
                             RadialGradient(
-                                colors: [Color(hex: 0x22c55e).opacity(0.25), .clear],
-                                center: .center, startRadius: 0, endRadius: 50
+                                colors: [Color(hex: 0x22c55e).opacity(0.3), .clear],
+                                center: .center, startRadius: 0, endRadius: 40
                             )
                         )
-                        .frame(width: 100, height: 100)
-                        .blur(radius: 20)
+                        .frame(width: 80, height: 80)
+                        .blur(radius: 10)
 
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 40, weight: .bold))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [Color(hex: 0x22c55e), Color(hex: 0x16a34a)],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                        .shadow(color: Color(hex: 0x22c55e).opacity(0.5), radius: 12)
+                    Image(systemName: "checkmark.seal.fill")
+                        .font(.system(size: 34, weight: .bold))
+                        .foregroundColor(Color(hex: 0x22c55e))
+                        .shadow(color: Color(hex: 0x22c55e).opacity(0.6), radius: 10)
                 }
 
-                Text("ALL CLEAR")
-                    .font(.system(size: 14, weight: .black, design: .rounded))
-                    .foregroundColor(.white.opacity(0.85))
-                    .tracking(3)
+                Text("All caught up!")
+                    .font(.system(size: 16, weight: .black, design: .rounded))
+                    .foregroundColor(.white.opacity(0.9))
 
                 Text("No upcoming bills")
                     .font(.system(size: 10, weight: .medium, design: .rounded))
-                    .foregroundColor(.white.opacity(0.3))
-
-                Spacer()
+                    .foregroundColor(.white.opacity(0.35))
             }
             .padding()
             .containerBackground(for: .widget) {
                 WidgetBackground(theme: theme)
             }
         } else {
-            // Not synced — prompt to open app
-            VStack(spacing: 8) {
-                Spacer()
-
+            VStack(spacing: 10) {
                 ZStack {
-                    // Pulsing accent glow
                     Circle()
                         .fill(
                             RadialGradient(
-                                colors: [theme.accentColor.opacity(0.2), .clear],
-                                center: .center, startRadius: 0, endRadius: 50
+                                colors: [theme.accentColor.opacity(0.25), .clear],
+                                center: .center, startRadius: 0, endRadius: 40
                             )
                         )
-                        .frame(width: 100, height: 100)
-                        .blur(radius: 20)
+                        .frame(width: 80, height: 80)
+                        .blur(radius: 10)
 
-                    // Layered icon
-                    ZStack {
-                        Image(systemName: "bolt.fill")
-                            .font(.system(size: 28, weight: .bold))
-                            .foregroundColor(theme.accentColor.opacity(0.15))
-                            .blur(radius: 6)
-
-                        Image(systemName: "bolt.fill")
-                            .font(.system(size: 28, weight: .bold))
-                            .foregroundColor(theme.accentColor)
-                            .shadow(color: theme.accentColor.opacity(0.6), radius: 8)
-                    }
+                    Image(systemName: "bolt.fill")
+                        .font(.system(size: 30, weight: .bold))
+                        .foregroundColor(theme.accentColor.opacity(0.7))
+                        .shadow(color: theme.accentColor.opacity(0.5), radius: 8)
                 }
 
-                Text("DUEZO")
-                    .font(.system(size: 14, weight: .black, design: .rounded))
+                Text("Connect Duezo")
+                    .font(.system(size: 16, weight: .black, design: .rounded))
                     .foregroundColor(.white.opacity(0.8))
-                    .tracking(4)
 
-                Text("Open app to sync")
+                Text("Open the app to sync bills")
                     .font(.system(size: 10, weight: .medium, design: .rounded))
                     .foregroundColor(.white.opacity(0.3))
-
-                Spacer()
+                    .multilineTextAlignment(.center)
             }
             .padding()
             .containerBackground(for: .widget) {

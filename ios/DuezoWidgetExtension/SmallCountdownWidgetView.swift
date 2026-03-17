@@ -1,127 +1,162 @@
 import SwiftUI
 import WidgetKit
 
-// MARK: - Small Widget V3 — "The Beacon"
-// Dramatic countdown with thick neon accent strip, SF Symbol status, massive hero number
+// MARK: - Small Widget — "The Pulse"
+// Massive typography hero. The countdown number IS the widget.
+// Asymmetric layout with neon edge glow and frosted info strip.
 
 struct SmallCountdownWidgetView: View {
     let payload: DuezoWidgetPayload
     let theme: WidgetTheme
 
+    private var bill: DuezoWidgetPayload.WidgetBill? { payload.nextBill }
+
     private var heroColor: Color {
-        guard let bill = payload.nextBill else { return theme.accentColor }
-        return bill.daysLeft < 0 ? Color(hex: 0xef4444) : theme.accentColor
+        guard let bill = bill else { return theme.accentColor }
+        if bill.daysLeft < 0 { return Color(hex: 0xef4444) }
+        if bill.daysLeft <= 2 { return Color(hex: 0xf87171) }
+        return theme.accentColor
     }
 
-    private var statusIcon: String {
-        guard let bill = payload.nextBill else { return "clock" }
-        if bill.daysLeft < 0 { return "flame.fill" }
-        if bill.daysLeft == 0 { return "exclamationmark.triangle.fill" }
-        if bill.daysLeft <= 3 { return "clock.badge.exclamationmark" }
-        return "clock"
+    private var daysText: String {
+        guard let bill = bill else { return "—" }
+        return "\(abs(bill.daysLeft))"
     }
 
     var body: some View {
-        if let bill = payload.nextBill {
-            ZStack(alignment: .leading) {
-                // Left accent strip — thick neon glow bar
-                HStack(spacing: 0) {
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(
-                            LinearGradient(
-                                colors: [heroColor, heroColor.opacity(0.6), heroColor.opacity(0.1)],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                        .frame(width: 4.5)
-                        .shadow(color: heroColor.opacity(0.9), radius: 12)
-                        .shadow(color: heroColor.opacity(0.5), radius: 24)
-                        .shadow(color: heroColor.opacity(0.2), radius: 40)
-                    Spacer()
-                }
+        if let bill = bill {
+            GeometryReader { geo in
+                ZStack {
+                    // Background radial glow — centered on the number
+                    RadialGradient(
+                        colors: [heroColor.opacity(0.25), heroColor.opacity(0.05), .clear],
+                        center: .center,
+                        startRadius: 0,
+                        endRadius: geo.size.width * 0.7
+                    )
 
-                VStack(alignment: .leading, spacing: 0) {
-                    // Top: SF Symbol status indicator + label
-                    HStack(spacing: 5) {
-                        Image(systemName: statusIcon)
-                            .font(.system(size: 8, weight: .bold))
-                            .foregroundColor(heroColor)
-                            .shadow(color: heroColor.opacity(0.8), radius: 4)
+                    VStack(spacing: 0) {
+                        // Top status row
+                        HStack(spacing: 4) {
+                            Circle()
+                                .fill(heroColor)
+                                .frame(width: 5, height: 5)
+                                .shadow(color: heroColor, radius: 4)
 
-                        Text(bill.daysLeft < 0 ? "OVERDUE" : bill.daysLeft == 0 ? "DUE TODAY" : "NEXT DUE")
-                            .font(.system(size: 8, weight: .bold))
-                            .foregroundColor(.white.opacity(0.45))
-                            .tracking(2.5)
-                    }
-                    .padding(.leading, 18)
-                    .padding(.top, 2)
+                            Text(statusLabel(bill.daysLeft))
+                                .font(.system(size: 9, weight: .heavy, design: .rounded))
+                                .foregroundColor(.white.opacity(0.5))
+                                .tracking(2)
 
-                    Spacer(minLength: 0)
+                            Spacer()
 
-                    // HERO: Massive countdown number — THE focal point
-                    HStack(alignment: .firstTextBaseline, spacing: 3) {
-                        Text("\(abs(bill.daysLeft))")
-                            .font(.system(size: 64, weight: .black, design: .rounded))
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [.white, .white.opacity(0.85)],
-                                    startPoint: .top,
-                                    endPoint: .bottom
+                            if bill.isAutopay == true {
+                                Image(systemName: "arrow.triangle.2.circlepath")
+                                    .font(.system(size: 8, weight: .bold))
+                                    .foregroundColor(.white.opacity(0.25))
+                            }
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.top, 12)
+
+                        Spacer(minLength: 0)
+
+                        // HERO NUMBER — massive, centered, impossible to miss
+                        ZStack {
+                            // Neon text shadow layer
+                            Text(daysText)
+                                .font(.system(size: 72, weight: .black, design: .rounded))
+                                .foregroundColor(heroColor.opacity(0.15))
+                                .blur(radius: 16)
+
+                            Text(daysText)
+                                .font(.system(size: 72, weight: .black, design: .rounded))
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [.white, .white.opacity(0.8)],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    )
                                 )
-                            )
-                            .shadow(color: heroColor.opacity(0.6), radius: 24)
-                            .shadow(color: heroColor.opacity(0.3), radius: 48)
-                            .minimumScaleFactor(0.5)
-                            .lineLimit(1)
-
-                        VStack(alignment: .leading, spacing: 1) {
-                            Text(bill.daysLeft == 1 ? "DAY" : "DAYS")
-                                .font(.system(size: 10, weight: .thin))
-                                .foregroundColor(.white.opacity(0.3))
-                                .tracking(3)
-                            Text(bill.daysLeft < 0 ? "LATE" : "LEFT")
-                                .font(.system(size: 10, weight: .thin))
-                                .foregroundColor(.white.opacity(0.3))
-                                .tracking(3)
+                                .shadow(color: heroColor.opacity(0.5), radius: 20)
+                                .minimumScaleFactor(0.6)
+                                .lineLimit(1)
                         }
-                    }
-                    .padding(.leading, 18)
 
-                    Spacer(minLength: 0)
+                        // Unit label
+                        Text(unitLabel(bill.daysLeft))
+                            .font(.system(size: 11, weight: .bold, design: .rounded))
+                            .foregroundColor(.white.opacity(0.3))
+                            .tracking(6)
+                            .padding(.top, -8)
 
-                    // Bottom: vendor + amount + date in frosted pill
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(bill.vendor.uppercased())
-                            .font(.system(size: 12, weight: .heavy))
-                            .foregroundColor(.white.opacity(0.9))
-                            .lineLimit(1)
-                            .tracking(1)
+                        Spacer(minLength: 0)
 
-                        HStack(spacing: 6) {
+                        // Bottom frosted info strip
+                        HStack(spacing: 0) {
+                            Text(bill.vendor.uppercased())
+                                .font(.system(size: 10, weight: .bold, design: .rounded))
+                                .foregroundColor(.white.opacity(0.7))
+                                .lineLimit(1)
+                                .tracking(0.5)
+
+                            Spacer(minLength: 6)
+
                             Text("$\(bill.amount, specifier: "%.2f")")
-                                .font(.system(size: 15, weight: .black, design: .monospaced))
+                                .font(.system(size: 13, weight: .black, design: .monospaced))
                                 .foregroundColor(heroColor)
-                                .shadow(color: heroColor.opacity(0.4), radius: 6)
-
-                            Rectangle()
-                                .fill(Color.white.opacity(0.15))
-                                .frame(width: 0.5, height: 12)
-
-                            Text(formatISODate(bill.dueDate))
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundColor(.white.opacity(0.35))
+                                .shadow(color: heroColor.opacity(0.5), radius: 6)
                         }
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .background(
+                            Rectangle()
+                                .fill(Color.white.opacity(0.06))
+                                .overlay(
+                                    Rectangle()
+                                        .fill(
+                                            LinearGradient(
+                                                colors: [heroColor.opacity(0.15), .clear],
+                                                startPoint: .leading,
+                                                endPoint: .trailing
+                                            )
+                                        )
+                                )
+                        )
                     }
-                    .padding(.leading, 18)
-                    .padding(.bottom, 6)
+
+                    // Decorative edge glow — top-left corner accent
+                    VStack {
+                        HStack {
+                            Circle()
+                                .fill(heroColor.opacity(0.2))
+                                .frame(width: 60, height: 60)
+                                .blur(radius: 30)
+                                .offset(x: -20, y: -20)
+                            Spacer()
+                        }
+                        Spacer()
+                    }
                 }
-                .padding(.vertical, 6)
             }
             .containerBackground(for: .widget) {
                 WidgetBackground(theme: theme, isOverdue: bill.daysLeft < 0)
             }
         }
+    }
+
+    private func statusLabel(_ days: Int) -> String {
+        switch days {
+        case ..<0:  return "OVERDUE"
+        case 0:     return "TODAY"
+        case 1:     return "TOMORROW"
+        default:    return "UPCOMING"
+        }
+    }
+
+    private func unitLabel(_ days: Int) -> String {
+        if days < 0 { return "LATE" }
+        return days == 1 ? "DAY" : "DAYS"
     }
 }
 
