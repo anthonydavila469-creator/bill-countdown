@@ -66,7 +66,8 @@ export function formatCurrency(amount: number | null): string {
 
 // Format date for display
 export function formatDate(dateString: string): string {
-  const date = new Date(dateString);
+  // Append T00:00:00 to parse as local midnight, not UTC
+  const date = new Date(dateString.includes('T') ? dateString : dateString + 'T00:00:00');
   return date.toLocaleDateString('en-US', {
     weekday: 'short',
     day: 'numeric',
