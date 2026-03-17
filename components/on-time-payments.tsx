@@ -36,7 +36,7 @@ export function OnTimePayments({ bills, className }: OnTimePaymentsProps) {
       if (!bill.paid_at) return false;
       const paidDate = new Date(bill.paid_at);
       paidDate.setHours(0, 0, 0, 0);
-      const dueDate = new Date(bill.due_date);
+      const dueDate = new Date(bill.due_date.includes('T') ? bill.due_date : bill.due_date + 'T00:00:00');
       dueDate.setHours(0, 0, 0, 0);
       return paidDate <= dueDate;
     }).length;

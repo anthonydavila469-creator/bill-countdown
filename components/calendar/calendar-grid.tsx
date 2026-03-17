@@ -160,7 +160,7 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
 
   // Calculate total bills this month
   const billsThisMonth = allBills.filter(bill => {
-    const billDate = new Date(bill.due_date);
+    const billDate = new Date(bill.due_date.includes('T') ? bill.due_date : bill.due_date + 'T00:00:00');
     return billDate.getMonth() === currentMonth && billDate.getFullYear() === currentYear;
   }).length;
 
@@ -168,7 +168,7 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
   const monthTotalAmount = useMemo(() => {
     return allBills
       .filter(bill => {
-        const billDate = new Date(bill.due_date);
+        const billDate = new Date(bill.due_date.includes('T') ? bill.due_date : bill.due_date + 'T00:00:00');
         const isInCurrentMonth = billDate.getMonth() === currentMonth && billDate.getFullYear() === currentYear;
         const isProjected = 'isProjected' in bill && bill.isProjected;
         return isInCurrentMonth && !bill.is_paid && !isProjected;
@@ -208,7 +208,7 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
     let earliestDate: Date | null = null;
 
     allBills.forEach(bill => {
-      const billDate = new Date(bill.due_date);
+      const billDate = new Date(bill.due_date.includes('T') ? bill.due_date : bill.due_date + 'T00:00:00');
       billDate.setHours(0, 0, 0, 0);
       const isProjected = 'isProjected' in bill && bill.isProjected;
       // Include overdue bills AND bills within next 7 days
@@ -236,7 +236,7 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
 
       return allBills
         .filter(bill => {
-          const billDate = new Date(bill.due_date);
+          const billDate = new Date(bill.due_date.includes('T') ? bill.due_date : bill.due_date + 'T00:00:00');
           const isInWeek = billDate >= weekStart && billDate <= weekEnd;
           const isProjected = 'isProjected' in bill && bill.isProjected;
           return isInWeek && !bill.is_paid && !isProjected;
@@ -585,7 +585,7 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
           // Determine which bills to show in the list
           const listBills = activeFilter === 'all'
             ? allBills.filter(bill => {
-                const d = new Date(bill.due_date);
+                const d = new Date(bill.due_date.includes('T') ? bill.due_date : bill.due_date + 'T00:00:00');
                 return d.getMonth() === currentMonth && d.getFullYear() === currentYear && !bill.is_paid;
               })
             : filteredBills.filter(bill => !bill.is_paid);
@@ -654,7 +654,8 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
                 <div className="flex flex-col gap-2">
                   {sortedBills.map((bill, index) => {
                     const daysUntil = getDaysUntilDue(bill.due_date);
-                    const dueDate = new Date(bill.due_date);
+                    // Append T00:00:00 to parse as local midnight, not UTC
+                    const dueDate = new Date(bill.due_date.includes('T') ? bill.due_date : bill.due_date + 'T00:00:00');
                     const isProjected = 'isProjected' in bill && bill.isProjected;
                     const urgencyDot = getUrgencyColor(daysUntil);
 

@@ -284,7 +284,7 @@ function ExportDropdown({ bills, periodFilter }: { bills: Bill[]; periodFilter: 
     const headers = ['Bill Name', 'Amount', 'Due Date', 'Paid Date', 'Payment Method', 'Category', 'Recurring'];
     const rows = bills.map(bill => {
       const paidDate = bill.paid_at ? new Date(bill.paid_at).toLocaleDateString() : '';
-      const dueDate = new Date(bill.due_date).toLocaleDateString();
+      const dueDate = new Date(bill.due_date.includes('T') ? bill.due_date : bill.due_date + 'T00:00:00').toLocaleDateString();
       const amount = bill.last_paid_amount ?? bill.amount ?? 0;
       const paymentMethod = bill.is_autopay || bill.paid_method === 'autopay' ? 'Auto-pay' : 'Manual';
       const category = bill.category || 'Other';
