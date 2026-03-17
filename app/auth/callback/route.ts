@@ -25,6 +25,9 @@ export async function GET(request: Request) {
         // Return a page that signals the app via window.opener / postMessage.
         // The browserPageLoaded event fires when this page loads in the SFVC,
         // which lets the WKWebView fetch tokens and call Browser.close() immediately.
+        // Redirect to custom URL scheme to force SFSafariViewController to close
+        // and return to the native app. The app's listenForAuthReturn will pick up
+        // the session via the transfer key when it regains focus.
         return new NextResponse(
           `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -32,11 +35,15 @@ export async function GET(request: Request) {
 .c{text-align:center}.s{width:32px;height:32px;border:3px solid rgba(139,92,246,.3);border-top-color:#8B5CF6;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}
 @keyframes spin{to{transform:rotate(360deg)}}</style>
 </head>
-<body><div class="c"><div class="s"></div><p>Signing you in...</p></div>
+<body><div class="c"><div class="s"></div><p>Returning to Duezo...</p></div>
 <script>
-// Signal the parent app that auth is complete.
-// The Capacitor browserPageLoaded event fires when this page loads —
-// the app will fetch the transfer tokens and close this browser automatically.
+// Redirect back to the native app via custom URL scheme.
+// This forces SFSafariViewController to close and returns to the app.
+setTimeout(function() {
+  window.location.href = 'app.duezo://auth/callback';
+}, 500);
+
+// Fallback: also try postMessage for any edge cases
 try { window.opener && window.opener.postMessage('auth-complete', '*'); } catch(e){}
 </script>
 </body></html>`,

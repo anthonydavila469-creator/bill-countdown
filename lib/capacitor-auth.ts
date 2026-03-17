@@ -1,4 +1,5 @@
 import { Capacitor } from '@capacitor/core';
+import { App } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
 import { SupabaseClient } from '@supabase/supabase-js';
 
@@ -107,6 +108,18 @@ export function listenForAuthReturn(
     await tryResolveSession();
   };
 
+  // Listen for deep link from custom URL scheme (app.duezo://auth/callback)
+  // This fires when the auth callback page redirects back to the app
+  const appUrlListener = App.addListener('appUrlOpen', async (data) => {
+    if (resolved) return;
+    console.log('[Auth] appUrlOpen:', data.url);
+    // Close the browser first
+    try { await Browser.close(); } catch { /* may already be closed */ }
+    // Give a moment for the browser to close
+    await new Promise((r) => setTimeout(r, 300));
+    await tryResolveSession();
+  });
+
   // Listen for browser closed event (SFSafariViewController dismissed)
   // Listen for pages loading inside the SFSafariViewController.
   // When the auth callback page loads ("Returning to Duezo..."), the server has
@@ -135,6 +148,7 @@ export function listenForAuthReturn(
 
   return () => {
     document.removeEventListener('visibilitychange', checkSession);
+    appUrlListener.then(h => h.remove()).catch(() => {});
     pageLoadedListener.then(h => h.remove()).catch(() => {});
     browserListener.then(h => h.remove()).catch(() => {});
   };
