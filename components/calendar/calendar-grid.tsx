@@ -579,6 +579,129 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
             </div>
           ))}
         </div>
+
+        {/* Filtered bill list */}
+        {(() => {
+          // Determine which bills to show in the list
+          const listBills = activeFilter === 'all'
+            ? allBills.filter(bill => {
+                const d = new Date(bill.due_date);
+                return d.getMonth() === currentMonth && d.getFullYear() === currentYear && !bill.is_paid;
+              })
+            : filteredBills.filter(bill => !bill.is_paid);
+
+          // Sort by due date ascending
+          const sortedBills = [...listBills].sort(
+            (a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
+          );
+
+          const listTotal = sortedBills.reduce((sum, bill) => {
+            const isProjected = 'isProjected' in bill && bill.isProjected;
+            return sum + (isProjected ? 0 : (bill.amount || 0));
+          }, 0);
+
+          const headerConfig = {
+            'overdue': { emoji: '🔴', label: 'Overdue', color: 'text-red-400' },
+            'due-soon': { emoji: '⏰', label: 'Due Soon', color: 'text-amber-400' },
+            'all': { emoji: '📅', label: 'This Month', color: 'text-violet-400' },
+          }[activeFilter];
+
+          const getUrgencyColor = (daysUntil: number) => {
+            if (daysUntil < 0) return 'bg-red-400 shadow-red-400/50';
+            if (daysUntil <= 2) return 'bg-orange-400 shadow-orange-400/50';
+            if (daysUntil <= 7) return 'bg-amber-400 shadow-amber-400/50';
+            return 'bg-emerald-400 shadow-emerald-400/50';
+          };
+
+          const formatDueLabel = (daysUntil: number) => {
+            if (daysUntil < -1) return `${Math.abs(daysUntil)} days overdue`;
+            if (daysUntil === -1) return '1 day overdue';
+            if (daysUntil === 0) return 'Due today';
+            if (daysUntil === 1) return 'Due tomorrow';
+            return `Due in ${daysUntil} days`;
+          };
+
+          return (
+            <div key={activeFilter} className="mt-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+              {/* Section header */}
+              <div className="flex items-center justify-between mb-3 px-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">{headerConfig.emoji}</span>
+                  <h3 className={cn('text-sm font-semibold', headerConfig.color)}>
+                    {headerConfig.label}
+                  </h3>
+                  <span className="text-xs text-zinc-500">({sortedBills.length})</span>
+                </div>
+                {listTotal > 0 && (
+                  <span className="text-xs font-medium text-zinc-400">
+                    {formatCurrency(listTotal)}
+                  </span>
+                )}
+              </div>
+
+              {/* Bill cards or empty state */}
+              {sortedBills.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8 px-4 bg-white/[0.02] border border-white/[0.04] rounded-2xl">
+                  <p className="text-sm text-zinc-500">
+                    {activeFilter === 'overdue'
+                      ? 'No overdue bills — you\'re all caught up!'
+                      : activeFilter === 'due-soon'
+                        ? 'Nothing due in the next 7 days.'
+                        : `No bills scheduled for ${monthName}.`}
+                  </p>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {sortedBills.map((bill, index) => {
+                    const daysUntil = getDaysUntilDue(bill.due_date);
+                    const dueDate = new Date(bill.due_date);
+                    const isProjected = 'isProjected' in bill && bill.isProjected;
+                    const urgencyDot = getUrgencyColor(daysUntil);
+
+                    return (
+                      <button
+                        key={`${bill.id}-${bill.due_date}-${index}`}
+                        onClick={() => handleBillClick(bill)}
+                        className="group flex items-center gap-3 w-full px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl hover:bg-white/[0.06] hover:border-white/10 transition-all duration-200 text-left animate-in fade-in slide-in-from-bottom-2 duration-300"
+                        style={{ animationDelay: `${index * 50}ms` }}
+                      >
+                        {/* Urgency dot */}
+                        <div className={cn('w-2.5 h-2.5 rounded-full flex-shrink-0 shadow-[0_0_6px]', urgencyDot)} />
+
+                        {/* Bill info */}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-white truncate group-hover:text-white/90">
+                            {bill.name}
+                            {isProjected && (
+                              <span className="ml-1.5 text-[10px] text-zinc-500 font-normal">(projected)</span>
+                            )}
+                          </p>
+                          <p className="text-xs text-zinc-500 mt-0.5">
+                            {dueDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                            <span className="mx-1.5 text-zinc-600">·</span>
+                            <span className={cn(
+                              daysUntil < 0 ? 'text-red-400/80' : daysUntil <= 2 ? 'text-orange-400/80' : 'text-zinc-500'
+                            )}>
+                              {formatDueLabel(daysUntil)}
+                            </span>
+                          </p>
+                        </div>
+
+                        {/* Amount */}
+                        <span className="text-sm font-semibold text-white flex-shrink-0">
+                          {formatCurrency(bill.amount || 0)}
+                        </span>
+
+                        {/* Chevron */}
+                        <ChevronRight className="w-4 h-4 text-zinc-600 group-hover:text-zinc-400 flex-shrink-0 transition-colors" />
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })()}
       </div>
 
       {/* Day detail panel */}
