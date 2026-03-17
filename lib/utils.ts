@@ -28,7 +28,9 @@ export function getDaysUntilDue(dueDate: string): number {
   due.setHours(0, 0, 0, 0);
 
   const diffTime = due.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  // Use Math.round to handle DST transitions (23h or 25h days)
+  // Math.ceil would round -0.04 (DST edge) to 0, hiding overdue bills
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
   return diffDays;
 }
