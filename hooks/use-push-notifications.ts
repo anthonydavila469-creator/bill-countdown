@@ -123,13 +123,9 @@ export function usePushNotifications(): UsePushNotificationsReturn {
 
     initPushNotifications();
 
-    return () => {
-      if (isNative) {
-        import('@capacitor/push-notifications').then(({ PushNotifications }) => {
-          PushNotifications.removeAllListeners();
-        });
-      }
-    };
+    // Do NOT removeAllListeners here — push-notification-init.tsx owns the global listeners
+    // Removing them here kills token registration for the entire app
+    return () => {};
   }, [isNative]);
 
   const subscribe = useCallback(async (): Promise<boolean> => {

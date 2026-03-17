@@ -1,6 +1,9 @@
 import SwiftUI
 import WidgetKit
 
+// MARK: - Medium Widget V2 — "The Dashboard"
+// Top accent bar, giant countdown left, structured bill stack right with accent strips
+
 struct MediumBillsWidgetView: View {
     let payload: DuezoWidgetPayload
     let theme: WidgetTheme
@@ -9,122 +12,192 @@ struct MediumBillsWidgetView: View {
         Array(payload.upcoming.dropFirst().prefix(3))
     }
 
+    private var heroColor: Color {
+        guard let bill = payload.nextBill else { return theme.accentColor }
+        return bill.daysLeft < 0 ? Color(hex: 0xef4444) : theme.accentColor
+    }
+
     var body: some View {
         if let bill = payload.nextBill {
-            HStack(spacing: 10) {
-                // Left: Countdown ring + vendor info
-                VStack(spacing: 4) {
-                    Spacer(minLength: 0)
+            VStack(spacing: 0) {
+                // Top accent gradient bar — signature element
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            colors: [heroColor, heroColor.opacity(0.3), .clear],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .frame(height: 2.5)
+                    .shadow(color: heroColor.opacity(0.6), radius: 6)
 
-                    CountdownRing(days: bill.daysLeft, size: 62, lineWidth: 5, theme: theme)
+                HStack(alignment: .top, spacing: 0) {
+                    // LEFT: Hero countdown area
+                    VStack(alignment: .leading, spacing: 0) {
+                        Spacer(minLength: 0)
 
-                    Text(bill.vendor)
-                        .font(.system(size: 13, weight: .bold, design: .rounded))
-                        .foregroundColor(.white)
-                        .lineLimit(1)
+                        // Massive countdown number
+                        HStack(alignment: .firstTextBaseline, spacing: 2) {
+                            Text("\(abs(bill.daysLeft))")
+                                .font(.system(size: 54, weight: .black, design: .rounded))
+                                .foregroundColor(.white)
+                                .shadow(color: heroColor.opacity(0.4), radius: 14)
+                                .shadow(color: heroColor.opacity(0.15), radius: 30)
+                                .minimumScaleFactor(0.5)
+                                .lineLimit(1)
 
-                    Text("$\(bill.amount, specifier: "%.2f")")
-                        .font(.system(size: 14, weight: .heavy, design: .rounded))
-                        .foregroundColor(.white.opacity(0.95))
-                        .lineLimit(1)
+                            VStack(alignment: .leading, spacing: 0) {
+                                Text(bill.daysLeft < 0 ? "DAYS" : bill.daysLeft == 1 ? "DAY" : "DAYS")
+                                    .font(.system(size: 9, weight: .ultraLight))
+                                    .foregroundColor(.white.opacity(0.25))
+                                    .tracking(2)
+                                Text(bill.daysLeft < 0 ? "LATE" : "LEFT")
+                                    .font(.system(size: 9, weight: .ultraLight))
+                                    .foregroundColor(.white.opacity(0.25))
+                                    .tracking(2)
+                            }
+                        }
 
-                    Text("Due \(formatISODate(bill.dueDate))")
-                        .font(.system(size: 9, weight: .medium, design: .rounded))
-                        .foregroundColor(.white.opacity(0.4))
-                        .lineLimit(1)
+                        // Vendor name
+                        Text(bill.vendor.uppercased())
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(.white.opacity(0.85))
+                            .lineLimit(1)
+                            .tracking(0.5)
 
-                    Spacer(minLength: 0)
-                }
-                .frame(width: 110)
+                        // Amount + date
+                        HStack(spacing: 4) {
+                            Text("$\(bill.amount, specifier: "%.2f")")
+                                .font(.system(size: 13, weight: .heavy, design: .monospaced))
+                                .foregroundColor(heroColor)
 
-                // Right: TOTAL DUE + amount + bill rows
-                VStack(alignment: .trailing, spacing: 3) {
-                    Spacer(minLength: 0)
+                            Circle()
+                                .fill(Color.white.opacity(0.15))
+                                .frame(width: 3, height: 3)
 
-                    // TOTAL DUE header + amount
-                    VStack(alignment: .trailing, spacing: 1) {
-                        Text("TOTAL DUE")
-                            .font(.system(size: 7, weight: .bold, design: .rounded))
-                            .foregroundColor(theme.isWarm ? .white.opacity(0.7) : Color(hex: 0xF5A623))
-                            .tracking(1)
-                        Text("$\(payload.totals.totalDue, specifier: "%.2f")")
-                            .font(.system(size: 13, weight: .black, design: .rounded))
-                            .foregroundColor(.white)
+                            Text(formatISODate(bill.dueDate))
+                                .font(.system(size: 9, weight: .medium))
+                                .foregroundColor(.white.opacity(0.3))
+                        }
+
+                        Spacer(minLength: 0)
                     }
-                    .padding(.bottom, 2)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.leading, 14)
 
-                    // Bill rows in glass cards
-                    ForEach(displayBills) { item in
-                        MediumBillRow(bill: item, theme: theme)
+                    // Vertical divider — gradient fade
+                    Rectangle()
+                        .fill(
+                            LinearGradient(
+                                colors: [.clear, Color.white.opacity(0.12), .clear],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .frame(width: 0.5)
+                        .padding(.vertical, 10)
+
+                    // RIGHT: Total + bill stack
+                    VStack(alignment: .trailing, spacing: 5) {
+                        // Total due — top right
+                        HStack(spacing: 4) {
+                            Text("TOTAL")
+                                .font(.system(size: 7, weight: .medium))
+                                .foregroundColor(.white.opacity(0.25))
+                                .tracking(1.5)
+                            Text("$\(payload.totals.totalDue, specifier: "%.2f")")
+                                .font(.system(size: 14, weight: .black, design: .monospaced))
+                                .foregroundColor(theme.isWarm ? .white : theme.accentColor)
+                        }
+                        .padding(.top, 4)
+
+                        Spacer(minLength: 0)
+
+                        // Bill rows with accent strips
+                        ForEach(displayBills) { item in
+                            MediumBillRowV2(bill: item, theme: theme)
+                        }
+
+                        Spacer(minLength: 0)
                     }
-
-                    Spacer(minLength: 0)
+                    .frame(width: 152)
+                    .padding(.trailing, 10)
                 }
             }
-            .padding(10)
             .containerBackground(for: .widget) {
-                WidgetBackground(theme: theme)
+                WidgetBackground(theme: theme, isOverdue: bill.daysLeft < 0)
             }
         }
     }
 }
 
-// MARK: - Medium Bill Row
+// MARK: - Medium Bill Row V2 — Accent Strip Style
 
-private struct MediumBillRow: View {
+private struct MediumBillRowV2: View {
     let bill: DuezoWidgetPayload.UpcomingBill
     let theme: WidgetTheme
 
-    private var urgencyDotColor: Color {
+    private var stripColor: Color {
         switch bill.urgency {
         case .critical: return Color(hex: 0xef4444)
-        case .soon:     return Color(hex: 0xf97316)
+        case .soon:     return Color(hex: 0xfb923c)
         case .later:    return Color(hex: 0x22c55e)
         }
     }
 
     private var dueLabel: String {
         switch bill.daysLeft {
-        case ..<0:  return "OVERDUE"
-        case 0:     return "DUE TODAY"
-        case 1:     return "TOMORROW"
-        default:    return "DUE IN \(bill.daysLeft) DAYS"
+        case ..<0:  return "LATE"
+        case 0:     return "TODAY"
+        case 1:     return "1D"
+        default:    return "\(bill.daysLeft)D"
         }
     }
 
     var body: some View {
-        GlassCard(cornerRadius: 8, isWarmTheme: theme.isWarm) {
-            HStack(spacing: 6) {
-                Circle()
-                    .fill(urgencyDotColor)
-                    .frame(width: 6, height: 6)
+        HStack(spacing: 0) {
+            // Colored urgency accent strip
+            RoundedRectangle(cornerRadius: 1)
+                .fill(stripColor)
+                .frame(width: 2.5, height: 28)
+                .shadow(color: stripColor.opacity(0.5), radius: 3)
 
-                VStack(alignment: .leading, spacing: 1) {
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 0) {
                     Text(bill.vendor)
                         .font(.system(size: 11, weight: .bold, design: .rounded))
-                        .foregroundColor(.white)
+                        .foregroundColor(.white.opacity(0.9))
                         .lineLimit(1)
-                    Text(formatISODate(bill.dueDate))
-                        .font(.system(size: 8, weight: .medium, design: .rounded))
-                        .foregroundColor(.white.opacity(0.45))
-                }
 
-                Spacer(minLength: 0)
-
-                VStack(alignment: .trailing, spacing: 1) {
-                    Text("$\(bill.amount, specifier: "%.2f")")
-                        .font(.system(size: 11, weight: .bold, design: .rounded))
-                        .foregroundColor(.white)
+                    Spacer(minLength: 4)
 
                     Text(dueLabel)
-                        .font(.system(size: 7, weight: .bold, design: .rounded))
-                        .foregroundColor(theme.isWarm ? .white.opacity(0.85) : urgencyDotColor)
-                        .tracking(0.3)
+                        .font(.system(size: 8, weight: .heavy))
+                        .foregroundColor(theme.isWarm ? .white.opacity(0.7) : stripColor)
+                        .tracking(0.5)
+                }
+
+                HStack(spacing: 0) {
+                    Text(formatISODate(bill.dueDate))
+                        .font(.system(size: 8, weight: .medium))
+                        .foregroundColor(.white.opacity(0.3))
+
+                    Spacer(minLength: 4)
+
+                    Text("$\(bill.amount, specifier: "%.2f")")
+                        .font(.system(size: 11, weight: .bold, design: .monospaced))
+                        .foregroundColor(.white.opacity(0.85))
                 }
             }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 5)
+            .padding(.leading, 7)
         }
+        .padding(.vertical, 4)
+        .padding(.trailing, 4)
+        .background(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .fill(Color.white.opacity(theme.isWarm ? 0.10 : 0.05))
+        )
     }
 }
 
