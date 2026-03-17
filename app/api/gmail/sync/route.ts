@@ -34,7 +34,7 @@ export async function POST() {
         { status: 400 }
       );
     }
-    const { emails } = await fetchProviderEmails(supabase, user.id, { maxResults: 20 });
+    const { emails } = await fetchProviderEmails(supabase, user.id, { maxResults: 200, daysBack: 90 });
 
     // Update last sync time
     await supabase

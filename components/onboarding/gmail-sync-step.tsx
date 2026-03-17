@@ -69,31 +69,38 @@ export function GmailSyncStep({
     setError(null);
 
     try {
-      const syncResponse = await fetch('/api/gmail/sync', {
+      // Use the full extraction pipeline (scan + parse in one call)
+      const scanResponse = await fetch('/api/extraction/scan-inbox', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ maxResults: 200, daysBack: 90 }),
       });
 
-      if (!syncResponse.ok) {
-        throw new Error('Failed to sync emails');
+      if (!scanResponse.ok) {
+        const errorData = await scanResponse.json().catch(() => ({}));
+        if (errorData.code === 'GMAIL_NOT_CONNECTED') {
+          throw new Error('Gmail not connected. Please connect your email first.');
+        }
+        throw new Error('Failed to scan emails');
       }
 
       setStatus('parsing');
 
-      // Parse bills from emails using AI
-      const parseResponse = await fetch('/api/suggestions', {
-        method: 'GET',
-      });
+      const scanResult = await scanResponse.json();
+      console.log('[Onboarding] Scan result:', scanResult.summary);
 
-      if (!parseResponse.ok) {
-        throw new Error('Failed to parse bills');
+      // Fetch the user's bills that were auto-accepted
+      const billsResponse = await fetch('/api/bills');
+      if (!billsResponse.ok) {
+        throw new Error('Failed to fetch bills');
       }
 
-      const { suggestions } = await parseResponse.json();
+      const { bills } = await billsResponse.json();
 
       await incrementGmailSyncs();
 
-      if (suggestions && suggestions.length > 0) {
-        setFoundBills(suggestions);
+      if (bills && bills.length > 0) {
+        setFoundBills(bills);
         setStatus('success');
       } else {
         setStatus('no_bills');
@@ -101,7 +108,7 @@ export function GmailSyncStep({
     } catch (err) {
       console.error('Email sync error:', err);
       setStatus('error');
-      setError('Failed to sync bills from email. Please try again.');
+      setError(err instanceof Error ? err.message : 'Failed to sync bills from email. Please try again.');
     }
   };
 
