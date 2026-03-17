@@ -11,6 +11,18 @@
     {
       "path": "/api/cron/daily-tasks",
       "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/auto-sync-bills",
+      "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/cron/drift-detection",
+      "schedule": "0 3 * * 0"
+    },
+    {
+      "path": "/api/cron/learning-pass",
+      "schedule": "0 4 * * 0"
     }
   ]
 }
