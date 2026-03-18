@@ -37,7 +37,15 @@ export interface EmailProvider {
   getAuthUrl(): string;
   exchangeCode(code: string): Promise<ProviderTokens>;
   refreshToken(refreshToken: string): Promise<Pick<ProviderTokens, 'access_token' | 'expires_at'>>;
-  fetchEmails(accessToken: string, options?: { maxResults?: number; daysBack?: number; emailAddress?: string }): Promise<ProviderEmail[]>;
+  fetchEmails(
+    accessToken: string,
+    options?: {
+      maxResults?: number;
+      daysBack?: number;
+      emailAddress?: string;
+      authMethod?: 'oauth' | 'app_password';
+    }
+  ): Promise<ProviderEmail[]>;
 }
 
 export const YAHOO_IMAP_PENDING_MESSAGE =
@@ -307,7 +315,7 @@ class GmailProvider implements EmailProvider {
   }
 }
 
-class YahooImapClient {
+export class YahooImapClient {
   private socket: TLSSocket | null = null;
   private buffer = Buffer.alloc(0);
   private tagCounter = 0;
@@ -324,11 +332,19 @@ class YahooImapClient {
     await this.waitForPattern(/\* OK/i);
   }
 
-  async authenticate(email: string, accessToken: string): Promise<void> {
+  async authenticateWithOAuth(email: string, accessToken: string): Promise<void> {
     const xoauth = Buffer.from(`user=${email}\u0001auth=Bearer ${accessToken}\u0001\u0001`).toString('base64');
     await this.runCommand(`AUTHENTICATE XOAUTH2 ${xoauth}`, {
       allowContinuation: true,
     });
+  }
+
+  async authenticateWithPassword(email: string, appPassword: string): Promise<void> {
+    await this.runCommand(`LOGIN ${this.quote(email)} ${this.quote(appPassword)}`);
+  }
+
+  async authenticate(email: string, accessToken: string): Promise<void> {
+    await this.authenticateWithOAuth(email, accessToken);
   }
 
   async selectInbox(): Promise<void> {
@@ -562,7 +578,7 @@ class YahooProvider implements EmailProvider {
 
   async fetchEmails(
     accessToken: string,
-    options: { maxResults?: number; daysBack?: number; emailAddress?: string } = {}
+    options: { maxResults?: number; daysBack?: number; emailAddress?: string; authMethod?: 'oauth' | 'app_password' } = {}
   ): Promise<ProviderEmail[]> {
     if (!options.emailAddress) {
       throw new Error('Yahoo email fetch requires the connected email address');
@@ -572,7 +588,11 @@ class YahooProvider implements EmailProvider {
 
     try {
       await imapClient.connect();
-      await imapClient.authenticate(options.emailAddress, accessToken);
+      if (options.authMethod === 'app_password') {
+        await imapClient.authenticateWithPassword(options.emailAddress, accessToken);
+      } else {
+        await imapClient.authenticateWithOAuth(options.emailAddress, accessToken);
+      }
       await imapClient.selectInbox();
 
       const uids = await imapClient.searchBillUids(buildAfterDate(options.daysBack ?? 30));

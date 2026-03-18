@@ -13,6 +13,10 @@ export interface EmailConnectionRecord {
   auto_sync_error?: string | null;
 }
 
+export function isAppPasswordConnection(connection: Pick<EmailConnectionRecord, 'email_provider' | 'refresh_token'>): boolean {
+  return connection.email_provider === 'yahoo' && connection.refresh_token === 'app_password';
+}
+
 export async function getEmailConnection(
   supabase: SupabaseClient,
   userId: string
@@ -114,6 +118,10 @@ export async function ensureValidAccessToken(
   userId: string,
   connection: EmailConnectionRecord
 ): Promise<EmailConnectionRecord> {
+  if (isAppPasswordConnection(connection)) {
+    return connection;
+  }
+
   const expiresAt = new Date(connection.expires_at).getTime();
   if (Date.now() < expiresAt - 60_000) {
     return connection;
@@ -175,6 +183,7 @@ export async function fetchProviderEmails(
   const emails = await provider.fetchEmails(validConnection.access_token, {
     ...options,
     emailAddress: validConnection.email,
+    authMethod: isAppPasswordConnection(validConnection) ? 'app_password' : 'oauth',
   });
 
   return {

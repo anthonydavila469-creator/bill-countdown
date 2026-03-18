@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
 import Link from 'next/link';
@@ -299,6 +299,10 @@ export default function SettingsPage() {
 
   // Settings state
   const [emailConnection, setEmailConnection] = useState<EmailConnectionState | null>(null);
+  const [selectedProvider, setSelectedProvider] = useState<EmailProviderName | null>(null);
+  const [yahooEmail, setYahooEmail] = useState('');
+  const [yahooAppPassword, setYahooAppPassword] = useState('');
+  const [isConnectingYahoo, setIsConnectingYahoo] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isForceRescanning, setIsForceRescanning] = useState(false);
@@ -338,6 +342,7 @@ export default function SettingsPage() {
       }
 
       setUser(user);
+      setYahooEmail((current) => current || user.email || '');
 
       const { data: gmailToken } = await supabase
         .from('gmail_tokens')
@@ -418,6 +423,11 @@ export default function SettingsPage() {
   };
 
   const handleConnectProvider = async (provider: EmailProviderName) => {
+    if (provider === 'yahoo') {
+      setSelectedProvider('yahoo');
+      return;
+    }
+
     let connectUrl = `${window.location.origin}/api/email/connect?provider=${provider}`;
 
     // Always try to attach the access token — works for both Capacitor and web
@@ -435,6 +445,55 @@ export default function SettingsPage() {
       await Browser.open({ url: connectUrl, presentationStyle: 'fullscreen' });
     } else {
       window.location.href = connectUrl;
+    }
+  };
+
+  const handleYahooPasswordConnect = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!yahooEmail.trim() || !yahooAppPassword.trim()) {
+      alert('Enter your Yahoo email and app password.');
+      return;
+    }
+
+    setIsConnectingYahoo(true);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`;
+      }
+
+      const response = await fetch('/api/email/connect-password', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          email: yahooEmail.trim(),
+          appPassword: yahooAppPassword.trim(),
+          provider: 'yahoo',
+        }),
+      });
+
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to connect Yahoo Mail');
+      }
+
+      setEmailConnection({
+        provider: 'yahoo',
+        email: yahooEmail.trim(),
+      });
+      setSelectedProvider(null);
+      setYahooAppPassword('');
+    } catch (error) {
+      console.error('Yahoo password connect failed:', error);
+      alert(error instanceof Error ? error.message : 'Failed to connect Yahoo Mail');
+    } finally {
+      setIsConnectingYahoo(false);
     }
   };
 
@@ -830,6 +889,84 @@ export default function SettingsPage() {
                         </button>
                       ))}
                     </div>
+
+                    {selectedProvider === 'yahoo' && (
+                      <form
+                        onSubmit={handleYahooPasswordConnect}
+                        className="mt-6 rounded-2xl border border-purple-500/20 bg-purple-500/[0.04] p-5"
+                      >
+                        <div className="flex items-start justify-between gap-4 mb-5">
+                          <div>
+                            <h4 className="text-white font-semibold tracking-wide">Connect Yahoo with an app password</h4>
+                            <p className="text-sm text-zinc-400 mt-1">
+                              Yahoo OAuth is unavailable, so this uses secure IMAP login with your Yahoo-generated app password.
+                            </p>
+                          </div>
+                          <Link
+                            href="https://help.yahoo.com/kb/generate-manage-third-party-passwords-sln15241.html"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1.5 text-sm text-purple-300 hover:text-purple-200 transition-colors"
+                          >
+                            <span>How to generate one</span>
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </Link>
+                        </div>
+
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <label className="block">
+                            <span className="block text-sm font-medium text-zinc-300 mb-2">Yahoo email</span>
+                            <input
+                              type="email"
+                              value={yahooEmail}
+                              onChange={(e) => setYahooEmail(e.target.value)}
+                              placeholder="you@yahoo.com"
+                              className="w-full rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-3 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-purple-400/30"
+                              autoComplete="email"
+                              required
+                            />
+                          </label>
+                          <label className="block">
+                            <span className="block text-sm font-medium text-zinc-300 mb-2">App password</span>
+                            <input
+                              type="password"
+                              value={yahooAppPassword}
+                              onChange={(e) => setYahooAppPassword(e.target.value)}
+                              placeholder="16-character app password"
+                              className="w-full rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-3 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-purple-400/30"
+                              autoComplete="current-password"
+                              required
+                            />
+                          </label>
+                        </div>
+
+                        <div className="mt-5 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+                          <p className="text-xs text-zinc-500">
+                            The app password is stored in your existing email connection record and used only for Yahoo IMAP sync.
+                          </p>
+                          <div className="flex gap-3">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedProvider(null);
+                                setYahooAppPassword('');
+                              }}
+                              className="px-4 py-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              type="submit"
+                              disabled={isConnectingYahoo}
+                              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-purple-500/80 hover:bg-purple-500 text-white font-medium transition-colors disabled:opacity-60"
+                            >
+                              {isConnectingYahoo ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                              <span>{isConnectingYahoo ? 'Connecting...' : 'Connect Yahoo Mail'}</span>
+                            </button>
+                          </div>
+                        </div>
+                      </form>
+                    )}
                   </>
                 ) : (
                   <>
