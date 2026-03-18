@@ -919,6 +919,33 @@ function isCrossExtractionDuplicate(
   return { isDuplicate: false };
 }
 
+async function processWithConcurrency<T, R>(
+  items: T[],
+  fn: (item: T, index: number) => Promise<R>,
+  limit: number
+): Promise<R[]> {
+  const results = new Array<R>(items.length);
+  let nextIndex = 0;
+
+  async function worker() {
+    while (true) {
+      const currentIndex = nextIndex;
+      nextIndex++;
+
+      if (currentIndex >= items.length) {
+        return;
+      }
+
+      results[currentIndex] = await fn(items[currentIndex], currentIndex);
+    }
+  }
+
+  const workerCount = Math.min(limit, items.length);
+  await Promise.all(Array.from({ length: workerCount }, () => worker()));
+
+  return results;
+}
+
 /**
  * Process multiple emails in batch
  */
@@ -941,18 +968,42 @@ export async function processEmailBatch(
   let aiClassifiedAsBill = 0;
   let extractionsCreated = 0;
 
+  const concurrencyLimit = 4;
+  const batchResults = await processWithConcurrency(
+    emails,
+    async (email): Promise<{ email: ProcessEmailOptions['email']; result: ExtractionPipelineResult }> => {
+      try {
+        const result = await processEmail({
+          userId,
+          email,
+          skipAI: options.skipAI,
+          forceReprocess: options.forceReprocess,
+        });
+
+        return { email, result };
+      } catch (error) {
+        console.error(`[BATCH] Failed to process email "${email.subject}":`, error);
+
+        return {
+          email,
+          result: {
+            success: false,
+            emailId: email.gmail_message_id,
+            gmailMessageId: email.gmail_message_id,
+            extraction: null,
+            route: 'rejected',
+            error: error instanceof Error ? error.message : 'Unknown error',
+          },
+        };
+      }
+    },
+    concurrencyLimit
+  );
+
   // Track extractions for cross-extraction duplicate detection
   const seenExtractions: Array<{ name: string; dueDate: string; amount: number | null }> = [];
 
-  for (const email of emails) {
-    const result = await processEmail({
-      userId,
-      email,
-      skipAI: options.skipAI,
-      forceReprocess: options.forceReprocess,
-    });
-
-    // Check for cross-extraction duplicates
+  for (const { email, result } of batchResults) {
     if (result.success && result.extraction) {
       const crossDupeCheck = isCrossExtractionDuplicate(
         {
@@ -966,16 +1017,19 @@ export async function processEmailBatch(
       if (crossDupeCheck.isDuplicate) {
         console.log(`[Pipeline] Cross-extraction duplicate detected: "${email.subject}" - ${crossDupeCheck.reason}`);
 
-        // Update the extraction status to rejected
-        const supabase = await createClient();
-        await supabase
-          .from('bill_extractions')
-          .update({
-            status: 'rejected',
-            is_duplicate: true,
-            duplicate_reason: crossDupeCheck.reason,
-          })
-          .eq('id', result.extraction.id);
+        try {
+          const supabase = await createClient();
+          await supabase
+            .from('bill_extractions')
+            .update({
+              status: 'rejected',
+              is_duplicate: true,
+              duplicate_reason: crossDupeCheck.reason,
+            })
+            .eq('id', result.extraction.id);
+        } catch (error) {
+          console.error(`[BATCH] Failed to update cross-extraction duplicate for "${email.subject}":`, error);
+        }
 
         result.route = 'rejected';
         result.extraction.status = 'rejected';
@@ -992,7 +1046,9 @@ export async function processEmailBatch(
     }
 
     results.push(result);
+  }
 
+  for (const result of results) {
     if (!result.success) {
       errors++;
     } else if (result.error?.includes('already processed')) {
