@@ -833,12 +833,12 @@ struct LargeBillRow: View {
 
                 VStack(alignment: .leading, spacing: 1) {
                     Text(bill.vendor)
-                        .font(.system(size: 14, weight: .bold, design: .rounded))
+                        .font(.system(size: 16, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
                         .lineLimit(1)
-                        .minimumScaleFactor(0.8)
+                        .minimumScaleFactor(0.7)
                     Text(formatISODate(bill.dueDate))
-                        .font(.system(size: 10, weight: .medium, design: .rounded))
+                        .font(.system(size: 11, weight: .medium, design: .rounded))
                         .foregroundColor(.white.opacity(0.7))
                 }
 
@@ -846,11 +846,11 @@ struct LargeBillRow: View {
 
                 VStack(alignment: .trailing, spacing: 1) {
                     Text("$\(bill.amount, specifier: "%.2f")")
-                        .font(.system(size: 15, weight: .black, design: .monospaced))
+                        .font(.system(size: 17, weight: .black, design: .monospaced))
                         .foregroundColor(.white)
 
                     Text(dueInLabel(bill.daysLeft))
-                        .font(.system(size: 9, weight: .heavy, design: .rounded))
+                        .font(.system(size: 10, weight: .heavy, design: .rounded))
                         .foregroundColor(urgColor)
                         .tracking(0.5)
                 }

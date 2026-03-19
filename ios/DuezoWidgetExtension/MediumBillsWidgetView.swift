@@ -120,14 +120,16 @@ struct MediumBillsWidgetView: View {
                         // Total header
                         HStack(spacing: 0) {
                             VStack(alignment: .leading, spacing: 1) {
-                                Text("THIS MONTH")
+                                Text("TOTAL")
                                     .font(.system(size: 9, weight: .bold, design: .rounded))
                                     .foregroundColor(.white.opacity(0.75))
                                     .tracking(2)
 
-                                Text("$\(payload.totals.totalDue, specifier: "%.0f")")
+                                Text("$\(payload.totals.totalDue, specifier: "%.2f")")
                                     .font(.system(size: 22, weight: .black, design: .monospaced))
                                     .foregroundColor(.white)
+                                    .minimumScaleFactor(0.7)
+                                    .lineLimit(1)
                             }
 
                             Spacer()
@@ -214,20 +216,20 @@ private struct RadarBillRow: View {
                 .shadow(color: urgencyColor.opacity(0.8), radius: 3)
 
             Text(bill.vendor)
-                .font(.system(size: 13, weight: .bold, design: .rounded))
+                .font(.system(size: 14, weight: .bold, design: .rounded))
                 .foregroundColor(.white)
                 .lineLimit(1)
-                .minimumScaleFactor(0.8)
+                .minimumScaleFactor(0.7)
 
             Spacer(minLength: 4)
 
             VStack(alignment: .trailing, spacing: 1) {
                 Text("$\(bill.amount, specifier: "%.2f")")
-                    .font(.system(size: 11, weight: .black, design: .monospaced))
-                    .foregroundColor(.white.opacity(0.95))
+                    .font(.system(size: 13, weight: .black, design: .monospaced))
+                    .foregroundColor(.white)
 
                 Text("\(bill.daysLeft)d")
-                    .font(.system(size: 9, weight: .heavy, design: .rounded))
+                    .font(.system(size: 10, weight: .heavy, design: .rounded))
                     .foregroundColor(urgencyColor)
             }
         }
