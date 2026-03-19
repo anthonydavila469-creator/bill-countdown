@@ -108,21 +108,7 @@ struct SmallCountdownWidgetView: View {
                                 .shadow(color: heroColor.opacity(0.5), radius: 6)
                         }
                         .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
-                        .background(
-                            Rectangle()
-                                .fill(Color.black.opacity(0.25))
-                                .overlay(
-                                    Rectangle()
-                                        .fill(
-                                            LinearGradient(
-                                                colors: [heroColor.opacity(0.15), .clear],
-                                                startPoint: .leading,
-                                                endPoint: .trailing
-                                            )
-                                        )
-                                )
-                        )
+                        .padding(.bottom, 12)
                     }
 
                     // Decorative edge glow — top-left corner accent
