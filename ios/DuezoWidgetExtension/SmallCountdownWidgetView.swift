@@ -36,12 +36,19 @@ struct SmallCountdownWidgetView: View {
                     )
 
                     VStack(spacing: 0) {
-                        // Top status row — dot only
-                        HStack {
+                        // Top status row — dot + label
+                        HStack(spacing: 5) {
                             Circle()
                                 .fill(heroColor)
                                 .frame(width: 5, height: 5)
                                 .shadow(color: heroColor, radius: 4)
+
+                            Text(statusLabel(bill.daysLeft))
+                                .font(.system(size: 11, weight: .heavy, design: .rounded))
+                                .foregroundColor(.white.opacity(0.85))
+                                .tracking(1)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
 
                             Spacer()
                         }
@@ -84,15 +91,15 @@ struct SmallCountdownWidgetView: View {
                         // Bottom info — stacked vertically for full width
                         VStack(spacing: 2) {
                             Text(bill.vendor.uppercased())
-                                .font(.system(size: 12, weight: .bold, design: .rounded))
-                                .foregroundColor(.white.opacity(0.95))
+                                .font(.system(size: 14, weight: .bold, design: .rounded))
+                                .foregroundColor(.white)
                                 .lineLimit(1)
                                 .minimumScaleFactor(0.7)
                                 .tracking(0.5)
                                 .frame(maxWidth: .infinity)
 
                             Text("$\(bill.amount, specifier: "%.2f")")
-                                .font(.system(size: 15, weight: .black, design: .monospaced))
+                                .font(.system(size: 17, weight: .black, design: .monospaced))
                                 .foregroundColor(heroColor)
                                 .shadow(color: heroColor.opacity(0.5), radius: 6)
                                 .minimumScaleFactor(0.7)
@@ -114,6 +121,16 @@ struct SmallCountdownWidgetView: View {
     private func unitLabel(_ days: Int) -> String {
         if days < 0 { return "LATE" }
         return days == 1 ? "DAY" : "DAYS"
+    }
+
+    private func statusLabel(_ days: Int) -> String {
+        switch days {
+        case ..<0:  return "OVERDUE"
+        case 0:     return "TODAY"
+        case 1:     return "TOMORROW"
+        case 2...7: return "THIS WEEK"
+        default:    return "UPCOMING"
+        }
     }
 }
 
