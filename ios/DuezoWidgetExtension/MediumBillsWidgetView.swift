@@ -10,7 +10,7 @@ struct MediumBillsWidgetView: View {
     let theme: WidgetTheme
 
     private var displayBills: [DuezoWidgetPayload.UpcomingBill] {
-        Array(payload.upcoming.dropFirst().prefix(3))
+        Array(payload.upcoming.dropFirst().prefix(2))
     }
 
     private func statusLabel(_ days: Int) -> String {
@@ -100,7 +100,7 @@ struct MediumBillsWidgetView: View {
                         }
                         .padding(.vertical, 10)
                     }
-                    .frame(width: geo.size.width * 0.42)
+                    .frame(width: geo.size.width * 0.38)
 
                     // Separator — neon gradient line
                     Rectangle()
@@ -147,8 +147,8 @@ struct MediumBillsWidgetView: View {
 
                         Spacer(minLength: 0)
 
-                        if payload.upcoming.count > 4 {
-                            Text("+\(payload.upcoming.count - 4) more")
+                        if payload.upcoming.count > 3 {
+                            Text("+\(payload.upcoming.count - 3) more")
                                 .font(.system(size: 10, weight: .bold, design: .rounded))
                                 .foregroundColor(.white.opacity(0.6))
                                 .tracking(0.5)
@@ -214,9 +214,10 @@ private struct RadarBillRow: View {
                 .shadow(color: urgencyColor.opacity(0.8), radius: 3)
 
             Text(bill.vendor)
-                .font(.system(size: 12, weight: .bold, design: .rounded))
+                .font(.system(size: 13, weight: .bold, design: .rounded))
                 .foregroundColor(.white)
                 .lineLimit(1)
+                .minimumScaleFactor(0.8)
 
             Spacer(minLength: 4)
 

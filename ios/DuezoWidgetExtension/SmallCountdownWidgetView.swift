@@ -36,25 +36,14 @@ struct SmallCountdownWidgetView: View {
                     )
 
                     VStack(spacing: 0) {
-                        // Top status row
-                        HStack(spacing: 4) {
+                        // Top status row — dot only
+                        HStack {
                             Circle()
                                 .fill(heroColor)
                                 .frame(width: 5, height: 5)
                                 .shadow(color: heroColor, radius: 4)
 
-                            Text(statusLabel(bill.daysLeft))
-                                .font(.system(size: 10, weight: .heavy, design: .rounded))
-                                .foregroundColor(.white.opacity(0.85))
-                                .tracking(2)
-
                             Spacer()
-
-                            if bill.isAutopay == true {
-                                Image(systemName: "arrow.triangle.2.circlepath")
-                                    .font(.system(size: 8, weight: .bold))
-                                    .foregroundColor(.white.opacity(0.6))
-                            }
                         }
                         .padding(.horizontal, 14)
                         .padding(.top, 12)
@@ -92,51 +81,33 @@ struct SmallCountdownWidgetView: View {
 
                         Spacer(minLength: 0)
 
-                        // Bottom frosted info strip
-                        HStack(spacing: 0) {
+                        // Bottom info — stacked vertically for full width
+                        VStack(spacing: 2) {
                             Text(bill.vendor.uppercased())
                                 .font(.system(size: 12, weight: .bold, design: .rounded))
                                 .foregroundColor(.white.opacity(0.95))
                                 .lineLimit(1)
+                                .minimumScaleFactor(0.7)
                                 .tracking(0.5)
-
-                            Spacer(minLength: 6)
+                                .frame(maxWidth: .infinity)
 
                             Text("$\(bill.amount, specifier: "%.2f")")
                                 .font(.system(size: 15, weight: .black, design: .monospaced))
                                 .foregroundColor(heroColor)
                                 .shadow(color: heroColor.opacity(0.5), radius: 6)
+                                .minimumScaleFactor(0.7)
+                                .lineLimit(1)
+                                .frame(maxWidth: .infinity)
                         }
-                        .padding(.horizontal, 14)
+                        .padding(.horizontal, 10)
                         .padding(.bottom, 12)
                     }
 
-                    // Decorative edge glow — top-left corner accent
-                    VStack {
-                        HStack {
-                            Circle()
-                                .fill(heroColor.opacity(0.2))
-                                .frame(width: 60, height: 60)
-                                .blur(radius: 30)
-                                .offset(x: -20, y: -20)
-                            Spacer()
-                        }
-                        Spacer()
-                    }
                 }
             }
             .containerBackground(for: .widget) {
                 WidgetBackground(theme: theme, isOverdue: bill.daysLeft < 0)
             }
-        }
-    }
-
-    private func statusLabel(_ days: Int) -> String {
-        switch days {
-        case ..<0:  return "OVERDUE"
-        case 0:     return "TODAY"
-        case 1:     return "TOMORROW"
-        default:    return "UPCOMING"
         }
     }
 

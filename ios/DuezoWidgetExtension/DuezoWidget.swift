@@ -836,12 +836,13 @@ struct LargeBillRow: View {
                         .font(.system(size: 14, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
                         .lineLimit(1)
+                        .minimumScaleFactor(0.8)
                     Text(formatISODate(bill.dueDate))
                         .font(.system(size: 10, weight: .medium, design: .rounded))
                         .foregroundColor(.white.opacity(0.7))
                 }
 
-                Spacer()
+                Spacer(minLength: 4)
 
                 VStack(alignment: .trailing, spacing: 1) {
                     Text("$\(bill.amount, specifier: "%.2f")")
