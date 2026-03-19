@@ -136,10 +136,10 @@ struct MediumBillsWidgetView: View {
                                 DeltaBadge(delta: delta)
                             }
                         }
-                        .padding(.bottom, 8)
+                        .padding(.bottom, 6)
 
                         // Bill rows
-                        VStack(spacing: 4) {
+                        VStack(spacing: 3) {
                             ForEach(displayBills) { item in
                                 RadarBillRow(bill: item, theme: theme)
                             }
@@ -155,8 +155,8 @@ struct MediumBillsWidgetView: View {
                                 .frame(maxWidth: .infinity, alignment: .trailing)
                         }
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 12)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 10)
                 }
             }
             .containerBackground(for: .widget) {
@@ -231,7 +231,7 @@ private struct RadarBillRow: View {
             }
         }
         .padding(.horizontal, 8)
-        .padding(.vertical, 6)
+        .padding(.vertical, 5)
         .background(
             RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .fill(Color.white.opacity(theme.isWarm ? 0.1 : 0.05))
