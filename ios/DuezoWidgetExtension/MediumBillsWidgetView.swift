@@ -2,7 +2,7 @@ import SwiftUI
 import WidgetKit
 
 // MARK: - Medium Widget — "The Radar"
-// Split-panel fintech dashboard. Left: dramatic countdown with arc gauge.
+// Split-panel fintech dashboard. Left: hero countdown with status label.
 // Right: upcoming bills with urgency heat indicators.
 
 struct MediumBillsWidgetView: View {
@@ -11,6 +11,15 @@ struct MediumBillsWidgetView: View {
 
     private var displayBills: [DuezoWidgetPayload.UpcomingBill] {
         Array(payload.upcoming.dropFirst().prefix(3))
+    }
+
+    private func statusLabel(_ days: Int) -> String {
+        switch days {
+        case ..<0:  return "OVERDUE"
+        case 0:     return "TODAY"
+        case 1:     return "TOMORROW"
+        default:    return "UPCOMING"
+        }
     }
 
     private var heroColor: Color {
@@ -28,34 +37,46 @@ struct MediumBillsWidgetView: View {
                     ZStack {
                         // Radial glow behind number
                         RadialGradient(
-                            colors: [heroColor.opacity(0.2), .clear],
+                            colors: [heroColor.opacity(0.25), heroColor.opacity(0.05), .clear],
                             center: .center,
                             startRadius: 0,
                             endRadius: 80
                         )
 
                         VStack(spacing: 2) {
-                            // Arc gauge
-                            ArcGauge(
-                                days: bill.daysLeft,
-                                color: heroColor,
-                                size: 54
-                            )
+                            // Status label
+                            HStack(spacing: 4) {
+                                Circle()
+                                    .fill(heroColor)
+                                    .frame(width: 5, height: 5)
+                                    .shadow(color: heroColor, radius: 4)
 
-                            // Massive number
-                            Text("\(abs(bill.daysLeft))")
-                                .font(.system(size: 44, weight: .black, design: .rounded))
-                                .foregroundStyle(
-                                    LinearGradient(
-                                        colors: [.white, .white.opacity(0.85)],
-                                        startPoint: .top,
-                                        endPoint: .bottom
+                                Text(statusLabel(bill.daysLeft))
+                                    .font(.system(size: 9, weight: .heavy, design: .rounded))
+                                    .foregroundColor(.white.opacity(0.85))
+                                    .tracking(2)
+                            }
+
+                            // Hero number with neon shadow
+                            ZStack {
+                                Text("\(abs(bill.daysLeft))")
+                                    .font(.system(size: 44, weight: .black, design: .rounded))
+                                    .foregroundColor(heroColor.opacity(0.15))
+                                    .blur(radius: 12)
+
+                                Text("\(abs(bill.daysLeft))")
+                                    .font(.system(size: 44, weight: .black, design: .rounded))
+                                    .foregroundStyle(
+                                        LinearGradient(
+                                            colors: [.white, .white.opacity(0.85)],
+                                            startPoint: .top,
+                                            endPoint: .bottom
+                                        )
                                     )
-                                )
-                                .shadow(color: heroColor.opacity(0.5), radius: 16)
-                                .minimumScaleFactor(0.6)
-                                .lineLimit(1)
-                                .padding(.top, -6)
+                                    .shadow(color: heroColor.opacity(0.5), radius: 16)
+                                    .minimumScaleFactor(0.6)
+                                    .lineLimit(1)
+                            }
 
                             Text(bill.daysLeft < 0 ? "OVERDUE" : bill.daysLeft == 1 ? "DAY LEFT" : "DAYS LEFT")
                                 .font(.system(size: 8, weight: .heavy, design: .rounded))
@@ -142,48 +163,6 @@ struct MediumBillsWidgetView: View {
                 WidgetBackground(theme: theme, isOverdue: bill.daysLeft < 0)
             }
         }
-    }
-}
-
-// MARK: - Arc Gauge — Thin decorative half-arc
-
-private struct ArcGauge: View {
-    let days: Int
-    let color: Color
-    let size: CGFloat
-
-    private var progress: Double {
-        if days < 0 { return 1.0 }
-        if days > 30 { return 1.0 }
-        return max(Double(days) / 30.0, 0.05)
-    }
-
-    var body: some View {
-        ZStack {
-            // Track
-            Circle()
-                .trim(from: 0.15, to: 0.85)
-                .stroke(Color.white.opacity(0.06), style: StrokeStyle(lineWidth: 3, lineCap: .round))
-                .frame(width: size, height: size)
-                .rotationEffect(.degrees(90))
-
-            // Progress
-            Circle()
-                .trim(from: 0.15, to: 0.15 + (0.7 * progress))
-                .stroke(
-                    LinearGradient(
-                        colors: [color, color.opacity(0.4)],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    ),
-                    style: StrokeStyle(lineWidth: 3, lineCap: .round)
-                )
-                .frame(width: size, height: size)
-                .rotationEffect(.degrees(90))
-                .shadow(color: color.opacity(0.6), radius: 6)
-        }
-        .frame(height: size * 0.55)
-        .clipped()
     }
 }
 
