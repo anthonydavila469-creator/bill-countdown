@@ -710,7 +710,7 @@ struct LargeWidgetView: View {
                     CountdownRing(days: bill.daysLeft, size: 72, lineWidth: 5, theme: theme)
                         .padding(.trailing, 12)
 
-                    // Bill info — stacked
+                    // Bill info — stacked, fills remaining width
                     VStack(alignment: .leading, spacing: 2) {
                         Text("NEXT DUE")
                             .font(.system(size: 9, weight: .heavy, design: .rounded))
@@ -718,13 +718,14 @@ struct LargeWidgetView: View {
                             .tracking(2)
 
                         Text(bill.vendor)
-                            .font(.system(size: 17, weight: .heavy, design: .rounded))
+                            .font(.system(size: 20, weight: .heavy, design: .rounded))
                             .foregroundColor(.white)
                             .lineLimit(1)
+                            .minimumScaleFactor(0.8)
 
                         // Massive amount
                         Text("$\(bill.amount, specifier: "%.2f")")
-                            .font(.system(size: 26, weight: .black, design: .monospaced))
+                            .font(.system(size: 28, weight: .black, design: .monospaced))
                             .foregroundColor(heroColor)
                             .shadow(color: heroColor.opacity(0.4), radius: 10)
                             .minimumScaleFactor(0.7)
