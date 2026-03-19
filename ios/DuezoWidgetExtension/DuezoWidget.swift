@@ -1007,6 +1007,9 @@ struct ErrorView: View {
 
 // MARK: - Lock Screen: Gradient Gauge (Circular)
 
+// MARK: - Lock Screen: Countdown Circle (Circular)
+// Bold number + bill name + urgency ring — the only circular you need
+
 struct GaugeCircularView: View {
     let bills: [Bill]
 
@@ -1017,64 +1020,35 @@ struct GaugeCircularView: View {
             let days = bill.daysUntilDue
             let progress = urgencyProgress(days)
             let color = urgencyColor(days)
+            let isOverdue = days < 0
 
             ZStack {
+                // Background track
                 Circle()
-                    .stroke(Color.white.opacity(0.15), lineWidth: 4.5)
+                    .stroke(Color.white.opacity(0.12), lineWidth: 4)
 
+                // Urgency arc
                 Circle()
                     .trim(from: 0, to: progress)
-                    .stroke(
-                        AngularGradient(
-                            colors: [color, urgencySecondaryColor(days), color.opacity(0.3)],
-                            center: .center
-                        ),
-                        style: StrokeStyle(lineWidth: 4.5, lineCap: .round)
-                    )
+                    .stroke(color, style: StrokeStyle(lineWidth: 4, lineCap: .round))
                     .rotationEffect(.degrees(-90))
 
-                VStack(spacing: 0) {
-                    Text("\(abs(days))")
-                        .font(.system(size: 24, weight: .black, design: .rounded))
+                VStack(spacing: -1) {
+                    Text(isOverdue ? "!" : "\(days)")
+                        .font(.system(size: 22, weight: .black, design: .rounded))
                         .foregroundColor(.white)
-                    Text(days < 0 ? "LATE" : days == 1 ? "DAY" : "DAYS")
-                        .font(.system(size: 7, weight: .heavy))
-                        .foregroundColor(.white.opacity(0.6))
-                        .tracking(1)
-                }
-            }
-            .containerBackground(for: .widget) { Color.clear }
-        }
-    }
-}
+                        .minimumScaleFactor(0.8)
 
-// MARK: - Lock Screen: Branded Duezo (Circular)
+                    Text(isOverdue ? "LATE" : days == 0 ? "TODAY" : days == 1 ? "DAY" : "DAYS")
+                        .font(.system(size: 7, weight: .heavy, design: .rounded))
+                        .foregroundColor(.white.opacity(0.7))
+                        .tracking(0.5)
 
-struct BrandedCircularView: View {
-    let bills: [Bill]
-
-    var nextBill: Bill? { bills.first }
-
-    var body: some View {
-        if let bill = nextBill {
-            ZStack {
-                Circle()
-                    .stroke(accentOrange.opacity(0.5), lineWidth: 2.5)
-                    .background(Circle().fill(accentOrange.opacity(0.08)))
-
-                VStack(spacing: 1) {
-                    Image(systemName: "bolt.fill")
-                        .font(.system(size: 7, weight: .bold))
-                        .foregroundColor(accentOrange.opacity(0.8))
-
-                    Text("\(abs(bill.daysUntilDue))")
-                        .font(.system(size: 26, weight: .black, design: .rounded))
-                        .foregroundColor(accentOrange)
-
-                    Text(bill.name.prefix(8).uppercased())
-                        .font(.system(size: 6, weight: .bold))
-                        .foregroundColor(accentOrange.opacity(0.7))
+                    Text(bill.name.prefix(7).uppercased())
+                        .font(.system(size: 6, weight: .bold, design: .rounded))
+                        .foregroundColor(color)
                         .lineLimit(1)
+                        .tracking(0.3)
                 }
             }
             .containerBackground(for: .widget) { Color.clear }
@@ -1082,116 +1056,10 @@ struct BrandedCircularView: View {
     }
 }
 
-// MARK: - Lock Screen: Flame Urgency (Circular)
-
-struct FlameCircularView: View {
-    let bills: [Bill]
-
-    var nextBill: Bill? { bills.first }
-
-    var body: some View {
-        if let bill = nextBill {
-            let days = bill.daysUntilDue
-            let color = urgencyColor(days)
-            let isUrgent = days >= 0 && days <= 3
-            let isOverdue = days < 0
-
-            ZStack {
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [color.opacity(isUrgent || isOverdue ? 0.4 : 0.25), color.opacity(0.05), .clear],
-                            center: .center, startRadius: 0, endRadius: 38
-                        )
-                    )
-
-                VStack(spacing: 0) {
-                    if isOverdue {
-                        Text("!")
-                            .font(.system(size: 28, weight: .black, design: .rounded))
-                            .foregroundColor(color)
-                        Text("OVERDUE")
-                            .font(.system(size: 6, weight: .heavy))
-                            .foregroundColor(color.opacity(0.7))
-                            .tracking(1)
-                    } else {
-                        Text("\(days)")
-                            .font(.system(size: 28, weight: .black, design: .rounded))
-                            .foregroundColor(color)
-                        Text(days == 1 ? "DAY" : "DAYS")
-                            .font(.system(size: 7, weight: .heavy))
-                            .foregroundColor(color.opacity(0.6))
-                            .tracking(1)
-                    }
-                }
-            }
-            .containerBackground(for: .widget) { Color.clear }
-        }
-    }
-}
-
-// MARK: - Lock Screen: Glow Split (Rectangular)
+// MARK: - Lock Screen: Next Bill Card (Rectangular)
+// Clean card with bill name, amount, countdown, and progress bar
 
 struct GlowSplitRectView: View {
-    let bills: [Bill]
-
-    var nextBill: Bill? { bills.first }
-
-    var body: some View {
-        if let bill = nextBill {
-            let days = bill.daysUntilDue
-            let color = urgencyColor(days)
-            let isOverdue = days < 0
-
-            HStack(spacing: 0) {
-                ZStack {
-                    Circle()
-                        .fill(color.opacity(0.2))
-                        .frame(width: 36, height: 36)
-                        .blur(radius: 8)
-
-                    VStack(spacing: 0) {
-                        Text(isOverdue ? "!" : "\(days)")
-                            .font(.system(size: 26, weight: .black, design: .rounded))
-                            .foregroundColor(.white)
-                        Text(isOverdue ? "LATE" : days == 1 ? "DAY" : "DAYS")
-                            .font(.system(size: 6, weight: .heavy))
-                            .foregroundColor(.white.opacity(0.5))
-                            .tracking(1)
-                    }
-                }
-                .frame(width: 56)
-
-                Rectangle()
-                    .fill(.white.opacity(0.15))
-                    .frame(width: 0.5, height: 36)
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(bill.name)
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundColor(.white)
-                        .lineLimit(1)
-                    Text("$\(bill.amount, specifier: "%.2f")")
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundColor(.white.opacity(0.6))
-                    if let date = bill.dueDate {
-                        Text(formatDate(date))
-                            .font(.system(size: 8, weight: .medium))
-                            .foregroundColor(.white.opacity(0.35))
-                    }
-                }
-                .padding(.leading, 10)
-
-                Spacer()
-            }
-            .containerBackground(for: .widget) { Color.clear }
-        }
-    }
-}
-
-// MARK: - Lock Screen: Progress Bar (Rectangular)
-
-struct ProgressBarRectView: View {
     let bills: [Bill]
 
     var nextBill: Bill? { bills.first }
@@ -1203,49 +1071,73 @@ struct ProgressBarRectView: View {
             let progress = urgencyProgress(days)
             let isOverdue = days < 0
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 3) {
+                // Top row: bill name + status
                 HStack {
                     Text(bill.name)
-                        .font(.system(size: 12, weight: .bold))
+                        .font(.system(size: 14, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
                         .lineLimit(1)
+                        .minimumScaleFactor(0.8)
                     Spacer()
-                    Text(isOverdue ? "Overdue!" : days == 0 ? "Today!" : days == 1 ? "Tomorrow" : "\(days) days")
-                        .font(.system(size: 10, weight: .heavy))
+                    Text(isOverdue ? "OVERDUE" : days == 0 ? "TODAY" : days == 1 ? "TOMORROW" : "\(days) DAYS")
+                        .font(.system(size: 10, weight: .heavy, design: .rounded))
                         .foregroundColor(color)
                 }
 
+                // Progress bar
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
                         RoundedRectangle(cornerRadius: 2)
-                            .fill(.white.opacity(0.1))
-                            .frame(height: 4)
+                            .fill(.white.opacity(0.12))
+                            .frame(height: 3)
                         RoundedRectangle(cornerRadius: 2)
-                            .fill(
-                                LinearGradient(
-                                    colors: [color, urgencySecondaryColor(days)],
-                                    startPoint: .leading, endPoint: .trailing
-                                )
-                            )
-                            .frame(width: geo.size.width * max(progress, 0.02), height: 4)
+                            .fill(color)
+                            .frame(width: geo.size.width * max(progress, 0.03), height: 3)
                     }
                 }
-                .frame(height: 4)
+                .frame(height: 3)
 
+                // Bottom row: amount + due date
                 HStack {
                     Text("$\(bill.amount, specifier: "%.2f")")
-                        .font(.system(size: 9, weight: .medium))
-                        .foregroundColor(.white.opacity(0.4))
+                        .font(.system(size: 12, weight: .bold, design: .monospaced))
+                        .foregroundColor(.white.opacity(0.8))
                     Spacer()
                     if let date = bill.dueDate {
                         Text(formatDate(date))
-                            .font(.system(size: 9, weight: .medium))
-                            .foregroundColor(.white.opacity(0.4))
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundColor(.white.opacity(0.5))
                     }
                 }
             }
             .containerBackground(for: .widget) { Color.clear }
         }
+    }
+}
+
+// MARK: - Lock Screen: Progress Bar (Rectangular) — kept for compatibility
+
+struct ProgressBarRectView: View {
+    let bills: [Bill]
+    var body: some View {
+        GlowSplitRectView(bills: bills)
+    }
+}
+
+// MARK: - Removed circular variants — redirected to main circular view
+
+struct BrandedCircularView: View {
+    let bills: [Bill]
+    var body: some View {
+        GaugeCircularView(bills: bills)
+    }
+}
+
+struct FlameCircularView: View {
+    let bills: [Bill]
+    var body: some View {
+        GaugeCircularView(bills: bills)
     }
 }
 
@@ -1314,9 +1206,6 @@ struct DuezoWidgets: WidgetBundle {
         DuezoWidget()
         DuezoLockScreenWidget()
         DuezoGaugeWidget()
-        DuezoBrandedWidget()
-        DuezoFlameWidget()
-        DuezoProgressWidget()
     }
 }
 
@@ -1340,8 +1229,8 @@ struct DuezoLockScreenWidget: Widget {
         StaticConfiguration(kind: kind, provider: DuezoProvider()) { entry in
             LockScreenEntryView(entry: entry)
         }
-        .configurationDisplayName("Duezo — Glow Split")
-        .description("Next bill with glowing countdown")
+        .configurationDisplayName("Duezo — Next Bill")
+        .description("Your next bill with countdown and amount")
         .supportedFamilies([.accessoryRectangular, .accessoryInline])
     }
 }
@@ -1352,72 +1241,15 @@ struct DuezoGaugeWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: DuezoProvider()) { entry in
             if entry.bills.isEmpty && entry.error == nil {
-                Text("⚡ ✓")
+                Text("✓")
             } else if entry.error != nil {
-                Text("⚡ —")
+                Text("—")
             } else {
                 GaugeCircularView(bills: entry.bills)
             }
         }
-        .configurationDisplayName("Duezo — Gauge")
-        .description("Countdown ring that depletes as deadline nears")
+        .configurationDisplayName("Duezo — Countdown")
+        .description("Bill countdown with urgency ring")
         .supportedFamilies([.accessoryCircular])
-    }
-}
-
-struct DuezoBrandedWidget: Widget {
-    let kind: String = "DuezoBranded"
-
-    var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: DuezoProvider()) { entry in
-            if entry.bills.isEmpty && entry.error == nil {
-                Text("⚡ ✓")
-            } else if entry.error != nil {
-                Text("⚡ —")
-            } else {
-                BrandedCircularView(bills: entry.bills)
-            }
-        }
-        .configurationDisplayName("Duezo — Branded")
-        .description("Orange accent countdown with Duezo identity")
-        .supportedFamilies([.accessoryCircular])
-    }
-}
-
-struct DuezoFlameWidget: Widget {
-    let kind: String = "DuezoFlame"
-
-    var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: DuezoProvider()) { entry in
-            if entry.bills.isEmpty && entry.error == nil {
-                Text("⚡ ✓")
-            } else if entry.error != nil {
-                Text("⚡ —")
-            } else {
-                FlameCircularView(bills: entry.bills)
-            }
-        }
-        .configurationDisplayName("Duezo — Flame")
-        .description("Color shifts from green to red as deadline approaches")
-        .supportedFamilies([.accessoryCircular])
-    }
-}
-
-struct DuezoProgressWidget: Widget {
-    let kind: String = "DuezoProgress"
-
-    var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: DuezoProvider()) { entry in
-            if entry.bills.isEmpty && entry.error == nil {
-                Text("⚡ All clear!")
-            } else if entry.error != nil {
-                Text("⚡ —")
-            } else {
-                ProgressBarRectView(bills: entry.bills)
-            }
-        }
-        .configurationDisplayName("Duezo — Progress")
-        .description("Progress bar shrinks toward due date")
-        .supportedFamilies([.accessoryRectangular])
     }
 }
