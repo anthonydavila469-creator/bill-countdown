@@ -1007,8 +1007,8 @@ struct ErrorView: View {
 
 // MARK: - Lock Screen: Gradient Gauge (Circular)
 
-// MARK: - Lock Screen: Countdown Circle (Circular)
-// Bold number + bill name + urgency ring — the only circular you need
+// MARK: - Lock Screen: Countdown Gauge (Circular)
+// Uses Apple's native Gauge view — renders beautifully on lock screen
 
 struct GaugeCircularView: View {
     let bills: [Bill]
@@ -1018,46 +1018,31 @@ struct GaugeCircularView: View {
     var body: some View {
         if let bill = nextBill {
             let days = bill.daysUntilDue
-            let progress = urgencyProgress(days)
-            let color = urgencyColor(days)
+            let gaugeValue = max(0, min(1, urgencyProgress(days)))
             let isOverdue = days < 0
 
-            ZStack {
-                // Background track
-                Circle()
-                    .stroke(Color.white.opacity(0.12), lineWidth: 4)
-
-                // Urgency arc
-                Circle()
-                    .trim(from: 0, to: progress)
-                    .stroke(color, style: StrokeStyle(lineWidth: 4, lineCap: .round))
-                    .rotationEffect(.degrees(-90))
-
-                VStack(spacing: -1) {
-                    Text(isOverdue ? "!" : "\(days)")
+            Gauge(value: gaugeValue) {
+                // Label (shown when space allows)
+                Text(String(bill.name.prefix(3)).uppercased())
+                    .font(.system(size: 8, weight: .bold, design: .rounded))
+            } currentValueLabel: {
+                VStack(spacing: -2) {
+                    Text(isOverdue ? "!" : "\(abs(days))")
                         .font(.system(size: 22, weight: .black, design: .rounded))
-                        .foregroundColor(.white)
-                        .minimumScaleFactor(0.8)
-
-                    Text(isOverdue ? "LATE" : days == 0 ? "TODAY" : days == 1 ? "DAY" : "DAYS")
+                    Text(isOverdue ? "LATE" : days == 0 ? "DUE" : days == 1 ? "DAY" : "DAYS")
                         .font(.system(size: 7, weight: .heavy, design: .rounded))
-                        .foregroundColor(.white.opacity(0.7))
-                        .tracking(0.5)
-
-                    Text(bill.name.prefix(7).uppercased())
-                        .font(.system(size: 6, weight: .bold, design: .rounded))
-                        .foregroundColor(color)
-                        .lineLimit(1)
-                        .tracking(0.3)
+                        .textCase(.uppercase)
                 }
             }
+            .gaugeStyle(.accessoryCircularCapacity)
+            .widgetAccentable()
             .containerBackground(for: .widget) { Color.clear }
         }
     }
 }
 
 // MARK: - Lock Screen: Next Bill Card (Rectangular)
-// Clean card with bill name, amount, countdown, and progress bar
+// Uses AccessoryWidgetBackground for native frosted look
 
 struct GlowSplitRectView: View {
     let bills: [Bill]
@@ -1067,56 +1052,47 @@ struct GlowSplitRectView: View {
     var body: some View {
         if let bill = nextBill {
             let days = bill.daysUntilDue
-            let color = urgencyColor(days)
-            let progress = urgencyProgress(days)
             let isOverdue = days < 0
+            let gaugeValue = max(0, min(1, urgencyProgress(days)))
 
-            VStack(alignment: .leading, spacing: 3) {
-                // Top row: bill name + status
-                HStack {
+            HStack(spacing: 8) {
+                // Mini gauge on the left
+                Gauge(value: gaugeValue) {
+                    Text("")
+                } currentValueLabel: {
+                    Text(isOverdue ? "!" : "\(abs(days))")
+                        .font(.system(size: 18, weight: .black, design: .rounded))
+                }
+                .gaugeStyle(.accessoryCircularCapacity)
+                .frame(width: 40, height: 40)
+                .widgetAccentable()
+
+                // Bill info on the right
+                VStack(alignment: .leading, spacing: 2) {
                     Text(bill.name)
-                        .font(.system(size: 14, weight: .bold, design: .rounded))
-                        .foregroundColor(.white)
+                        .font(.system(size: 13, weight: .bold, design: .rounded))
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
-                    Spacer()
-                    Text(isOverdue ? "OVERDUE" : days == 0 ? "TODAY" : days == 1 ? "TOMORROW" : "\(days) DAYS")
-                        .font(.system(size: 10, weight: .heavy, design: .rounded))
-                        .foregroundColor(color)
-                }
 
-                // Progress bar
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        RoundedRectangle(cornerRadius: 2)
-                            .fill(.white.opacity(0.12))
-                            .frame(height: 3)
-                        RoundedRectangle(cornerRadius: 2)
-                            .fill(color)
-                            .frame(width: geo.size.width * max(progress, 0.03), height: 3)
-                    }
-                }
-                .frame(height: 3)
-
-                // Bottom row: amount + due date
-                HStack {
                     Text("$\(bill.amount, specifier: "%.2f")")
-                        .font(.system(size: 12, weight: .bold, design: .monospaced))
-                        .foregroundColor(.white.opacity(0.8))
-                    Spacer()
-                    if let date = bill.dueDate {
-                        Text(formatDate(date))
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundColor(.white.opacity(0.5))
-                    }
+                        .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                        .opacity(0.8)
+
+                    Text(isOverdue ? "Overdue" : days == 0 ? "Due today" : days == 1 ? "Due tomorrow" : "Due in \(days) days")
+                        .font(.system(size: 10, weight: .medium))
+                        .opacity(0.6)
                 }
+
+                Spacer(minLength: 0)
             }
-            .containerBackground(for: .widget) { Color.clear }
+            .containerBackground(for: .widget) {
+                AccessoryWidgetBackground()
+            }
         }
     }
 }
 
-// MARK: - Lock Screen: Progress Bar (Rectangular) — kept for compatibility
+// MARK: - Compatibility aliases
 
 struct ProgressBarRectView: View {
     let bills: [Bill]
@@ -1124,8 +1100,6 @@ struct ProgressBarRectView: View {
         GlowSplitRectView(bills: bills)
     }
 }
-
-// MARK: - Removed circular variants — redirected to main circular view
 
 struct BrandedCircularView: View {
     let bills: [Bill]
