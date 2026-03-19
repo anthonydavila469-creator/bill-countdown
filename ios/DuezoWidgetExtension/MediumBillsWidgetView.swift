@@ -79,20 +79,20 @@ struct MediumBillsWidgetView: View {
                             }
 
                             Text(bill.daysLeft < 0 ? "OVERDUE" : bill.daysLeft == 1 ? "DAY LEFT" : "DAYS LEFT")
-                                .font(.system(size: 8, weight: .heavy, design: .rounded))
+                                .font(.system(size: 9, weight: .heavy, design: .rounded))
                                 .foregroundColor(.white.opacity(0.75))
                                 .tracking(2)
 
                             // Vendor + amount
                             VStack(spacing: 2) {
                                 Text(bill.vendor.uppercased())
-                                    .font(.system(size: 10, weight: .bold, design: .rounded))
+                                    .font(.system(size: 11, weight: .bold, design: .rounded))
                                     .foregroundColor(.white.opacity(0.9))
                                     .lineLimit(1)
                                     .tracking(0.5)
 
                                 Text("$\(bill.amount, specifier: "%.2f")")
-                                    .font(.system(size: 15, weight: .black, design: .monospaced))
+                                    .font(.system(size: 16, weight: .black, design: .monospaced))
                                     .foregroundColor(heroColor)
                                     .shadow(color: heroColor.opacity(0.4), radius: 6)
                             }
@@ -121,12 +121,12 @@ struct MediumBillsWidgetView: View {
                         HStack(spacing: 0) {
                             VStack(alignment: .leading, spacing: 1) {
                                 Text("THIS MONTH")
-                                    .font(.system(size: 7, weight: .bold, design: .rounded))
+                                    .font(.system(size: 9, weight: .bold, design: .rounded))
                                     .foregroundColor(.white.opacity(0.75))
                                     .tracking(2)
 
                                 Text("$\(payload.totals.totalDue, specifier: "%.0f")")
-                                    .font(.system(size: 20, weight: .black, design: .monospaced))
+                                    .font(.system(size: 22, weight: .black, design: .monospaced))
                                     .foregroundColor(.white)
                             }
 
@@ -149,7 +149,7 @@ struct MediumBillsWidgetView: View {
 
                         if payload.upcoming.count > 4 {
                             Text("+\(payload.upcoming.count - 4) more")
-                                .font(.system(size: 9, weight: .bold, design: .rounded))
+                                .font(.system(size: 10, weight: .bold, design: .rounded))
                                 .foregroundColor(.white.opacity(0.6))
                                 .tracking(0.5)
                                 .frame(maxWidth: .infinity, alignment: .trailing)
@@ -214,7 +214,7 @@ private struct RadarBillRow: View {
                 .shadow(color: urgencyColor.opacity(0.8), radius: 3)
 
             Text(bill.vendor)
-                .font(.system(size: 11, weight: .bold, design: .rounded))
+                .font(.system(size: 12, weight: .bold, design: .rounded))
                 .foregroundColor(.white)
                 .lineLimit(1)
 
@@ -222,11 +222,11 @@ private struct RadarBillRow: View {
 
             VStack(alignment: .trailing, spacing: 1) {
                 Text("$\(bill.amount, specifier: "%.2f")")
-                    .font(.system(size: 10, weight: .black, design: .monospaced))
+                    .font(.system(size: 11, weight: .black, design: .monospaced))
                     .foregroundColor(.white.opacity(0.95))
 
                 Text("\(bill.daysLeft)d")
-                    .font(.system(size: 8, weight: .heavy, design: .rounded))
+                    .font(.system(size: 9, weight: .heavy, design: .rounded))
                     .foregroundColor(urgencyColor)
             }
         }

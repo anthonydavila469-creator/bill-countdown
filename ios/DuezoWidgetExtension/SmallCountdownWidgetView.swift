@@ -44,7 +44,7 @@ struct SmallCountdownWidgetView: View {
                                 .shadow(color: heroColor, radius: 4)
 
                             Text(statusLabel(bill.daysLeft))
-                                .font(.system(size: 9, weight: .heavy, design: .rounded))
+                                .font(.system(size: 10, weight: .heavy, design: .rounded))
                                 .foregroundColor(.white.opacity(0.85))
                                 .tracking(2)
 
@@ -85,7 +85,7 @@ struct SmallCountdownWidgetView: View {
 
                         // Unit label
                         Text(unitLabel(bill.daysLeft))
-                            .font(.system(size: 11, weight: .bold, design: .rounded))
+                            .font(.system(size: 12, weight: .bold, design: .rounded))
                             .foregroundColor(.white.opacity(0.7))
                             .tracking(6)
                             .padding(.top, -8)
@@ -95,7 +95,7 @@ struct SmallCountdownWidgetView: View {
                         // Bottom frosted info strip
                         HStack(spacing: 0) {
                             Text(bill.vendor.uppercased())
-                                .font(.system(size: 10, weight: .bold, design: .rounded))
+                                .font(.system(size: 12, weight: .bold, design: .rounded))
                                 .foregroundColor(.white.opacity(0.95))
                                 .lineLimit(1)
                                 .tracking(0.5)
@@ -103,7 +103,7 @@ struct SmallCountdownWidgetView: View {
                             Spacer(minLength: 6)
 
                             Text("$\(bill.amount, specifier: "%.2f")")
-                                .font(.system(size: 13, weight: .black, design: .monospaced))
+                                .font(.system(size: 15, weight: .black, design: .monospaced))
                                 .foregroundColor(heroColor)
                                 .shadow(color: heroColor.opacity(0.5), radius: 6)
                         }
