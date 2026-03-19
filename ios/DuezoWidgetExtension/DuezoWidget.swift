@@ -446,7 +446,7 @@ struct WidgetBackground: View {
             )
 
             // Darkening for text readability — stronger on warm/bright themes
-            Color.black.opacity(theme.isWarm ? 0.25 : 0.12)
+            Color.black.opacity(theme.isWarm ? 0.25 : 0.25)
 
             // Radial glow from center-left (where ring sits)
             RadialGradient(
@@ -592,7 +592,7 @@ struct CountdownRing: View {
                 if showLabel {
                     Text(days < 0 ? "LATE" : days == 1 ? "DAY" : "DAYS")
                         .font(.system(size: size * 0.1, weight: .heavy, design: .rounded))
-                        .foregroundColor(.white.opacity(0.4))
+                        .foregroundColor(.white.opacity(0.75))
                         .tracking(2)
                 }
             }
@@ -668,7 +668,7 @@ struct LargeWidgetView: View {
                     }
                     Text("\(payload.upcoming.count) bills upcoming")
                         .font(.system(size: 9, weight: .medium, design: .rounded))
-                        .foregroundColor(.white.opacity(0.3))
+                        .foregroundColor(.white.opacity(0.7))
                 }
 
                 Spacer()
@@ -677,7 +677,7 @@ struct LargeWidgetView: View {
                 VStack(alignment: .trailing, spacing: 1) {
                     Text("TOTAL")
                         .font(.system(size: 7, weight: .bold, design: .rounded))
-                        .foregroundColor(.white.opacity(0.3))
+                        .foregroundColor(.white.opacity(0.75))
                         .tracking(2)
                     Text("$\(payload.totals.totalDue, specifier: "%.2f")")
                         .font(.system(size: 24, weight: .black, design: .monospaced))
@@ -714,7 +714,7 @@ struct LargeWidgetView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("NEXT DUE")
                             .font(.system(size: 8, weight: .heavy, design: .rounded))
-                            .foregroundColor(heroColor.opacity(0.6))
+                            .foregroundColor(heroColor.opacity(0.9))
                             .tracking(2)
 
                         Text(bill.vendor)
@@ -733,7 +733,7 @@ struct LargeWidgetView: View {
                         HStack(spacing: 6) {
                             Text(formatISODate(bill.dueDate))
                                 .font(.system(size: 10, weight: .medium, design: .rounded))
-                                .foregroundColor(.white.opacity(0.35))
+                                .foregroundColor(.white.opacity(0.7))
 
                             if bill.isAutopay == true {
                                 HStack(spacing: 2) {
@@ -743,7 +743,7 @@ struct LargeWidgetView: View {
                                         .font(.system(size: 7, weight: .bold, design: .rounded))
                                         .tracking(1)
                                 }
-                                .foregroundColor(.white.opacity(0.25))
+                                .foregroundColor(.white.opacity(0.6))
                             }
                         }
                     }
@@ -779,7 +779,7 @@ struct LargeWidgetView: View {
                     Spacer()
                     Text("+\(remaining) more")
                         .font(.system(size: 9, weight: .bold, design: .rounded))
-                        .foregroundColor(.white.opacity(0.25))
+                        .foregroundColor(.white.opacity(0.6))
                         .tracking(0.5)
                 }
                 .padding(.top, 4)
@@ -833,11 +833,11 @@ struct LargeBillRow: View {
                 VStack(alignment: .leading, spacing: 1) {
                     Text(bill.vendor)
                         .font(.system(size: 13, weight: .bold, design: .rounded))
-                        .foregroundColor(.white.opacity(0.9))
+                        .foregroundColor(.white)
                         .lineLimit(1)
                     Text(formatISODate(bill.dueDate))
                         .font(.system(size: 9, weight: .medium, design: .rounded))
-                        .foregroundColor(.white.opacity(0.3))
+                        .foregroundColor(.white.opacity(0.7))
                 }
 
                 Spacer()
@@ -845,11 +845,11 @@ struct LargeBillRow: View {
                 VStack(alignment: .trailing, spacing: 1) {
                     Text("$\(bill.amount, specifier: "%.2f")")
                         .font(.system(size: 14, weight: .black, design: .monospaced))
-                        .foregroundColor(.white.opacity(0.9))
+                        .foregroundColor(.white)
 
                     Text(dueInLabel(bill.daysLeft))
                         .font(.system(size: 8, weight: .heavy, design: .rounded))
-                        .foregroundColor(urgColor.opacity(0.8))
+                        .foregroundColor(urgColor)
                         .tracking(0.5)
                 }
             }

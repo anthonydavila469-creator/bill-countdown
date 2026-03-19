@@ -45,7 +45,7 @@ struct SmallCountdownWidgetView: View {
 
                             Text(statusLabel(bill.daysLeft))
                                 .font(.system(size: 9, weight: .heavy, design: .rounded))
-                                .foregroundColor(.white.opacity(0.5))
+                                .foregroundColor(.white.opacity(0.85))
                                 .tracking(2)
 
                             Spacer()
@@ -53,7 +53,7 @@ struct SmallCountdownWidgetView: View {
                             if bill.isAutopay == true {
                                 Image(systemName: "arrow.triangle.2.circlepath")
                                     .font(.system(size: 8, weight: .bold))
-                                    .foregroundColor(.white.opacity(0.25))
+                                    .foregroundColor(.white.opacity(0.6))
                             }
                         }
                         .padding(.horizontal, 14)
@@ -86,7 +86,7 @@ struct SmallCountdownWidgetView: View {
                         // Unit label
                         Text(unitLabel(bill.daysLeft))
                             .font(.system(size: 11, weight: .bold, design: .rounded))
-                            .foregroundColor(.white.opacity(0.3))
+                            .foregroundColor(.white.opacity(0.7))
                             .tracking(6)
                             .padding(.top, -8)
 
@@ -96,7 +96,7 @@ struct SmallCountdownWidgetView: View {
                         HStack(spacing: 0) {
                             Text(bill.vendor.uppercased())
                                 .font(.system(size: 10, weight: .bold, design: .rounded))
-                                .foregroundColor(.white.opacity(0.7))
+                                .foregroundColor(.white.opacity(0.95))
                                 .lineLimit(1)
                                 .tracking(0.5)
 
@@ -111,7 +111,7 @@ struct SmallCountdownWidgetView: View {
                         .padding(.vertical, 8)
                         .background(
                             Rectangle()
-                                .fill(Color.white.opacity(0.06))
+                                .fill(Color.black.opacity(0.25))
                                 .overlay(
                                     Rectangle()
                                         .fill(
