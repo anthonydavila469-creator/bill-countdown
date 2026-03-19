@@ -752,7 +752,7 @@ export default function DashboardPage() {
                       <div className="relative z-10 flex flex-col h-full justify-between">
                         {/* Top: label */}
                         <p className={cn(
-                          'text-xs font-semibold uppercase tracking-widest mb-2',
+                          'text-xs font-semibold uppercase tracking-widest mb-2 text-center',
                           isHeroOverdue ? 'text-red-300' : 'text-white/70'
                         )}>
                           {isHeroOverdue ? 'Overdue' : 'Next Up'}
@@ -766,11 +766,11 @@ export default function DashboardPage() {
                             size="lg"
                             colorMode="gradient"
                           />
-                          <h2 className="text-2xl sm:text-3xl font-bold text-white mt-3">
+                          <h2 className="text-2xl sm:text-3xl font-bold text-white mt-3 text-center">
                             {heroBill.name}
                           </h2>
                           {heroBill.amount && (
-                            <p className="text-3xl sm:text-4xl font-extrabold text-white/90 mt-1 tracking-tight">
+                            <p className="text-3xl sm:text-4xl font-extrabold text-white/90 mt-1 tracking-tight text-center">
                               {formatCurrency(heroBill.amount)}
                             </p>
                           )}
