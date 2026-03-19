@@ -41,7 +41,7 @@ function createMockClassification(email: { subject: string; from: string; body: 
   const combined = (email.subject + ' ' + email.body).toLowerCase();
 
   const hasBillKeywords = /statement|bill|payment due|amount due|balance due|invoice|autopay/.test(combined);
-  const hasPaymentConfirmation = /payment received|thank you for your payment|payment confirmation/.test(combined);
+  const hasPaymentConfirmation = /payment received|received your payment|thank you for your payment|thanks for your payment|payment confirmation|payment processed|we'?ve received|payment is complete|payment.s complete|paid in full/.test(combined);
 
   if (hasPaymentConfirmation && !hasBillKeywords) {
     return {

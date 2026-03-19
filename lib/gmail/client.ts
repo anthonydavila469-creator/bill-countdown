@@ -223,7 +223,7 @@ export const BILL_SEARCH_QUERIES = [
   'subject:("your bill" OR "payment reminder" OR "due date" OR "balance due")',
   'subject:(autopay OR "auto pay" OR "automatic payment" OR "scheduled payment")',
   'subject:("account balance" OR "monthly statement" OR "your statement")',
-  'subject:("new statement" OR "statement ready" OR "bill ready" OR "payment confirmation")',
+  'subject:("new statement" OR "statement ready" OR "bill ready" OR "payment confirmation" OR "e-statement" OR "electronic statement")',
   'subject:(receipt OR charged OR renewal OR subscription)',
   // Sender-based queries
   'from:(billing OR invoices OR payments OR statements OR accounts)',
@@ -243,7 +243,7 @@ export const BILL_SEARCH_QUERIES = [
   // Insurance
   'from:(geico OR progressive OR allstate OR "state farm" OR usaa OR liberty)',
   // Utilities
-  'from:(electric OR power OR energy OR water OR gas OR utility OR municipal)',
+  'from:(electric OR power OR energy OR water OR gas OR utility OR municipal OR estatement)',
   'from:(txu OR oncor OR pge OR sce OR duke OR entergy)',
   // Loans
   'from:(loan OR mortgage OR navient OR nelnet OR sofi OR sallie)',

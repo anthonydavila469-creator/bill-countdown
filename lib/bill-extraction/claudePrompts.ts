@@ -17,7 +17,7 @@ What counts as a BILL (return BILL):
 Even if amount/date is missing, still return BILL if intent is clearly billing.
 
 What is NOT a BILL (return NOT_BILL):
-- Payment confirmations / receipts for payments already made ("payment received", "thank you for your payment")
+- Payment confirmations / receipts for payments already made ("payment received", "we've received your payment", "thank you for your payment", "your payment of $X", "payment processed", "payment is complete")
 - Order shipping notifications, tracking updates
 - Marketing/promotions/welcome offers/discounts
 - Security/account notifications:

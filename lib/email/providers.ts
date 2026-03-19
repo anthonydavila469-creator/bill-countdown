@@ -80,6 +80,8 @@ const BILL_KEYWORDS = [
   'upcoming payment',
   'account statement',
   'billing statement',
+  'e-statement',
+  'electronic statement',
   'bill payment',
   'remind',
   'due soon',
