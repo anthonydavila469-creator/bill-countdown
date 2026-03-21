@@ -50,7 +50,7 @@ export async function POST(request: Request) {
       errors: [] as string[],
     };
 
-    const windowStart = addDays(today, 3);
+    const windowStart = today; // Include bills due today through 7 days out
     const windowEnd = addDays(today, 7);
 
     const { data: billRows, error: billsError } = await supabase
@@ -192,7 +192,7 @@ export async function GET(request: Request) {
   }
 
   return NextResponse.json({
-    message: 'Send APNs bill-due-soon reminders for unpaid bills due in the next 3 to 7 days.',
+    message: 'Send APNs bill-due-soon reminders for unpaid bills due today through the next 7 days.',
     schedule: '15 8 * * *',
   });
 }

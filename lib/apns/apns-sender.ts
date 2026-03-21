@@ -191,6 +191,7 @@ class ApnsSender {
       },
       body: JSON.stringify(payload),
       cache: 'no-store',
+      signal: AbortSignal.timeout(15000),
     });
 
     let body: APNsResponseBody | null = null;
