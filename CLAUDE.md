@@ -1,34 +1,26 @@
-# Claude Instructions
+# CLAUDE.md — Duezo
 
-## Working Principles
+## Role
+You are a coding agent working inside the Duezo bill countdown app repository.
 
-1. **Think First, Code Second** - Always think through the problem and read the codebase for relevant files before making changes.
+## Primary goals
+- Make correct, minimal, production-appropriate code changes.
+- Understand existing patterns before changing architecture.
+- Keep diffs clean and focused.
 
-2. **Check In Before Major Changes** - Before making any major changes, check in with me to verify the plan.
-
-3. **High-Level Explanations** - Every step of the way, provide a high-level explanation of what changes were made.
-
-4. **Simplicity Above All** - Make every task and code change as simple as possible. Avoid massive or complex changes. Every change should impact as little code as possible. Everything is about simplicity.
-
-5. **Maintain Architecture Documentation** - Keep the `ARCHITECTURE.md` file updated when making structural changes.
-
-6. **No Speculation** - Never speculate about code you have not opened. If I reference a specific file, you MUST read the file before answering. Investigate and read relevant files BEFORE answering questions about the codebase. Never make claims about code before investigating unless certain of the correct answer - give grounded and hallucination-free answers.
-
-## Design & UI
-
-Always use the `/frontend-design` skill for all UI and frontend work. This ensures production-grade, polished interfaces with high design quality.
-
-## Tech Stack Quick Reference
-
+## Tech stack
 - **Framework:** Next.js 16 (App Router)
 - **Language:** TypeScript 5
 - **Styling:** Tailwind CSS 4
-- **Database:** Supabase (PostgreSQL + Auth)
-- **AI:** Anthropic Claude (Sonnet)
+- **Database:** Supabase (PostgreSQL + Auth + RLS)
+- **AI:** Anthropic Claude Sonnet (email parsing)
+- **iOS:** Capacitor + native Swift bridge (widgets, push notifications)
+- **Push:** APNs via @parse/node-apn
 - **Icons:** Lucide React
+- **Hosting:** Vercel (deploy with `vercel --prod`, auto-deploy is broken)
+- **Domain:** duezo.app (OAuth MUST use www.duezo.app — non-www causes 307 redirects)
 
-## Key Files
-
+## Key files
 | Purpose | Location |
 |---------|----------|
 | Architecture docs | `ARCHITECTURE.md` |
@@ -38,24 +30,55 @@ Always use the `/frontend-design` skill for all UI and frontend work. This ensur
 | Bill components | `components/bill-card.tsx` |
 | API routes | `app/api/` |
 | DB migrations | `supabase/migrations/` |
+| iOS bridge | `ios/App/App/BridgeViewController.swift` |
+| Widget extension | `ios/App/DuezoWidgetExtension/` |
 
-## Common Patterns
+## Working rules
+- Read relevant files before editing. Never speculate about code you haven't opened.
+- Prefer root-cause fixes over surface patches.
+- Preserve existing conventions unless they are clearly harmful.
+- Do not introduce new dependencies unless justified.
+- Do not refactor unrelated code.
+- When a task is ambiguous, prefer the smallest safe implementation that satisfies the request.
+- Keep changes as simple as possible. Simplicity above all.
 
-### Adding a new feature
+## Design & UI
+- Dark theme is default (`bg-[#08080c]`)
+- Glass morphism: `bg-white/[0.02] backdrop-blur-xl border-white/5`
+- Use CSS variables for theme colors (e.g., `var(--accent-primary)`)
+- Use `cn()` from `lib/utils` for conditional classes
+
+## Code standards
+- Keep naming clear and consistent with surrounding code.
+- Keep functions and components focused.
+- Avoid duplication — reuse existing utilities first.
+- Add comments only when they clarify non-obvious logic.
+- Do not leave dead code behind.
+
+## Database changes
+1. Create migration in `supabase/migrations/`
+2. Naming: `00X_description.sql`
+3. Always include RLS policies
+4. Update types to match schema
+
+## Adding a new feature
 1. Update types in `types/index.ts` if needed
 2. Create/update API route in `app/api/`
 3. Add migration if DB changes needed
 4. Update components
 5. Update `ARCHITECTURE.md` if structural change
 
-### Styling conventions
-- Use CSS variables for theme colors (e.g., `var(--accent-primary)`)
-- Use `cn()` from `lib/utils` for conditional classes
-- Dark theme is default (`bg-[#08080c]`)
-- Glass morphism: `bg-white/[0.02] backdrop-blur-xl border-white/5`
+## Env vars
+- Use `printf` (not `echo`) when setting Vercel env vars — echo adds trailing \n that breaks keys
 
-### Database changes
-1. Create new migration in `supabase/migrations/`
-2. Name format: `00X_description.sql`
-3. Always include RLS policies
-4. Update types to match schema
+## Validation
+- Run relevant checks when possible.
+- If you cannot run tests or builds, say so explicitly.
+- Never claim code is verified unless it was actually verified.
+
+## Final response
+Provide:
+1. What changed
+2. Why it changed
+3. Files touched
+4. Remaining risk or follow-up
