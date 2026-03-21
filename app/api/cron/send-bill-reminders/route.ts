@@ -70,14 +70,15 @@ export async function POST(request: Request) {
           .eq('user_id', userId),
         supabase
           .from('apns_tokens')
-          .select('device_token')
-          .eq('user_id', userId),
+          .select('token')
+          .eq('user_id', userId)
+          .eq('is_active', true),
       ]);
 
       const userEmail = userResult.data?.user?.email;
       const settings: NotificationSettings = prefsResult.data?.notification_settings ?? DEFAULT_NOTIFICATION_SETTINGS;
       const pushSubscriptions: PushSubscription[] = (subsResult.data as PushSubscription[]) ?? [];
-      const apnsTokens: string[] = (apnsResult.data ?? []).map((row: { device_token: string }) => row.device_token);
+      const apnsTokens: string[] = (apnsResult.data ?? []).map((row: { token: string }) => row.token);
 
       for (const notification of userNotifications) {
         results.processed++;
@@ -159,6 +160,7 @@ export async function POST(request: Request) {
 
           if (hasApns) {
             const apnsPushResult = await sendBillReminderAPNs(
+              userId,
               apnsTokens,
               bill as Bill,
               daysUntilDue
@@ -170,9 +172,9 @@ export async function POST(request: Request) {
             if (apnsPushResult.expiredTokens.length > 0) {
               await supabase
                 .from('apns_tokens')
-                .delete()
+                .update({ is_active: false })
                 .eq('user_id', userId)
-                .in('device_token', apnsPushResult.expiredTokens);
+                .in('token', apnsPushResult.expiredTokens);
             }
           }
 
