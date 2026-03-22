@@ -28,7 +28,7 @@ export async function sendReminderEmail(
       dueDate,
       amount,
       daysUntilDue,
-      process.env.NEXT_PUBLIC_APP_URL || 'https://duezo.app'
+      process.env.NEXT_PUBLIC_APP_URL || 'https://www.duezo.app'
     );
 
     const { data, error } = await getResendClient().emails.send({

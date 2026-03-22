@@ -26,9 +26,12 @@ export async function signInWithOAuthNative(
     pendingTransferKey = crypto.randomUUID();
   }
 
+  // Native MUST use www.duezo.app — non-www triggers Vercel 307 redirect that strips query params
+  const baseUrl = isNative ? 'https://www.duezo.app' : window.location.origin;
+
   const redirectTo = isNative
-    ? `${window.location.origin}/auth/callback?transfer_key=${pendingTransferKey}`
-    : `${window.location.origin}/auth/callback`;
+    ? `${baseUrl}/auth/callback?transfer_key=${pendingTransferKey}`
+    : `${baseUrl}/auth/callback`;
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,

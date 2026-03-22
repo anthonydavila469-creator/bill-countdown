@@ -18,7 +18,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://duezo.app';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.duezo.app';
     const results: { reminders?: unknown; autoSync?: unknown; inAppReminders?: unknown; errors: string[] } = {
       errors: [],
     };

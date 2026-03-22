@@ -43,7 +43,7 @@ export async function GET(request: Request) {
   } catch (error) {
     const errMsg = error instanceof Error ? error.message : String(error);
     console.error('Error starting email OAuth:', errMsg);
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://duezo.app';
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.duezo.app';
     return NextResponse.redirect(
       `${appUrl}/dashboard/settings?error=connect_failed&details=${encodeURIComponent(errMsg)}`
     );
