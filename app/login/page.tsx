@@ -61,8 +61,8 @@ export default function LoginPage() {
         return;
       }
 
-      router.push('/dashboard');
-      router.refresh();
+      // Use hard navigation instead of router.push — more reliable in Capacitor WebView
+      window.location.href = '/dashboard';
     } catch (err) {
       clearTimeout(timeout);
       setError('An unexpected error occurred. Please try again.');
