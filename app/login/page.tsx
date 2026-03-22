@@ -41,11 +41,19 @@ export default function LoginPage() {
     setIsLoading(true);
     setError('');
 
+    // Timeout: if auth takes longer than 15s, something is wrong
+    const timeout = setTimeout(() => {
+      setError('Login timed out. Please check your connection and try again.');
+      setIsLoading(false);
+    }, 15000);
+
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
+
+      clearTimeout(timeout);
 
       if (error) {
         setError(error.message);
@@ -56,7 +64,8 @@ export default function LoginPage() {
       router.push('/dashboard');
       router.refresh();
     } catch (err) {
-      setError('An unexpected error occurred');
+      clearTimeout(timeout);
+      setError('An unexpected error occurred. Please try again.');
       setIsLoading(false);
     }
   };
@@ -69,6 +78,8 @@ export default function LoginPage() {
         setError(result.error);
         setIsLoading(false);
       }
+      // Safety: reset loading after 30s in case browser dismiss doesn't fire
+      setTimeout(() => setIsLoading(false), 30000);
     } catch (err) {
       setError('An unexpected error occurred');
       setIsLoading(false);
