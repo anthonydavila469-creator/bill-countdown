@@ -2,34 +2,17 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 
-export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
-  const code = searchParams.get('code');
-  const next = searchParams.get('next') ?? '/dashboard';
-  const transferKey = searchParams.get('transfer_key');
+// Detect if request is from an iOS device (SFSafariViewController in Capacitor app)
+function isIOSDevice(request: Request): boolean {
+  const ua = request.headers.get('user-agent') || '';
+  return /iPhone|iPad|iPod/.test(ua);
+}
 
-  if (code) {
-    const supabase = await createClient();
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-
-    if (!error && data?.session) {
-      // Native Capacitor flow: store tokens for WKWebView to retrieve
-      if (transferKey) {
-        const admin = createAdminClient();
-        await admin.from('auth_transfers').insert({
-          transfer_key: transferKey,
-          access_token: data.session.access_token,
-          refresh_token: data.session.refresh_token,
-        });
-
-        // Return a page that signals the app via window.opener / postMessage.
-        // The browserPageLoaded event fires when this page loads in the SFVC,
-        // which lets the WKWebView fetch tokens and call Browser.close() immediately.
-        // Redirect to custom URL scheme to force SFSafariViewController to close
-        // and return to the native app. The app's listenForAuthReturn will pick up
-        // the session via the transfer key when it regains focus.
-        return new NextResponse(
-          `<!DOCTYPE html>
+// The "return to app" HTML page shown after OAuth in SFSafariViewController.
+// Multiple redirect strategies to maximize compatibility across iOS versions.
+function nativeReturnPage(): NextResponse {
+  return new NextResponse(
+    `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <style>body{background:#0F0A1E;color:#fff;font-family:system-ui;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}
 .c{text-align:center;padding:24px}
@@ -37,59 +20,74 @@ export async function GET(request: Request) {
 @keyframes spin{to{transform:rotate(360deg)}}
 .btn{display:inline-block;margin-top:20px;padding:14px 32px;background:#8B5CF6;color:#fff;font-size:17px;font-weight:600;border-radius:12px;text-decoration:none;-webkit-tap-highlight-color:transparent}
 .btn:active{background:#7C3AED}
-.hint{display:none;margin-top:12px;color:#a1a1aa;font-size:14px}
+.hint{margin-top:12px;color:#a1a1aa;font-size:14px;display:none}
 </style>
 </head>
 <body><div class="c">
 <div class="s" id="spinner"></div>
 <p id="msg">Returning to Duezo...</p>
 <a href="app.duezo://auth/callback" class="btn" id="openBtn" style="display:none">Open Duezo</a>
-<p class="hint" id="hint">Tap the button above if you're not redirected automatically</p>
+<p class="hint" id="hint">Tap the button to return to the app</p>
 </div>
 <script>
-// Try multiple redirect strategies for maximum compatibility
-var redirected = false;
 var scheme = 'app.duezo://auth/callback';
 
-function tryRedirect() {
-  if (redirected) return;
-  redirected = true;
-  window.location.replace(scheme);
-}
+// Strategy 1: immediate location.replace
+setTimeout(function() { window.location.replace(scheme); }, 300);
 
-// Strategy 1: immediate location.replace (most reliable on modern iOS)
-setTimeout(tryRedirect, 300);
-
-// Strategy 2: hidden iframe (works on some older iOS versions)
+// Strategy 2: hidden iframe for older iOS
 setTimeout(function() {
   if (!document.hidden) {
-    var iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    iframe.src = scheme;
-    document.body.appendChild(iframe);
+    var f = document.createElement('iframe');
+    f.style.display = 'none';
+    f.src = scheme;
+    document.body.appendChild(f);
   }
 }, 800);
 
-// Strategy 3: show manual button after 2s if still in browser
+// Strategy 3: show manual button after 1.5s
 setTimeout(function() {
   if (!document.hidden) {
     document.getElementById('spinner').style.display = 'none';
-    document.getElementById('msg').textContent = 'Almost there!';
+    document.getElementById('msg').textContent = 'You\\'re signed in!';
     document.getElementById('openBtn').style.display = 'inline-block';
     document.getElementById('hint').style.display = 'block';
   }
-}, 2000);
-
-// If page is still visible after 5s, the redirect definitely failed — make it obvious
-setTimeout(function() {
-  if (!document.hidden) {
-    document.getElementById('msg').textContent = 'Tap below to return to the app';
-  }
-}, 5000);
+}, 1500);
 </script>
 </body></html>`,
-          { headers: { 'Content-Type': 'text/html' } }
-        );
+    { headers: { 'Content-Type': 'text/html' } }
+  );
+}
+
+export async function GET(request: Request) {
+  const { searchParams, origin } = new URL(request.url);
+  const code = searchParams.get('code');
+  const next = searchParams.get('next') ?? '/dashboard';
+  const transferKey = searchParams.get('transfer_key');
+  const isIOS = isIOSDevice(request);
+
+  if (code) {
+    const supabase = await createClient();
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+
+    if (!error && data?.session) {
+      // Native Capacitor flow with transfer key: store tokens for WKWebView
+      if (transferKey) {
+        const admin = createAdminClient();
+        await admin.from('auth_transfers').insert({
+          transfer_key: transferKey,
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        });
+        return nativeReturnPage();
+      }
+
+      // iOS device but no transfer key (Supabase stripped it during redirect).
+      // Still redirect back to the app — the WKWebView will detect the session
+      // when it regains focus via visibilitychange / browserFinished listeners.
+      if (isIOS) {
+        return nativeReturnPage();
       }
 
       // Standard web flow: redirect to dashboard
