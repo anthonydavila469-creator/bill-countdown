@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { BillCard } from '@/components/bill-card';
+import { NativeRedirect } from '@/components/native-redirect';
 import { Bill } from '@/types';
 import {
   Mail,
@@ -203,6 +204,7 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-[#0F0A1E] text-white overflow-x-hidden overflow-y-auto">
+      <NativeRedirect />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
