@@ -41,19 +41,11 @@ export default function LoginPage() {
     setIsLoading(true);
     setError('');
 
-    // Timeout: if auth takes longer than 15s, something is wrong
-    const timeout = setTimeout(() => {
-      setError('Login timed out. Please check your connection and try again.');
-      setIsLoading(false);
-    }, 15000);
-
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-
-      clearTimeout(timeout);
 
       if (error) {
         setError(error.message);
@@ -61,11 +53,17 @@ export default function LoginPage() {
         return;
       }
 
-      // Use hard navigation instead of router.push — more reliable in Capacitor WebView
+      if (!data?.session) {
+        setError('Login succeeded but no session was returned. Please try again.');
+        setIsLoading(false);
+        return;
+      }
+
+      // Use hard navigation — more reliable in Capacitor WebView
       window.location.href = '/dashboard';
-    } catch (err) {
-      clearTimeout(timeout);
-      setError('An unexpected error occurred. Please try again.');
+    } catch (err: any) {
+      const msg = err?.message || 'An unexpected error occurred.';
+      setError(`Login failed: ${msg}`);
       setIsLoading(false);
     }
   };
