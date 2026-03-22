@@ -29,8 +29,11 @@ export async function signInWithOAuthNative(
   // Native MUST use www.duezo.app — non-www triggers Vercel 307 redirect that strips query params
   const baseUrl = isNative ? 'https://www.duezo.app' : window.location.origin;
 
+  // Encode transfer_key in the URL path (not query params) because Supabase
+  // rewrites the redirect URL and can strip custom query params during the
+  // PKCE flow. Path segments are preserved reliably.
   const redirectTo = isNative
-    ? `${baseUrl}/auth/callback?transfer_key=${pendingTransferKey}`
+    ? `${baseUrl}/auth/callback/native/${pendingTransferKey}`
     : `${baseUrl}/auth/callback`;
 
   const { data, error } = await supabase.auth.signInWithOAuth({
