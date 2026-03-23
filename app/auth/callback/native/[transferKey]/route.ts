@@ -36,51 +36,18 @@ export async function GET(
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <style>body{background:#0F0A1E;color:#fff;font-family:system-ui;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}
 .c{text-align:center;padding:24px}
-.s{width:32px;height:32px;border:3px solid rgba(139,92,246,.3);border-top-color:#8B5CF6;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}
-@keyframes spin{to{transform:rotate(360deg)}}
-.btn{display:inline-block;margin-top:20px;padding:14px 32px;background:#8B5CF6;color:#fff;font-size:17px;font-weight:600;border-radius:12px;text-decoration:none;-webkit-tap-highlight-color:transparent}
-.btn:active{background:#7C3AED}
-.hint{display:none;margin-top:12px;color:#a1a1aa;font-size:14px}
+.check{font-size:48px;margin-bottom:12px}
+.btn{display:inline-block;margin-top:20px;padding:16px 40px;background:#8B5CF6;color:#fff;font-size:18px;font-weight:700;border-radius:14px;text-decoration:none;-webkit-tap-highlight-color:transparent;box-shadow:0 4px 14px rgba(139,92,246,.4)}
+.btn:active{background:#7C3AED;transform:scale(0.97)}
+.hint{margin-top:16px;color:#a1a1aa;font-size:14px}
 </style>
 </head>
 <body><div class="c">
-<div class="s" id="spinner"></div>
-<p id="msg">Returning to Duezo...</p>
-<a href="app.duezo://auth/callback" class="btn" id="openBtn" style="display:none">Open Duezo</a>
-<p class="hint" id="hint">Tap the button above if you're not redirected automatically</p>
+<div class="check">✅</div>
+<p><strong>You're signed in!</strong></p>
+<a href="app.duezo://auth/callback">Open Duezo</a>
+<p class="hint">Tap the button to return to the app</p>
 </div>
-<script>
-var scheme = 'app.duezo://auth/callback';
-
-// Strategy 1: immediate location.replace
-setTimeout(function() { window.location.replace(scheme); }, 300);
-
-// Strategy 2: hidden iframe for older iOS
-setTimeout(function() {
-  if (!document.hidden) {
-    var f = document.createElement('iframe');
-    f.style.display = 'none';
-    f.src = scheme;
-    document.body.appendChild(f);
-  }
-}, 800);
-
-// Strategy 3: show manual button after 2s
-setTimeout(function() {
-  if (!document.hidden) {
-    document.getElementById('spinner').style.display = 'none';
-    document.getElementById('msg').textContent = 'Almost there!';
-    document.getElementById('openBtn').style.display = 'inline-block';
-    document.getElementById('hint').style.display = 'block';
-  }
-}, 2000);
-
-setTimeout(function() {
-  if (!document.hidden) {
-    document.getElementById('msg').textContent = 'Tap below to return to the app';
-  }
-}, 5000);
-</script>
 </body></html>`,
     { headers: { 'Content-Type': 'text/html' } }
   );

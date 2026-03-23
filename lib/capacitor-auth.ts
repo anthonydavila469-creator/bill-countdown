@@ -152,9 +152,9 @@ export function listenForAuthReturn(
     if (resolved || !pendingTransferKey) return;
     console.log('[Auth] browserPageLoaded fired, attempting session resolve...');
     // Try multiple times with increasing delays — the server may still be writing tokens
-    for (let attempt = 1; attempt <= 4; attempt++) {
+    for (let attempt = 1; attempt <= 6; attempt++) {
       if (resolved) return;
-      await new Promise((r) => setTimeout(r, attempt * 600));
+      await new Promise((r) => setTimeout(r, attempt * 800));
       console.log(`[Auth] browserPageLoaded resolve attempt ${attempt}`);
       await tryResolveSession();
     }
@@ -163,9 +163,9 @@ export function listenForAuthReturn(
   const browserListener = Browser.addListener('browserFinished', async () => {
     console.log('[Auth] browserFinished fired (user tapped Done or browser closed)');
     // Try multiple times — tokens may exist even if the deep link failed
-    for (let attempt = 1; attempt <= 3; attempt++) {
+    for (let attempt = 1; attempt <= 5; attempt++) {
       if (resolved) return;
-      await new Promise((r) => setTimeout(r, attempt * 500));
+      await new Promise((r) => setTimeout(r, attempt * 700));
       console.log(`[Auth] browserFinished resolve attempt ${attempt}`);
       await tryResolveSession();
     }
