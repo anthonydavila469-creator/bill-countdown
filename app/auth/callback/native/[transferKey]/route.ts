@@ -51,17 +51,19 @@ export async function GET(
 </div>
 <script>
 var scheme = 'app.duezo://auth/callback';
-var universalLink = 'https://www.duezo.app/auth/return-to-app';
 
-// Strategy 1: Universal Link (primary — triggers Associated Domains on iOS 13+)
-setTimeout(function() { window.location.replace(universalLink); }, 300);
+// Strategy 1: immediate location.replace
+setTimeout(function() { window.location.replace(scheme); }, 300);
 
-// Strategy 2: Custom URL scheme (fallback for older iOS)
+// Strategy 2: hidden iframe for older iOS
 setTimeout(function() {
   if (!document.hidden) {
-    window.location.replace(scheme);
+    var f = document.createElement('iframe');
+    f.style.display = 'none';
+    f.src = scheme;
+    document.body.appendChild(f);
   }
-}, 1200);
+}, 800);
 
 // Strategy 3: show manual button after 2s
 setTimeout(function() {
