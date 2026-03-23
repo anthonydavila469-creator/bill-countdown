@@ -77,33 +77,49 @@ export function listenForAuthReturn(
   const tryResolveSession = async () => {
     if (resolved) return;
 
+    console.log('[Auth] tryResolveSession called', JSON.stringify({
+      hasPendingKey: !!pendingTransferKey,
+      resolved,
+    }));
+
     // Try transfer-based auth (primary method — bridges SFVC ↔ WKWebView)
     if (pendingTransferKey) {
       try {
+        console.log('[Auth] Fetching transfer with key...');
         const res = await fetch('/api/auth/transfer', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ transfer_key: pendingTransferKey }),
         });
+        console.log('[Auth] Transfer API response:', res.status);
         if (res.ok) {
           const { access_token, refresh_token } = await res.json();
+          console.log('[Auth] Got tokens, setting session...');
           await supabase.auth.setSession({ access_token, refresh_token });
           resolved = true;
           pendingTransferKey = null;
           try { await Browser.close(); } catch { /* may already be closed */ }
+          console.log('[Auth] ✅ Session set, calling onAuthenticated');
           onAuthenticated();
           return;
         }
-      } catch { /* transfer not ready yet, fall through */ }
+      } catch (err) {
+        console.warn('[Auth] Transfer fetch failed:', err);
+      }
     }
 
     // Fallback: check if session exists (e.g. email/password login, or session already set)
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      resolved = true;
-      pendingTransferKey = null;
-      try { await Browser.close(); } catch { /* may already be closed */ }
-      onAuthenticated();
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log('[Auth] Fallback getUser:', user ? 'found' : 'not found');
+      if (user) {
+        resolved = true;
+        pendingTransferKey = null;
+        try { await Browser.close(); } catch { /* may already be closed */ }
+        onAuthenticated();
+      }
+    } catch (err) {
+      console.warn('[Auth] getUser fallback failed:', err);
     }
   };
 
@@ -134,14 +150,25 @@ export function listenForAuthReturn(
   // itself), but tryResolveSession is a no-op until tokens exist.
   const pageLoadedListener = Browser.addListener('browserPageLoaded', async () => {
     if (resolved || !pendingTransferKey) return;
-    // Wait briefly for the server to finish writing the token row
-    await new Promise((r) => setTimeout(r, 800));
-    await tryResolveSession();
+    console.log('[Auth] browserPageLoaded fired, attempting session resolve...');
+    // Try multiple times with increasing delays — the server may still be writing tokens
+    for (let attempt = 1; attempt <= 4; attempt++) {
+      if (resolved) return;
+      await new Promise((r) => setTimeout(r, attempt * 600));
+      console.log(`[Auth] browserPageLoaded resolve attempt ${attempt}`);
+      await tryResolveSession();
+    }
   });
 
   const browserListener = Browser.addListener('browserFinished', async () => {
-    await new Promise((r) => setTimeout(r, 500));
-    await tryResolveSession();
+    console.log('[Auth] browserFinished fired (user tapped Done or browser closed)');
+    // Try multiple times — tokens may exist even if the deep link failed
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      if (resolved) return;
+      await new Promise((r) => setTimeout(r, attempt * 500));
+      console.log(`[Auth] browserFinished resolve attempt ${attempt}`);
+      await tryResolveSession();
+    }
     // If we didn't resolve (auth failed/cancelled), reset the loading state
     if (!resolved && onDismissed) {
       pendingTransferKey = null;
