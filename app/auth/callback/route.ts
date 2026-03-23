@@ -35,21 +35,19 @@ function nativeReturnPage(): NextResponse {
 </div>
 <script>
 var scheme = 'app.duezo://auth/callback';
+var universalLink = 'https://www.duezo.app/auth/return-to-app';
 
-// Strategy 1: immediate location.replace
-setTimeout(function() { window.location.replace(scheme); }, 300);
+// Strategy 1: Universal Link (primary — triggers Associated Domains on iOS 13+)
+setTimeout(function() { window.location.replace(universalLink); }, 300);
 
-// Strategy 2: hidden iframe for older iOS
+// Strategy 2: Custom URL scheme (fallback for older iOS)
 setTimeout(function() {
   if (!document.hidden) {
-    var f = document.createElement('iframe');
-    f.style.display = 'none';
-    f.src = scheme;
-    document.body.appendChild(f);
+    window.location.replace(scheme);
   }
-}, 800);
+}, 1200);
 
-// Strategy 3: show manual button after 1.5s
+// Strategy 3: show manual button after 2s
 setTimeout(function() {
   if (!document.hidden) {
     document.getElementById('spinner').style.display = 'none';
@@ -57,7 +55,7 @@ setTimeout(function() {
     document.getElementById('openBtn').style.display = 'inline-block';
     document.getElementById('hint').style.display = 'block';
   }
-}, 1500);
+}, 2000);
 </script>
 </body></html>`,
     { headers: { 'Content-Type': 'text/html' } }

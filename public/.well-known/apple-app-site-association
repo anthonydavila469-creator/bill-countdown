@@ -1,12 +1,12 @@
 {
   "applinks": {
-    "apps": [],
     "details": [
       {
-        "appID": "M7VFSVX62F.app.duezo",
-        "paths": [
-          "/auth/callback/*",
-          "/auth/callback/native/*"
+        "appIDs": ["M7VFSVX62F.app.duezo"],
+        "components": [
+          { "/": "/auth/callback/*" },
+          { "/": "/auth/callback/native/*" },
+          { "/": "/auth/return-to-app" }
         ]
       }
     ]
