@@ -18,9 +18,15 @@ export default function LoginPage() {
   const [error, setError] = useState('');
 
   // Wait for mount to prevent hydration mismatch (browser extensions can inject attrs)
+  // Also check if already logged in — redirect to dashboard immediately
   useEffect(() => {
     setMounted(true);
-  }, []);
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        window.location.href = '/dashboard';
+      }
+    });
+  }, [supabase]);
 
   // On native: listen for return from OAuth browser and redirect if authenticated
   const handleAuthReturn = useCallback(() => {
