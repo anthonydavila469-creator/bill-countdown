@@ -16,7 +16,8 @@ public class DuezoWidgetBridge: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "syncBills", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "clearBills", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "syncPayload", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "setTheme", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "setTheme", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "debugWidgetState", returnType: CAPPluginReturnPromise)
     ]
 
     private func sharedDefaults() -> UserDefaults? {
@@ -127,6 +128,29 @@ public class DuezoWidgetBridge: CAPPlugin, CAPBridgedPlugin {
             defaults.string(forKey: themeKey) ?? "nil"
         )
         call.resolve()
+    }
+
+    @objc func debugWidgetState(_ call: CAPPluginCall) {
+        guard let defaults = sharedDefaults() else {
+            call.reject("Failed to access App Group")
+            return
+        }
+
+        let payload = defaults.string(forKey: payloadKey) ?? ""
+        let updatedAt = defaults.double(forKey: updatedKey)
+        let theme = defaults.string(forKey: themeKey) ?? "nil"
+        let hasBills = defaults.data(forKey: billsKey) != nil
+
+        NSLog("[DuezoWidgetBridge] debugWidgetState payload=%d bytes theme=%@ updatedAt=%.0f hasBills=%@",
+              payload.utf8.count, theme, updatedAt, hasBills ? "true" : "false")
+
+        call.resolve([
+            "payloadBytes": payload.utf8.count,
+            "theme": theme,
+            "updatedAt": updatedAt,
+            "hasLegacyBills": hasBills,
+            "suiteName": appGroupId
+        ])
     }
 
     @objc func clearBills(_ call: CAPPluginCall) {
