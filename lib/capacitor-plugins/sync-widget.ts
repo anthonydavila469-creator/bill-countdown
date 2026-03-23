@@ -85,13 +85,14 @@ export async function syncWidgetPayload(
 
     if (!pluginAvailable) {
       console.warn(
-        '[Duezo] Widget bridge plugin is not available on native platform',
+        '[Duezo] Widget bridge plugin not yet available, attempting anyway...',
         JSON.stringify({
           pluginName: WIDGET_BRIDGE_NAME,
           platform: Capacitor.getPlatform(),
         })
       );
-      return;
+      // Don't return — try anyway. The plugin may register after isPluginAvailable
+      // is checked (dynamic registration in BridgeViewController.capacitorDidLoad).
     }
 
     const payload = buildWidgetPayload(normalizedBills, lastMonthTotal);
