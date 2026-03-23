@@ -2,10 +2,14 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 
-// Detect if request is from an iOS device (SFSafariViewController in Capacitor app)
-function isIOSDevice(request: Request): boolean {
+// Detect if request is from an iOS/macOS device (SFSafariViewController in Capacitor app)
+// Broad check — better to show the "Open Duezo" page unnecessarily than to load
+// the dashboard inside SFSafariViewController
+function isAppleDevice(request: Request): boolean {
   const ua = request.headers.get('user-agent') || '';
-  return /iPhone|iPad|iPod/.test(ua);
+  // Match iPhone, iPad (including desktop-mode iPad that sends "Macintosh"),
+  // iPod, and Safari on macOS (which could be SFSafariViewController)
+  return /iPhone|iPad|iPod|Macintosh.*Safari/.test(ua);
 }
 
 // The "return to app" HTML page shown after OAuth in SFSafariViewController.
@@ -65,7 +69,7 @@ export async function GET(request: Request) {
   const code = searchParams.get('code');
   const next = searchParams.get('next') ?? '/dashboard';
   const transferKey = searchParams.get('transfer_key');
-  const isIOS = isIOSDevice(request);
+  const isApple = isAppleDevice(request);
 
   if (code) {
     const supabase = await createClient();
@@ -86,7 +90,7 @@ export async function GET(request: Request) {
       // iOS device but no transfer key (Supabase stripped it during redirect).
       // Still redirect back to the app — the WKWebView will detect the session
       // when it regains focus via visibilitychange / browserFinished listeners.
-      if (isIOS) {
+      if (isApple) {
         return nativeReturnPage();
       }
 

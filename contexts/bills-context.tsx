@@ -256,8 +256,18 @@ export function BillsProvider({ children }: BillsProviderProps) {
 
     syncBillsToWidget();
 
+    // Also resync when app returns to foreground (covers timing race with plugin registration)
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible' && !cancelled) {
+        console.log('[Duezo] bills-context resync on foreground');
+        syncBillsToWidget();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
     return () => {
       cancelled = true;
+      document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, [state.bills, state.lastFetched, state.loading]);
 
