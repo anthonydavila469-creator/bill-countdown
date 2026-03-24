@@ -191,6 +191,54 @@ function unwrapForwardedEmail(
 }
 
 /**
+ * Find an existing bill from the same vendor for this user.
+ * Matches by normalized bill name (case-insensitive, trimmed).
+ * Returns the most recent bill if multiple exist.
+ */
+async function findExistingBill(
+  supabase: ReturnType<typeof createAdminClient>,
+  userId: string,
+  vendorName: string
+): Promise<{
+  id: string;
+  amount: number;
+  is_variable: boolean;
+  typical_min: number | null;
+  typical_max: number | null;
+} | null> {
+  const normalizedName = vendorName.trim().toLowerCase();
+
+  // Get all bills for this user and match by name
+  const { data: bills } = await supabase
+    .from('bills')
+    .select('id, name, amount, is_variable, typical_min, typical_max, due_date')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (!bills?.length) return null;
+
+  // Find a bill with a matching name (fuzzy: lowercase + trim comparison)
+  const match = bills.find((bill) => {
+    const existingName = (bill.name || '').trim().toLowerCase();
+    // Exact match
+    if (existingName === normalizedName) return true;
+    // One contains the other (e.g. "Texas Gas" matches "Texas Gas Service")
+    if (existingName.includes(normalizedName) || normalizedName.includes(existingName)) return true;
+    return false;
+  });
+
+  if (!match) return null;
+
+  return {
+    id: match.id,
+    amount: match.amount,
+    is_variable: match.is_variable || false,
+    typical_min: match.typical_min,
+    typical_max: match.typical_max,
+  };
+}
+
+/**
  * Simple direct extraction for forwarded bills.
  * User explicitly forwarded this — we trust it's a bill.
  * Extract amount, due date, and vendor name via simple patterns.
@@ -349,32 +397,73 @@ export async function handleInboundEmail(payload: Record<string, unknown>): Prom
     const directBill = extractBillDirect(unwrapped.bodyPlain, unwrapped.bodyHtml, emailSubject, originalSender);
     if (directBill) {
       const supabase = createAdminClient();
-      const { data: inserted, error: insertError } = await supabase
-        .from('bills')
-        .insert({
-          user_id: userId,
-          name: directBill.name,
-          amount: directBill.amount,
-          due_date: directBill.dueDate,
-          category: directBill.category || 'other',
-          is_paid: false,
-        })
-        .select('id')
-        .single();
 
-      if (insertError) {
-        console.error('[INBOUND] Failed to insert bill directly', insertError);
+      // Smart upsert: check if a bill from the same vendor already exists
+      const existingBill = await findExistingBill(supabase, userId, directBill.name);
+
+      if (existingBill) {
+        // UPDATE existing bill — new amount + new due date, reset paid status
+        const previousAmount = existingBill.amount;
+        const { error: updateError } = await supabase
+          .from('bills')
+          .update({
+            amount: directBill.amount,
+            due_date: directBill.dueDate,
+            previous_amount: previousAmount,
+            is_paid: false,
+            paid_at: null,
+            is_variable: previousAmount !== directBill.amount ? true : existingBill.is_variable,
+            typical_min: existingBill.typical_min
+              ? Math.min(existingBill.typical_min, directBill.amount)
+              : Math.min(previousAmount, directBill.amount),
+            typical_max: existingBill.typical_max
+              ? Math.max(existingBill.typical_max, directBill.amount)
+              : Math.max(previousAmount, directBill.amount),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', existingBill.id);
+
+        if (updateError) {
+          console.error('[INBOUND] Failed to update existing bill', updateError);
+        } else {
+          await updateUserBillStats(userId);
+          console.log('[INBOUND] Updated existing bill', {
+            userId, billId: existingBill.id, name: directBill.name,
+            oldAmount: previousAmount, newAmount: directBill.amount,
+            newDueDate: directBill.dueDate,
+          });
+          return { ok: true, status: 200, userId, senderEmail };
+        }
       } else {
-        await updateUserBillStats(userId);
-        console.log('[INBOUND] Bill created via direct extraction', {
-          userId, billId: inserted.id, name: directBill.name,
-          amount: directBill.amount, dueDate: directBill.dueDate,
-        });
-        return { ok: true, status: 200, userId, senderEmail };
+        // No existing bill — create new one
+        const { data: inserted, error: insertError } = await supabase
+          .from('bills')
+          .insert({
+            user_id: userId,
+            name: directBill.name,
+            amount: directBill.amount,
+            due_date: directBill.dueDate,
+            category: directBill.category || 'other',
+            is_paid: false,
+            source: 'forwarded',
+          })
+          .select('id')
+          .single();
+
+        if (insertError) {
+          console.error('[INBOUND] Failed to insert bill', insertError);
+        } else {
+          await updateUserBillStats(userId);
+          console.log('[INBOUND] New bill created', {
+            userId, billId: inserted.id, name: directBill.name,
+            amount: directBill.amount, dueDate: directBill.dueDate,
+          });
+          return { ok: true, status: 200, userId, senderEmail };
+        }
       }
     }
 
-    // Even if we couldn't extract, update stats and return OK
+    // Couldn't extract bill details
     await updateUserBillStats(userId);
     console.log('[INBOUND] Could not extract bill details', {
       userId, senderEmail, originalSender, subject: emailSubject,
