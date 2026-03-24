@@ -5,9 +5,7 @@
       {
         "appID": "M7VFSVX62F.app.duezo",
         "paths": [
-          "/auth/callback/return",
-          "/auth/callback/*",
-          "/auth/callback/native/*"
+          "/auth/callback/return"
         ]
       }
     ]
