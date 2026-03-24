@@ -548,7 +548,7 @@ export default function DashboardPage() {
       </aside>
 
       {/* Main content */}
-      <main className="lg:ml-64 pt-[calc(env(safe-area-inset-top)+4rem)] h-screen overflow-y-auto overscroll-none pb-28">
+      <main className="lg:ml-64 pt-[calc(env(safe-area-inset-top)+4rem)] h-screen overflow-y-auto overscroll-none pb-44">
         {/* Header - minimal: gear left, glowing + button right */}
         <header className="fixed top-0 left-0 right-0 z-50 lg:left-64 bg-[#0F0A1E]">
           {/* Safe area for notch */}

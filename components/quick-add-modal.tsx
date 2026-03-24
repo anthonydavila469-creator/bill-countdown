@@ -159,17 +159,17 @@ export function QuickAddModal({ isOpen, onClose, onSuccess }: QuickAddModalProps
         onClick={onClose}
       />
 
-      {/* Bottom sheet */}
-      <div className="absolute inset-x-0 bottom-0 flex justify-center sm:inset-0 sm:items-center sm:px-4">
+      {/* Bottom sheet — positioned above bottom nav + browser chrome */}
+      <div className="absolute inset-x-0 bottom-0 flex justify-center sm:inset-0 sm:items-center sm:px-4" style={{ bottom: 'calc(64px + env(safe-area-inset-bottom, 0px))' }}>
         <div
           className={cn(
             'relative w-full max-w-md bg-[#0c0c10] border border-white/10 shadow-2xl',
             'rounded-t-3xl sm:rounded-3xl',
             'animate-in slide-in-from-bottom-4 sm:fade-in sm:zoom-in-95 duration-300',
-            'max-h-[90vh] overflow-y-auto'
+            'max-h-[80vh] overflow-y-auto'
           )}
           onClick={(e) => e.stopPropagation()}
-          style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+          style={{ paddingBottom: '24px' }}
         >
           {/* Handle bar (mobile) */}
           <div className="flex justify-center pt-3 sm:hidden">
