@@ -254,8 +254,8 @@ export function QuickAddModal({ isOpen, onClose, onSuccess }: QuickAddModalProps
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-zinc-500 mb-1.5">Amount</label>
-                <div className="relative flex items-center">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none z-10" style={{ fontSize: '16px' }}>$</span>
+                <div className="flex items-center gap-0 bg-white/5 border border-white/10 rounded-xl focus-within:ring-2 focus-within:ring-violet-500 focus-within:border-transparent transition-all">
+                  <span className="pl-3 text-zinc-400 select-none flex-shrink-0" style={{ fontSize: '16px', lineHeight: '1' }}>$</span>
                   <input
                     type="number"
                     inputMode="decimal"
@@ -264,7 +264,7 @@ export function QuickAddModal({ isOpen, onClose, onSuccess }: QuickAddModalProps
                     value={amount ?? ''}
                     onChange={(e) => setAmount(e.target.value ? parseFloat(e.target.value) : null)}
                     placeholder="0.00"
-                    className="w-full pl-8 pr-3 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                    className="w-full pl-1 pr-3 py-3 bg-transparent text-white placeholder-zinc-500 focus:outline-none"
                     style={{ fontSize: '16px' }}
                   />
                 </div>
