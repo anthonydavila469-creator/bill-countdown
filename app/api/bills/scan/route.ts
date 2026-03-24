@@ -48,14 +48,14 @@ export async function POST(request: Request) {
             },
             {
               type: 'text',
-              text: `Analyze this bill/statement image and extract the following information. Return ONLY valid JSON with no markdown formatting:
-{
-  "name": "company or biller name (e.g. 'AT&T', 'Netflix', 'City Water')",
-  "amount": numeric amount due (e.g. 149.99) or null if not found,
-  "due_date": "YYYY-MM-DD" format or null if not found
-}
+              text: `You are extracting bill information from a photo or screenshot. Return ONLY valid JSON with no markdown formatting or code fences:
+{"name": "string", "amount": number_or_null, "due_date": "YYYY-MM-DD_or_null"}
 
-If you cannot determine a field, use null. For the name, use the most recognizable company/service name. For amount, use the total amount due or balance due. For due date, use the payment due date.`,
+Rules:
+- name: The company or service name (e.g. "AT&T", "Netflix", "Capital One Savor"). Use the brand name, not generic terms.
+- amount: The TOTAL amount due, statement balance, or balance due. NEVER use the minimum payment — always use the largest balance/total shown. If multiple amounts appear, pick the total/statement balance over minimum payment.
+- due_date: The payment due date in YYYY-MM-DD format.
+- If a field cannot be determined, use null.`,
             },
           ],
         },
