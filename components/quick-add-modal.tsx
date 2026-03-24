@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { X, DollarSign, Calendar, Sparkles } from 'lucide-react';
+import { X, Sparkles } from 'lucide-react';
 import { BillFormData, BillCategory, categoryEmojis } from '@/types';
 import { cn, formatDateForInput } from '@/lib/utils';
 import { searchVendors, VendorSuggestion } from '@/lib/vendor-suggestions';
@@ -254,8 +254,8 @@ export function QuickAddModal({ isOpen, onClose, onSuccess }: QuickAddModalProps
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-zinc-500 mb-1.5">Amount</label>
-                <div className="relative">
-                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+                <div className="relative flex items-center">
+                  <span className="absolute left-3 text-sm text-zinc-500 pointer-events-none">$</span>
                   <input
                     type="number"
                     inputMode="decimal"
@@ -264,23 +264,20 @@ export function QuickAddModal({ isOpen, onClose, onSuccess }: QuickAddModalProps
                     value={amount ?? ''}
                     onChange={(e) => setAmount(e.target.value ? parseFloat(e.target.value) : null)}
                     placeholder="0.00"
-                    className="w-full pl-9 pr-3 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                    className="w-full pl-7 pr-3 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
                     style={{ fontSize: '16px' }}
                   />
                 </div>
               </div>
               <div>
                 <label className="block text-xs font-medium text-zinc-500 mb-1.5">Due Date</label>
-                <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
-                  <input
-                    type="date"
-                    value={dueDate}
-                    onChange={(e) => setDueDate(e.target.value)}
-                    className="w-full pl-9 pr-3 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all appearance-none [color-scheme:dark]"
-                    style={{ fontSize: '16px' }}
-                  />
-                </div>
+                <input
+                  type="date"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                  className="w-full px-3 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all appearance-none [color-scheme:dark]"
+                  style={{ fontSize: '16px' }}
+                />
                 {fieldErrors.dueDate && (
                   <p className="text-xs text-red-400 mt-1">{fieldErrors.dueDate}</p>
                 )}
