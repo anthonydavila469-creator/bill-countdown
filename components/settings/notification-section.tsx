@@ -258,10 +258,6 @@ export function NotificationSection() {
           <div className="text-xs text-red-400 px-1">Failed to save. If you were enabling push, check notification permission and try again.</div>
         )}
 
-        <FieldRow icon={RefreshCw} label="Auto-Sync Bills" description="Automatically scan for bills daily">
-          <Toggle enabled={settings.auto_sync_enabled ?? false} onChange={(value) => void save({ ...settings, auto_sync_enabled: value })} color="#10b981" />
-        </FieldRow>
-
         <FieldRow icon={Clock} label="Remind Me" description="When to remind before due date">
           <div className="relative">
             <select
@@ -313,7 +309,7 @@ export function NotificationSection() {
               <Info className="w-3.5 h-3.5 text-violet-400" />
             </div>
             <p className="text-xs text-zinc-400 leading-relaxed">
-              Auto-sync scans your email daily for new bills. Notification delivery follows the channels you enable here.
+              We&apos;ll remind you when bills are coming due using the channels you enable above.
             </p>
           </div>
         </div>
