@@ -30,12 +30,18 @@ import {
   Lightbulb,
   RefreshCw,
   ArrowRight,
+  Forward,
+  BookOpen,
+  Clock as ClockIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BillImportModal } from '@/components/bill-import-modal';
 import { CustomizationSection } from '@/components/settings/customization-section';
 import { NotificationSection } from '@/components/settings/notification-section';
 import { DeleteAccountModal } from '@/components/settings/delete-account-modal';
+import { InboxAddress } from '@/components/forwarding/InboxAddress';
+import { SetupGuide } from '@/components/forwarding/SetupGuide';
+import { BillWaiting } from '@/components/forwarding/BillWaiting';
 import { ParsedBill } from '@/types';
 import { useBillsContext } from '@/contexts/bills-context';
 
@@ -312,6 +318,12 @@ export default function SettingsPage() {
   const [isAutoScanning, setIsAutoScanning] = useState(false);
   const [autoScanNoResults, setAutoScanNoResults] = useState(false);
 
+  // Forwarding inbox state
+  const [inboxAddress, setInboxAddress] = useState<string | null>(null);
+  const [inboxData, setInboxData] = useState<{ bills_received?: number; last_bill_at?: string } | null>(null);
+  const [showSetupGuide, setShowSetupGuide] = useState(false);
+  const [isLoadingInbox, setIsLoadingInbox] = useState(true);
+
   // Check authentication and connected email provider status
   useEffect(() => {
     const checkAuth = async () => {
@@ -364,6 +376,26 @@ export default function SettingsPage() {
 
     checkAuth();
   }, [router, supabase.auth, supabase]);
+
+  // Fetch forwarding inbox state
+  useEffect(() => {
+    const fetchInbox = async () => {
+      try {
+        const res = await fetch(`/api/inbound/inbox?t=${Date.now()}`, { cache: 'no-store' });
+        if (!res.ok) return;
+
+        const data = await res.json();
+        setInboxAddress(data.inbox_address || null);
+        if (data.inbox) setInboxData(data.inbox);
+      } catch {
+        // Silently ignore — inbox section will show "get address" state
+      } finally {
+        setIsLoadingInbox(false);
+      }
+    };
+
+    if (!isLoading) fetchInbox();
+  }, [isLoading]);
 
   // Auto-scan after OAuth provider connect
   // Detects URL params like ?gmail=connected or ?provider_connected=Gmail
@@ -772,6 +804,77 @@ export default function SettingsPage() {
               </div>
             </div>
           )}
+
+          {/* Bill Forwarding */}
+          <section>
+            <SectionHeader
+              icon={Forward}
+              iconGradient="from-violet-500/80 to-teal-500/80"
+              title="Bill Forwarding"
+              description="Forward bills directly to your Duezo address"
+              index={0}
+            />
+
+            {isLoadingInbox ? (
+              <div className="animate-pulse space-y-3">
+                <div className="h-24 bg-white/[0.02] rounded-2xl" />
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <InboxAddress
+                  inboxAddress={inboxAddress}
+                  onInboxCreated={(address) => {
+                    setInboxAddress(address);
+                    setInboxData({ bills_received: 0 });
+                  }}
+                />
+
+                {inboxAddress && inboxData && (
+                  <>
+                    {/* Stats row */}
+                    {(inboxData.bills_received !== undefined && inboxData.bills_received > 0) && (
+                      <div className="flex items-center gap-4 px-4 py-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+                        <div className="flex items-center gap-2">
+                          <Mail className="w-4 h-4 text-zinc-500" />
+                          <span className="text-sm text-zinc-400">
+                            <span className="text-white font-medium">{inboxData.bills_received}</span> bill{inboxData.bills_received !== 1 ? 's' : ''} received
+                          </span>
+                        </div>
+                        {inboxData.last_bill_at && (
+                          <div className="flex items-center gap-2">
+                            <ClockIcon className="w-4 h-4 text-zinc-500" />
+                            <span className="text-sm text-zinc-400">
+                              Last: {new Date(inboxData.last_bill_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Waiting state — show when no bills received yet */}
+                    {(!inboxData.bills_received || inboxData.bills_received === 0) && (
+                      <BillWaiting active={true} />
+                    )}
+
+                    {/* Setup guide toggle */}
+                    <button
+                      onClick={() => setShowSetupGuide(!showSetupGuide)}
+                      className="flex items-center gap-2 text-sm text-violet-400 hover:text-violet-300 transition-colors"
+                    >
+                      <BookOpen className="w-4 h-4" />
+                      <span>{showSetupGuide ? 'Hide setup guides' : 'How to set up auto-forwarding'}</span>
+                    </button>
+
+                    {showSetupGuide && (
+                      <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                        <SetupGuide inboxAddress={inboxAddress} />
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+          </section>
 
           {/* Email Connection */}
           <section>
