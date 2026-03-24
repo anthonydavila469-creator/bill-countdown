@@ -29,16 +29,15 @@ export async function GET(
     refresh_token: data.session.refresh_token,
   });
 
-  // Return a page that redirects back to the native app via custom URL scheme.
-  // SFSafariViewController will close when the scheme is handled.
+  // Redirect to custom URL scheme — ASWebAuthenticationSession will catch this
+  // and auto-dismiss the browser sheet. No UI shown to the user.
+  // For SFSafariViewController fallback, also show a manual button.
   return new NextResponse(
     `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <script>
-// Try Universal Link first (dismisses SFSafariViewController automatically on iOS)
-// Then fall back to custom URL scheme
-window.location.href = 'https://www.duezo.app/auth/callback/return';
-setTimeout(function() { window.location.href = 'app.duezo://auth/callback'; }, 800);
+// Immediately redirect to custom scheme — ASWebAuthenticationSession catches this
+window.location.href = 'app.duezo://auth/callback?status=success';
 </script>
 <style>body{background:#0F0A1E;color:#fff;font-family:system-ui;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}
 .c{text-align:center;padding:24px}
@@ -51,7 +50,7 @@ setTimeout(function() { window.location.href = 'app.duezo://auth/callback'; }, 8
 <body><div class="c">
 <div class="check">✅</div>
 <p><strong>You're signed in!</strong></p>
-<a href="app.duezo://auth/callback" class="btn">Open Duezo</a>
+<a href="app.duezo://auth/callback?status=success" class="btn">Open Duezo</a>
 <p class="hint">Returning to Duezo...</p>
 </div>
 </body></html>`,
