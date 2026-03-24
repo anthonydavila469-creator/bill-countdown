@@ -11,13 +11,13 @@ export interface VendorSuggestion {
 
 export const vendorDatabase: VendorSuggestion[] = [
   // Streaming & Entertainment
-  { name: 'Netflix', typical_amount: 15.49, typical_due_day: null, category: 'subscription', icon_key: 'tv', payment_url: 'https://www.netflix.com/account' },
+  { name: 'Netflix', typical_amount: 17.99, typical_due_day: null, category: 'subscription', icon_key: 'tv', payment_url: 'https://www.netflix.com/account' },
   { name: 'Spotify', typical_amount: 11.99, typical_due_day: null, category: 'subscription', icon_key: 'music', payment_url: 'https://www.spotify.com/account' },
-  { name: 'Hulu', typical_amount: 17.99, typical_due_day: null, category: 'subscription', icon_key: 'tv', payment_url: 'https://secure.hulu.com/account' },
+  { name: 'Hulu', typical_amount: 9.99, typical_due_day: null, category: 'subscription', icon_key: 'tv', payment_url: 'https://secure.hulu.com/account' },
   { name: 'Disney+', typical_amount: 13.99, typical_due_day: null, category: 'subscription', icon_key: 'tv', payment_url: 'https://www.disneyplus.com/account' },
   { name: 'YouTube Premium', typical_amount: 13.99, typical_due_day: null, category: 'subscription', icon_key: 'tv', payment_url: 'https://www.youtube.com/paid_memberships' },
   { name: 'Amazon Prime', typical_amount: 14.99, typical_due_day: null, category: 'subscription', icon_key: 'tv', payment_url: 'https://www.amazon.com/gp/primecentral' },
-  { name: 'HBO Max', typical_amount: 16.99, typical_due_day: null, category: 'subscription', icon_key: 'tv', payment_url: 'https://www.max.com/account' },
+  { name: 'Max', typical_amount: 16.99, typical_due_day: null, category: 'subscription', icon_key: 'tv', payment_url: 'https://www.max.com/account' },
   { name: 'Paramount+', typical_amount: 11.99, typical_due_day: null, category: 'subscription', icon_key: 'tv', payment_url: 'https://www.paramountplus.com/account/' },
   { name: 'Peacock', typical_amount: 7.99, typical_due_day: null, category: 'subscription', icon_key: 'tv', payment_url: 'https://www.peacocktv.com/account' },
   { name: 'Apple TV+', typical_amount: 9.99, typical_due_day: null, category: 'subscription', icon_key: 'tv', payment_url: 'https://tv.apple.com/account' },
@@ -57,14 +57,14 @@ export const vendorDatabase: VendorSuggestion[] = [
   // Insurance
   { name: 'GEICO', typical_amount: 150.00, typical_due_day: null, category: 'insurance', icon_key: 'shield', payment_url: 'https://www.geico.com/login' },
   { name: 'Progressive', typical_amount: 140.00, typical_due_day: null, category: 'insurance', icon_key: 'shield', payment_url: 'https://account.progressive.com' },
-  { name: 'State Farm', typical_amount: 155.00, typical_due_day: null, category: 'insurance', icon_key: 'shield', payment_url: 'https://proofing.statefarm.com' },
+  { name: 'State Farm', typical_amount: 155.00, typical_due_day: null, category: 'insurance', icon_key: 'shield', payment_url: 'https://www.statefarm.com/customer-care/insurance-bill-pay' },
   { name: 'Allstate', typical_amount: 160.00, typical_due_day: null, category: 'insurance', icon_key: 'shield', payment_url: 'https://myaccount.allstate.com' },
 
   // Credit Cards
-  { name: 'Chase Credit Card', typical_amount: null, typical_due_day: null, category: 'credit_card', icon_key: 'creditcard', payment_url: 'https://www.chase.com/personal/credit-cards' },
+  { name: 'Chase Credit Card', typical_amount: null, typical_due_day: null, category: 'credit_card', icon_key: 'creditcard', payment_url: 'https://www.chase.com/personal/credit-cards/login-account-management' },
   { name: 'Capital One', typical_amount: null, typical_due_day: null, category: 'credit_card', icon_key: 'creditcard', payment_url: 'https://myaccounts.capitalone.com' },
   { name: 'American Express', typical_amount: null, typical_due_day: null, category: 'credit_card', icon_key: 'creditcard', payment_url: 'https://www.americanexpress.com/en-us/account/login' },
-  { name: 'Discover Card', typical_amount: null, typical_due_day: null, category: 'credit_card', icon_key: 'creditcard', payment_url: 'https://www.discover.com/credit-cards' },
+  { name: 'Discover Card', typical_amount: null, typical_due_day: null, category: 'credit_card', icon_key: 'creditcard', payment_url: 'https://portal.discover.com' },
   { name: 'Citi Credit Card', typical_amount: null, typical_due_day: null, category: 'credit_card', icon_key: 'creditcard', payment_url: 'https://online.citi.com' },
   { name: 'Apple Card', typical_amount: null, typical_due_day: null, category: 'credit_card', icon_key: 'creditcard', payment_url: null },
 

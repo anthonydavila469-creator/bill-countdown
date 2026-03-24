@@ -178,6 +178,7 @@ export function OnboardingScreen({
             onBack={handleBackToWelcome}
             onComplete={handleForwardingComplete}
             onSkip={handleForwardingSkip}
+            onStartAdding={handleQuickAdd}
           />
         )}
 
@@ -333,6 +334,7 @@ function TemplatesStep({
       <div className="flex items-center gap-3 mb-6">
         <button
           onClick={onBack}
+          aria-label="Go back"
           className="p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
         >
           <ChevronLeft className="w-5 h-5" />

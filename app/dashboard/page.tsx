@@ -951,7 +951,9 @@ export default function DashboardPage() {
             setShowOnboarding(true);
           }}
           onSkip={() => {
-            // Continue to next step in modal
+            setShowOnboardingModal(false);
+            localStorage.setItem('duezo_onboarding_complete', 'true');
+            router.push('/dashboard/settings');
           }}
         />
       )}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Plus, Mail, ArrowRight, Sparkles, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -17,16 +17,20 @@ export function OnboardingModal({
 }: OnboardingModalProps) {
   const [step, setStep] = useState(0);
   const [visible, setVisible] = useState(false);
+  const finishTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     // Animate in
     requestAnimationFrame(() => setVisible(true));
+    return () => {
+      if (finishTimerRef.current) clearTimeout(finishTimerRef.current);
+    };
   }, []);
 
   const finish = () => {
     localStorage.setItem(ONBOARDING_KEY, 'true');
     setVisible(false);
-    setTimeout(onComplete, 300);
+    finishTimerRef.current = setTimeout(onComplete, 300);
   };
 
   const steps = [
@@ -119,6 +123,7 @@ export function OnboardingModal({
         {/* Close button */}
         <button
           onClick={finish}
+          aria-label="Close onboarding"
           className="absolute top-4 right-4 p-1.5 text-zinc-600 hover:text-zinc-300 transition-colors rounded-lg hover:bg-white/5"
         >
           <X className="w-4 h-4" />

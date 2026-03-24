@@ -5,6 +5,7 @@ import { X, DollarSign, Calendar, Sparkles } from 'lucide-react';
 import { BillFormData, BillCategory, categoryEmojis } from '@/types';
 import { cn, formatDateForInput } from '@/lib/utils';
 import { searchVendors, VendorSuggestion } from '@/lib/vendor-suggestions';
+import { useToast } from '@/components/ui/toast';
 import { Bill } from '@/types';
 
 interface QuickAddModalProps {
@@ -14,6 +15,7 @@ interface QuickAddModalProps {
 }
 
 export function QuickAddModal({ isOpen, onClose, onSuccess }: QuickAddModalProps) {
+  const { addToast } = useToast();
   const [name, setName] = useState('');
   const [amount, setAmount] = useState<number | null>(null);
   const [dueDate, setDueDate] = useState(formatDateForInput(new Date()));
@@ -24,8 +26,10 @@ export function QuickAddModal({ isOpen, onClose, onSuccess }: QuickAddModalProps
   const [suggestions, setSuggestions] = useState<VendorSuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [matchedVendor, setMatchedVendor] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{ name?: string; dueDate?: string }>({});
   const nameInputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
+  const focusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Reset form when modal opens
   useEffect(() => {
@@ -38,13 +42,17 @@ export function QuickAddModal({ isOpen, onClose, onSuccess }: QuickAddModalProps
       setEmoji('📄');
       setMatchedVendor(null);
       setSuggestions([]);
+      setFieldErrors({});
       document.body.style.overflow = 'hidden';
       // Focus name input after animation
-      setTimeout(() => nameInputRef.current?.focus(), 200);
+      focusTimerRef.current = setTimeout(() => nameInputRef.current?.focus(), 200);
     } else {
       document.body.style.overflow = 'unset';
     }
-    return () => { document.body.style.overflow = 'unset'; };
+    return () => {
+      document.body.style.overflow = 'unset';
+      if (focusTimerRef.current) clearTimeout(focusTimerRef.current);
+    };
   }, [isOpen]);
 
   // Close on Escape
@@ -69,6 +77,7 @@ export function QuickAddModal({ isOpen, onClose, onSuccess }: QuickAddModalProps
 
   const handleNameChange = useCallback((value: string) => {
     setName(value);
+    setFieldErrors((prev) => ({ ...prev, name: undefined }));
     if (matchedVendor && value !== matchedVendor) {
       setMatchedVendor(null);
     }
@@ -89,7 +98,14 @@ export function QuickAddModal({ isOpen, onClose, onSuccess }: QuickAddModalProps
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !dueDate) return;
+    const errors: { name?: string; dueDate?: string } = {};
+    if (!name.trim()) errors.name = 'Bill name is required';
+    if (!dueDate) errors.dueDate = 'Due date is required';
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+    setFieldErrors({});
 
     setIsLoading(true);
     try {
@@ -123,6 +139,11 @@ export function QuickAddModal({ isOpen, onClose, onSuccess }: QuickAddModalProps
       onClose();
     } catch (error) {
       console.error('Error saving bill:', error);
+      addToast({
+        message: 'Failed to add bill',
+        description: error instanceof Error ? error.message : 'Please try again',
+        type: 'error',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -163,6 +184,7 @@ export function QuickAddModal({ isOpen, onClose, onSuccess }: QuickAddModalProps
             </div>
             <button
               onClick={onClose}
+              aria-label="Close quick add"
               className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
             >
               <X className="w-5 h-5" />
@@ -215,6 +237,9 @@ export function QuickAddModal({ isOpen, onClose, onSuccess }: QuickAddModalProps
                   ))}
                 </div>
               )}
+              {fieldErrors.name && (
+                <p className="text-xs text-red-400 mt-1 ml-11">{fieldErrors.name}</p>
+              )}
             </div>
 
             {/* Vendor match indicator */}
@@ -256,6 +281,9 @@ export function QuickAddModal({ isOpen, onClose, onSuccess }: QuickAddModalProps
                     style={{ fontSize: '16px' }}
                   />
                 </div>
+                {fieldErrors.dueDate && (
+                  <p className="text-xs text-red-400 mt-1">{fieldErrors.dueDate}</p>
+                )}
               </div>
             </div>
 

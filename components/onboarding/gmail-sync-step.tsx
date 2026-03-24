@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import {
   Plus,
@@ -19,21 +19,31 @@ interface ForwardingStepProps {
   onBack: () => void;
   onComplete: () => void;
   onSkip: () => void;
+  onStartAdding?: () => void;
 }
 
 export function GmailSyncStep({
   onBack,
   onComplete,
   onSkip,
+  onStartAdding,
 }: ForwardingStepProps) {
   const [copied, setCopied] = useState(false);
   const [showForwarding, setShowForwarding] = useState(false);
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+    };
+  }, []);
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(FORWARDING_ADDRESS);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = setTimeout(() => setCopied(false), 2000);
     } catch {
       // Fallback for older browsers
       const textArea = document.createElement('textarea');
@@ -43,7 +53,8 @@ export function GmailSyncStep({
       document.execCommand('copy');
       document.body.removeChild(textArea);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = setTimeout(() => setCopied(false), 2000);
     }
   };
 
@@ -53,6 +64,7 @@ export function GmailSyncStep({
       <div className="flex items-center gap-3 mb-6">
         <button
           onClick={onBack}
+          aria-label="Go back"
           className="p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
         >
           <ChevronLeft className="w-5 h-5" />
@@ -82,7 +94,7 @@ export function GmailSyncStep({
       {/* Primary action: Add Bills Manually */}
       <div className="space-y-3">
         <button
-          onClick={onComplete}
+          onClick={onStartAdding ?? onComplete}
           className="w-full py-4 rounded-xl font-semibold bg-gradient-to-r from-violet-500 to-amber-500 text-white hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
         >
           <Sparkles className="w-4 h-4" />
