@@ -1,13 +1,34 @@
 import { Capacitor, registerPlugin } from '@capacitor/core';
 import { App } from '@capacitor/app';
+import { Browser } from '@capacitor/browser';
 import { SupabaseClient } from '@supabase/supabase-js';
 
 // Custom native plugin — uses ASWebAuthenticationSession (auto-dismisses after auth)
+// Falls back to @capacitor/browser if plugin isn't available (older builds)
 interface WebAuthPlugin {
   start(options: { url: string; callbackScheme?: string }): Promise<{ url: string }>;
 }
 
-const WebAuth = registerPlugin<WebAuthPlugin>('WebAuth');
+let WebAuth: WebAuthPlugin | null = null;
+try {
+  WebAuth = registerPlugin<WebAuthPlugin>('WebAuth');
+} catch {
+  console.log('[Auth] WebAuth plugin not available, will use Browser fallback');
+}
+
+/** Check if WebAuth native plugin is actually implemented */
+async function hasWebAuth(): Promise<boolean> {
+  if (!WebAuth) return false;
+  try {
+    // Try a harmless call — if the plugin isn't implemented natively, it throws
+    await (WebAuth as any).echo?.({ value: 'test' });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+let useWebAuth: boolean | null = null;
 
 // Module-level store for pending transfer key (native OAuth only)
 let pendingTransferKey: string | null = null;
@@ -57,23 +78,49 @@ export async function signInWithOAuthNative(
   }
 
   if (isNative && data?.url) {
-    try {
-      // ASWebAuthenticationSession: opens auth flow, auto-closes on callback scheme
-      const result = await WebAuth.start({
-        url: data.url,
-        callbackScheme: 'app.duezo',
-      });
-
-      console.log('[Auth] WebAuth returned:', result.url);
-      // The session auto-dismissed. Now retrieve the tokens.
-      await resolveSessionFromTransfer(supabase);
-    } catch (err: any) {
-      pendingTransferKey = null;
-      if (err?.code === 'CANCELLED') {
-        return { error: 'Sign-in was cancelled' };
+    // Detect WebAuth availability once
+    if (useWebAuth === null) {
+      try {
+        // Attempt to call the plugin — if not implemented, it throws with a specific message
+        useWebAuth = !!WebAuth;
+        if (WebAuth) {
+          await WebAuth.start({ url: 'about:blank', callbackScheme: 'app.duezo' });
+        }
+      } catch (err: any) {
+        const msg = err?.message || '';
+        if (msg.includes('not implemented') || msg.includes('not available')) {
+          console.log('[Auth] WebAuth not available on this build, using Browser fallback');
+          useWebAuth = false;
+        } else {
+          // Plugin exists but the test URL failed — that's expected
+          useWebAuth = true;
+        }
       }
-      console.error('[Auth] WebAuth error:', err);
-      return { error: err?.message || 'Authentication failed' };
+    }
+
+    if (useWebAuth && WebAuth) {
+      try {
+        // ASWebAuthenticationSession: opens auth flow, auto-closes on callback scheme
+        const result = await WebAuth.start({
+          url: data.url,
+          callbackScheme: 'app.duezo',
+        });
+
+        console.log('[Auth] WebAuth returned:', result.url);
+        // The session auto-dismissed. Now retrieve the tokens.
+        await resolveSessionFromTransfer(supabase);
+      } catch (err: any) {
+        pendingTransferKey = null;
+        if (err?.code === 'CANCELLED') {
+          return { error: 'Sign-in was cancelled' };
+        }
+        console.error('[Auth] WebAuth error:', err);
+        return { error: err?.message || 'Authentication failed' };
+      }
+    } else {
+      // Fallback: use @capacitor/browser (SFSafariViewController)
+      console.log('[Auth] Using Browser fallback (SFSafariViewController)');
+      await Browser.open({ url: data.url, presentationStyle: 'fullscreen' });
     }
   }
 
@@ -164,8 +211,34 @@ export function listenForAuthReturn(
   const appUrlListener = App.addListener('appUrlOpen', async (data) => {
     if (resolved) return;
     console.log('[Auth] appUrlOpen:', data.url);
+    try { await Browser.close(); } catch { /* may already be closed */ }
     await new Promise((r) => setTimeout(r, 300));
     await tryResolveSession();
+  });
+
+  // Listen for pages loading inside SFSafariViewController (Browser fallback)
+  const pageLoadedListener = Browser.addListener('browserPageLoaded', async () => {
+    if (resolved || !pendingTransferKey) return;
+    console.log('[Auth] browserPageLoaded fired, attempting session resolve...');
+    for (let attempt = 1; attempt <= 6; attempt++) {
+      if (resolved) return;
+      await new Promise((r) => setTimeout(r, attempt * 800));
+      await tryResolveSession();
+    }
+  });
+
+  // Listen for browser closed (user tapped Done in SFSafariViewController)
+  const browserListener = Browser.addListener('browserFinished', async () => {
+    console.log('[Auth] browserFinished fired');
+    for (let attempt = 1; attempt <= 5; attempt++) {
+      if (resolved) return;
+      await new Promise((r) => setTimeout(r, attempt * 700));
+      await tryResolveSession();
+    }
+    if (!resolved && onDismissed) {
+      pendingTransferKey = null;
+      onDismissed();
+    }
   });
 
   // Listen for app returning to foreground
@@ -174,5 +247,7 @@ export function listenForAuthReturn(
   return () => {
     document.removeEventListener('visibilitychange', checkSession);
     appUrlListener.then(h => h.remove()).catch(() => {});
+    pageLoadedListener.then(h => h.remove()).catch(() => {});
+    browserListener.then(h => h.remove()).catch(() => {});
   };
 }
