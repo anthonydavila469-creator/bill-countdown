@@ -11,7 +11,6 @@ import {
 } from '@/lib/onboarding/bill-templates';
 import { useToast } from '@/components/ui/toast';
 import { useSubscription } from '@/hooks/use-subscription';
-import { Bill } from '@/types';
 import {
   Zap,
   Sparkles,
@@ -28,13 +27,11 @@ type OnboardingStep = 'welcome' | 'gmail_sync' | 'templates' | 'setup' | 'creati
 interface OnboardingScreenProps {
   onComplete: () => void;
   onAddManually: () => void;
-  isEmailConnected?: boolean;
 }
 
 export function OnboardingScreen({
   onComplete,
   onAddManually,
-  isEmailConnected = false,
 }: OnboardingScreenProps) {
   const { addToast } = useToast();
   const { refreshSubscription } = useSubscription();
@@ -54,21 +51,15 @@ export function OnboardingScreen({
     setStep('templates');
   };
 
-  const handleGmailSync = () => {
+  const handleForwardBills = () => {
     setStep('gmail_sync');
   };
 
-  const handleGmailComplete = async (importedBills: Bill[]) => {
-    await refreshSubscription();
-    addToast({
-      message: `${importedBills.length} bill${importedBills.length === 1 ? '' : 's'} imported`,
-      description: 'Tap any bill to edit details',
-      type: 'success',
-    });
+  const handleForwardingComplete = () => {
     onComplete();
   };
 
-  const handleGmailSkip = () => {
+  const handleForwardingSkip = () => {
     setStep('templates');
   };
 
@@ -176,18 +167,17 @@ export function OnboardingScreen({
         {step === 'welcome' && (
           <WelcomeStep
             onQuickAdd={handleQuickAdd}
-            onGmailSync={handleGmailSync}
+            onForwardBills={handleForwardBills}
             onAddManually={onAddManually}
           />
         )}
 
-        {/* Step: Gmail Sync */}
+        {/* Step: Forward Bills */}
         {step === 'gmail_sync' && (
           <GmailSyncStep
             onBack={handleBackToWelcome}
-            onComplete={handleGmailComplete}
-            onSkip={handleGmailSkip}
-            isEmailConnected={isEmailConnected}
+            onComplete={handleForwardingComplete}
+            onSkip={handleForwardingSkip}
           />
         )}
 
@@ -224,13 +214,13 @@ export function OnboardingScreen({
 // Welcome Step Component
 interface WelcomeStepProps {
   onQuickAdd: () => void;
-  onGmailSync: () => void;
+  onForwardBills: () => void;
   onAddManually: () => void;
 }
 
 function WelcomeStep({
   onQuickAdd,
-  onGmailSync,
+  onForwardBills,
   onAddManually,
 }: WelcomeStepProps) {
   return (
@@ -256,9 +246,9 @@ function WelcomeStep({
       </div>
 
       <div className="space-y-3">
-        {/* Gmail Sync */}
+        {/* Forward Bills */}
         <button
-          onClick={onGmailSync}
+          onClick={onForwardBills}
           className="group w-full p-5 rounded-2xl transition-all duration-300 bg-gradient-to-br from-violet-500/15 to-violet-500/15 border border-violet-500/30 hover:border-violet-500/50 hover:from-violet-500/20 hover:to-violet-500/20"
         >
           <div className="flex items-center gap-4">
@@ -267,10 +257,10 @@ function WelcomeStep({
             </div>
             <div className="flex-1 text-left">
               <div className="flex items-center gap-2 mb-1">
-                <h3 className="font-semibold text-white">Connect Email</h3>
+                <h3 className="font-semibold text-white">Forward Your Bills</h3>
               </div>
               <p className="text-sm text-white/50">
-                Gmail, Yahoo, or Outlook — scan your inbox for bills
+                Forward bill emails to Duezo — we extract the details
               </p>
             </div>
             <ArrowRight className="w-5 h-5 text-violet-400 group-hover:translate-x-1 transition-transform" />

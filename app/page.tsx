@@ -109,9 +109,9 @@ const demoBills: Bill[] = [
 const features = [
   {
     icon: Mail,
-    title: 'AI Email Sync',
+    title: 'Smart Bill Import',
     description:
-      'Connect your email and let AI automatically detect and extract bills from your inbox.',
+      'Forward any bill email to your Duezo address. We extract the details automatically.',
     gradient: 'from-violet-500 to-violet-500',
   },
   {
@@ -161,16 +161,16 @@ const features = [
 const steps = [
   {
     number: '01',
-    title: 'Connect Your Email',
+    title: 'Forward a Bill Email',
     description:
-      'Securely link your Gmail account with one click. We only read bill-related emails.',
+      'Forward any bill or statement email to your Duezo address. That\'s it.',
     icon: Mail,
   },
   {
     number: '02',
-    title: 'AI Extracts Bills',
+    title: 'AI Extracts the Details',
     description:
-      'Our AI scans your inbox and automatically identifies bills, amounts, and due dates.',
+      'Our AI reads the email and pulls out the bill name, amount, and due date automatically.',
     icon: Sparkles,
   },
   {
@@ -198,7 +198,7 @@ export default function LandingPage() {
       },
     ],
     description:
-      'Track every bill with beautiful countdown cards and AI-powered email sync. Never miss a payment again.',
+      'Track every bill with beautiful countdown cards and smart bill forwarding. Never miss a payment again.',
     url: 'https://duezo.app',
   };
 
@@ -299,7 +299,7 @@ export default function LandingPage() {
                 className="text-lg text-zinc-400 mb-8 max-w-lg mx-auto lg:mx-0 animate-in fade-in slide-in-from-bottom-4"
                 style={{ animationDelay: '200ms', animationFillMode: 'backwards' }}
               >
-                AI scans your email and builds your bill dashboard automatically.
+                Forward your bills. We handle the rest.
                 Beautiful countdown cards turn red as due dates approach — so you never pay late again.
               </p>
 
@@ -449,7 +449,7 @@ export default function LandingPage() {
                 </li>
                 <li className="flex items-center gap-3 text-zinc-300">
                   <Check className="w-5 h-5 text-violet-400 flex-shrink-0" />
-                  <span>AI-powered email sync</span>
+                  <span>Smart bill forwarding</span>
                 </li>
                 <li className="flex items-center gap-3 text-zinc-300">
                   <Check className="w-5 h-5 text-violet-400 flex-shrink-0" />
@@ -512,7 +512,7 @@ export default function LandingPage() {
             </div>
 
             <div className="grid md:grid-cols-3 gap-10 lg:gap-16">
-              {/* Step 1: Connect Your Email */}
+              {/* Step 1: Forward a Bill */}
               <div className="group relative text-center">
                 <div className="relative w-36 h-36 mx-auto mb-8">
                   <div className="absolute inset-0 rounded-full bg-gradient-to-br from-violet-500/20 to-violet-500/10 animate-pulse" style={{ animationDuration: '3s' }} />
@@ -530,13 +530,13 @@ export default function LandingPage() {
                     1
                   </div>
                 </div>
-                <h3 className="text-xl font-bold mb-3">Connect Your Email</h3>
+                <h3 className="text-xl font-bold mb-3">Forward a Bill Email</h3>
                 <p className="text-zinc-400 leading-relaxed max-w-xs mx-auto">
-                  One-click Gmail connection. We only read bill-related emails \u2014 your data stays private and encrypted.
+                  Forward any bill or statement email to your Duezo address. Takes seconds.
                 </p>
               </div>
 
-              {/* Step 2: AI Finds Your Bills */}
+              {/* Step 2: AI Extracts the Details */}
               <div className="group relative text-center">
                 <div className="relative w-36 h-36 mx-auto mb-8">
                   <div className="absolute inset-0 rounded-full bg-gradient-to-br from-violet-500/20 to-violet-500/10 animate-pulse" style={{ animationDuration: '3s', animationDelay: '1s' }} />
@@ -554,9 +554,9 @@ export default function LandingPage() {
                     2
                   </div>
                 </div>
-                <h3 className="text-xl font-bold mb-3">AI Finds Your Bills</h3>
+                <h3 className="text-xl font-bold mb-3">AI Extracts the Details</h3>
                 <p className="text-zinc-400 leading-relaxed max-w-xs mx-auto">
-                  Our AI scans your inbox and automatically detects bills, extracting names, amounts, and due dates.
+                  Our AI reads the email and pulls out the bill name, amount, and due date automatically.
                 </p>
               </div>
 

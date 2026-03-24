@@ -246,7 +246,6 @@ export default function DashboardPage() {
   // Auth state
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isGmailConnected, setIsGmailConnected] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   // Onboarding state
@@ -282,15 +281,6 @@ export default function DashboardPage() {
       }
 
       setUser(user);
-
-      // Check if Gmail is connected
-      const { data: gmailToken } = await supabase
-        .from('gmail_tokens')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      setIsGmailConnected(!!gmailToken);
       setIsLoading(false);
     };
 
@@ -425,7 +415,6 @@ export default function DashboardPage() {
         <OnboardingScreen
           onComplete={handleOnboardingComplete}
           onAddManually={handleAddManuallyFromOnboarding}
-          isEmailConnected={isGmailConnected}
         />
     );
   }
@@ -504,33 +493,31 @@ export default function DashboardPage() {
           </ul>
         </nav>
 
-        {/* Gmail sync status - only show if not connected */}
-        {!isGmailConnected && (
-          <div className="p-4 border-t border-white/[0.06]">
-            <div className="relative p-4 rounded-xl overflow-hidden" style={{ background: `linear-gradient(to bottom right, ${hexToRgba(accentColor, 0.1)}, ${hexToRgba(accentColor, 0.05)}, ${hexToRgba(accentColor, 0.1)})`, border: `1px solid ${hexToRgba(accentColor, 0.2)}` }}>
-              {/* Decorative glow */}
-              <div className="absolute -top-10 -right-10 w-24 h-24 rounded-full blur-2xl" style={{ backgroundColor: hexToRgba(accentColor, 0.2) }} />
-              <div className="relative">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="flex items-center justify-center w-8 h-8 rounded-lg" style={{ backgroundColor: hexToRgba(accentColor, 0.2), border: `1px solid ${hexToRgba(accentColor, 0.3)}` }}>
-                    <Mail className="w-4 h-4" style={{ color: accentColor }} />
-                  </div>
-                  <span className="text-sm font-semibold text-white">Email Sync</span>
+        {/* Forward a Bill promo */}
+        <div className="p-4 border-t border-white/[0.06]">
+          <div className="relative p-4 rounded-xl overflow-hidden" style={{ background: `linear-gradient(to bottom right, ${hexToRgba(accentColor, 0.1)}, ${hexToRgba(accentColor, 0.05)}, ${hexToRgba(accentColor, 0.1)})`, border: `1px solid ${hexToRgba(accentColor, 0.2)}` }}>
+            {/* Decorative glow */}
+            <div className="absolute -top-10 -right-10 w-24 h-24 rounded-full blur-2xl" style={{ backgroundColor: hexToRgba(accentColor, 0.2) }} />
+            <div className="relative">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg" style={{ backgroundColor: hexToRgba(accentColor, 0.2), border: `1px solid ${hexToRgba(accentColor, 0.3)}` }}>
+                  <Mail className="w-4 h-4" style={{ color: accentColor }} />
                 </div>
-                <p className="text-xs text-zinc-400 mb-3 leading-relaxed">
-                  Connect Gmail, Yahoo, or Outlook to automatically detect bills.
-                </p>
-                <Link
-                  href="/dashboard/settings"
-                  className="block w-full px-3 py-2 text-sm font-semibold border border-white/10 hover:border-white/20 rounded-lg transition-all duration-200 text-white text-center"
-                  style={{ background: hexToRgba(accentColor, 0.2) }}
-                >
-                  Connect Email
-                </Link>
+                <span className="text-sm font-semibold text-white">Forward a Bill</span>
               </div>
+              <p className="text-xs text-zinc-400 mb-3 leading-relaxed">
+                Forward any bill email to Duezo and we&apos;ll add it automatically.
+              </p>
+              <Link
+                href="/dashboard/settings"
+                className="block w-full px-3 py-2 text-sm font-semibold border border-white/10 hover:border-white/20 rounded-lg transition-all duration-200 text-white text-center"
+                style={{ background: hexToRgba(accentColor, 0.2) }}
+              >
+                Set Up Forwarding
+              </Link>
             </div>
           </div>
-        )}
+        </div>
 
         {/* User */}
         <div className="p-4 border-t border-white/[0.06]">
@@ -947,13 +934,9 @@ export default function DashboardPage() {
       {/* Onboarding Modal for first-time users */}
       {showOnboardingModal && (
         <OnboardingModal
-          isGmailConnected={isGmailConnected}
           onComplete={() => {
             setShowOnboardingModal(false);
             setShowOnboarding(true);
-          }}
-          onConnectGmail={() => {
-            window.location.href = '/api/gmail/connect';
           }}
           onSkip={() => {
             // Continue to next step in modal

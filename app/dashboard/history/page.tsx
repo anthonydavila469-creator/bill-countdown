@@ -14,7 +14,6 @@ import { useBillsContext } from '@/contexts/bills-context';
 import { iconMap, getIconFromName } from '@/lib/get-bill-icon';
 import { useTheme } from '@/contexts/theme-context';
 import {
-  Zap,
   LayoutGrid,
   History,
   Settings,
@@ -355,8 +354,6 @@ export default function HistoryPage() {
   // Auth state
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
-  const [isGmailConnected, setIsGmailConnected] = useState(false);
-
   // Use shared bills context
   const { bills: allBills, paidBills: contextPaidBills, loading: billsLoading } = useBillsContext();
 
@@ -479,15 +476,6 @@ export default function HistoryPage() {
       }
 
       setUser(user);
-
-      // Check if Gmail is connected
-      const { data: gmailToken } = await supabase
-        .from('gmail_tokens')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      setIsGmailConnected(!!gmailToken);
       setIsAuthLoading(false);
     };
 
@@ -640,26 +628,24 @@ export default function HistoryPage() {
           </ul>
         </nav>
 
-        {/* Gmail sync status - only show if not connected */}
-        {!isGmailConnected && (
-          <div className="p-4 border-t border-white/5">
-            <div className="p-4 rounded-xl bg-gradient-to-br from-violet-500/10 to-violet-500/10 border border-white/5">
-              <div className="flex items-center gap-3 mb-3">
-                <Mail className="w-5 h-5 text-violet-400" />
-                <span className="text-sm font-medium text-white">Email Sync</span>
-              </div>
-              <p className="text-xs text-zinc-400 mb-3">
-                Connect Gmail, Yahoo, or Outlook to automatically detect bills.
-              </p>
-              <Link
-                href="/dashboard/settings"
-                className="block w-full px-3 py-2 text-sm font-medium bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-white text-center"
-              >
-                Connect Email
-              </Link>
+        {/* Forward a Bill promo */}
+        <div className="p-4 border-t border-white/5">
+          <div className="p-4 rounded-xl bg-gradient-to-br from-violet-500/10 to-violet-500/10 border border-white/5">
+            <div className="flex items-center gap-3 mb-3">
+              <Mail className="w-5 h-5 text-violet-400" />
+              <span className="text-sm font-medium text-white">Forward a Bill</span>
             </div>
+            <p className="text-xs text-zinc-400 mb-3">
+              Forward any bill email to Duezo and we&apos;ll add it automatically.
+            </p>
+            <Link
+              href="/dashboard/settings"
+              className="block w-full px-3 py-2 text-sm font-medium bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-white text-center"
+            >
+              Set Up Forwarding
+            </Link>
           </div>
-        )}
+        </div>
 
         {/* User */}
         <div className="p-4 border-t border-white/5">

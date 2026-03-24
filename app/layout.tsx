@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     default: "Duezo — Never Miss a Bill Payment Again",
     template: "%s | Duezo",
   },
-  description: "Track every bill with beautiful countdown cards and AI-powered email sync. Smart reminders, calendar view, and spending analytics. Free to start.",
+  description: "Track every bill with beautiful countdown cards and smart bill forwarding. Smart reminders, calendar view, and spending analytics. Free to start.",
   keywords: ["bill tracker", "bill reminders", "payment due dates", "bill countdown", "finance app", "budget tracker", "recurring bills", "autopay tracker"],
   authors: [{ name: "Duezo" }],
   creator: "Duezo",

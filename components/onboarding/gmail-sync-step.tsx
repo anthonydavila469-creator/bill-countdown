@@ -1,333 +1,124 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { useSubscription } from '@/hooks/use-subscription';
-import { Bill } from '@/types';
 import {
   Mail,
-  Loader2,
-  CheckCircle,
-  AlertCircle,
-  ArrowRight,
   ChevronLeft,
-  Sparkles,
-  RefreshCw,
+  Copy,
+  Check,
+  ArrowRight,
 } from 'lucide-react';
 
-type EmailProviderName = 'gmail' | 'yahoo' | 'outlook';
+const FORWARDING_ADDRESS = 'duezo-bills@agentmail.to';
 
-const EMAIL_PROVIDERS: Array<{ name: EmailProviderName; label: string; color: string }> = [
-  { name: 'gmail', label: 'Gmail', color: '#EA4335' },
-  { name: 'yahoo', label: 'Yahoo Mail', color: '#6001D2' },
-  { name: 'outlook', label: 'Microsoft Outlook', color: '#0078D4' },
-];
-
-interface GmailSyncStepProps {
+interface ForwardingStepProps {
   onBack: () => void;
-  onComplete: (importedBills: Bill[]) => void;
+  onComplete: () => void;
   onSkip: () => void;
-  isEmailConnected: boolean;
 }
-
-type SyncStatus = 'idle' | 'connecting' | 'syncing' | 'parsing' | 'success' | 'no_bills' | 'error';
 
 export function GmailSyncStep({
   onBack,
   onComplete,
   onSkip,
-  isEmailConnected,
-}: GmailSyncStepProps) {
-  const { canSyncGmail, incrementGmailSyncs } = useSubscription();
-  const [status, setStatus] = useState<SyncStatus>('idle');
-  const [foundBills, setFoundBills] = useState<Bill[]>([]);
-  const [error, setError] = useState<string | null>(null);
+}: ForwardingStepProps) {
+  const [copied, setCopied] = useState(false);
 
-  // Start sync automatically if an email provider is already connected
-  useEffect(() => {
-    if (isEmailConnected && status === 'idle') {
-      handleSync();
-    }
-  }, [isEmailConnected]);
-
-  const handleConnect = async (provider: EmailProviderName) => {
-    setStatus('connecting');
-    setError(null);
-
+  const handleCopy = async () => {
     try {
-      localStorage.setItem('gmail_oauth_return', '/dashboard?onboarding=gmail_sync');
-      window.location.href = `/api/email/connect?provider=${provider}`;
-    } catch (err) {
-      console.error('Email connect error:', err);
-      setStatus('error');
-      setError('Failed to connect your email provider. Please try again.');
-    }
-  };
-
-  const handleSync = async () => {
-    setStatus('syncing');
-    setError(null);
-
-    try {
-      // Use the full extraction pipeline (scan + parse in one call)
-      const scanResponse = await fetch('/api/extraction/scan-inbox', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ maxResults: 200, daysBack: 90 }),
-      });
-
-      if (!scanResponse.ok) {
-        const errorData = await scanResponse.json().catch(() => ({}));
-        if (errorData.code === 'GMAIL_NOT_CONNECTED') {
-          throw new Error('Gmail not connected. Please connect your email first.');
-        }
-        throw new Error('Failed to scan emails');
-      }
-
-      setStatus('parsing');
-
-      const scanResult = await scanResponse.json();
-      console.log('[Onboarding] Scan result:', scanResult.summary);
-
-      // Fetch the user's bills that were auto-accepted
-      const billsResponse = await fetch('/api/bills');
-      if (!billsResponse.ok) {
-        throw new Error('Failed to fetch bills');
-      }
-
-      const { bills } = await billsResponse.json();
-
-      await incrementGmailSyncs();
-
-      if (bills && bills.length > 0) {
-        setFoundBills(bills);
-        setStatus('success');
-      } else {
-        setStatus('no_bills');
-      }
-    } catch (err) {
-      console.error('Email sync error:', err);
-      setStatus('error');
-      setError(err instanceof Error ? err.message : 'Failed to sync bills from email. Please try again.');
-    }
-  };
-
-  const handleImport = async () => {
-    // Import all found bills
-    try {
-      for (const bill of foundBills) {
-        await fetch('/api/bills', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(bill),
-        });
-      }
-      onComplete(foundBills);
-    } catch (err) {
-      console.error('Import error:', err);
-      setError('Failed to import some bills. Please try again.');
-    }
-  };
-
-  // Render based on status
-  const renderContent = () => {
-    switch (status) {
-      case 'idle':
-        return (
-          <div className="text-center">
-            <div className="relative inline-flex mb-6">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-violet-500 to-violet-500 flex items-center justify-center">
-                <Mail className="w-10 h-10 text-white" />
-              </div>
-              <div className="absolute -inset-2 bg-gradient-to-br from-violet-500/30 to-violet-500/30 rounded-3xl blur-xl -z-10" />
-            </div>
-            <h2 className="text-xl font-bold text-white mb-2">
-              Connect Email
-            </h2>
-            <p className="text-white/50 mb-8">
-              Pick Gmail, Yahoo Mail, or Outlook. We&apos;ll scan your inbox for bill-related emails and automatically import them.
-            </p>
-            <div className="space-y-3">
-              {EMAIL_PROVIDERS.map((provider) => (
-                <button
-                  key={provider.name}
-                  onClick={() => handleConnect(provider.name)}
-                  className="w-full py-4 px-4 rounded-xl font-semibold text-white transition-opacity flex items-center justify-between gap-3"
-                  style={{ backgroundColor: provider.color }}
-                >
-                  <span className="flex items-center gap-3">
-                    <Mail className="w-5 h-5" />
-                    {provider.label}
-                  </span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 'connecting':
-        return (
-          <div className="text-center py-8">
-            <Loader2 className="w-12 h-12 text-violet-400 animate-spin mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-white mb-2">Connecting...</h2>
-            <p className="text-white/50">Opening email authorization...</p>
-          </div>
-        );
-
-      case 'syncing':
-        return (
-          <div className="text-center py-8">
-            <div className="relative inline-flex mb-4">
-              <RefreshCw className="w-12 h-12 text-violet-400 animate-spin" />
-              <div className="absolute inset-0 bg-violet-500/30 blur-xl rounded-full" />
-            </div>
-            <h2 className="text-xl font-bold text-white mb-2">Scanning Inbox</h2>
-            <p className="text-white/50">Looking for bill-related emails...</p>
-          </div>
-        );
-
-      case 'parsing':
-        return (
-          <div className="text-center py-8">
-            <div className="relative inline-flex mb-4">
-              <Sparkles className="w-12 h-12 text-violet-400 animate-pulse" />
-              <div className="absolute inset-0 bg-violet-500/30 blur-xl rounded-full" />
-            </div>
-            <h2 className="text-xl font-bold text-white mb-2">Analyzing Emails</h2>
-            <p className="text-white/50">AI is extracting bill information...</p>
-          </div>
-        );
-
-      case 'success':
-        return (
-          <div className="text-center">
-            <div className="relative inline-flex mb-6">
-              <div className="w-16 h-16 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
-                <CheckCircle className="w-8 h-8 text-emerald-400" />
-              </div>
-            </div>
-            <h2 className="text-xl font-bold text-white mb-2">
-              Found {foundBills.length} Bill{foundBills.length === 1 ? '' : 's'}!
-            </h2>
-            <p className="text-white/50 mb-6">
-              We detected these bills from your emails
-            </p>
-
-            {/* Bill preview list */}
-            <div className="max-h-48 overflow-y-auto mb-6 space-y-2">
-              {foundBills.slice(0, 5).map((bill, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center justify-between p-3 rounded-xl bg-white/[0.04] border border-white/10"
-                >
-                  <span className="text-white font-medium">{bill.name}</span>
-                  {bill.amount && (
-                    <span className="text-emerald-400 font-semibold">
-                      ${bill.amount.toFixed(2)}
-                    </span>
-                  )}
-                </div>
-              ))}
-              {foundBills.length > 5 && (
-                <p className="text-sm text-white/40">
-                  +{foundBills.length - 5} more bills
-                </p>
-              )}
-            </div>
-
-            <button
-              onClick={handleImport}
-              className="w-full py-4 rounded-xl font-semibold bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
-            >
-              Import All Bills
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
-        );
-
-      case 'no_bills':
-        return (
-          <div className="text-center">
-            <div className="relative inline-flex mb-6">
-              <div className="w-16 h-16 rounded-2xl bg-violet-500/20 border border-violet-500/30 flex items-center justify-center">
-                <Mail className="w-8 h-8 text-violet-400" />
-              </div>
-            </div>
-            <h2 className="text-xl font-bold text-white mb-2">No Bills Found</h2>
-            <p className="text-white/50 mb-6">
-              We couldn&apos;t find any bill-related emails in your inbox. You can add bills manually instead.
-            </p>
-            <button
-              onClick={onSkip}
-              className="w-full py-4 rounded-xl font-semibold bg-gradient-to-r from-violet-500 to-violet-500 text-white hover:opacity-90 transition-opacity"
-            >
-              Add Bills Manually
-            </button>
-          </div>
-        );
-
-      case 'error':
-        return (
-          <div className="text-center">
-            <div className="relative inline-flex mb-6">
-              <div className="w-16 h-16 rounded-2xl bg-red-500/20 border border-red-500/30 flex items-center justify-center">
-                <AlertCircle className="w-8 h-8 text-red-400" />
-              </div>
-            </div>
-            <h2 className="text-xl font-bold text-white mb-2">Sync Failed</h2>
-            <p className="text-white/50 mb-2">{error}</p>
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={() => setStatus('idle')}
-                className="flex-1 py-3 rounded-xl font-medium bg-white/10 text-white hover:bg-white/20 transition-colors"
-              >
-                Try Again
-              </button>
-              <button
-                onClick={onSkip}
-                className="flex-1 py-3 rounded-xl font-medium bg-violet-500 text-white hover:bg-violet-600 transition-colors"
-              >
-                Skip
-              </button>
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
+      await navigator.clipboard.writeText(FORWARDING_ADDRESS);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = FORWARDING_ADDRESS;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
   return (
     <div className="animate-in fade-in slide-in-from-right-4 duration-300">
       {/* Back button */}
-      {status === 'idle' && (
-        <div className="flex items-center gap-3 mb-6">
-          <button
-            onClick={onBack}
-            className="p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <h2 className="text-xl font-bold text-white">Email Sync</h2>
-            <p className="text-sm text-white/50">Import bills from your inbox</p>
-          </div>
+      <div className="flex items-center gap-3 mb-6">
+        <button
+          onClick={onBack}
+          className="p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+        <div>
+          <h2 className="text-xl font-bold text-white">Forward Your Bills</h2>
+          <p className="text-sm text-white/50">Add bills by forwarding emails</p>
         </div>
-      )}
+      </div>
 
-      {renderContent()}
+      <div className="text-center">
+        <div className="relative inline-flex mb-6">
+          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-violet-500 to-violet-500 flex items-center justify-center">
+            <Mail className="w-10 h-10 text-white" />
+          </div>
+          <div className="absolute -inset-2 bg-gradient-to-br from-violet-500/30 to-violet-500/30 rounded-3xl blur-xl -z-10" />
+        </div>
 
-      {/* Skip link for idle state */}
-      {status === 'idle' && (
+        <h2 className="text-xl font-bold text-white mb-2">
+          Your Duezo Address
+        </h2>
+        <p className="text-white/50 mb-6">
+          Forward your latest bill from each company. Search your inbox for
+          &quot;statement&quot; or &quot;bill due&quot; and forward the most recent one
+          from each biller. Takes about 5 minutes.
+        </p>
+
+        {/* Forwarding address with copy */}
+        <button
+          onClick={handleCopy}
+          className={cn(
+            'w-full flex items-center justify-between gap-3 px-4 py-4 rounded-xl border transition-all duration-200',
+            copied
+              ? 'bg-emerald-500/10 border-emerald-500/30'
+              : 'bg-white/[0.04] border-white/10 hover:border-white/20'
+          )}
+        >
+          <span className={cn(
+            'text-sm font-mono font-medium',
+            copied ? 'text-emerald-400' : 'text-white'
+          )}>
+            {FORWARDING_ADDRESS}
+          </span>
+          {copied ? (
+            <Check className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+          ) : (
+            <Copy className="w-5 h-5 text-white/40 flex-shrink-0" />
+          )}
+        </button>
+        {copied && (
+          <p className="text-sm text-emerald-400 mt-2">Copied!</p>
+        )}
+      </div>
+
+      {/* Action buttons */}
+      <div className="mt-8 space-y-3">
+        <button
+          onClick={onComplete}
+          className="w-full py-4 rounded-xl font-semibold bg-gradient-to-r from-violet-500 to-violet-500 text-white hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+        >
+          I&apos;ve forwarded a bill
+          <ArrowRight className="w-4 h-4" />
+        </button>
         <button
           onClick={onSkip}
-          className="w-full mt-4 py-3 text-white/50 hover:text-white transition-colors text-sm"
+          className="w-full py-3 text-white/50 hover:text-white transition-colors text-sm"
         >
-          Skip and add bills manually
+          Skip for now
         </button>
-      )}
+      </div>
     </div>
   );
 }

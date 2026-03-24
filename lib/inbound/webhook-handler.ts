@@ -1,6 +1,7 @@
 import { processEmail } from '@/lib/bill-extraction';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { findUserByEmail } from '@/lib/inbound/inbox-manager';
+import { VENDOR_PAYMENT_URLS } from '@/lib/vendor-payment-urls';
 
 /**
  * Shared inbox webhook handler.
@@ -205,13 +206,14 @@ async function findExistingBill(
   is_variable: boolean;
   typical_min: number | null;
   typical_max: number | null;
+  payment_url: string | null;
 } | null> {
   const normalizedName = vendorName.trim().toLowerCase();
 
   // Get all bills for this user and match by name
   const { data: bills } = await supabase
     .from('bills')
-    .select('id, name, amount, is_variable, typical_min, typical_max, due_date')
+    .select('id, name, amount, is_variable, typical_min, typical_max, due_date, payment_url')
     .eq('user_id', userId)
     .order('created_at', { ascending: false });
 
@@ -235,6 +237,7 @@ async function findExistingBill(
     is_variable: match.is_variable || false,
     typical_min: match.typical_min,
     typical_max: match.typical_max,
+    payment_url: match.payment_url || null,
   };
 }
 
@@ -318,16 +321,29 @@ function extractBillDirect(
     category: 'other',
   };
 
-  // Try to extract payment URL
-  const urlMatch = bodyHtml.match(/href="(https?:\/\/[^"]*(?:pay|account|bill)[^"]*)"/i)
-    || bodyPlain.match(/(https?:\/\/\S*(?:pay|account|bill)\S*)/i);
+  // Try to extract payment URL from email content
+  const urlMatch = bodyHtml.match(/href="(https?:\/\/[^"]*(?:pay|account|bill|statement|myaccount)[^"]*)"/i)
+    || bodyPlain.match(/(https?:\/\/\S*(?:pay|account|bill|statement|myaccount)\S*)/i);
+
+  // Fallback: look up vendor payment URL from our known database
+  let paymentUrl = urlMatch?.[1] || null;
+  if (!paymentUrl) {
+    const nameLower = vendor.name.toLowerCase();
+    // Try exact match, then partial matches against vendor URL keys
+    paymentUrl = VENDOR_PAYMENT_URLS[nameLower]
+      || VENDOR_PAYMENT_URLS[fromDomain]
+      || Object.entries(VENDOR_PAYMENT_URLS).find(
+        ([key]) => nameLower.includes(key) || key.includes(nameLower)
+      )?.[1]
+      || null;
+  }
 
   return {
     name: vendor.name,
     amount,
     dueDate,
     category: vendor.category,
-    paymentUrl: urlMatch?.[1] || null,
+    paymentUrl,
   };
 }
 
@@ -412,6 +428,7 @@ export async function handleInboundEmail(payload: Record<string, unknown>): Prom
             previous_amount: previousAmount,
             is_paid: false,
             paid_at: null,
+            payment_url: directBill.paymentUrl || existingBill.payment_url || null,
             is_variable: previousAmount !== directBill.amount ? true : existingBill.is_variable,
             typical_min: existingBill.typical_min
               ? Math.min(existingBill.typical_min, directBill.amount)
@@ -446,6 +463,7 @@ export async function handleInboundEmail(payload: Record<string, unknown>): Prom
             category: directBill.category || 'other',
             is_paid: false,
             source: 'forwarded',
+            payment_url: directBill.paymentUrl,
           })
           .select('id')
           .single();

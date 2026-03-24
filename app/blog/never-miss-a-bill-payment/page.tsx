@@ -149,7 +149,7 @@ export default function NeverMissBillPaymentPage() {
                     <div className="bg-violet-500/10 border border-violet-500/30 rounded-xl p-5 mt-4">
                       <p className="text-sm text-zinc-300 mb-3">
                         <strong className="text-white">Duezo</strong> scans your email for bills, extracts the due date and amount, 
-                        and shows you a live countdown on your phone. No bank account linking required — just connect your email and 
+                        and shows you a live countdown on your phone. No bank account linking required — just forward your bill emails and
                         you'll see everything that's due in the next 30 days.
                       </p>
                       <Link

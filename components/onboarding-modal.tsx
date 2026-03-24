@@ -1,22 +1,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Mail, ArrowRight, Sparkles, Check, X } from 'lucide-react';
+import { Mail, ArrowRight, Sparkles, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const ONBOARDING_KEY = 'duezo_onboarding_complete';
 
 interface OnboardingModalProps {
-  isGmailConnected: boolean;
   onComplete: () => void;
-  onConnectGmail: () => void;
   onSkip: () => void;
 }
 
 export function OnboardingModal({
-  isGmailConnected,
   onComplete,
-  onConnectGmail,
   onSkip,
 }: OnboardingModalProps) {
   const [step, setStep] = useState(0);
@@ -39,7 +35,7 @@ export function OnboardingModal({
       <div className="text-6xl mb-6">🎉</div>
       <h2 className="text-2xl font-bold text-white mb-3">Welcome to Duezo!</h2>
       <p className="text-zinc-400 leading-relaxed max-w-sm mx-auto">
-        We scan your email to find bills and track due dates so you never miss a payment.
+        Forward your bill emails to Duezo and we&apos;ll track due dates so you never miss a payment.
       </p>
       <button
         onClick={() => setStep(1)}
@@ -50,33 +46,23 @@ export function OnboardingModal({
       </button>
     </div>,
 
-    // Step 2: Connect Email
+    // Step 2: Forward Bills
     <div key="email" className="text-center">
       <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-violet-500/20 to-amber-500/20 border border-violet-500/30 flex items-center justify-center">
         <Mail className="w-8 h-8 text-violet-400" />
       </div>
-      <h2 className="text-2xl font-bold text-white mb-3">Connect Your Email</h2>
+      <h2 className="text-2xl font-bold text-white mb-3">Forward Your Bills</h2>
       <p className="text-zinc-400 leading-relaxed max-w-sm mx-auto mb-8">
-        Connect Gmail, Yahoo, or Outlook. We&apos;ll automatically find bills in your inbox and keep your due dates up to date.
+        Forward any bill email to your Duezo address. We&apos;ll extract the details and add it to your dashboard.
       </p>
       <div className="flex flex-col gap-3">
-        {isGmailConnected ? (
-          <div className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 font-semibold">
-            <Check className="w-4 h-4" />
-            Gmail Connected
-          </div>
-        ) : (
-          <button
-            onClick={() => {
-              onConnectGmail();
-              setStep(2);
-            }}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-violet-500 to-amber-500 text-white font-semibold hover:opacity-90 transition-opacity"
-          >
-            <Mail className="w-4 h-4" />
-            Connect Email
-          </button>
-        )}
+        <button
+          onClick={() => setStep(2)}
+          className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-violet-500 to-amber-500 text-white font-semibold hover:opacity-90 transition-opacity"
+        >
+          <Mail className="w-4 h-4" />
+          Set Up Forwarding
+        </button>
         <button
           onClick={() => {
             onSkip();
@@ -96,7 +82,7 @@ export function OnboardingModal({
       </div>
       <h2 className="text-2xl font-bold text-white mb-3">You&apos;re all set!</h2>
       <p className="text-zinc-400 leading-relaxed max-w-sm mx-auto mb-2">
-        Everything is included — unlimited bills, notifications, and auto-sync.
+        Everything is included — unlimited bills, notifications, and bill forwarding.
       </p>
       <button
         onClick={finish}

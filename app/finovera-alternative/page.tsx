@@ -192,8 +192,8 @@ export default function FioveraAlternativePage() {
           {[
             {
               icon: Mail,
-              title: 'Connect Email',
-              desc: 'Duezo reads your email inbox for bill notifications — Netflix, rent, insurance, utilities. Anything that sends you an email.',
+              title: 'Forward Your Bills',
+              desc: 'Forward bill emails to your Duezo address — Netflix, rent, insurance, utilities. Anything that sends you a bill.',
             },
             {
               icon: Zap,
@@ -257,7 +257,7 @@ export default function FioveraAlternativePage() {
         <div className="bg-gradient-to-br from-violet-500/10 to-purple-500/10 border border-violet-500/20 rounded-2xl p-10 text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to Replace Finovera?</h2>
           <p className="text-zinc-400 mb-8 max-w-md mx-auto">
-            Start your free trial. Connect your email in 30 seconds. Your bills show up automatically.
+            Start your free trial. Forward a bill in 30 seconds. Your bills show up automatically.
           </p>
           <Link
             href="/signup"
