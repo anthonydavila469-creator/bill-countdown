@@ -857,11 +857,9 @@ export default function HistoryPage() {
                           </span>
                         </div>
                         <span className="text-sm font-semibold text-white">
-                          ${cat.count === 1
-                            ? cat.total.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
-                            : cat.average.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                          ${cat.total.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                           <span className="text-xs text-zinc-500 font-normal ml-1">
-                            {cat.count === 1 ? 'total' : '/avg'}
+                            total
                           </span>
                         </span>
                       </div>

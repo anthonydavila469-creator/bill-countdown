@@ -212,7 +212,7 @@ export default function NeverMissBillPaymentPage() {
             href="/"
             className="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white font-semibold px-8 py-4 rounded-full transition-colors text-lg"
           >
-            Start Free — 14 Days Pro <ArrowRight className="w-5 h-5" />
+            Get Started Free <ArrowRight className="w-5 h-5" />
           </Link>
           <p className="text-xs text-zinc-500 mt-4">No credit card required. Cancel anytime.</p>
         </div>
