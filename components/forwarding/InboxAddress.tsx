@@ -95,7 +95,7 @@ export function InboxAddress({ inboxAddress, onInboxCreated }: InboxAddressProps
   return (
     <div className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 space-y-5">
       {/* The address with copy button */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.04] border border-white/[0.08]">
         <div className="relative flex-shrink-0">
           <div className="absolute inset-0 bg-violet-500/20 rounded-xl blur-lg" />
           <div className="relative p-2.5 rounded-xl bg-violet-500/10 border border-violet-500/20">
@@ -103,14 +103,14 @@ export function InboxAddress({ inboxAddress, onInboxCreated }: InboxAddressProps
           </div>
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-xs sm:text-sm text-white font-mono break-all leading-tight">
+          <p className="text-[13px] sm:text-base text-white font-mono leading-snug">
             {inboxAddress}
           </p>
         </div>
         <button
           onClick={handleCopy}
           className={cn(
-            'flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-300',
+            'flex-shrink-0 inline-flex items-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-300',
             copied
               ? 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-400'
               : 'bg-violet-500 hover:bg-violet-400 text-white'
@@ -119,12 +119,12 @@ export function InboxAddress({ inboxAddress, onInboxCreated }: InboxAddressProps
           {copied ? (
             <>
               <Check className="w-4 h-4" />
-              <span>Copied!</span>
+              <span className="hidden sm:inline">Copied!</span>
             </>
           ) : (
             <>
               <Copy className="w-4 h-4" />
-              <span>Copy</span>
+              <span className="hidden sm:inline">Copy</span>
             </>
           )}
         </button>
