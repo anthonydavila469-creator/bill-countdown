@@ -91,6 +91,10 @@ export const BILL_KEYWORDS = {
     'your bill',
     'invoice',
     'statement ready',
+    'estatement',
+    'e-statement',
+    'estatement ready',
+    'your estatement is ready',
     'pay now',
     'due date',
     'minimum payment',
@@ -125,7 +129,7 @@ export const BILL_KEYWORDS = {
 export const SENDER_PATTERNS: Array<{ pattern: RegExp; category: BillCategory; name?: string }> = [
   // Utilities
   { pattern: /electric|power|energy|pge|sce|duke energy|con edison/i, category: 'utilities', name: 'Electric' },
-  { pattern: /gas|socalgas|national grid/i, category: 'utilities', name: 'Gas' },
+  { pattern: /gas|socalgas|national grid|texas gas/i, category: 'utilities', name: 'Gas' },
   { pattern: /water|sewer|municipal/i, category: 'utilities', name: 'Water' },
 
   // Subscriptions
