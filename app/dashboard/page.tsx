@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { AddBillModal } from '@/components/add-bill-modal';
+import { QuickAddModal } from '@/components/quick-add-modal';
 import { OnboardingScreen } from '@/components/onboarding/onboarding-screen';
 import { OnboardingModal, useOnboardingComplete } from '@/components/onboarding-modal';
 import { DeleteBillModal } from '@/components/delete-bill-modal';
@@ -28,7 +29,6 @@ import {
   Calendar,
   Settings,
   LogOut,
-  Mail,
   Search,
   History,
   Check,
@@ -263,6 +263,7 @@ export default function DashboardPage() {
 
   // Modal state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
   const [editingBill, setEditingBill] = useState<Bill | null>(null);
   const [deletingBill, setDeletingBill] = useState<Bill | null>(null);
   const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
@@ -314,18 +315,16 @@ export default function DashboardPage() {
     await refetch();
   };
 
-  // Handle "Add Manually" from onboarding
+  // Handle "Add Manually" from onboarding — opens Quick Add
   const handleAddManuallyFromOnboarding = () => {
     setShowOnboarding(false);
-    setEditingBill(null);
-    setIsAddModalOpen(true);
+    setIsQuickAddOpen(true);
   };
 
-  // Handle Add Bill button click
+  // Handle Add Bill button click — opens Quick Add
   const handleAddBillClick = () => {
     hapticLight();
-    setEditingBill(null);
-    setIsAddModalOpen(true);
+    setIsQuickAddOpen(true);
   };
 
   // Calculate stats (only unpaid bills)
@@ -493,7 +492,7 @@ export default function DashboardPage() {
           </ul>
         </nav>
 
-        {/* Forward a Bill promo */}
+        {/* Add Your Bills promo */}
         <div className="p-4 border-t border-white/[0.06]">
           <div className="relative p-4 rounded-xl overflow-hidden" style={{ background: `linear-gradient(to bottom right, ${hexToRgba(accentColor, 0.1)}, ${hexToRgba(accentColor, 0.05)}, ${hexToRgba(accentColor, 0.1)})`, border: `1px solid ${hexToRgba(accentColor, 0.2)}` }}>
             {/* Decorative glow */}
@@ -501,19 +500,25 @@ export default function DashboardPage() {
             <div className="relative">
               <div className="flex items-center gap-3 mb-3">
                 <div className="flex items-center justify-center w-8 h-8 rounded-lg" style={{ backgroundColor: hexToRgba(accentColor, 0.2), border: `1px solid ${hexToRgba(accentColor, 0.3)}` }}>
-                  <Mail className="w-4 h-4" style={{ color: accentColor }} />
+                  <Plus className="w-4 h-4" style={{ color: accentColor }} />
                 </div>
-                <span className="text-sm font-semibold text-white">Forward a Bill</span>
+                <span className="text-sm font-semibold text-white">Add Your Bills</span>
               </div>
               <p className="text-xs text-zinc-400 mb-3 leading-relaxed">
-                Forward any bill email to Duezo and we&apos;ll add it automatically.
+                Quickly add bills with smart auto-fill from 50+ vendors.
               </p>
-              <Link
-                href="/dashboard/settings"
+              <button
+                onClick={handleAddBillClick}
                 className="block w-full px-3 py-2 text-sm font-semibold border border-white/10 hover:border-white/20 rounded-lg transition-all duration-200 text-white text-center"
                 style={{ background: hexToRgba(accentColor, 0.2) }}
               >
-                Set Up Forwarding
+                Add a Bill
+              </button>
+              <Link
+                href="/dashboard/settings"
+                className="block w-full mt-2 text-xs text-zinc-500 hover:text-zinc-300 transition-colors text-center"
+              >
+                or forward bills via email
               </Link>
             </div>
           </div>
@@ -883,7 +888,14 @@ export default function DashboardPage() {
         </div>
       </main>
 
-      {/* Add/Edit Bill Modal */}
+      {/* Quick Add Modal */}
+      <QuickAddModal
+        isOpen={isQuickAddOpen}
+        onClose={() => setIsQuickAddOpen(false)}
+        onSuccess={handleBillSuccess}
+      />
+
+      {/* Add/Edit Bill Modal (full form — used for editing) */}
       <AddBillModal
         isOpen={isAddModalOpen}
         onClose={() => {
