@@ -1,23 +1,6 @@
 import { NextResponse } from 'next/server';
-
 import { getOrCreateInbox, getUserInbox } from '@/lib/inbound/inbox-manager';
 import { createClient } from '@/lib/supabase/server';
-
-function getDisplayName(user: {
-  email?: string;
-  user_metadata?: Record<string, unknown>;
-}) {
-  const metadata = user.user_metadata || {};
-
-  const displayName =
-    (typeof metadata.full_name === 'string' && metadata.full_name) ||
-    (typeof metadata.name === 'string' && metadata.name) ||
-    (typeof metadata.user_name === 'string' && metadata.user_name) ||
-    user.email?.split('@')[0] ||
-    'Duezo User';
-
-  return displayName;
-}
 
 export async function GET() {
   try {
@@ -34,7 +17,7 @@ export async function GET() {
     const inbox = await getUserInbox(user.id);
 
     return NextResponse.json({
-      inbox_address: inbox?.inbox_address || null,
+      inbox_address: inbox?.inbox_address || 'duezo-bills@agentmail.to',
       inbox,
     });
   } catch (error) {
@@ -55,7 +38,7 @@ export async function POST() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const inbox = await getOrCreateInbox(user.id, getDisplayName(user));
+    const inbox = await getOrCreateInbox(user.id);
 
     return NextResponse.json({
       inbox_address: inbox.inbox_address,

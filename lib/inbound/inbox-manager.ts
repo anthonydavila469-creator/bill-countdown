@@ -1,134 +1,119 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 
+/**
+ * Shared inbox model — all users forward to the same address: duezo-bills@agentmail.to
+ * We match the forwarding user by their registered email in Supabase auth.
+ *
+ * Why shared inbox: AgentMail free tier only allows 3 inboxes total.
+ * Per-user inboxes would require a paid plan ($20/mo for 10 inboxes).
+ * Shared inbox works for our scale and costs $0.
+ */
+
+const SHARED_INBOX_ADDRESS = 'duezo-bills@agentmail.to';
+
 type UserInbox = {
-  id: string;
-  user_id: string;
   inbox_address: string;
-  agentmail_inbox_id: string;
-  created_at: string;
+  user_id: string;
   is_active: boolean;
   bills_received: number;
   last_bill_at: string | null;
 };
 
-type AgentMailCreateInboxResponse = {
-  id?: string;
-  inbox_id?: string;
-  address?: string;
-  email?: string;
-  email_address?: string;
-  inbox_address?: string;
-};
-
-function buildInboxUsername(userId: string) {
-  return `duezo-${userId.replace(/[^a-zA-Z0-9]/g, '').slice(0, 8).toLowerCase()}`;
-}
-
-function getAgentMailApiKey() {
-  const apiKey = process.env.AGENTMAIL_API_KEY;
-
-  if (!apiKey) {
-    throw new Error('Missing AGENTMAIL_API_KEY');
-  }
-
-  return apiKey;
-}
-
-function parseAgentMailInbox(response: AgentMailCreateInboxResponse) {
-  const agentmailInboxId = response.id || response.inbox_id;
-  const inboxAddress =
-    response.address ||
-    response.email ||
-    response.email_address ||
-    response.inbox_address;
-
-  if (!agentmailInboxId || !inboxAddress) {
-    throw new Error('AgentMail response missing inbox id or address');
-  }
-
-  return {
-    agentmailInboxId,
-    inboxAddress,
-  };
-}
-
+/**
+ * Get the shared Duezo forwarding address.
+ * Every user gets the same address — we match them by their email when bills arrive.
+ */
 export async function getUserInbox(userId: string): Promise<UserInbox | null> {
   const supabase = createAdminClient();
-  const { data, error } = await supabase
+
+  // Check if user has a record in user_inboxes (for tracking stats)
+  const { data } = await supabase
     .from('user_inboxes')
     .select('*')
     .eq('user_id', userId)
     .eq('is_active', true)
-    .order('created_at', { ascending: true })
-    .limit(1)
     .maybeSingle();
 
-  if (error) {
-    console.error('[INBOUND] Failed to fetch user inbox', { userId, error });
-    throw new Error('Failed to fetch user inbox');
+  if (data) {
+    return {
+      inbox_address: SHARED_INBOX_ADDRESS,
+      user_id: data.user_id,
+      is_active: data.is_active,
+      bills_received: data.bills_received || 0,
+      last_bill_at: data.last_bill_at,
+    };
   }
 
-  return data as UserInbox | null;
+  return null;
 }
 
-export async function createUserInbox(userId: string, displayName?: string | null): Promise<UserInbox> {
-  const username = buildInboxUsername(userId);
-  const response = await fetch('https://api.agentmail.to/v0/inboxes', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${getAgentMailApiKey()}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      username,
-      display_name: displayName || username,
-    }),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text().catch(() => '');
-    console.error('[INBOUND] AgentMail inbox creation failed', {
-      userId,
-      status: response.status,
-      body: errorText,
-    });
-    throw new Error(`Failed to create AgentMail inbox (${response.status})`);
-  }
-
-  const json = (await response.json()) as AgentMailCreateInboxResponse;
-  const { agentmailInboxId, inboxAddress } = parseAgentMailInbox(json);
+/**
+ * Create or get the user's forwarding record.
+ * Creates a row in user_inboxes to track per-user stats,
+ * but the actual inbox address is always the shared one.
+ */
+export async function getOrCreateInbox(userId: string, _displayName?: string | null): Promise<UserInbox> {
+  const existing = await getUserInbox(userId);
+  if (existing) return existing;
 
   const supabase = createAdminClient();
+
   const { data, error } = await supabase
     .from('user_inboxes')
     .insert({
       user_id: userId,
-      inbox_address: inboxAddress,
-      agentmail_inbox_id: agentmailInboxId,
+      inbox_address: SHARED_INBOX_ADDRESS,
+      agentmail_inbox_id: 'duezo-bills', // Shared inbox ID
       is_active: true,
     })
     .select('*')
     .single();
 
   if (error) {
-    console.error('[INBOUND] Failed to store inbox mapping', {
-      userId,
-      inboxAddress,
-      agentmailInboxId,
-      error,
-    });
-    throw new Error('Failed to persist user inbox');
+    // Handle race condition — might already exist
+    if (error.code === '23505') {
+      const retry = await getUserInbox(userId);
+      if (retry) return retry;
+    }
+    console.error('[INBOUND] Failed to create user inbox record', { userId, error });
+    throw new Error('Failed to create inbox record');
   }
 
-  return data as UserInbox;
+  return {
+    inbox_address: SHARED_INBOX_ADDRESS,
+    user_id: data.user_id,
+    is_active: data.is_active,
+    bills_received: data.bills_received || 0,
+    last_bill_at: data.last_bill_at,
+  };
 }
 
-export async function getOrCreateInbox(userId: string, displayName?: string | null): Promise<UserInbox> {
-  const existingInbox = await getUserInbox(userId);
+/**
+ * Look up which user forwarded an email based on the sender's email address.
+ * When a user forwards a bill, Gmail/Yahoo wraps the forward — the "from" is the user's email.
+ * We match that against auth.users to find the user_id.
+ */
+export async function findUserByEmail(email: string): Promise<string | null> {
+  if (!email) return null;
 
-  if (existingInbox) {
-    return existingInbox;
-  }
+  const supabase = createAdminClient();
+  const normalizedEmail = email.trim().toLowerCase();
 
-  return createUserInbox(userId, displayName);
+  // Check auth.users for matching email
+  const { data: users } = await supabase.auth.admin.listUsers();
+
+  if (!users?.users) return null;
+
+  const match = users.users.find(
+    (u) => u.email?.toLowerCase() === normalizedEmail
+  );
+
+  return match?.id || null;
+}
+
+/**
+ * Get the shared inbox address (for display in UI).
+ */
+export function getSharedInboxAddress(): string {
+  return SHARED_INBOX_ADDRESS;
 }

@@ -1,65 +1,33 @@
 import { parseEmailPipeline } from '@/lib/parser/parseEmailPipeline';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { findUserByEmail } from '@/lib/inbound/inbox-manager';
 
-type UserInboxLookup = {
-  id: string;
-  user_id: string;
-  inbox_address: string;
-  bills_received: number | null;
-};
+/**
+ * Shared inbox webhook handler.
+ *
+ * Flow:
+ * 1. User forwards a bill email to duezo-bills@agentmail.to
+ * 2. AgentMail sends webhook to /api/inbound/bill-email
+ * 3. We extract the original sender's email (the user who forwarded)
+ * 4. Match that email to a Duezo user account
+ * 5. Run the bill through our existing parser
+ * 6. Bill appears on their dashboard
+ */
 
 type InboundWebhookResult =
   | {
       ok: true;
       status: 200;
       userId: string;
-      inboxAddress: string;
+      senderEmail: string;
       parsed: Awaited<ReturnType<typeof parseEmailPipeline>>;
     }
   | {
       ok: false;
       status: 400 | 404 | 500;
       error: string;
-      userId?: string;
-      inboxAddress?: string;
+      senderEmail?: string;
     };
-
-function normalizeAddress(value: string) {
-  return value.trim().toLowerCase();
-}
-
-function extractAddressFromString(value: string): string | null {
-  const match = value.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
-  return match ? normalizeAddress(match[0]) : null;
-}
-
-function extractAddress(value: unknown): string | null {
-  if (!value) return null;
-
-  if (typeof value === 'string') {
-    return extractAddressFromString(value);
-  }
-
-  if (Array.isArray(value)) {
-    for (const item of value) {
-      const extracted = extractAddress(item);
-      if (extracted) return extracted;
-    }
-    return null;
-  }
-
-  if (typeof value === 'object') {
-    const record = value as Record<string, unknown>;
-    return (
-      extractAddress(record.address) ||
-      extractAddress(record.email) ||
-      extractAddress(record.value) ||
-      null
-    );
-  }
-
-  return null;
-}
 
 function extractText(value: unknown): string {
   return typeof value === 'string' ? value : '';
@@ -68,6 +36,35 @@ function extractText(value: unknown): string {
 function extractDate(value: unknown): string {
   const text = extractText(value);
   return text || new Date().toISOString();
+}
+
+function extractAddressFromValue(value: unknown): string | null {
+  if (!value) return null;
+
+  if (typeof value === 'string') {
+    const match = value.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+    return match ? match[0].trim().toLowerCase() : null;
+  }
+
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const extracted = extractAddressFromValue(item);
+      if (extracted) return extracted;
+    }
+    return null;
+  }
+
+  if (typeof value === 'object') {
+    const record = value as Record<string, unknown>;
+    return (
+      extractAddressFromValue(record.address) ||
+      extractAddressFromValue(record.email) ||
+      extractAddressFromValue(record.value) ||
+      null
+    );
+  }
+
+  return null;
 }
 
 function extractMessageId(payload: Record<string, unknown>) {
@@ -80,111 +77,122 @@ function extractMessageId(payload: Record<string, unknown>) {
   );
 }
 
-function extractFromAddress(message: Record<string, unknown>) {
+/**
+ * Extract the sender (forwarder) email from the webhook payload.
+ * When someone forwards an email, the "from" field is THEIR email address.
+ */
+function extractSenderEmail(message: Record<string, unknown>): string | null {
   return (
-    extractAddress(message.from) ||
-    extractAddress(message.sender) ||
-    extractAddress(message.reply_to) ||
-    ''
-  );
-}
-
-export function extractInboxAddress(payload: Record<string, unknown>): string | null {
-  const message = (payload.message as Record<string, unknown> | undefined) || {};
-  return (
-    extractAddress(message.to) ||
-    extractAddress(payload.to) ||
+    extractAddressFromValue(message.from) ||
+    extractAddressFromValue(message.sender) ||
+    extractAddressFromValue(message.reply_to) ||
     null
   );
 }
 
-export async function findInboxByAddress(inboxAddress: string): Promise<UserInboxLookup | null> {
-  const supabase = createAdminClient();
-  const { data, error } = await supabase
-    .from('user_inboxes')
-    .select('id, user_id, inbox_address, bills_received')
-    .eq('inbox_address', normalizeAddress(inboxAddress))
-    .eq('is_active', true)
-    .maybeSingle();
+/**
+ * Try to extract the ORIGINAL sender from a forwarded email.
+ * Gmail forwards typically include "---------- Forwarded message ----------"
+ * followed by "From: original@sender.com"
+ */
+function extractOriginalBillSender(body: string): string | null {
+  if (!body) return null;
 
-  if (error) {
-    console.error('[INBOUND] Failed to look up inbox address', { inboxAddress, error });
-    throw new Error('Failed to look up inbox address');
-  }
+  // Look for forwarded message headers
+  const forwardedMatch = body.match(
+    /(?:Forwarded message|Begin forwarded message)[\s\S]*?From:\s*(?:.*<)?([A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,})>?/i
+  );
+  if (forwardedMatch?.[1]) return forwardedMatch[1].toLowerCase();
 
-  return data as UserInboxLookup | null;
+  return null;
 }
 
-async function markBillReceived(inbox: UserInboxLookup) {
+async function updateUserBillStats(userId: string) {
   const supabase = createAdminClient();
-  const { error } = await supabase
-    .from('user_inboxes')
-    .update({
-      bills_received: (inbox.bills_received || 0) + 1,
-      last_bill_at: new Date().toISOString(),
-    })
-    .eq('id', inbox.id);
 
-  if (error) {
-    console.error('[INBOUND] Failed to update inbox stats', {
-      inboxId: inbox.id,
-      error,
-    });
+  // Try to increment the user's bill count
+  const { data: existing } = await supabase
+    .from('user_inboxes')
+    .select('id, bills_received')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (existing) {
+    await supabase
+      .from('user_inboxes')
+      .update({
+        bills_received: (existing.bills_received || 0) + 1,
+        last_bill_at: new Date().toISOString(),
+      })
+      .eq('id', existing.id);
   }
 }
 
 export async function handleInboundEmail(payload: Record<string, unknown>): Promise<InboundWebhookResult> {
   try {
     const message = (payload.message as Record<string, unknown> | undefined) || {};
-    const inboxAddress = extractInboxAddress(payload);
+    const senderEmail = extractSenderEmail(message);
+    const bodyPlain = extractText(message.text || message.text_body || message.body_plain);
+    const bodyHtml = extractText(message.html || message.html_body || message.body_html);
 
-    if (!inboxAddress) {
-      console.error('[INBOUND] Missing recipient address in inbound payload');
-      return {
-        ok: false,
-        status: 400,
-        error: 'Missing recipient address',
-      };
+    if (!senderEmail) {
+      console.error('[INBOUND] No sender email in webhook payload');
+      return { ok: false, status: 400, error: 'Missing sender email' };
     }
 
-    const inbox = await findInboxByAddress(inboxAddress);
-    if (!inbox) {
-      console.warn('[INBOUND] No user inbox found for recipient', { inboxAddress });
+    console.log('[INBOUND] Processing forwarded bill email', {
+      from: senderEmail,
+      subject: extractText(message.subject),
+    });
+
+    // Try to match the sender to a Duezo user
+    const userId = await findUserByEmail(senderEmail);
+
+    if (!userId) {
+      console.warn('[INBOUND] No Duezo user found for sender', { senderEmail });
       return {
         ok: false,
         status: 404,
-        error: 'Inbox not found',
-        inboxAddress,
+        error: 'No Duezo account found for this email address',
+        senderEmail,
       };
     }
 
+    // Determine the original bill sender (from the forwarded content)
+    const originalSender = extractOriginalBillSender(bodyPlain || bodyHtml) || senderEmail;
+
+    // Run through the existing parser
     const parserResult = await parseEmailPipeline({
-      userId: inbox.user_id,
+      userId,
       email: {
         gmail_message_id: extractMessageId(payload),
         subject: extractText(message.subject),
-        from: extractFromAddress(message),
+        from: originalSender,
         date: extractDate(message.date || message.received_at || payload.created_at),
-        body_plain: extractText(message.text || message.text_body || message.body_plain),
-        body_html: extractText(message.html || message.html_body || message.body_html),
+        body_plain: bodyPlain,
+        body_html: bodyHtml,
       },
     });
 
-    await markBillReceived(inbox);
+    // Update bill stats
+    await updateUserBillStats(userId);
+
+    console.log('[INBOUND] Bill processed successfully', {
+      userId,
+      senderEmail,
+      originalSender,
+      subject: extractText(message.subject),
+    });
 
     return {
       ok: true,
       status: 200,
-      userId: inbox.user_id,
-      inboxAddress,
+      userId,
+      senderEmail,
       parsed: parserResult,
     };
   } catch (error) {
     console.error('[INBOUND] Failed to handle inbound email', error);
-    return {
-      ok: false,
-      status: 500,
-      error: 'Failed to handle inbound email',
-    };
+    return { ok: false, status: 500, error: 'Failed to handle inbound email' };
   }
 }
