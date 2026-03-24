@@ -158,10 +158,15 @@ export function InboxAddress({ inboxAddress, onInboxCreated }: InboxAddressProps
         </div>
       </div>
 
-      {/* One-line tip */}
-      <p className="text-xs text-zinc-500 text-center">
-        Works with Gmail, Yahoo, Outlook, iCloud — any email. Just hit forward.
-      </p>
+      {/* Tips */}
+      <div className="space-y-1.5 text-center">
+        <p className="text-xs text-zinc-500">
+          Works with Gmail, Yahoo, Outlook, iCloud — any email.
+        </p>
+        <p className="text-xs text-zinc-500">
+          💡 <span className="text-zinc-400">Set up a forwarding rule in your email so new bills forward automatically. One-time setup, never think about it again.</span>
+        </p>
+      </div>
     </div>
   );
 }
