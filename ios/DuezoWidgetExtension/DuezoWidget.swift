@@ -31,6 +31,11 @@ struct DuezoWidgetPayload: Codable {
         let daysLeft: Int
         let isAutopay: Bool?
         let iconKey: String?
+
+        /// Compute daysLeft dynamically from dueDate at render time
+        var liveDaysLeft: Int {
+            DuezoWidgetPayload.computeDaysLeft(from: dueDate)
+        }
     }
 
     struct UpcomingBill: Codable, Identifiable {
@@ -44,6 +49,31 @@ struct DuezoWidgetPayload: Codable {
         enum Urgency: String, Codable {
             case critical, soon, later
         }
+
+        /// Compute daysLeft dynamically from dueDate at render time
+        var liveDaysLeft: Int {
+            DuezoWidgetPayload.computeDaysLeft(from: dueDate)
+        }
+
+        /// Compute urgency dynamically from live days
+        var liveUrgency: Urgency {
+            let days = liveDaysLeft
+            if days <= 3 { return .critical }
+            if days <= 7 { return .soon }
+            return .later
+        }
+    }
+
+    /// Parse a YYYY-MM-DD date string and compute days from today
+    static func computeDaysLeft(from dateString: String) -> Int {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.timeZone = TimeZone.current
+        guard let dueDate = formatter.date(from: dateString) else { return 999 }
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let due = calendar.startOfDay(for: dueDate)
+        return calendar.dateComponents([.day], from: today, to: due).day ?? 999
     }
 }
 
@@ -88,7 +118,7 @@ final class DuezoWidgetStore {
     }
 
     func readTheme() -> String {
-        let theme = defaults.string(forKey: Self.themeKey) ?? "emerald"
+        let theme = defaults.string(forKey: Self.themeKey) ?? "amethyst"
         NSLog("[DuezoWidget] readTheme=%@", theme)
         return theme
     }
@@ -318,13 +348,13 @@ enum WidgetTheme: String, CaseIterable {
     static func current() -> WidgetTheme {
         guard let defaults = UserDefaults(suiteName: DuezoWidgetStore.appGroupId) else {
             NSLog("[DuezoWidget] Can't access App Group for theme")
-            return .onyx
+            return .amethyst
         }
         let raw = defaults.string(forKey: DuezoWidgetStore.themeKey)
         print("[DuezoWidget] Theme raw value: \(raw ?? "nil")")
         guard let raw = raw, let theme = WidgetTheme(rawValue: raw) else {
-            print("[DuezoWidget] ❌ Theme fallback to onyx (raw: \(raw ?? "nil"))")
-            return .onyx
+            print("[DuezoWidget] ❌ Theme fallback to amethyst (raw: \(raw ?? "nil"))")
+            return .amethyst
         }
         print("[DuezoWidget] ✅ Using theme: \(theme.rawValue)")
         return theme
@@ -646,8 +676,8 @@ struct LargeWidgetView: View {
 
     private var heroColor: Color {
         guard let bill = payload.nextBill else { return theme.accentColor }
-        if bill.daysLeft < 0 { return Color(hex: 0xef4444) }
-        if bill.daysLeft <= 2 { return Color(hex: 0xf87171) }
+        if bill.liveDaysLeft < 0 { return Color(hex: 0xef4444) }
+        if bill.liveDaysLeft <= 2 { return Color(hex: 0xf87171) }
         return theme.accentColor
     }
 
@@ -707,7 +737,7 @@ struct LargeWidgetView: View {
             if let bill = payload.nextBill {
                 HStack(spacing: 0) {
                     // Countdown ring
-                    CountdownRing(days: bill.daysLeft, size: 72, lineWidth: 5, theme: theme)
+                    CountdownRing(days: bill.liveDaysLeft, size: 72, lineWidth: 5, theme: theme)
                         .padding(.trailing, 12)
 
                     // Bill info — stacked, fills remaining width
@@ -790,7 +820,7 @@ struct LargeWidgetView: View {
         }
         .padding(14)
         .containerBackground(for: .widget) {
-            WidgetBackground(theme: theme, isOverdue: payload.nextBill?.daysLeft ?? 0 < 0)
+            WidgetBackground(theme: theme, isOverdue: payload.nextBill?.liveDaysLeft ?? 0 < 0)
         }
     }
 }
@@ -849,7 +879,7 @@ struct LargeBillRow: View {
                         .font(.system(size: 17, weight: .black, design: .monospaced))
                         .foregroundColor(.white)
 
-                    Text(dueInLabel(bill.daysLeft))
+                    Text(dueInLabel(bill.liveDaysLeft))
                         .font(.system(size: 10, weight: .heavy, design: .rounded))
                         .foregroundColor(urgColor)
                         .tracking(0.5)

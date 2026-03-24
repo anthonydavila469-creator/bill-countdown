@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 
-const ADMIN_USER_ID = 'a89729f6-54b4-4003-abc9-15dd7b3b69ed';
+const ADMIN_USER_ID = process.env.ADMIN_USER_ID || 'a89729f6-54b4-4003-abc9-15dd7b3b69ed';
 
 export async function GET() {
   const supabase = await createClient();

@@ -60,7 +60,7 @@ async function writePayloadWithRetry(payload: WidgetPayloadV1, theme: string) {
  */
 export async function syncWidgetPayload(
   bills: WidgetSyncBill[],
-  theme: string = 'emerald',
+  theme: string = 'amethyst',
   lastMonthTotal: number | null = null
 ) {
   if (!Capacitor.isNativePlatform()) {

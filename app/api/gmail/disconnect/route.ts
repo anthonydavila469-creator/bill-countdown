@@ -1,16 +1,14 @@
 import { createClient } from '@/lib/supabase/server';
 import { clearEmailConnection } from '@/lib/email/tokens';
 import { NextResponse } from 'next/server';
+import { getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
     const supabase = await createClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+    const { user } = await getAuthenticatedUser(request);
 
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

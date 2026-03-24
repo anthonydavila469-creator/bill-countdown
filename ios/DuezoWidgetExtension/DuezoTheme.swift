@@ -25,7 +25,7 @@ enum DuezoTheme: String, CaseIterable, Codable {
         guard let defaults = UserDefaults(suiteName: DuezoWidgetStore.appGroupId),
               let raw = defaults.string(forKey: DuezoWidgetStore.themeKey),
               let theme = DuezoTheme(rawValue: raw) else {
-            return .emerald
+            return .amethyst
         }
         return theme
     }

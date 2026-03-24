@@ -31,6 +31,10 @@ export async function POST(request: Request) {
     const mediaType = match[1] as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
     const base64Data = match[2];
 
+    if (base64Data.length > 5 * 1024 * 1024) {
+      return NextResponse.json({ error: 'Image too large (max 5MB)' }, { status: 400 });
+    }
+
     const response = await getAnthropic().messages.create({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 300,

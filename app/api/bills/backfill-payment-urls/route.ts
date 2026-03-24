@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { getFallbackPaymentUrl } from '@/lib/vendor-payment-urls';
+import { getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
 
 /**
  * POST /api/bills/backfill-payment-urls
@@ -8,17 +9,13 @@ import { getFallbackPaymentUrl } from '@/lib/vendor-payment-urls';
  * Backfill payment_url for existing bills that don't have one.
  * Uses vendor name matching to apply fallback URLs.
  */
-export async function POST() {
+export async function POST(request: Request) {
   try {
     const supabase = await createClient();
 
-    // Verify user is authenticated
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+    const { user } = await getAuthenticatedUser(request);
 
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

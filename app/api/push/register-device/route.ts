@@ -2,23 +2,29 @@ import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isValidApnsToken, normalizeApnsToken } from '@/lib/apns/apns-sender';
 import { upsertApnsToken } from '@/lib/apns/token-store';
+import { getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
 
 type RegisterDeviceRequest = {
   deviceToken?: string;
-  userId?: string;
   deviceName?: string;
 };
 
 export async function POST(request: Request) {
   try {
-    const { deviceToken, userId, deviceName } = (await request.json()) as RegisterDeviceRequest;
+    const { user } = await getAuthenticatedUser(request);
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    if (!deviceToken || !userId) {
+    const { deviceToken, deviceName } = (await request.json()) as RegisterDeviceRequest;
+
+    if (!deviceToken) {
       return NextResponse.json(
-        { error: 'deviceToken and userId are required' },
+        { error: 'deviceToken is required' },
         { status: 400 }
       );
     }
+    const userId = user.id;
 
     const token = normalizeApnsToken(deviceToken);
     if (!isValidApnsToken(token)) {

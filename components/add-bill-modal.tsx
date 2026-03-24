@@ -5,6 +5,7 @@ import { X } from 'lucide-react';
 import { BillForm } from './bill-form';
 import { BillFormData, Bill } from '@/types';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/components/ui/toast';
 
 interface AddBillModalProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ export function AddBillModal({
   gmailMessageId,
 }: AddBillModalProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const { addToast } = useToast();
 
   // Prevent body scroll when modal is open
   useEffect(() => {
@@ -80,7 +82,10 @@ export function AddBillModal({
       onClose();
     } catch (error) {
       console.error('Error saving bill:', error);
-      // TODO: Show error toast
+      addToast({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'Failed to save bill',
+      });
     } finally {
       setIsLoading(false);
     }
