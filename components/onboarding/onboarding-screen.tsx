@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { TemplateSelector } from './template-selector';
 import { OptionalSetup, SetupOptions } from './optional-setup';
-import { GmailSyncStep } from './gmail-sync-step';
 import {
   getTemplateById,
   getNextDueDateForDay,
@@ -18,11 +17,10 @@ import {
   ArrowRight,
   Loader2,
   ChevronLeft,
-  Mail,
   Crown,
 } from 'lucide-react';
 
-type OnboardingStep = 'welcome' | 'gmail_sync' | 'templates' | 'setup' | 'creating';
+type OnboardingStep = 'welcome' | 'templates' | 'setup' | 'creating';
 
 interface OnboardingScreenProps {
   onComplete: () => void;
@@ -48,18 +46,6 @@ export function OnboardingScreen({
   const [isCreating, setIsCreating] = useState(false);
 
   const handleQuickAdd = () => {
-    setStep('templates');
-  };
-
-  const handleForwardBills = () => {
-    setStep('gmail_sync');
-  };
-
-  const handleForwardingComplete = () => {
-    onComplete();
-  };
-
-  const handleForwardingSkip = () => {
     setStep('templates');
   };
 
@@ -167,18 +153,7 @@ export function OnboardingScreen({
         {step === 'welcome' && (
           <WelcomeStep
             onQuickAdd={handleQuickAdd}
-            onForwardBills={handleForwardBills}
             onAddManually={onAddManually}
-          />
-        )}
-
-        {/* Step: Forward Bills */}
-        {step === 'gmail_sync' && (
-          <GmailSyncStep
-            onBack={handleBackToWelcome}
-            onComplete={handleForwardingComplete}
-            onSkip={handleForwardingSkip}
-            onStartAdding={handleQuickAdd}
           />
         )}
 
@@ -215,13 +190,11 @@ export function OnboardingScreen({
 // Welcome Step Component
 interface WelcomeStepProps {
   onQuickAdd: () => void;
-  onForwardBills: () => void;
   onAddManually: () => void;
 }
 
 function WelcomeStep({
   onQuickAdd,
-  onForwardBills,
   onAddManually,
 }: WelcomeStepProps) {
   return (
@@ -247,34 +220,13 @@ function WelcomeStep({
       </div>
 
       <div className="space-y-3">
-        {/* Forward Bills */}
+        {/* Quick Add from Templates */}
         <button
-          onClick={onForwardBills}
+          onClick={onQuickAdd}
           className="group w-full p-5 rounded-2xl transition-all duration-300 bg-gradient-to-br from-violet-500/15 to-violet-500/15 border border-violet-500/30 hover:border-violet-500/50 hover:from-violet-500/20 hover:to-violet-500/20"
         >
           <div className="flex items-center gap-4">
             <div className="p-3 rounded-xl bg-gradient-to-br from-violet-500 to-violet-500">
-              <Mail className="w-5 h-5 text-white" />
-            </div>
-            <div className="flex-1 text-left">
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className="font-semibold text-white">Forward Your Bills</h3>
-              </div>
-              <p className="text-sm text-white/50">
-                Forward bill emails to Duezo — we extract the details
-              </p>
-            </div>
-            <ArrowRight className="w-5 h-5 text-violet-400 group-hover:translate-x-1 transition-transform" />
-          </div>
-        </button>
-
-        {/* Quick Add from Templates */}
-        <button
-          onClick={onQuickAdd}
-          className="group w-full p-5 rounded-2xl transition-all duration-300 bg-white/[0.02] border border-white/10 hover:bg-white/[0.04] hover:border-white/20"
-        >
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-xl bg-white/10">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
             <div className="flex-1 text-left">
@@ -283,11 +235,11 @@ function WelcomeStep({
                 Select from common bills like rent, utilities, subscriptions
               </p>
             </div>
-            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform text-white/40" />
+            <ArrowRight className="w-5 h-5 text-violet-400 group-hover:translate-x-1 transition-transform" />
           </div>
         </button>
 
-        {/* Add Manually - tertiary option */}
+        {/* Add Manually */}
         <button
           onClick={onAddManually}
           className={cn(

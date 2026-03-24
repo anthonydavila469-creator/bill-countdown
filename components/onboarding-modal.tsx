@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Mail, ArrowRight, Sparkles, X } from 'lucide-react';
+import { Plus, ArrowRight, Sparkles, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const ONBOARDING_KEY = 'duezo_onboarding_complete';
@@ -59,27 +59,13 @@ export function OnboardingModal({
       <p className="text-zinc-400 leading-relaxed max-w-sm mx-auto mb-8">
         Start typing a name like &quot;Netflix&quot; and we&apos;ll auto-fill the details. Add a bill in 10 seconds.
       </p>
-      <div className="flex flex-col gap-3">
-        <button
-          onClick={() => setStep(2)}
-          className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-violet-500 to-amber-500 text-white font-semibold hover:opacity-90 transition-opacity"
-        >
-          <Plus className="w-4 h-4" />
-          Add Bills Now
-        </button>
-        <div className="flex items-center gap-2 justify-center mt-2">
-          <Mail className="w-3.5 h-3.5 text-zinc-500" />
-          <button
-            onClick={() => {
-              onSkip();
-              setStep(2);
-            }}
-            className="text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
-          >
-            Advanced: forward bills via email
-          </button>
-        </div>
-      </div>
+      <button
+        onClick={() => setStep(2)}
+        className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-violet-500 to-amber-500 text-white font-semibold hover:opacity-90 transition-opacity"
+      >
+        <Plus className="w-4 h-4" />
+        Add Bills Now
+      </button>
     </div>,
 
     // Step 3: All set
@@ -89,7 +75,7 @@ export function OnboardingModal({
       </div>
       <h2 className="text-2xl font-bold text-white mb-3">You&apos;re all set!</h2>
       <p className="text-zinc-400 leading-relaxed max-w-sm mx-auto mb-2">
-        Everything is included — unlimited bills, notifications, and bill forwarding.
+        Everything is included — unlimited bills and notifications.
       </p>
       <button
         onClick={finish}

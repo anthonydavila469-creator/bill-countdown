@@ -561,12 +561,6 @@ export default function DashboardPage() {
               >
                 Add a Bill
               </button>
-              <Link
-                href="/dashboard/settings"
-                className="block w-full mt-2 text-xs text-zinc-500 hover:text-zinc-300 transition-colors text-center"
-              >
-                or forward bills via email
-              </Link>
             </div>
           </div>
         </div>
