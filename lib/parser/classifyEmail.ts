@@ -6,8 +6,8 @@ const KEYWORDS: Array<{ type: EmailType; words: string[]; confidence: number }> 
   { type: 'payment_confirmation', words: ['payment received', 'payment confirmation', 'thank you for your payment'], confidence: 0.94 },
   { type: 'receipt', words: ['receipt', 'order confirmation'], confidence: 0.92 },
   { type: 'autopay_notice', words: ['autopay', 'automatic payment', 'scheduled payment'], confidence: 0.9 },
-  { type: 'statement_ready', words: ['statement is ready', 'statement ready', 'statement available'], confidence: 0.88 },
-  { type: 'bill_due', words: ['bill due', 'amount due', 'payment due', 'due date', 'balance due'], confidence: 0.9 },
+  { type: 'statement_ready', words: ['statement is ready', 'statement ready', 'statement available', 'e-statement', 'estatement', 'electronic statement'], confidence: 0.88 },
+  { type: 'bill_due', words: ['bill due', 'amount due', 'payment due', 'due date', 'balance due', 'account balance', 'current account balance'], confidence: 0.9 },
   { type: 'subscription_renewal', words: ['renewal', 'renews on', 'subscription'], confidence: 0.82 },
 ];
 

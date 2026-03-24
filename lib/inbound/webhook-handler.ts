@@ -1,4 +1,4 @@
-import { parseEmailPipeline } from '@/lib/parser/parseEmailPipeline';
+import { processEmail } from '@/lib/bill-extraction';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { findUserByEmail } from '@/lib/inbound/inbox-manager';
 
@@ -20,7 +20,6 @@ type InboundWebhookResult =
       status: 200;
       userId: string;
       senderEmail: string;
-      parsed: Awaited<ReturnType<typeof parseEmailPipeline>>;
     }
   | {
       ok: false;
@@ -191,6 +190,99 @@ function unwrapForwardedEmail(
   };
 }
 
+/**
+ * Simple direct extraction for forwarded bills.
+ * User explicitly forwarded this — we trust it's a bill.
+ * Extract amount, due date, and vendor name via simple patterns.
+ */
+function extractBillDirect(
+  bodyPlain: string,
+  bodyHtml: string,
+  subject: string,
+  from: string
+): { name: string; amount: number; dueDate: string; category: string; paymentUrl: string | null } | null {
+  const text = `${subject}\n${bodyPlain}`;
+
+  // Extract amount — look for dollar amounts near bill keywords
+  const amountPatterns = [
+    /(?:amount\s*due|balance\s*due|total\s*due|current\s*(?:account\s*)?balance|payment\s*amount)[:\s]*\$?([\d,]+\.?\d{0,2})/i,
+    /\$([\d,]+\.\d{2})/,
+  ];
+
+  let amount: number | null = null;
+  for (const pattern of amountPatterns) {
+    const match = text.match(pattern);
+    if (match?.[1]) {
+      const parsed = parseFloat(match[1].replace(/,/g, ''));
+      if (parsed > 0 && parsed < 100000) {
+        amount = parsed;
+        break;
+      }
+    }
+  }
+
+  // Extract due date
+  const datePatterns = [
+    /due\s*(?:on|date|by)?[:\s]*([A-Z][a-z]+\s+\d{1,2},?\s+\d{4})/i,
+    /due\s*(?:on|date|by)?[:\s]*(\d{1,2}\/\d{1,2}\/\d{2,4})/i,
+    /(\d{1,2}\/\d{1,2}\/\d{2,4})\s*(?:due|payment)/i,
+  ];
+
+  let dueDate: string | null = null;
+  for (const pattern of datePatterns) {
+    const match = text.match(pattern);
+    if (match?.[1]) {
+      try {
+        const parsed = new Date(match[1]);
+        if (!isNaN(parsed.getTime()) && parsed.getFullYear() >= 2025) {
+          dueDate = parsed.toISOString().split('T')[0];
+          break;
+        }
+      } catch { /* ignore parse errors */ }
+    }
+  }
+
+  if (!amount || !dueDate) return null;
+
+  // Extract vendor name from sender
+  const fromDomain = from.match(/@([^.]+)\./)?.[1] || '';
+  const vendorMap: Record<string, { name: string; category: string }> = {
+    texasgasservice: { name: 'Texas Gas Service', category: 'utilities' },
+    att: { name: 'AT&T', category: 'phone' },
+    tmobile: { name: 'T-Mobile', category: 'phone' },
+    verizon: { name: 'Verizon', category: 'phone' },
+    spectrum: { name: 'Spectrum', category: 'internet' },
+    comcast: { name: 'Comcast/Xfinity', category: 'internet' },
+    netflix: { name: 'Netflix', category: 'subscription' },
+    spotify: { name: 'Spotify', category: 'subscription' },
+    chase: { name: 'Chase', category: 'credit_card' },
+    capitalone: { name: 'Capital One', category: 'credit_card' },
+    citi: { name: 'Citi', category: 'credit_card' },
+    discover: { name: 'Discover', category: 'credit_card' },
+    amex: { name: 'American Express', category: 'credit_card' },
+    geico: { name: 'GEICO', category: 'insurance' },
+    progressive: { name: 'Progressive', category: 'insurance' },
+    statefarm: { name: 'State Farm', category: 'insurance' },
+  };
+
+  const vendor = vendorMap[fromDomain] || {
+    name: fromDomain.charAt(0).toUpperCase() + fromDomain.slice(1),
+    category: 'other',
+  };
+
+  // Try to extract payment URL
+  const urlMatch = bodyHtml.match(/href="(https?:\/\/[^"]*(?:pay|account|bill)[^"]*)"/i)
+    || bodyPlain.match(/(https?:\/\/\S*(?:pay|account|bill)\S*)/i);
+
+  return {
+    name: vendor.name,
+    amount,
+    dueDate,
+    category: vendor.category,
+    paymentUrl: urlMatch?.[1] || null,
+  };
+}
+
 async function updateUserBillStats(userId: string) {
   const supabase = createAdminClient();
 
@@ -246,36 +338,49 @@ export async function handleInboundEmail(payload: Record<string, unknown>): Prom
     const unwrapped = unwrapForwardedEmail(bodyPlain, bodyHtml, extractText(message.subject));
     const originalSender = unwrapped.originalFrom || senderEmail;
 
-    // Run through the existing parser with unwrapped content
-    const parserResult = await parseEmailPipeline({
-      userId,
-      email: {
-        gmail_message_id: extractMessageId(payload),
-        subject: unwrapped.originalSubject || extractText(message.subject),
-        from: originalSender,
-        date: extractDate(message.date || message.received_at || payload.created_at),
-        body_plain: unwrapped.bodyPlain,
-        body_html: unwrapped.bodyHtml,
-      },
+    const emailSubject = unwrapped.originalSubject || extractText(message.subject);
+
+    // For forwarded bills: use direct extraction first (fast, reliable)
+    // The full pipeline has too many rejection gates for simple forwarded bills
+    console.log('[INBOUND] Attempting direct extraction for forwarded bill', {
+      subject: emailSubject, from: originalSender,
     });
 
-    // Update bill stats
+    const directBill = extractBillDirect(unwrapped.bodyPlain, unwrapped.bodyHtml, emailSubject, originalSender);
+    if (directBill) {
+      const supabase = createAdminClient();
+      const { data: inserted, error: insertError } = await supabase
+        .from('bills')
+        .insert({
+          user_id: userId,
+          name: directBill.name,
+          amount: directBill.amount,
+          due_date: directBill.dueDate,
+          category: directBill.category || 'other',
+          is_paid: false,
+        })
+        .select('id')
+        .single();
+
+      if (insertError) {
+        console.error('[INBOUND] Failed to insert bill directly', insertError);
+      } else {
+        await updateUserBillStats(userId);
+        console.log('[INBOUND] Bill created via direct extraction', {
+          userId, billId: inserted.id, name: directBill.name,
+          amount: directBill.amount, dueDate: directBill.dueDate,
+        });
+        return { ok: true, status: 200, userId, senderEmail };
+      }
+    }
+
+    // Even if we couldn't extract, update stats and return OK
     await updateUserBillStats(userId);
-
-    console.log('[INBOUND] Bill processed successfully', {
-      userId,
-      senderEmail,
-      originalSender,
-      subject: extractText(message.subject),
+    console.log('[INBOUND] Could not extract bill details', {
+      userId, senderEmail, originalSender, subject: emailSubject,
     });
 
-    return {
-      ok: true,
-      status: 200,
-      userId,
-      senderEmail,
-      parsed: parserResult,
-    };
+    return { ok: true, status: 200, userId, senderEmail };
   } catch (error) {
     console.error('[INBOUND] Failed to handle inbound email', error);
     return { ok: false, status: 500, error: 'Failed to handle inbound email' };
