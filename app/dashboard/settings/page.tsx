@@ -31,7 +31,7 @@ import {
   RefreshCw,
   ArrowRight,
   Forward,
-  BookOpen,
+
   Clock as ClockIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -40,7 +40,7 @@ import { CustomizationSection } from '@/components/settings/customization-sectio
 import { NotificationSection } from '@/components/settings/notification-section';
 import { DeleteAccountModal } from '@/components/settings/delete-account-modal';
 import { InboxAddress } from '@/components/forwarding/InboxAddress';
-import { SetupGuide } from '@/components/forwarding/SetupGuide';
+// SetupGuide removed — simplified to inline 3-step in InboxAddress
 import { BillWaiting } from '@/components/forwarding/BillWaiting';
 import { ParsedBill } from '@/types';
 import { useBillsContext } from '@/contexts/bills-context';
@@ -321,7 +321,7 @@ export default function SettingsPage() {
   // Forwarding inbox state
   const [inboxAddress, setInboxAddress] = useState<string | null>(null);
   const [inboxData, setInboxData] = useState<{ bills_received?: number; last_bill_at?: string } | null>(null);
-  const [showSetupGuide, setShowSetupGuide] = useState(false);
+  // showSetupGuide removed — simplified forwarding UI
   const [isLoadingInbox, setIsLoadingInbox] = useState(true);
 
   // Check authentication and connected email provider status
@@ -810,8 +810,8 @@ export default function SettingsPage() {
             <SectionHeader
               icon={Forward}
               iconGradient="from-violet-500/80 to-teal-500/80"
-              title="Bill Forwarding"
-              description="Forward bills directly to your Duezo address"
+              title="Forward a Bill"
+              description="The easiest way to add bills"
               index={0}
             />
 
@@ -820,7 +820,7 @@ export default function SettingsPage() {
                 <div className="h-24 bg-white/[0.02] rounded-2xl" />
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <InboxAddress
                   inboxAddress={inboxAddress}
                   onInboxCreated={(address) => {
@@ -831,44 +831,19 @@ export default function SettingsPage() {
 
                 {inboxAddress && inboxData && (
                   <>
-                    {/* Stats row */}
+                    {/* Stats — only if they've forwarded bills */}
                     {(inboxData.bills_received !== undefined && inboxData.bills_received > 0) && (
-                      <div className="flex items-center gap-4 px-4 py-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-                        <div className="flex items-center gap-2">
-                          <Mail className="w-4 h-4 text-zinc-500" />
-                          <span className="text-sm text-zinc-400">
-                            <span className="text-white font-medium">{inboxData.bills_received}</span> bill{inboxData.bills_received !== 1 ? 's' : ''} received
-                          </span>
-                        </div>
-                        {inboxData.last_bill_at && (
-                          <div className="flex items-center gap-2">
-                            <ClockIcon className="w-4 h-4 text-zinc-500" />
-                            <span className="text-sm text-zinc-400">
-                              Last: {new Date(inboxData.last_bill_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
-                            </span>
-                          </div>
-                        )}
+                      <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500/[0.05] border border-emerald-500/10">
+                        <Mail className="w-4 h-4 text-emerald-400" />
+                        <span className="text-sm text-zinc-400">
+                          <span className="text-emerald-400 font-medium">{inboxData.bills_received}</span> bill{inboxData.bills_received !== 1 ? 's' : ''} forwarded
+                        </span>
                       </div>
                     )}
 
-                    {/* Waiting state — show when no bills received yet */}
+                    {/* Subtle waiting — only if no bills yet */}
                     {(!inboxData.bills_received || inboxData.bills_received === 0) && (
                       <BillWaiting active={true} />
-                    )}
-
-                    {/* Setup guide toggle */}
-                    <button
-                      onClick={() => setShowSetupGuide(!showSetupGuide)}
-                      className="flex items-center gap-2 text-sm text-violet-400 hover:text-violet-300 transition-colors"
-                    >
-                      <BookOpen className="w-4 h-4" />
-                      <span>{showSetupGuide ? 'Hide setup guides' : 'How to set up auto-forwarding'}</span>
-                    </button>
-
-                    {showSetupGuide && (
-                      <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                        <SetupGuide inboxAddress={inboxAddress} />
-                      </div>
                     )}
                   </>
                 )}
