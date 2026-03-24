@@ -32,6 +32,7 @@ import {
   Search,
   History,
   Check,
+  ExternalLink,
 } from 'lucide-react';
 import { useSubscription } from '@/hooks/use-subscription';
 import { Paywall } from '@/components/paywall';
@@ -768,18 +769,33 @@ export default function DashboardPage() {
                           )}
                         </div>
 
-                        {/* Bottom: Mark as Paid button */}
+                        {/* Bottom: Pay Now + Mark as Paid buttons */}
                         {!heroBill.is_paid && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleMarkAsPaidFromCard(heroBill);
-                            }}
-                            className="w-full py-3.5 rounded-2xl font-bold text-base text-white transition-all duration-200 active:scale-[0.98] border border-white/30 bg-white/[0.08] hover:bg-white/[0.15] backdrop-blur-sm"
-                          >
-                            <Check className="w-5 h-5 inline-block mr-2 -mt-0.5" />
-                            Mark as Paid
-                          </button>
+                          <div className="flex flex-col gap-2.5">
+                            {heroBill.payment_url && (
+                              <a
+                                href={heroBill.payment_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="w-full py-3.5 rounded-2xl font-bold text-base text-white text-center transition-all duration-200 active:scale-[0.98]"
+                                style={{ backgroundColor: 'var(--accent-primary)' }}
+                              >
+                                <ExternalLink className="w-5 h-5 inline-block mr-2 -mt-0.5" />
+                                Pay Now
+                              </a>
+                            )}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleMarkAsPaidFromCard(heroBill);
+                              }}
+                              className="w-full py-3.5 rounded-2xl font-bold text-base text-white transition-all duration-200 active:scale-[0.98] border border-white/30 bg-white/[0.08] hover:bg-white/[0.15] backdrop-blur-sm"
+                            >
+                              <Check className="w-5 h-5 inline-block mr-2 -mt-0.5" />
+                              Mark as Paid
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>
