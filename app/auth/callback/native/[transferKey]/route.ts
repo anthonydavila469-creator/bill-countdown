@@ -34,6 +34,11 @@ export async function GET(
   return new NextResponse(
     `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<script>
+// Auto-redirect to app immediately — triggers SFSafariViewController dismissal
+window.location.href = 'app.duezo://auth/callback';
+setTimeout(function() { window.location.href = 'app.duezo://auth/callback'; }, 500);
+</script>
 <style>body{background:#0F0A1E;color:#fff;font-family:system-ui;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}
 .c{text-align:center;padding:24px}
 .check{font-size:48px;margin-bottom:12px}
@@ -45,8 +50,8 @@ export async function GET(
 <body><div class="c">
 <div class="check">✅</div>
 <p><strong>You're signed in!</strong></p>
-<a href="app.duezo://auth/callback">Open Duezo</a>
-<p class="hint">Tap the button to return to the app</p>
+<a href="app.duezo://auth/callback" class="btn">Open Duezo</a>
+<p class="hint">Returning to Duezo...</p>
 </div>
 </body></html>`,
     { headers: { 'Content-Type': 'text/html' } }

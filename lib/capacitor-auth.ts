@@ -98,8 +98,11 @@ export function listenForAuthReturn(
           await supabase.auth.setSession({ access_token, refresh_token });
           resolved = true;
           pendingTransferKey = null;
+          console.log('[Auth] ✅ Session set, closing browser...');
           try { await Browser.close(); } catch { /* may already be closed */ }
-          console.log('[Auth] ✅ Session set, calling onAuthenticated');
+          // Wait for SFSafariViewController to fully dismiss before navigating
+          await new Promise((r) => setTimeout(r, 600));
+          console.log('[Auth] Browser closed, calling onAuthenticated');
           onAuthenticated();
           return;
         }
@@ -116,6 +119,7 @@ export function listenForAuthReturn(
         resolved = true;
         pendingTransferKey = null;
         try { await Browser.close(); } catch { /* may already be closed */ }
+        await new Promise((r) => setTimeout(r, 600));
         onAuthenticated();
       }
     } catch (err) {

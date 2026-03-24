@@ -103,7 +103,7 @@ export function InboxAddress({ inboxAddress, onInboxCreated }: InboxAddressProps
           </div>
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm sm:text-base text-white font-mono truncate">
+          <p className="text-xs sm:text-sm text-white font-mono break-all leading-tight">
             {inboxAddress}
           </p>
         </div>
