@@ -35,9 +35,10 @@ export async function GET(
     `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <script>
-// Auto-redirect to app immediately — triggers SFSafariViewController dismissal
-window.location.href = 'app.duezo://auth/callback';
-setTimeout(function() { window.location.href = 'app.duezo://auth/callback'; }, 500);
+// Try Universal Link first (dismisses SFSafariViewController automatically on iOS)
+// Then fall back to custom URL scheme
+window.location.href = 'https://www.duezo.app/auth/callback/return';
+setTimeout(function() { window.location.href = 'app.duezo://auth/callback'; }, 800);
 </script>
 <style>body{background:#0F0A1E;color:#fff;font-family:system-ui;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}
 .c{text-align:center;padding:24px}
