@@ -12,9 +12,13 @@ interface QuickAddModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (bill: Bill) => void;
+  initialName?: string | null;
+  initialAmount?: number | null;
+  initialDueDate?: string | null;
 }
 
-export function QuickAddModal({ isOpen, onClose, onSuccess }: QuickAddModalProps) {
+export function QuickAddModal({ isOpen, onClose, onSuccess, initialName, initialAmount, initialDueDate }: QuickAddModalProps) {
+  const isFromScan = !!(initialName || initialAmount || initialDueDate);
   const { addToast } = useToast();
   const [name, setName] = useState('');
   const [amount, setAmount] = useState<number | null>(null);
@@ -34,9 +38,9 @@ export function QuickAddModal({ isOpen, onClose, onSuccess }: QuickAddModalProps
   // Reset form when modal opens
   useEffect(() => {
     if (isOpen) {
-      setName('');
-      setAmount(null);
-      setDueDate(formatDateForInput(new Date()));
+      setName(initialName ?? '');
+      setAmount(initialAmount ?? null);
+      setDueDate(initialDueDate ?? formatDateForInput(new Date()));
       setCategory(null);
       setPaymentUrl(null);
       setEmoji('📄');
@@ -44,6 +48,15 @@ export function QuickAddModal({ isOpen, onClose, onSuccess }: QuickAddModalProps
       setSuggestions([]);
       setFieldErrors({});
       document.body.style.overflow = 'hidden';
+      // Try vendor match for scan results
+      if (initialName) {
+        const results = searchVendors(initialName);
+        if (results.length > 0 && results[0].name.toLowerCase() === initialName.toLowerCase()) {
+          setCategory(results[0].category);
+          setEmoji(categoryEmojis[results[0].category]);
+          if (results[0].payment_url) setPaymentUrl(results[0].payment_url);
+        }
+      }
       // Focus name input after animation
       focusTimerRef.current = setTimeout(() => nameInputRef.current?.focus(), 200);
     } else {
@@ -53,6 +66,7 @@ export function QuickAddModal({ isOpen, onClose, onSuccess }: QuickAddModalProps
       document.body.style.overflow = 'unset';
       if (focusTimerRef.current) clearTimeout(focusTimerRef.current);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   // Close on Escape
@@ -190,6 +204,13 @@ export function QuickAddModal({ isOpen, onClose, onSuccess }: QuickAddModalProps
               <X className="w-5 h-5" />
             </button>
           </div>
+
+          {/* Scan banner */}
+          {isFromScan && (
+            <div className="mx-5 mt-1 flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
+              <span className="text-xs text-blue-300">📷 Scanned from photo — verify details</span>
+            </div>
+          )}
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="px-5 pb-5 pt-2 space-y-4">

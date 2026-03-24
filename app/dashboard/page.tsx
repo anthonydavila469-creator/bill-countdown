@@ -25,6 +25,7 @@ import { DashboardSkeleton } from '@/components/skeleton-loader';
 import { hapticSuccess, hapticLight } from '@/lib/haptics';
 import {
   Plus,
+  Camera,
   LayoutGrid,
   Calendar,
   Settings,
@@ -265,6 +266,9 @@ export default function DashboardPage() {
   // Modal state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
+  const [scanData, setScanData] = useState<{ name?: string | null; amount?: number | null; due_date?: string | null } | null>(null);
+  const [isScanning, setIsScanning] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [editingBill, setEditingBill] = useState<Bill | null>(null);
   const [deletingBill, setDeletingBill] = useState<Bill | null>(null);
   const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
@@ -325,7 +329,49 @@ export default function DashboardPage() {
   // Handle Add Bill button click — opens Quick Add
   const handleAddBillClick = () => {
     hapticLight();
+    setScanData(null);
     setIsQuickAddOpen(true);
+  };
+
+  // Handle Scan Bill — capture image and extract data
+  const handleScanBill = () => {
+    hapticLight();
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // Reset input so the same file can be re-selected
+    e.target.value = '';
+
+    setIsScanning(true);
+    try {
+      // Convert to base64 data URL
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const response = await fetch('/api/bills/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: base64 }),
+      });
+
+      if (!response.ok) throw new Error('Scan failed');
+
+      const data = await response.json();
+      setScanData(data);
+      setIsQuickAddOpen(true);
+    } catch {
+      setScanData(null);
+      setIsQuickAddOpen(true);
+    } finally {
+      setIsScanning(false);
+    }
   };
 
   // Calculate stats (only unpaid bills)
@@ -579,9 +625,17 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Right: Notification + Glowing Add button */}
+            {/* Right: Notification + Scan + Glowing Add button */}
             <div className="flex items-center gap-2">
               <NotificationBell />
+              <button
+                onClick={handleScanBill}
+                disabled={isScanning}
+                className="p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-white/[0.06] transition-all duration-200 disabled:opacity-50"
+                title="Scan Bill"
+              >
+                <Camera className="w-5 h-5" />
+              </button>
               <button
                 onClick={handleAddBillClick}
                 className="p-2.5 rounded-xl hover:text-white transition-all duration-200"
@@ -594,6 +648,14 @@ export default function DashboardPage() {
               >
                 <Plus className="w-6 h-6" />
               </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleFileSelected}
+                className="hidden"
+              />
             </div>
           </div>
         </header>
@@ -904,11 +966,24 @@ export default function DashboardPage() {
         </div>
       </main>
 
+      {/* Scanning overlay */}
+      {isScanning && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-3 p-6 rounded-2xl bg-[#0c0c10] border border-white/10">
+            <div className="w-8 h-8 border-2 border-white/20 border-t-violet-400 rounded-full animate-spin" />
+            <p className="text-sm text-zinc-300">Scanning bill…</p>
+          </div>
+        </div>
+      )}
+
       {/* Quick Add Modal */}
       <QuickAddModal
         isOpen={isQuickAddOpen}
-        onClose={() => setIsQuickAddOpen(false)}
+        onClose={() => { setIsQuickAddOpen(false); setScanData(null); }}
         onSuccess={handleBillSuccess}
+        initialName={scanData?.name}
+        initialAmount={scanData?.amount}
+        initialDueDate={scanData?.due_date}
       />
 
       {/* Add/Edit Bill Modal (full form — used for editing) */}
