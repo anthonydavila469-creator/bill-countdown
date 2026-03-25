@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { createClient } from '@/lib/supabase/client';
-import { apiUrl } from '@/lib/api-base';
+import { apiFetch } from '@/lib/api-base';
 
 /**
  * Initializes push notifications when running as a native app.
@@ -47,7 +47,7 @@ export function PushNotificationInit() {
           localStorage.setItem('pushToken', token.value);
 
           try {
-            const response = await fetch(apiUrl('/api/push/register-device'), {
+            const response = await apiFetch('/api/push/register-device', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ deviceToken: token.value, userId: user.id }),

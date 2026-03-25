@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Bell, X, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/contexts/theme-context';
-import { apiUrl } from '@/lib/api-base';
+import { apiFetch } from '@/lib/api-base';
 
 interface FeedNotification {
   id: string;
@@ -34,7 +34,7 @@ export function NotificationBell() {
 
   const fetchFeed = useCallback(async () => {
     try {
-      const res = await fetch(apiUrl('/api/notifications/feed'));
+      const res = await apiFetch('/api/notifications/feed');
       if (!res.ok) return;
       const data = await res.json();
       setNotifications(data.notifications ?? []);
@@ -67,7 +67,7 @@ export function NotificationBell() {
   const markAllRead = async () => {
     setLoading(true);
     try {
-      await fetch(apiUrl('/api/notifications/feed'), {
+      await apiFetch('/api/notifications/feed', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ markAll: true }),

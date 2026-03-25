@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { createClient } from '@/lib/supabase/client';
-import { apiUrl } from '@/lib/api-base';
+import { apiFetch } from '@/lib/api-base';
 
 async function registerNativeDeviceToken(deviceToken: string) {
   try {
@@ -16,7 +16,7 @@ async function registerNativeDeviceToken(deviceToken: string) {
       return;
     }
 
-    const response = await fetch(apiUrl('/api/push/register-device'), {
+    const response = await apiFetch('/api/push/register-device', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ deviceToken, userId: user.id }),

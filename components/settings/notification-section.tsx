@@ -16,7 +16,7 @@ import { NotificationSettings, DEFAULT_NOTIFICATION_SETTINGS } from '@/types';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
-import { apiUrl } from '@/lib/api-base';
+import { apiFetch } from '@/lib/api-base';
 
 async function getAuthToken(): Promise<string | null> {
   const supabase = createClient();
@@ -150,7 +150,7 @@ export function NotificationSection() {
         const headers: Record<string, string> = { 'Content-Type': 'application/json' };
         if (token) headers.Authorization = `Bearer ${token}`;
 
-        const res = await fetch(apiUrl(`/api/notifications/settings?t=${Date.now()}`), {
+        const res = await apiFetch(`/api/notifications/settings?t=${Date.now()}`, {
           headers,
           cache: 'no-store',
         });
@@ -183,7 +183,7 @@ export function NotificationSection() {
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
       if (token) headers.Authorization = `Bearer ${token}`;
 
-      const res = await fetch(apiUrl(`/api/notifications/settings?t=${Date.now()}`), {
+      const res = await apiFetch(`/api/notifications/settings?t=${Date.now()}`, {
         method: 'PUT',
         headers,
         body: JSON.stringify(newSettings),
