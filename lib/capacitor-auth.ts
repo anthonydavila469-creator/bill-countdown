@@ -2,6 +2,7 @@ import { Capacitor, registerPlugin } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { apiUrl } from '@/lib/api-base';
 
 // Custom native plugin — uses ASWebAuthenticationSession (auto-dismisses after auth)
 // Falls back to @capacitor/browser if plugin isn't available (older builds)
@@ -137,7 +138,7 @@ async function resolveSessionFromTransfer(supabase: SupabaseClient): Promise<boo
   for (let attempt = 1; attempt <= 5; attempt++) {
     try {
       console.log(`[Auth] Transfer attempt ${attempt}...`);
-      const res = await fetch('/api/auth/transfer', {
+      const res = await fetch(apiUrl('/api/auth/transfer'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ transfer_key: pendingTransferKey }),

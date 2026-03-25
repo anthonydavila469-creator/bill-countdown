@@ -39,6 +39,7 @@ import { useSubscription } from '@/hooks/use-subscription';
 import { Paywall } from '@/components/paywall';
 import { UpgradeModal } from '@/components/upgrade-modal';
 import { cn } from '@/lib/utils';
+import { apiUrl } from '@/lib/api-base';
 
 // Swipe-to-pay card wrapper
 function SwipeBillCard({
@@ -355,7 +356,7 @@ export default function DashboardPage() {
         reader.readAsDataURL(file);
       });
 
-      const response = await fetch('/api/bills/scan', {
+      const response = await fetch(apiUrl('/api/bills/scan'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ image: base64 }),

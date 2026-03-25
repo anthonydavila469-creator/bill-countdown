@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Bill } from '@/types';
+import { apiUrl } from '@/lib/api-base';
 
 interface UseBillsOptions {
   showPaid?: boolean;
@@ -105,7 +106,7 @@ export function useBill(id: string) {
     setError(null);
 
     try {
-      const response = await fetch(`/api/bills/${id}`);
+      const response = await fetch(apiUrl(`/api/bills/${id}`));
 
       if (!response.ok) {
         const data = await response.json();
@@ -141,7 +142,7 @@ export function useDeleteBill() {
     setIsDeleting(true);
 
     try {
-      const response = await fetch(`/api/bills/${id}`, {
+      const response = await fetch(apiUrl(`/api/bills/${id}`), {
         method: 'DELETE',
       });
 
@@ -170,7 +171,7 @@ export function useMarkAsPaid() {
     setIsUpdating(true);
 
     try {
-      const response = await fetch(`/api/bills/${bill.id}`, {
+      const response = await fetch(apiUrl(`/api/bills/${bill.id}`), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

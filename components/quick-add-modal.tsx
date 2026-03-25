@@ -7,6 +7,7 @@ import { cn, formatDateForInput } from '@/lib/utils';
 import { searchVendors, VendorSuggestion } from '@/lib/vendor-suggestions';
 import { useToast } from '@/components/ui/toast';
 import { Bill } from '@/types';
+import { apiUrl } from '@/lib/api-base';
 
 interface QuickAddModalProps {
   isOpen: boolean;
@@ -137,7 +138,7 @@ export function QuickAddModal({ isOpen, onClose, onSuccess, initialName, initial
         is_autopay: false,
       };
 
-      const response = await fetch('/api/bills', {
+      const response = await fetch(apiUrl('/api/bills'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

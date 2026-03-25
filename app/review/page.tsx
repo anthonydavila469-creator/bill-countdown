@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSubscription } from '@/hooks/use-subscription';
+import { apiUrl } from '@/lib/api-base';
 
 interface ReviewItem {
   id: string;
@@ -87,7 +88,7 @@ export default function ReviewQueuePage() {
     setError(null);
 
     try {
-      const response = await fetch('/api/extraction/review-queue');
+      const response = await fetch(apiUrl('/api/extraction/review-queue'));
 
       if (!response.ok) {
         throw new Error('Failed to fetch review queue');
@@ -129,7 +130,7 @@ export default function ReviewQueuePage() {
     setProcessingIds((prev) => new Set(prev).add(id));
 
     try {
-      const response = await fetch('/api/extraction/review-queue', {
+      const response = await fetch(apiUrl('/api/extraction/review-queue'), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -174,7 +175,7 @@ export default function ReviewQueuePage() {
     setProcessingIds((prev) => new Set(prev).add(id));
 
     try {
-      const response = await fetch('/api/extraction/review-queue', {
+      const response = await fetch(apiUrl('/api/extraction/review-queue'), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

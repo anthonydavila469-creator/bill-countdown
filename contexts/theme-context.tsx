@@ -9,6 +9,7 @@ import {
   ReactNode,
 } from 'react';
 import { Capacitor } from '@capacitor/core';
+import { apiUrl } from '@/lib/api-base';
 import {
   DashboardLayout,
   ColorThemeId,
@@ -96,7 +97,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   // Fetch preferences on mount
   const refreshPreferences = useCallback(async () => {
     try {
-      const response = await fetch('/api/preferences');
+      const response = await fetch(apiUrl('/api/preferences'));
       if (!response.ok) {
         // User might not be logged in, use defaults
         return;
@@ -148,7 +149,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     applyCSSVariables(validThemeId);
 
     try {
-      await fetch('/api/preferences', {
+      await fetch(apiUrl('/api/preferences'), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ color_theme: validThemeId }),
@@ -158,7 +159,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
       if (Capacitor.isNativePlatform()) {
         import('../lib/capacitor-plugins/sync-widget')
           .then(async ({ syncWidgetPayload }) => {
-            const response = await fetch('/api/bills?showPaid=true');
+            const response = await fetch(apiUrl('/api/bills?showPaid=true'));
             const data = response.ok ? await response.json() : [];
             const bills = Array.isArray(data) ? data : [];
 
@@ -184,7 +185,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     setDashboardLayout(newLayout);
 
     try {
-      await fetch('/api/preferences', {
+      await fetch(apiUrl('/api/preferences'), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ dashboard_layout: newLayout }),

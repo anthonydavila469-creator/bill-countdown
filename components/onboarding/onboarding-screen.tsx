@@ -10,6 +10,7 @@ import {
 } from '@/lib/onboarding/bill-templates';
 import { useToast } from '@/components/ui/toast';
 import { useSubscription } from '@/hooks/use-subscription';
+import { apiUrl } from '@/lib/api-base';
 import {
   Zap,
   Sparkles,
@@ -110,7 +111,7 @@ export function OnboardingScreen({
         };
 
         try {
-          const response = await fetch('/api/bills', {
+          const response = await fetch(apiUrl('/api/bills'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(billData),

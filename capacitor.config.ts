@@ -4,10 +4,6 @@ const config: CapacitorConfig = {
   appId: 'app.duezo',
   appName: 'Duezo',
   webDir: 'out',
-  server: {
-    url: 'https://www.duezo.app',
-    cleartext: false,
-  },
   ios: {
     scheme: 'Duezo',
     contentInset: 'automatic',

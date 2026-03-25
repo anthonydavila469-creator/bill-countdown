@@ -10,6 +10,7 @@ import React, {
 } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { Bill } from '@/types';
+import { apiUrl } from '@/lib/api-base';
 
 // Mutation states for per-bill loading indicators
 export type MutationState =
@@ -184,7 +185,7 @@ export function BillsProvider({ children }: BillsProviderProps) {
   // Fetch bills from API (including paid bills for cross-page sync)
   const refetch = useCallback(async () => {
     try {
-      const response = await fetch('/api/bills?showPaid=true');
+      const response = await fetch(apiUrl('/api/bills?showPaid=true'));
       if (response.ok) {
         const data = await response.json();
         const sortedBills = data.sort(
@@ -228,7 +229,7 @@ export function BillsProvider({ children }: BillsProviderProps) {
       try {
         const [{ syncWidgetPayload }, prefsResponse] = await Promise.all([
           import('../lib/capacitor-plugins/sync-widget'),
-          fetch('/api/preferences').catch(() => null),
+          fetch(apiUrl('/api/preferences')).catch(() => null),
         ]);
 
         if (cancelled) {
