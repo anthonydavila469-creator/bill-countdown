@@ -3,6 +3,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/contexts/theme-context";
 import { SubscriptionProvider } from "@/contexts/subscription-context";
 import { ToastProvider } from "@/components/ui/toast";
+import { SFVCEscapeBanner } from "@/components/sfvc-escape";
 
 export const metadata: Metadata = {
   title: {
@@ -85,7 +86,10 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <SubscriptionProvider>
-            <ToastProvider>{children}</ToastProvider>
+            <ToastProvider>
+              <SFVCEscapeBanner />
+              {children}
+            </ToastProvider>
           </SubscriptionProvider>
         </ThemeProvider>
       </body>
