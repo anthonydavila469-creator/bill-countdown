@@ -202,12 +202,71 @@ export default function LandingPage() {
     url: 'https://duezo.app',
   };
 
+  const faqJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'How does Duezo work?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Forward any bill email to your unique Duezo address. Our AI automatically extracts the bill name, amount, and due date, then creates a beautiful countdown card on your dashboard. You can also add bills manually.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Is Duezo free?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes, Duezo is 100% free forever. All features are included with no subscriptions, no paywalls, and no limits on the number of bills you can track.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Do I need to connect my bank account?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'No. Duezo never asks for your bank login or financial credentials. You simply forward bill emails or add bills manually. Your financial data stays private.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'How do I add bills to Duezo?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'There are two ways: forward a bill email to your Duezo address and AI extracts the details automatically, or tap the + button to add a bill manually with the name, amount, and due date.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'What platforms is Duezo available on?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Duezo is available as a native iOS app with home screen widgets and as a web app that works on any browser. Your bills sync across all your devices.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Is my data secure with Duezo?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes. Duezo uses bank-level encryption and never stores your bank credentials. Your bill data is protected with row-level security and hosted on secure, SOC 2-compliant infrastructure.',
+        },
+      },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-[#0F0A1E] text-white overflow-x-hidden overflow-y-auto">
       <NativeRedirect />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
       {/* Ambient background gradients */}
       <div className="fixed inset-0 pointer-events-none">

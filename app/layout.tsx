@@ -64,6 +64,22 @@ export const viewport: Viewport = {
   ],
 };
 
+const organizationJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Duezo',
+  url: 'https://duezo.app',
+  logo: 'https://duezo.app/logo-transparent-64.png',
+  description:
+    'AI-powered bill tracking app with countdown cards, smart reminders, and bill forwarding. Free forever.',
+  contactPoint: {
+    '@type': 'ContactPoint',
+    email: 'support@duezo.app',
+    contactType: 'customer support',
+  },
+  sameAs: [],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -75,6 +91,10 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
       </head>
       <body
         className="antialiased bg-[#0F0A1E]"
