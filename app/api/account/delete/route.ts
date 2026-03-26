@@ -1,17 +1,15 @@
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
 import { NextResponse } from 'next/server';
 import { isRateLimited } from '@/lib/rate-limit';
 
 // DELETE /api/account/delete - Permanently delete user account and all data
 export async function DELETE(request: Request) {
   try {
-    const supabase = await createClient();
+    const { user } = await getAuthenticatedUser(request);
 
-    // Get current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }

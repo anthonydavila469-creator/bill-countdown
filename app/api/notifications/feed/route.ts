@@ -1,12 +1,13 @@
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from "@/lib/supabase/admin";
 import { NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
 
 // GET /api/notifications/feed - Fetch user's in-app notifications (last 30 days)
 export async function GET(request: Request) {
   try {
-    const { user } = await getAuthenticatedUser(request);
-    const supabase = await createClient();
+    const { user, method } = await getAuthenticatedUser(request);
+    const supabase = method === 'bearer' ? createAdminClient() : await createClient();
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -59,8 +60,8 @@ export async function GET(request: Request) {
 // PATCH /api/notifications/feed - Mark notifications as read
 export async function PATCH(request: Request) {
   try {
-    const { user } = await getAuthenticatedUser(request);
-    const supabase = await createClient();
+    const { user, method } = await getAuthenticatedUser(request);
+    const supabase = method === 'bearer' ? createAdminClient() : await createClient();
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

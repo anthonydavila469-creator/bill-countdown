@@ -43,8 +43,8 @@ function normalizeNotificationSettings(raw: Partial<NotificationSettings> | null
 // GET /api/notifications/settings - Get notification settings
 export async function GET(request: Request) {
   try {
-    const { user } = await getAuthenticatedUser(request);
-    const supabase = await createClient();
+    const { user, method } = await getAuthenticatedUser(request);
+    const supabase = method === 'bearer' ? createAdminClient() : await createClient();
 
     if (!user) {
       return NextResponse.json(
@@ -91,8 +91,8 @@ export async function GET(request: Request) {
 export async function PUT(request: Request) {
   try {
     console.log('[notifications/settings][PUT] request received');
-    const { user } = await getAuthenticatedUser(request);
-    const supabase = await createClient();
+    const { user, method } = await getAuthenticatedUser(request);
+    const supabase = method === 'bearer' ? createAdminClient() : await createClient();
 
     if (!user) {
       return NextResponse.json(
