@@ -283,7 +283,7 @@ export default function LandingPage() {
             <div className="flex items-center gap-2">
               <Image
                 src="/logo-transparent-64.png"
-                alt="Duezo app icon"
+                alt="Duezo app icon — AI-powered bill tracking"
                 width={32}
                 height={32}
               />

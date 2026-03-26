@@ -81,6 +81,23 @@ export default function AboutPage() {
           </div>
         </div>
 
+        {/* Credentials */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-12">
+          {[
+            '5+ years building software',
+            'Bootstrapped founder',
+            'Built Duezo after paying too many late fees',
+            'Ships code daily',
+          ].map((item) => (
+            <div
+              key={item}
+              className="p-4 rounded-xl bg-white/[0.02] border border-white/5 text-center"
+            >
+              <p className="text-sm text-zinc-300 font-medium">{item}</p>
+            </div>
+          ))}
+        </div>
+
         {/* Story */}
         <div className="space-y-6 text-zinc-300 leading-relaxed mb-12">
           <h2 className="text-2xl font-semibold text-white">The Story</h2>

@@ -1,0 +1,60 @@
+Last updated: March 26, 2026
+
+# Duezo — Complete Site Map & Page Descriptions
+
+## / (Homepage)
+The Duezo landing page introduces the app to new visitors. It explains what Duezo does — AI-powered bill tracking with beautiful countdown cards — and shows a live demo of bill cards shifting color as due dates approach. The page covers key features (smart bill forwarding, countdown cards, reminders, recurring bills, calendar view, analytics, dark mode), pricing (100% free forever), and a three-step "How it Works" walkthrough. Designed for anyone who has ever missed a bill payment and wants a simple, visual way to stay on top of due dates. Includes structured data for SoftwareApplication and FAQPage schemas.
+
+## /signup
+The sign-up page lets new users create a free Duezo account. Users can register with email/password or sign in with Google OAuth. No credit card is required. After signing up, users are taken directly to the dashboard where they can start adding bills immediately. This page is for anyone ready to start tracking their bills.
+
+## /login
+The login page for existing Duezo users. Supports email/password and Google OAuth sign-in. Includes a "forgot password" flow. After logging in, users land on their bill dashboard. This page is for returning users who want to check their upcoming bills.
+
+## /about
+The about page tells the story of Duezo and its creator, Anthony Dyess. It explains why the app was built (one too many late fees), the bootstrapped philosophy (no VC, no investors), and the indie developer ethos. Includes the founder's credentials and values (bootstrapped, indie-built, real human support). This page is for users who want to know who is behind the app and why it exists. Builds trust by showing a real person stands behind the product.
+
+## /dashboard
+The main bill tracking dashboard (requires authentication). Shows all active bills as countdown cards that shift from green to amber to red as due dates approach. Features include: adding bills manually, forwarding bill emails for AI extraction, marking bills as paid, viewing analytics and spending trends, calendar view, managing recurring bills, and notification settings. This is the core of Duezo — the page users visit daily to see what bills are coming up and take action.
+
+## /blog
+The blog index page listing all Duezo articles. Contains SEO-focused content about bill tracking, personal finance tips, and app comparisons. Each article card shows a title, summary, and publication date. This page is for users researching bill tracking solutions and for organic search traffic. Articles are written to help people who struggle with missed payments, are looking for alternatives to discontinued apps, or want privacy-respecting bill management.
+
+## /blog/duezo-faq
+A comprehensive FAQ page answering the most common questions about Duezo. Covers topics like how bill forwarding works, what AI is used, pricing, data privacy, supported platforms, recurring bills, notifications, and more. This page is for prospective users evaluating whether Duezo meets their needs, and for existing users looking for help. Includes FAQ structured data for rich search results.
+
+## /blog/never-miss-a-bill-payment
+An educational guide on strategies to never miss a bill payment. Covers common reasons people miss bills, how countdown-based tracking differs from traditional budgeting, and practical tips for staying on top of due dates. This page is for anyone searching for bill payment advice and positions Duezo as a solution. Valuable for users who are frustrated with late fees and want actionable steps.
+
+## /blog/why-simple-bill-tracker-beats-budgeting-apps
+A comparison article explaining why a focused bill tracker is more effective than full budgeting apps for the specific problem of missed payments. Compares the complexity of budgeting tools (bank linking, categorization, budget goals) with the simplicity of Duezo's approach (forward a bill, see a countdown). This page is for users overwhelmed by traditional budgeting apps who just want to pay bills on time.
+
+## /blog/bill-tracker-no-bank-account
+An article for privacy-conscious users who want to track bills without connecting a bank account. Explains how Duezo works without requiring financial credentials, why that matters for security, and how bill forwarding provides the same convenience without the risk. This page is for users who are concerned about sharing bank login information with third-party apps.
+
+## /blog/mint-alternative
+A guide for former Mint users looking for an alternative after Mint's shutdown. Explains how Duezo fills the bill tracking gap that Mint left behind, with a simpler and more focused approach. Covers what Duezo does and doesn't do compared to Mint, and why a dedicated bill tracker may be a better fit. This page targets users searching for "Mint alternative" or "Mint replacement" who specifically need bill tracking.
+
+## /blog/finovera-alternative
+A guide for former Finovera (formerly FileThis) users seeking a replacement. Explains how Duezo's bill forwarding approach provides similar document-to-data extraction without the complexity. Covers the transition from Finovera to Duezo and what features carry over. This page is for users searching for "Finovera alternative" who need automated bill tracking.
+
+## /privacy
+The Duezo privacy policy. Details what data is collected (bill information from forwarded emails, account details), how it is stored (encrypted, row-level security on Supabase), what is never collected (bank credentials, financial account logins), and user rights regarding their data. This page is for users who want to understand Duezo's data practices before signing up, and for compliance purposes.
+
+## /terms
+The Duezo terms of service. Covers acceptable use, account responsibilities, service availability, intellectual property, limitation of liability, and termination policies. This page is for users reviewing the legal terms before creating an account, and for legal compliance.
+
+---
+
+## Technology Overview
+- **Framework:** Next.js (App Router)
+- **AI:** Claude by Anthropic for bill email parsing
+- **Database:** Supabase (PostgreSQL with row-level security)
+- **iOS:** Native app with Capacitor bridge and home screen widgets
+- **Push Notifications:** APNs for iOS reminders
+- **Hosting:** Vercel
+
+## Contact
+- Support: support@duezo.app
+- Website: https://duezo.app
+- X (Twitter): https://x.com/duezoapp
