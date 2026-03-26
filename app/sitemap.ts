@@ -93,6 +93,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 0.7,
     },
+    // About
+    {
+      url: 'https://duezo.app/about',
+      lastModified: new Date('2026-03-26'),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
     // Blog
     {
       url: 'https://duezo.app/blog',
@@ -127,6 +134,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     {
       url: 'https://duezo.app/blog/never-miss-a-bill-payment',
       lastModified: new Date('2026-03-01'),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
+      url: 'https://duezo.app/blog/duezo-faq',
+      lastModified: new Date('2026-03-26'),
       changeFrequency: 'monthly',
       priority: 0.8,
     },

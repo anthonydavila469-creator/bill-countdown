@@ -283,7 +283,7 @@ export default function LandingPage() {
             <div className="flex items-center gap-2">
               <Image
                 src="/logo-transparent-64.png"
-                alt="Duezo"
+                alt="Duezo app icon"
                 width={32}
                 height={32}
               />
@@ -700,7 +700,7 @@ export default function LandingPage() {
             <div className="flex items-center gap-2">
               <Image
                 src="/logo-transparent-48.png"
-                alt="Duezo"
+                alt="Duezo bill tracking app logo"
                 width={24}
                 height={24}
               />
@@ -715,8 +715,29 @@ export default function LandingPage() {
               <Link href="/terms" className="hover:text-white transition-colors">
                 Terms
               </Link>
+              <Link href="/about" className="hover:text-white transition-colors">
+                About
+              </Link>
               <a href="mailto:support@duezo.app" className="hover:text-white transition-colors">
                 Contact
+              </a>
+              <a
+                href="https://x.com/duezoapp"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition-colors"
+                aria-label="Duezo on X (Twitter)"
+              >
+                𝕏
+              </a>
+              <a
+                href="https://apps.apple.com/app/duezo-bills-due-soon/id6740806498"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition-colors"
+                aria-label="Download Duezo on the App Store"
+              >
+                App Store
               </a>
             </div>
 
