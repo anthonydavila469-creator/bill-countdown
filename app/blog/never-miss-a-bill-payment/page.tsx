@@ -148,8 +148,8 @@ export default function NeverMissBillPaymentPage() {
                   {tip.isCTA && (
                     <div className="bg-violet-500/10 border border-violet-500/30 rounded-xl p-5 mt-4">
                       <p className="text-sm text-zinc-300 mb-3">
-                        <strong className="text-white">Duezo</strong> scans your email for bills, extracts the due date and amount, 
-                        and shows you a live countdown on your phone. No bank account linking required — just forward your bill emails and
+                        <strong className="text-white">Duezo</strong> lets you add bills with Quick Add or snap a photo to extract the due date and amount,
+                        then shows you a live countdown on your phone. No bank account linking required — just add your bills and
                         you'll see everything that's due in the next 30 days.
                       </p>
                       <Link

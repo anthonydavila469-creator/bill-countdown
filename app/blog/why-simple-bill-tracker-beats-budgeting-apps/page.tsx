@@ -312,8 +312,8 @@ export default function WhySimpleBillTrackerPage() {
           </p>
 
           <p className="text-zinc-300 leading-relaxed mb-4">
-            Here is how it works. You forward bill emails to your Duezo address — the same bills your utility companies, streaming services,
-            and credit cards already send you. Duezo reads those emails, extracts due dates and amounts, and sets up
+            Here is how it works. You add bills with Quick Add — start typing a vendor name and pick from autocomplete — or snap a photo of any bill
+            or statement and AI extracts the details. Duezo reads those bills, extracts due dates and amounts, and sets up
             countdown timers automatically. You get push notifications before each bill hits. That&apos;s the whole product.
           </p>
 
@@ -358,7 +358,7 @@ export default function WhySimpleBillTrackerPage() {
 
           <p className="text-zinc-300 leading-relaxed">
             That intentional narrowness is the point. You are not going to stop using Duezo because it became too complicated
-            to maintain. There is almost nothing to maintain. You forward your bills, they show up, the reminders fire.
+            to maintain. There is almost nothing to maintain. You add your bills, they show up, the reminders fire.
           </p>
 
           <hr className="border-zinc-800 my-10" />

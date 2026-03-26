@@ -221,13 +221,7 @@ export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   // Settings state
-  // Email connection states removed — forwarding only now
-  // Yahoo/import states removed — forwarding only now
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  // Force rescan states removed — forwarding only now
-
-  // Auto-scan state (triggers after OAuth redirect)
-  // Auto-scan states removed — forwarding only now
 
 
   // Check authentication
@@ -346,8 +340,6 @@ export default function SettingsPage() {
             </li>
           </ul>
         </nav>
-
-        {/* Email sync promo removed — forwarding is the primary flow now */}
 
         {/* User */}
         <div className="p-4 border-t border-white/5">

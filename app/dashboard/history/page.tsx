@@ -18,7 +18,7 @@ import {
   History,
   Settings,
   LogOut,
-  Mail,
+  Zap,
   Search,
   CheckCircle2,
   Calendar,
@@ -628,21 +628,21 @@ export default function HistoryPage() {
           </ul>
         </nav>
 
-        {/* Forward a Bill promo */}
+        {/* Quick Add promo */}
         <div className="p-4 border-t border-white/5">
           <div className="p-4 rounded-xl bg-gradient-to-br from-violet-500/10 to-violet-500/10 border border-white/5">
             <div className="flex items-center gap-3 mb-3">
-              <Mail className="w-5 h-5 text-violet-400" />
-              <span className="text-sm font-medium text-white">Forward a Bill</span>
+              <Zap className="w-5 h-5 text-violet-400" />
+              <span className="text-sm font-medium text-white">Add a Bill</span>
             </div>
             <p className="text-xs text-zinc-400 mb-3">
-              Forward any bill email to Duezo and we&apos;ll add it automatically.
+              Use Quick Add or snap a photo — AI extracts the details instantly.
             </p>
             <Link
-              href="/dashboard/settings"
+              href="/dashboard"
               className="block w-full px-3 py-2 text-sm font-medium bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-white text-center"
             >
-              Set Up Forwarding
+              Quick Add
             </Link>
           </div>
         </div>

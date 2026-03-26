@@ -29,11 +29,11 @@ export const metadata: Metadata = {
 const faqs = [
   {
     q: 'Can Duezo really replace my spreadsheet?',
-    a: "Honestly? Yes. If you're tracking bills in a spreadsheet you're doing a lot of manual work — typing in amounts, remembering due dates, checking things off. Duezo does all of that automatically. Forward a bill email, and it pulls the name, amount, and due date for you. You get countdown cards that change color as deadlines approach, recurring bill support, and a calendar view. The only thing a spreadsheet does better is let you add custom formulas — but if you just need to know what's due and when, Duezo is faster and less error-prone.",
+    a: "Honestly? Yes. If you're tracking bills in a spreadsheet you're doing a lot of manual work — typing in amounts, remembering due dates, checking things off. Duezo does all of that automatically. Use Quick Add to pick a vendor and fill in the details, or snap a photo and AI pulls the name, amount, and due date for you. You get countdown cards that change color as deadlines approach, recurring bill support, and a calendar view. The only thing a spreadsheet does better is let you add custom formulas — but if you just need to know what's due and when, Duezo is faster and less error-prone.",
   },
   {
-    q: 'What happens if I forget to forward a bill email?',
-    a: "Nothing bad — you can always add bills manually with the + button. Duezo doesn't require email forwarding. It's just the fastest way to add a bill. If you forget to forward one, just tap add, type the name, amount, and due date, and you're set. You can also set bills as recurring so they auto-generate each month without any forwarding at all.",
+    q: 'What is the fastest way to add a bill?',
+    a: "Quick Add is the fastest — tap +, start typing a vendor name, and pick from 30+ autocomplete suggestions. The name and category fill in automatically. Or snap a photo of any bill or statement and AI extracts the name, amount, and due date for you. You can also set bills as recurring so they auto-generate each month.",
   },
   {
     q: 'Is Duezo actually free or is there a catch?',
@@ -41,11 +41,11 @@ const faqs = [
   },
   {
     q: 'Do I have to connect my bank account?',
-    a: "No, and you never will. Duezo will never ask for your bank login, Plaid credentials, or financial account access. You add bills by forwarding emails or typing them in manually. Your bank stays completely out of the picture. This was a deliberate design choice — the developer built Duezo specifically because other apps demanded bank access just to track due dates.",
+    a: "No, and you never will. Duezo will never ask for your bank login, Plaid credentials, or financial account access. You add bills with Quick Add or by snapping a photo. Your bank stays completely out of the picture. This was a deliberate design choice — the developer built Duezo specifically because other apps demanded bank access just to track due dates.",
   },
   {
-    q: 'How does the AI email parsing work?',
-    a: "When you forward a bill email to your unique Duezo address, the app sends the email content through an AI model (Claude by Anthropic). The AI reads the email and extracts three things: the bill name (like 'Electric Bill' or 'Netflix'), the amount due, and the due date. It works with most standard bill and statement emails — utilities, subscriptions, credit cards, rent notices, and more. If the AI can't confidently extract something, it leaves the field blank for you to fill in.",
+    q: 'How does the AI photo scanning work?',
+    a: "When you snap a photo of a bill or statement, the app sends the image through an AI model (Claude by Anthropic). The AI reads the photo and extracts three things: the bill name (like 'Electric Bill' or 'Netflix'), the amount due, and the due date. It works with most standard bills and statements — utilities, subscriptions, credit cards, rent notices, and more. If the AI can't confidently extract something, it leaves the field blank for you to fill in.",
   },
   {
     q: 'What if the AI gets the amount or due date wrong?',

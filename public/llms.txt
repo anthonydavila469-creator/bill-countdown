@@ -1,10 +1,10 @@
 # Duezo — Never Miss a Bill Payment Again
 
 ## What is Duezo?
-Duezo is an AI-powered bill tracking app that helps you stay on top of every bill. Forward your bill emails, and Duezo automatically extracts the bill name, amount, and due date. Beautiful countdown cards shift color as due dates approach so you always know what's coming.
+Duezo is an AI-powered bill tracking app that helps you stay on top of every bill. Add bills instantly with Quick Add or scan them with your camera. Beautiful countdown cards shift color as due dates approach so you always know what's coming.
 
 ## Key Features
-- Smart Bill Forwarding: Forward any bill email and AI extracts the details automatically
+- Smart Bill Import: Add bills with Quick Add autocomplete (30+ vendors) or snap a photo and AI extracts the details
 - Countdown Cards: Visual cards that change color (green → amber → red) as due dates approach
 - Smart Reminders: Push notifications 7 days, 3 days, and 1 day before each bill is due
 - Calendar View: See all bills on a monthly calendar with drag-and-drop rescheduling

@@ -4,7 +4,6 @@ import { BillCard } from '@/components/bill-card';
 import { NativeRedirect } from '@/components/native-redirect';
 import { Bill } from '@/types';
 import {
-  Mail,
   Sparkles,
   Bell,
   Moon,
@@ -108,10 +107,10 @@ const demoBills: Bill[] = [
 
 const features = [
   {
-    icon: Mail,
+    icon: Zap,
     title: 'Smart Bill Import',
     description:
-      'Forward any bill email to your Duezo address. We extract the details automatically.',
+      'Add bills with Quick Add autocomplete or snap a photo — AI extracts the details instantly.',
     gradient: 'from-violet-500 to-violet-500',
   },
   {
@@ -161,16 +160,16 @@ const features = [
 const steps = [
   {
     number: '01',
-    title: 'Forward a Bill Email',
+    title: 'Add a Bill',
     description:
-      'Forward any bill or statement email to your Duezo address. That\'s it.',
-    icon: Mail,
+      'Use Quick Add with vendor autocomplete or snap a photo of your statement. That\'s it.',
+    icon: Zap,
   },
   {
     number: '02',
     title: 'AI Extracts the Details',
     description:
-      'Our AI reads the email and pulls out the bill name, amount, and due date automatically.',
+      'Our AI reads the photo and pulls out the bill name, amount, and due date automatically.',
     icon: Sparkles,
   },
   {
@@ -198,7 +197,7 @@ export default function LandingPage() {
       },
     ],
     description:
-      'Track every bill with beautiful countdown cards and smart bill forwarding. Never miss a payment again.',
+      'Track every bill with beautiful countdown cards and smart bill import. Never miss a payment again.',
     url: 'https://duezo.app',
   };
 
@@ -211,7 +210,7 @@ export default function LandingPage() {
         name: 'How does Duezo work?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Forward any bill email to your unique Duezo address. Our AI automatically extracts the bill name, amount, and due date, then creates a beautiful countdown card on your dashboard. You can also add bills manually.',
+          text: 'Add any bill with Quick Add autocomplete (30+ vendors) or snap a photo of your statement. Our AI automatically extracts the bill name, amount, and due date, then creates a beautiful countdown card on your dashboard.',
         },
       },
       {
@@ -227,7 +226,7 @@ export default function LandingPage() {
         name: 'Do I need to connect my bank account?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'No. Duezo never asks for your bank login or financial credentials. You simply forward bill emails or add bills manually. Your financial data stays private.',
+          text: 'No. Duezo never asks for your bank login or financial credentials. You simply add bills with Quick Add or Photo Scan. Your financial data stays private.',
         },
       },
       {
@@ -235,7 +234,7 @@ export default function LandingPage() {
         name: 'How do I add bills to Duezo?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'There are two ways: forward a bill email to your Duezo address and AI extracts the details automatically, or tap the + button to add a bill manually with the name, amount, and due date.',
+          text: 'There are two ways: use Quick Add with vendor autocomplete to add a bill in seconds, or snap a photo of any bill or statement and AI extracts the details automatically.',
         },
       },
       {
@@ -358,7 +357,7 @@ export default function LandingPage() {
                 className="text-lg text-zinc-400 mb-8 max-w-lg mx-auto lg:mx-0 animate-in fade-in slide-in-from-bottom-4"
                 style={{ animationDelay: '200ms', animationFillMode: 'backwards' }}
               >
-                Forward your bills. We handle the rest.
+                Add your bills. We handle the rest.
                 Beautiful countdown cards turn red as due dates approach — so you never pay late again.
               </p>
 
@@ -508,7 +507,7 @@ export default function LandingPage() {
                 </li>
                 <li className="flex items-center gap-3 text-zinc-300">
                   <Check className="w-5 h-5 text-violet-400 flex-shrink-0" />
-                  <span>Smart bill forwarding</span>
+                  <span>Quick Add &amp; Photo Scan</span>
                 </li>
                 <li className="flex items-center gap-3 text-zinc-300">
                   <Check className="w-5 h-5 text-violet-400 flex-shrink-0" />
@@ -571,14 +570,14 @@ export default function LandingPage() {
             </div>
 
             <div className="grid md:grid-cols-3 gap-10 lg:gap-16">
-              {/* Step 1: Forward a Bill */}
+              {/* Step 1: Add a Bill */}
               <div className="group relative text-center">
                 <div className="relative w-36 h-36 mx-auto mb-8">
                   <div className="absolute inset-0 rounded-full bg-gradient-to-br from-violet-500/20 to-violet-500/10 animate-pulse" style={{ animationDuration: '3s' }} />
                   <div className="absolute inset-3 rounded-full bg-gradient-to-br from-violet-500/10 to-violet-500/5 border border-violet-500/20 backdrop-blur-sm flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
                     <div className="relative">
                       <div className="w-16 h-12 rounded-lg bg-gradient-to-br from-violet-500 to-violet-500 flex items-center justify-center shadow-lg shadow-violet-500/25 group-hover:shadow-violet-500/40 transition-shadow">
-                        <Mail className="w-8 h-8 text-white" />
+                        <Zap className="w-8 h-8 text-white" />
                       </div>
                       <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-green-500 border-2 border-[#0F0A1E] flex items-center justify-center">
                         <Check className="w-3 h-3 text-white" />
@@ -589,9 +588,9 @@ export default function LandingPage() {
                     1
                   </div>
                 </div>
-                <h3 className="text-xl font-bold mb-3">Forward a Bill Email</h3>
+                <h3 className="text-xl font-bold mb-3">Add a Bill</h3>
                 <p className="text-zinc-400 leading-relaxed max-w-xs mx-auto">
-                  Forward any bill or statement email to your Duezo address. Takes seconds.
+                  Use Quick Add with vendor autocomplete or snap a photo of your statement. Takes seconds.
                 </p>
               </div>
 
@@ -615,7 +614,7 @@ export default function LandingPage() {
                 </div>
                 <h3 className="text-xl font-bold mb-3">AI Extracts the Details</h3>
                 <p className="text-zinc-400 leading-relaxed max-w-xs mx-auto">
-                  Our AI reads the email and pulls out the bill name, amount, and due date automatically.
+                  Our AI reads the photo and pulls out the bill name, amount, and due date automatically.
                 </p>
               </div>
 

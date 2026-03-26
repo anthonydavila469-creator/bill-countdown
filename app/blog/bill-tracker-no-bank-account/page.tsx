@@ -210,7 +210,7 @@ export default function BillTrackerNoBankAccountPage() {
         {/* CTA */}
         <div className="mt-16 text-center bg-zinc-900/50 border border-zinc-800 rounded-2xl p-8">
           <h2 className="text-2xl font-bold mb-3">Try Duezo — No Bank Account Required</h2>
-          <p className="text-zinc-400 mb-6">Forward your bills. We handle the rest. Free to start.</p>
+          <p className="text-zinc-400 mb-6">Add your bills with Quick Add or Photo Scan. We handle the rest. Free to start.</p>
           <Link
             href="/signup"
             className="inline-flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-semibold px-8 py-3.5 rounded-xl transition-colors"
