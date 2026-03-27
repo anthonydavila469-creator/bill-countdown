@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
 
 const ADMIN_USER_ID = process.env.ADMIN_USER_ID || 'a89729f6-54b4-4003-abc9-15dd7b3b69ed';
 
-export async function GET() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+export async function GET(request: Request) {
+  const { user } = await getAuthenticatedUser(request);
 
   if (!user || user.id !== ADMIN_USER_ID) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
