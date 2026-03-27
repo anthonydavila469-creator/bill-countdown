@@ -55,8 +55,8 @@ export const URGENCY_GRADIENTS = {
   distant: { from: '#22d3ee', to: '#6366f1' },   // Cyan to indigo
 } as const;
 
-// Color theme system - 9 visually distinct themes
-export type ColorThemeId = 'ember' | 'cosmic' | 'emerald' | 'midnight' | 'wine' | 'onyx' | 'amethyst' | 'ocean' | 'sunset';
+// Color theme system — Anthony's 5 picks
+export type ColorThemeId = 'sunrise' | 'haze' | 'aurora' | 'tropical' | 'peach';
 
 export interface ColorTheme {
   id: ColorThemeId;
@@ -72,84 +72,22 @@ export interface ColorTheme {
 }
 
 export const COLOR_THEMES: Record<ColorThemeId, ColorTheme> = {
-  // Vibrant themes (white/urgency numbers)
-  ember: {
-    id: 'ember',
-    name: 'Pink',
-    description: 'Bold & vibrant',
-    cardGradient: 'linear-gradient(135deg, #f472b6 0%, #c084fc 50%, #a78bfa 100%)',
-    accentColor: '#f472b6',
-    glowColor: '0 8px 32px rgba(244, 114, 182, 0.25)',
+  sunrise: {
+    id: 'sunrise',
+    name: 'Sunrise',
+    description: 'Warm & golden',
+    cardGradient: 'linear-gradient(135deg, #f97316 0%, #ef4444 50%, #db2777 100%)',
+    accentColor: '#fb923c',
+    glowColor: '0 8px 32px rgba(249, 115, 22, 0.3)',
     preview: {
-      primary: '#f472b6',
-      secondary: '#a78bfa',
+      primary: '#f97316',
+      secondary: '#db2777',
     },
   },
-  cosmic: {
-    id: 'cosmic',
-    name: 'Sky',
-    description: 'Calm & serene',
-    cardGradient: 'linear-gradient(135deg, #60a5fa 0%, #818cf8 50%, #a78bfa 100%)',
-    accentColor: '#60a5fa',
-    glowColor: '0 8px 32px rgba(96, 165, 250, 0.25)',
-    preview: {
-      primary: '#60a5fa',
-      secondary: '#a78bfa',
-    },
-  },
-  emerald: {
-    id: 'emerald',
-    name: 'Emerald',
-    description: 'Fresh & natural',
-    cardGradient: 'linear-gradient(135deg, #10b981 0%, #14b8a6 50%, #2dd4bf 100%)',
-    accentColor: '#10b981',
-    glowColor: '0 8px 32px rgba(16, 185, 129, 0.25)',
-    preview: {
-      primary: '#10b981',
-      secondary: '#2dd4bf',
-    },
-  },
-  // Dark themes (gradient numbers)
-  midnight: {
-    id: 'midnight',
-    name: 'Midnight',
-    description: 'Deep navy',
-    cardGradient: 'linear-gradient(135deg, #1e3a5f 0%, #1e40af 50%, #3730a3 100%)',
-    accentColor: '#60a5fa',
-    glowColor: '0 8px 32px rgba(30, 58, 95, 0.5)',
-    preview: {
-      primary: '#1e3a5f',
-      secondary: '#3730a3',
-    },
-  },
-  wine: {
-    id: 'wine',
-    name: 'Wine',
-    description: 'Rich & elegant',
-    cardGradient: 'linear-gradient(135deg, #4a1942 0%, #6b2737 50%, #831843 100%)',
-    accentColor: '#f472b6',
-    glowColor: '0 8px 32px rgba(74, 25, 66, 0.5)',
-    preview: {
-      primary: '#4a1942',
-      secondary: '#831843',
-    },
-  },
-  onyx: {
-    id: 'onyx',
-    name: 'Onyx',
-    description: 'Pure black',
-    cardGradient: 'linear-gradient(135deg, #0a0a0a 0%, #171717 50%, #1c1c1c 100%)',
-    accentColor: '#a1a1aa',
-    glowColor: '0 8px 32px rgba(0, 0, 0, 0.6)',
-    preview: {
-      primary: '#0a0a0a',
-      secondary: '#1c1c1c',
-    },
-  },
-  amethyst: {
-    id: 'amethyst',
-    name: 'Amethyst',
-    description: 'Royal purple',
+  haze: {
+    id: 'haze',
+    name: 'Haze',
+    description: 'Cool & misty',
     cardGradient: 'linear-gradient(135deg, #2d1b4e 0%, #4c1d95 50%, #581c87 100%)',
     accentColor: '#a78bfa',
     glowColor: '0 8px 32px rgba(45, 27, 78, 0.5)',
@@ -158,33 +96,45 @@ export const COLOR_THEMES: Record<ColorThemeId, ColorTheme> = {
       secondary: '#581c87',
     },
   },
-  ocean: {
-    id: 'ocean',
-    name: 'Ocean',
-    description: 'Deep teal',
-    cardGradient: 'linear-gradient(135deg, #134e4a 0%, #0f766e 50%, #0d9488 100%)',
+  aurora: {
+    id: 'aurora',
+    name: 'Aurora',
+    description: 'Northern lights',
+    cardGradient: 'linear-gradient(135deg, #059669 0%, #0d9488 50%, #0891b2 100%)',
     accentColor: '#2dd4bf',
-    glowColor: '0 8px 32px rgba(19, 78, 74, 0.5)',
+    glowColor: '0 8px 32px rgba(13, 148, 136, 0.3)',
     preview: {
-      primary: '#134e4a',
-      secondary: '#0d9488',
+      primary: '#059669',
+      secondary: '#0891b2',
     },
   },
-  sunset: {
-    id: 'sunset',
-    name: 'Sunset',
-    description: 'Warm & bold',
-    cardGradient: 'linear-gradient(135deg, #451a03 0%, #78350f 50%, #92400e 100%)',
-    accentColor: '#fb923c',
-    glowColor: '0 8px 32px rgba(69, 26, 3, 0.5)',
+  tropical: {
+    id: 'tropical',
+    name: 'Tropical',
+    description: 'Ocean blue',
+    cardGradient: 'linear-gradient(135deg, #1e3a5f 0%, #2563eb 50%, #0ea5e9 100%)',
+    accentColor: '#38bdf8',
+    glowColor: '0 8px 32px rgba(37, 99, 235, 0.3)',
     preview: {
-      primary: '#451a03',
-      secondary: '#92400e',
+      primary: '#1e3a5f',
+      secondary: '#0ea5e9',
+    },
+  },
+  peach: {
+    id: 'peach',
+    name: 'Peach',
+    description: 'Soft & rosy',
+    cardGradient: 'linear-gradient(135deg, #f472b6 0%, #c084fc 50%, #a78bfa 100%)',
+    accentColor: '#f472b6',
+    glowColor: '0 8px 32px rgba(244, 114, 182, 0.25)',
+    preview: {
+      primary: '#f472b6',
+      secondary: '#a78bfa',
     },
   },
 };
 
-export const DEFAULT_COLOR_THEME: ColorThemeId = 'amethyst';
+export const DEFAULT_COLOR_THEME: ColorThemeId = 'haze';
 
 export type RecurrenceInterval = 'weekly' | 'biweekly' | 'monthly' | 'yearly';
 
@@ -496,7 +446,7 @@ export const DEFAULT_URGENCY_COLORS: UrgencyColors = {
 };
 
 // Legacy - now derived from theme
-export const DEFAULT_ACCENT_COLOR = COLOR_THEMES.amethyst.accentColor;
+export const DEFAULT_ACCENT_COLOR = COLOR_THEMES.haze.accentColor;
 
 export const DEFAULT_DASHBOARD_LAYOUT: DashboardLayout = {
   cardSize: 'default',

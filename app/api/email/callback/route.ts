@@ -5,7 +5,7 @@ import { persistEmailConnection } from '@/lib/email/tokens';
 import { verifySignedState } from '@/lib/email/oauth-state';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.duezo.app';
-const NATIVE_SETTINGS_URL = 'duezo://settings';
+const NATIVE_SETTINGS_URL = 'app.duezo://settings';
 
 function parseProvider(value: string | null): EmailProviderName {
   if (value === 'yahoo' || value === 'outlook') {

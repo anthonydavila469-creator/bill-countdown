@@ -237,7 +237,7 @@ export function BillsProvider({ children }: BillsProviderProps) {
         }
 
         const prefs = prefsResponse && prefsResponse.ok ? await prefsResponse.json() : null;
-        const theme = prefs?.color_theme || 'amethyst';
+        const theme = prefs?.color_theme || 'haze';
 
         console.log(
           '[Duezo] bills-context widget sync scheduled',

@@ -15,7 +15,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Set default theme if none exists (first launch only)
         if let defaults = UserDefaults(suiteName: "group.app.duezo") {
             if defaults.string(forKey: "duezo_theme") == nil {
-                defaults.set("amethyst", forKey: "duezo_theme")
+                defaults.set("haze", forKey: "duezo_theme")
                 defaults.synchronize()
             }
         }

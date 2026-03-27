@@ -37,7 +37,7 @@ const config: CapacitorConfig = {
   appName: 'Duezo',
   webDir: 'public', // Dummy dir, not actually used
   server: {
-    url: 'https://duezo.app', // Production deployment
+    url: 'https://www.duezo.app', // Production deployment
     cleartext: false, // HTTPS only for production
   },
   // ... rest of config
@@ -62,7 +62,7 @@ This would require:
 
 #### Gmail OAuth:
 - **Current (Dev):** `http://localhost:3000/api/gmail/callback`
-- **Production:** `https://duezo.app/api/gmail/callback`
+- **Production:** `https://www.duezo.app/api/gmail/callback`
 - **Action Needed:** Update in Google Cloud Console before final build
 
 See `.env.production` for all production environment variables.
@@ -73,8 +73,8 @@ See `.env.production` for all production environment variables.
 3. ⚠️  **Still TODO:** Set `server.url` to production in capacitor.config.ts
 
 ### Next Steps Before App Store Submission:
-1. [ ] Deploy Next.js app to production (duezo.app)
-2. [ ] Update Google OAuth redirect URI to https://duezo.app/api/gmail/callback
-3. [ ] Update capacitor.config.ts with `server: { url: 'https://duezo.app' }`
+1. [ ] Deploy Next.js app to production (www.duezo.app)
+2. [ ] Update Google OAuth redirect URI to https://www.duezo.app/api/gmail/callback
+3. [ ] Update capacitor.config.ts with `server: { url: 'https://www.duezo.app' }`
 4. [ ] Test OAuth flow in production iOS build
 5. [ ] Run final build and submit

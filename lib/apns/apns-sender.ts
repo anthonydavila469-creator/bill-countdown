@@ -321,7 +321,7 @@ export function buildBillDueSoonPayload(bills: Array<{
     },
     billId: nextBill.id,
     url: nextBill.payment_url ?? `/dashboard?bill=${nextBill.id}`,
-    deeplink: `duezo://bill/${nextBill.id}`,
+    deeplink: `app.duezo://bill/${nextBill.id}`,
     messageType: 'bill_due_soon',
   };
 }

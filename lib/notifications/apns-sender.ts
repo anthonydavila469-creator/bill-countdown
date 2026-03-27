@@ -36,7 +36,7 @@ export async function sendBillReminderAPNs(
         },
         billId: bill.id,
         url: bill.payment_url ?? `/dashboard?bill=${bill.id}`,
-        deeplink: `duezo://bill/${bill.id}`,
+        deeplink: `app.duezo://bill/${bill.id}`,
         messageType: 'bill_reminder',
       },
     });

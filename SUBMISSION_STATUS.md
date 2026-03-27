@@ -24,12 +24,12 @@ npx cap sync ios      # Synced to iOS
 - App URL: `http://localhost:3000` (DEV)
 
 **Production values needed:**
-- Gmail OAuth redirect: `https://duezo.app/api/gmail/callback`
-- App URL: `https://duezo.app`
+- Gmail OAuth redirect: `https://www.duezo.app/api/gmail/callback`
+- App URL: `https://www.duezo.app`
 
 **Action required:**
 1. Update Google Cloud Console OAuth settings
-2. Deploy app to production (duezo.app)
+2. Deploy app to production (www.duezo.app)
 3. Use .env.production values for final build
 
 ### Fix 4: Add Sign in with Apple ✅
@@ -66,7 +66,7 @@ const config: CapacitorConfig = {
   appName: 'Duezo',
   webDir: 'out', // Keep this (required by Capacitor)
   server: {
-    url: 'https://duezo.app', // ← ADD THIS
+    url: 'https://www.duezo.app', // ← ADD THIS
     cleartext: false,          // ← HTTPS only
   },
   ios: { /* ... */ },
@@ -82,9 +82,9 @@ const config: CapacitorConfig = {
 - [x] Document OAuth URL changes needed
 - [x] Run `npx cap sync ios`
 - [x] Git commit changes
-- [ ] **Deploy Next.js app to https://duezo.app**
+- [ ] **Deploy Next.js app to https://www.duezo.app**
 - [ ] **Update Google OAuth redirect URI**
-- [ ] **Add `server: { url: 'https://duezo.app' }` to capacitor.config.ts**
+- [ ] **Add `server: { url: 'https://www.duezo.app' }` to capacitor.config.ts**
 - [ ] **Test OAuth flow in production build**
 - [ ] **Final Xcode build**
 - [ ] **App Store submission**

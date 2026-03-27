@@ -118,7 +118,7 @@ final class DuezoWidgetStore {
     }
 
     func readTheme() -> String {
-        let theme = defaults.string(forKey: Self.themeKey) ?? "amethyst"
+        let theme = defaults.string(forKey: Self.themeKey) ?? "haze"
         NSLog("[DuezoWidget] readTheme=%@", theme)
         return theme
     }
@@ -294,52 +294,34 @@ private let accentOrange = Color(red: 249/255, green: 115/255, blue: 22/255)
 // MARK: - Widget Theme System
 
 enum WidgetTheme: String, CaseIterable {
-    case onyx, pink, sky, emerald, midnight, wine, amethyst, ocean, sunset, ember, cosmic
+    case sunrise, haze, aurora, tropical, peach
 
     var tintColor: Color {
         switch self {
-        case .onyx:     return Color.white
-        case .pink:     return Color(hex: 0xec4899)
-        case .sky:      return Color(hex: 0x38bdf8)
-        case .emerald:  return Color(hex: 0x34d399)
-        case .midnight: return Color(hex: 0x3b82f6)
-        case .wine:     return Color(hex: 0xbe185d)
-        case .amethyst: return Color(hex: 0xa78bfa)
-        case .ocean:    return Color(hex: 0x14b8a6)
-        case .sunset:   return Color(hex: 0xf97316)
-        case .ember:    return Color(hex: 0xec4899)  // pink
-        case .cosmic:   return Color(hex: 0x38bdf8)  // sky
+        case .sunrise:  return Color(hex: 0xf97316)
+        case .haze:     return Color(hex: 0xa78bfa)
+        case .aurora:   return Color(hex: 0x14b8a6)
+        case .tropical: return Color(hex: 0x38bdf8)
+        case .peach:    return Color(hex: 0xec4899)
         }
     }
 
-    /// Whether this theme has a bright/warm background that needs stronger contrast
     var isWarm: Bool {
         switch self {
-        case .sunset, .wine: return true
+        case .sunrise: return true
         default: return false
         }
     }
 
-    var tintOpacity: Double {
-        switch self {
-        case .onyx: return 0.03
-        default:    return 0.04
-        }
-    }
+    var tintOpacity: Double { 0.04 }
 
     var accentColor: Color {
         switch self {
-        case .onyx:     return Color(hex: 0x06b6d4)
-        case .pink:     return Color(hex: 0xf472b6)
-        case .sky:      return Color(hex: 0x60a5fa)
-        case .emerald:  return Color(hex: 0x34d399)
-        case .midnight: return Color(hex: 0x60a5fa)
-        case .wine:     return Color(hex: 0xf472b6)
-        case .amethyst: return Color(hex: 0xc084fc)
-        case .ocean:    return Color(hex: 0x2dd4bf)
-        case .sunset:   return Color(hex: 0xfb923c)
-        case .ember:    return Color(hex: 0xf472b6)  // pink
-        case .cosmic:   return Color(hex: 0x60a5fa)  // sky
+        case .sunrise:  return Color(hex: 0xfb923c)
+        case .haze:     return Color(hex: 0xc084fc)
+        case .aurora:   return Color(hex: 0x2dd4bf)
+        case .tropical: return Color(hex: 0x60a5fa)
+        case .peach:    return Color(hex: 0xf472b6)
         }
     }
 
@@ -348,15 +330,13 @@ enum WidgetTheme: String, CaseIterable {
     static func current() -> WidgetTheme {
         guard let defaults = UserDefaults(suiteName: DuezoWidgetStore.appGroupId) else {
             NSLog("[DuezoWidget] Can't access App Group for theme")
-            return .amethyst
+            return .haze
         }
         let raw = defaults.string(forKey: DuezoWidgetStore.themeKey)
-        print("[DuezoWidget] Theme raw value: \(raw ?? "nil")")
         guard let raw = raw, let theme = WidgetTheme(rawValue: raw) else {
-            print("[DuezoWidget] ❌ Theme fallback to amethyst (raw: \(raw ?? "nil"))")
-            return .amethyst
+            NSLog("[DuezoWidget] Theme fallback to haze (raw: %@)", raw ?? "nil")
+            return .haze
         }
-        print("[DuezoWidget] ✅ Using theme: \(theme.rawValue)")
         return theme
     }
 }
@@ -439,30 +419,16 @@ struct WidgetBackground: View {
     // Each theme gets a unique rich gradient (opaque, no material)
     private var gradientColors: [Color] {
         switch theme {
-        case .pink:
-            return [Color(hex: 0xdb2777), Color(hex: 0xa855f7), Color(hex: 0x7c3aed)]
-        case .sky:
-            return [Color(hex: 0x38bdf8), Color(hex: 0x818cf8), Color(hex: 0x6366f1)]
-        case .emerald:
-            return [Color(hex: 0x059669), Color(hex: 0x0d9488), Color(hex: 0x0f766e)]
-        case .midnight:
-            return [Color(hex: 0x1e3a5f), Color(hex: 0x1e40af), Color(hex: 0x312e81)]
-        case .wine:
-            return [Color(hex: 0x9f1239), Color(hex: 0xbe185d), Color(hex: 0x7c2d12)]
-        case .onyx:
-            return [Color(hex: 0x1c1c1e), Color(hex: 0x111111), Color(hex: 0x0a0a0a)]
-        case .amethyst:
-            return [Color(hex: 0x7c3aed), Color(hex: 0xa855f7), Color(hex: 0x6d28d9)]
-        case .ocean:
-            return [Color(hex: 0x0d9488), Color(hex: 0x0891b2), Color(hex: 0x065f46)]
-        case .sunset:
-            return [Color(hex: 0xb94500), Color(hex: 0xd4580a), Color(hex: 0x991b1b)]
-        case .ember:
-            // JS "ember" = UI "Pink" — use pink gradient
-            return [Color(hex: 0xdb2777), Color(hex: 0xa855f7), Color(hex: 0x7c3aed)]
-        case .cosmic:
-            // JS "cosmic" = UI "Sky" — use sky gradient
-            return [Color(hex: 0x38bdf8), Color(hex: 0x818cf8), Color(hex: 0x6366f1)]
+        case .sunrise:
+            return [Color(hex: 0xf97316), Color(hex: 0xef4444), Color(hex: 0xdb2777)]
+        case .haze:
+            return [Color(hex: 0x2d1b4e), Color(hex: 0x4c1d95), Color(hex: 0x581c87)]
+        case .aurora:
+            return [Color(hex: 0x059669), Color(hex: 0x0d9488), Color(hex: 0x0891b2)]
+        case .tropical:
+            return [Color(hex: 0x1e3a5f), Color(hex: 0x2563eb), Color(hex: 0x0ea5e9)]
+        case .peach:
+            return [Color(hex: 0xf472b6), Color(hex: 0xc084fc), Color(hex: 0xa78bfa)]
         }
     }
 

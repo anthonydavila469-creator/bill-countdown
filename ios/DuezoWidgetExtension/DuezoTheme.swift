@@ -1,21 +1,15 @@
 import SwiftUI
 
 enum DuezoTheme: String, CaseIterable, Codable {
-    case pink, sky, emerald, midnight, wine, onyx, amethyst, ocean, sunset, ember, cosmic
+    case sunrise, haze, aurora, tropical, peach
 
     var tint: Color {
         switch self {
-        case .pink:     return Color(red: 0.95, green: 0.42, blue: 0.78)
-        case .sky:      return Color(red: 0.45, green: 0.65, blue: 1.00)
-        case .emerald:  return Color(red: 0.20, green: 0.85, blue: 0.65)
-        case .midnight: return Color(red: 0.20, green: 0.38, blue: 0.95)
-        case .wine:     return Color(red: 0.62, green: 0.18, blue: 0.35)
-        case .onyx:     return Color(red: 0.20, green: 0.20, blue: 0.22)
-        case .amethyst: return Color(red: 0.55, green: 0.25, blue: 0.95)
-        case .ocean:    return Color(red: 0.05, green: 0.72, blue: 0.72)
-        case .sunset:   return Color(red: 0.98, green: 0.55, blue: 0.20)
-        case .ember:    return Color(red: 0.98, green: 0.55, blue: 0.20)
-        case .cosmic:   return Color(red: 0.55, green: 0.25, blue: 0.95)
+        case .sunrise:  return Color(red: 0.98, green: 0.57, blue: 0.24)  // #fb923c
+        case .haze:     return Color(red: 0.65, green: 0.55, blue: 0.98)  // #a78bfa
+        case .aurora:   return Color(red: 0.18, green: 0.83, blue: 0.75)  // #2dd4bf
+        case .tropical: return Color(red: 0.22, green: 0.74, blue: 0.97)  // #38bdf8
+        case .peach:    return Color(red: 0.96, green: 0.45, blue: 0.71)  // #f472b6
         }
     }
 
@@ -25,7 +19,7 @@ enum DuezoTheme: String, CaseIterable, Codable {
         guard let defaults = UserDefaults(suiteName: DuezoWidgetStore.appGroupId),
               let raw = defaults.string(forKey: DuezoWidgetStore.themeKey),
               let theme = DuezoTheme(rawValue: raw) else {
-            return .amethyst
+            return .haze
         }
         return theme
     }

@@ -67,7 +67,7 @@ public class DuezoWidgetBridge: CAPPlugin, CAPBridgedPlugin {
             call.reject("Missing payload string")
             return
         }
-        let themeValue = call.getString("theme") ?? "onyx"
+        let themeValue = call.getString("theme") ?? "haze"
         NSLog("[DuezoWidgetBridge] syncPayload called with theme: %@ payloadBytes: %d", themeValue, payload.lengthOfBytes(using: .utf8))
 
         guard let defaults = sharedDefaults() else {
