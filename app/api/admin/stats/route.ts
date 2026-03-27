@@ -26,17 +26,34 @@ export async function GET(request: Request) {
   const thirtyDaysAgoISO = thirtyDaysAgo.toISOString();
 
   try {
+    // Fetch auth users (gets emails)
+    const { data: authUsersData } = await admin.auth.admin.listUsers();
+    const authUsers = authUsersData?.users || [];
+
+    // Build email lookup
+    const emailMap = new Map<string, string>();
+    const providerMap = new Map<string, string>();
+    const lastSignInMap = new Map<string, string>();
+    authUsers.forEach((u) => {
+      emailMap.set(u.id, u.email || '');
+      providerMap.set(u.id, u.app_metadata?.provider || 'email');
+      if (u.last_sign_in_at) {
+        lastSignInMap.set(u.id, u.last_sign_in_at);
+      }
+    });
+
     const [
       totalUsersRes,
       newUsersTodayRes,
-      emailConnectionsRes,
+      allBillsRes,
+      billsWithAmountRes,
+      billsByUserRes,
       activeUsers7dRes,
+      activeUsers30dRes,
       usersListRes,
       proUsersRes,
-      scanRunsRes,
-      scanSuccessRes,
       signupsLast30Res,
-      activeUsers30dRes,
+      photoBillsRes,
     ] = await Promise.all([
       // Total users
       admin.from('user_preferences').select('user_id', { count: 'exact', head: true }),
@@ -45,64 +62,74 @@ export async function GET(request: Request) {
       admin.from('user_preferences').select('user_id', { count: 'exact', head: true })
         .gte('created_at', todayISO),
 
-      // Email connections (all providers)
-      admin.from('gmail_tokens').select('id, user_id, email_provider'),
-
-      // Active users (7d) — users who logged in or added bills recently
-      admin.from('bills').select('user_id')
-        .gte('created_at', sevenDaysAgoISO),
-
-      // Users list with signup date
-      admin.from('user_preferences').select('user_id, created_at, notification_settings'),
-
-      // Pro subscribers (users with subscription_status = active)
-      admin.from('user_preferences').select('user_id, subscription_status')
-        .eq('subscription_status', 'active'),
-
-      // Total bills (as proxy for scan success until parser tables exist)
+      // Total bills
       admin.from('bills').select('id', { count: 'exact', head: true }),
 
-      // Bills with amounts (successfully parsed)
+      // Bills with amounts
       admin.from('bills').select('id', { count: 'exact', head: true })
         .not('amount', 'is', null),
 
-      // Signups last 30 days (for growth chart)
+      // Bills per user (for avg + per-user count)
+      admin.from('bills').select('user_id, id, created_at'),
+
+      // Active users (7d)
+      admin.from('bills').select('user_id')
+        .gte('created_at', sevenDaysAgoISO),
+
+      // Active users (30d)
+      admin.from('bills').select('user_id')
+        .gte('created_at', thirtyDaysAgoISO),
+
+      // Users list
+      admin.from('user_preferences').select('user_id, created_at, is_pro, subscription_status'),
+
+      // Pro subscribers
+      admin.from('user_preferences').select('user_id, subscription_status')
+        .eq('subscription_status', 'active'),
+
+      // Signups last 30 days
       admin.from('user_preferences').select('user_id, created_at')
         .gte('created_at', thirtyDaysAgoISO),
 
-      // Active users 30d
-      admin.from('bills').select('user_id')
-        .gte('created_at', thirtyDaysAgoISO),
+      // Photo scan bills (source = 'photo_scan')
+      admin.from('bills').select('id', { count: 'exact', head: true })
+        .eq('source', 'photo_scan'),
     ]);
 
-    // Distinct active users 7d
+    const totalUsers = totalUsersRes.count || 0;
+    const totalBills = allBillsRes.count || 0;
+    const billsWithAmount = billsWithAmountRes.count || 0;
+    const photoBills = photoBillsRes.count || 0;
+    const manualBills = totalBills - photoBills;
+
+    // Bills per user
+    const billCountByUser = new Map<string, number>();
+    const lastBillByUser = new Map<string, string>();
+    (billsByUserRes.data || []).forEach((b: { user_id: string; id: string; created_at: string }) => {
+      billCountByUser.set(b.user_id, (billCountByUser.get(b.user_id) || 0) + 1);
+      const existing = lastBillByUser.get(b.user_id);
+      if (!existing || b.created_at > existing) {
+        lastBillByUser.set(b.user_id, b.created_at);
+      }
+    });
+
+    const avgBillsPerUser = totalUsers > 0 ? Math.round((totalBills / totalUsers) * 10) / 10 : 0;
+
+    // Distinct active users
     const activeUserIds7d = new Set(
       (activeUsers7dRes.data || []).map((r: { user_id: string }) => r.user_id)
     );
-
-    // Distinct active users 30d
     const activeUserIds30d = new Set(
       (activeUsers30dRes.data || []).map((r: { user_id: string }) => r.user_id)
     );
 
-    // Email provider breakdown
-    const emailConnections = emailConnectionsRes.data || [];
-    const emailByProvider = {
-      gmail: emailConnections.filter((r: { email_provider: string }) => (r.email_provider || 'gmail') === 'gmail').length,
-      yahoo: emailConnections.filter((r: { email_provider: string }) => r.email_provider === 'yahoo').length,
-      outlook: emailConnections.filter((r: { email_provider: string }) => r.email_provider === 'outlook').length,
-    };
-
-    const totalUsers = totalUsersRes.count || 0;
+    // Revenue
     const proUsers = (proUsersRes.data || []).length;
     const conversionRate = totalUsers > 0 ? ((proUsers / totalUsers) * 100) : 0;
+    // Estimated MRR: assume $3.99/mo per pro user
+    const estimatedMRR = proUsers * 3.99;
 
-    // Parse quality: bills with amounts vs total bills
-    const totalScans = scanRunsRes.count || 0;
-    const successfulScans = scanSuccessRes.count || 0;
-    const scanSuccessRate = totalScans > 0 ? ((successfulScans / totalScans) * 100) : 0;
-
-    // 30d retention: users who signed up 8-30 days ago AND were active in last 7 days
+    // Retention
     const retentionCandidates = (usersListRes.data || []).filter((u: { created_at: string }) => {
       const signup = new Date(u.created_at);
       return signup < sevenDaysAgo && signup >= thirtyDaysAgo;
@@ -112,22 +139,27 @@ export async function GET(request: Request) {
       ? ((retainedUsers.length / retentionCandidates.length) * 100)
       : 0;
 
-    // Daily signups for last 30 days (for sparkline/chart)
+    // Daily signups chart
     const dailySignups: Record<string, number> = {};
     (signupsLast30Res.data || []).forEach((r: { created_at: string }) => {
       const day = r.created_at.substring(0, 10);
       dailySignups[day] = (dailySignups[day] || 0) + 1;
     });
 
-    // Build users list with email connection status
-    const connectedUserIds = new Set(
-      emailConnections.map((r: { user_id: string }) => r.user_id)
-    );
-    const users = (usersListRes.data || []).map((row: { user_id: string; created_at: string; notification_settings: unknown }) => ({
+    // Bill success rate
+    const scanSuccessRate = totalBills > 0 ? ((billsWithAmount / totalBills) * 100) : 0;
+
+    // Users list with real details
+    const users = (usersListRes.data || []).map((row: { user_id: string; created_at: string; is_pro: boolean; subscription_status: string }) => ({
       id: row.user_id,
+      email: emailMap.get(row.user_id) || 'unknown',
       signupDate: row.created_at,
+      authProvider: providerMap.get(row.user_id) || 'email',
+      lastSignIn: lastSignInMap.get(row.user_id) || null,
       isActive: activeUserIds7d.has(row.user_id),
-      hasEmail: connectedUserIds.has(row.user_id),
+      isPro: row.subscription_status === 'active',
+      billCount: billCountByUser.get(row.user_id) || 0,
+      lastBillDate: lastBillByUser.get(row.user_id) || null,
     }));
     users.sort((a: { signupDate: string }, b: { signupDate: string }) =>
       new Date(b.signupDate).getTime() - new Date(a.signupDate).getTime()
@@ -139,21 +171,19 @@ export async function GET(request: Request) {
       newUsersToday: newUsersTodayRes.count || 0,
       activeUsers7d: activeUserIds7d.size,
       activeUsers30d: activeUserIds30d.size,
+      retentionRate30d: Math.round(retentionRate * 10) / 10,
+
+      // Engagement
+      totalBills,
+      avgBillsPerUser,
+      photoBills,
+      manualBills,
+      scanSuccessRate: Math.round(scanSuccessRate * 10) / 10,
 
       // Revenue
       proSubscribers: proUsers,
       conversionRate: Math.round(conversionRate * 10) / 10,
-
-      // Retention
-      retentionRate30d: Math.round(retentionRate * 10) / 10,
-
-      // Email
-      totalEmailConnections: emailConnections.length,
-      emailByProvider,
-
-      // Product health
-      scanSuccessRate: Math.round(scanSuccessRate * 10) / 10,
-      totalScans,
+      estimatedMRR: Math.round(estimatedMRR * 100) / 100,
 
       // Charts
       dailySignups,
