@@ -321,7 +321,7 @@ Rules:
     const isBill = typeof parsed.is_bill === 'boolean' ? parsed.is_bill : normalizedName !== null || normalizedAmount !== null || normalizedDueDate !== null;
     const documentType = typeof parsed.document_type === 'string' ? parsed.document_type : null;
     const warnings = Array.isArray(parsed.warnings)
-      ? parsed.warnings.filter((warning): warning is string => typeof warning === 'string')
+      ? parsed.warnings.filter((warning: unknown): warning is string => typeof warning === 'string')
       : [];
 
     const confidence = parsed.confidence && typeof parsed.confidence === 'object' ? parsed.confidence : {};
