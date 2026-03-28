@@ -34,6 +34,14 @@
     {
       "path": "/api/cron/learning-pass",
       "schedule": "0 4 * * 0"
+    },
+    {
+      "path": "/api/cron/biller-profile-builder",
+      "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/cron/extraction-learning-pass",
+      "schedule": "30 5 * * *"
     }
   ]
 }

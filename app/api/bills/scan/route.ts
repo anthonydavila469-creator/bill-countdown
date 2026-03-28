@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import Anthropic from '@anthropic-ai/sdk';
 import { createHash } from 'crypto';
+import { classifyDocument } from '@/lib/bill-classifier';
 
 function getAnthropic() {
   return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -223,6 +224,14 @@ export async function POST(request: Request) {
         .eq('id', scanSessionId);
 
       return NextResponse.json({ error: 'Failed to persist bill scan metadata' }, { status: 500 });
+    }
+
+    // Phase 5: Pre-screen with classifier (logs only, does not block)
+    const classification = classifyDocument('scan', fileSizeBytes, imageHash);
+    if (classification.confidence > 0 && !classification.isBill) {
+      console.log(`Bill classifier pre-screen: ${classification.reason} (confidence: ${classification.confidence})`);
+      // For now, just log — don't reject. Let Claude decide.
+      // Future: reject obvious non-bills before spending Claude tokens
     }
 
     const startedAt = Date.now();
