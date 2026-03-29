@@ -146,15 +146,16 @@ function TimelineBillRow({
     <SwipeBillCard bill={bill} onClick={onClick} onMarkPaid={onMarkPaid}>
       <div
         className={cn(
-          'relative flex items-center gap-4 p-4 rounded-2xl backdrop-blur-xl cursor-pointer',
-          'transition-all duration-300 hover:scale-[1.01]',
+          'relative flex items-center gap-3.5 px-4 py-3.5 rounded-2xl backdrop-blur-xl cursor-pointer',
+          'transition-all duration-300 hover:scale-[1.005]',
           isOverdue
             ? 'bg-[rgba(127,29,29,0.25)]'
             : 'bg-white/[0.04]'
         )}
         style={{
-          border: `1px solid ${isOverdue ? 'rgba(239,68,68,0.3)' : hexToRgba(accentColor, 0.15)}`,
-          boxShadow: `0 2px 16px ${isOverdue ? 'rgba(239,68,68,0.1)' : 'rgba(0,0,0,0.2)'}`,
+          height: '72px',
+          border: `1px solid ${isOverdue ? 'rgba(239,68,68,0.3)' : hexToRgba(accentColor, 0.12)}`,
+          boxShadow: `0 2px 12px ${isOverdue ? 'rgba(239,68,68,0.08)' : 'rgba(0,0,0,0.15)'}`,
         }}
       >
         {/* Colored left border accent */}
@@ -174,24 +175,24 @@ function TimelineBillRow({
           <IconComponent className="w-5 h-5" style={{ color: urgencyColor }} />
         </div>
 
-        {/* Name + Amount */}
+        {/* Name + Amount — allow 2-line name if needed */}
         <div className="flex-1 min-w-0">
-          <h4 className="font-semibold text-white truncate">{bill.name}</h4>
-          <p className="text-sm text-zinc-400">
+          <h4 className="font-semibold text-white text-sm leading-tight line-clamp-2">{bill.name}</h4>
+          <p className="text-xs text-zinc-400 mt-0.5" style={{ fontFeatureSettings: '"tnum"' }}>
             {bill.amount ? formatCurrency(bill.amount) : 'No amount'}
           </p>
         </div>
 
         {/* Urgency countdown — BOLD and colored */}
-        <div className="text-right flex-shrink-0">
+        <div className="text-right flex-shrink-0 w-16">
           <span
-            className="text-3xl font-black tabular-nums"
-            style={urgencyGradientStyle}
+            className="text-2xl font-black tabular-nums"
+            style={{ ...urgencyGradientStyle, fontFeatureSettings: '"tnum"', letterSpacing: '-0.02em' }}
           >
             {Math.abs(daysLeft)}
           </span>
           <p
-            className="text-[10px] font-bold uppercase tracking-wider"
+            className="text-[9px] font-bold uppercase tracking-wider"
             style={urgencyGradientStyle}
           >
             {isOverdue
@@ -431,7 +432,26 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0F0A1E]">
+    <div className="min-h-screen bg-[#0F0A1E] relative">
+      {/* Structural background glows */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden lg:ml-64" aria-hidden="true">
+        {/* Hero zone glow - anchored to top center */}
+        <div
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[400px] rounded-full blur-[150px] opacity-[0.07]"
+          style={{ backgroundColor: accentColor }}
+        />
+        {/* Content zone glow - subtle mid-page warmth */}
+        <div
+          className="absolute top-[60vh] right-0 w-[300px] h-[300px] rounded-full blur-[120px] opacity-[0.04]"
+          style={{ backgroundColor: accentColor }}
+        />
+        {/* FAB zone glow - subtle bottom center */}
+        <div
+          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[400px] h-[200px] rounded-full blur-[100px] opacity-[0.05]"
+          style={{ backgroundColor: accentColor }}
+        />
+      </div>
+
       {/* Sidebar */}
       <aside className="fixed left-0 top-0 bottom-0 w-64 bg-gradient-to-b from-[#130D24] to-[#0F0A1E] border-r border-white/[0.06] hidden lg:flex flex-col">
         {/* Logo */}
@@ -699,8 +719,16 @@ export default function DashboardPage() {
                   const heroDays = getDaysUntilDue(heroBill.due_date);
                   const heroUrgency = getUrgency(heroDays);
                   const isHeroOverdue = heroDays < 0;
-                  // Urgency-based countdown color
-                                    return (
+
+                  // Progress ring: paid bills vs total bills this month
+                  const paidCount = bills.filter(b => b.is_paid).length;
+                  const totalBillCount = bills.length;
+                  const progressPercent = totalBillCount > 0 ? (paidCount / totalBillCount) * 100 : 0;
+                  const ringRadius = 38;
+                  const ringCircumference = 2 * Math.PI * ringRadius;
+                  const ringOffset = ringCircumference - (progressPercent / 100) * ringCircumference;
+
+                  return (
                   <div className="relative mb-6">
                     {/* Ambient gradient orb behind hero */}
                     <div
@@ -717,36 +745,94 @@ export default function DashboardPage() {
                       style={{
                         minHeight: '25vh',
                         background: isHeroOverdue
-                          ? 'linear-gradient(135deg, rgba(127,29,29,0.5) 0%, rgba(153,27,27,0.3) 50%, rgba(127,29,29,0.5) 100%)'
-                          : cardGradient,
+                          ? 'linear-gradient(160deg, rgba(127,29,29,0.6) 0%, rgba(80,20,20,0.4) 40%, rgba(153,27,27,0.35) 70%, rgba(127,29,29,0.5) 100%)'
+                          : `linear-gradient(160deg, ${hexToRgba(accentColor, 0.25)} 0%, rgba(15,10,30,0.85) 40%, ${hexToRgba(accentColor, 0.15)} 70%, rgba(15,10,30,0.9) 100%)`,
                         border: isHeroOverdue
                           ? '1px solid rgba(239,68,68,0.4)'
-                          : `1px solid ${hexToRgba(accentColor, 0.35)}`,
+                          : `1px solid ${hexToRgba(accentColor, 0.25)}`,
                         boxShadow: isHeroOverdue
-                          ? '0 8px 40px rgba(239,68,68,0.3), 0 0 80px rgba(239,68,68,0.1)'
-                          : `0 8px 40px ${hexToRgba(accentColor, 0.35)}, 0 0 80px ${hexToRgba(accentColor, 0.15)}`,
+                          ? '0 8px 40px rgba(239,68,68,0.3), inset 0 1px 0 rgba(255,255,255,0.06)'
+                          : `0 8px 40px ${hexToRgba(accentColor, 0.25)}, 0 0 80px ${hexToRgba(accentColor, 0.08)}, inset 0 1px 0 rgba(255,255,255,0.08)`,
                       }}
                     >
-                      {/* Glossy highlight at top */}
-                      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-                      {/* Inner glow orbs */}
+                      {/* Glossy highlight at top edge */}
                       <div
-                        className="absolute -bottom-20 -right-20 w-60 h-60 rounded-full blur-[80px] pointer-events-none"
-                        style={{ backgroundColor: isHeroOverdue ? 'rgba(239,68,68,0.15)' : hexToRgba(accentColor, 0.2) }}
+                        className="absolute top-0 left-0 right-0 h-px"
+                        style={{
+                          background: isHeroOverdue
+                            ? 'linear-gradient(to right, transparent, rgba(239,68,68,0.5), transparent)'
+                            : `linear-gradient(to right, transparent, ${hexToRgba(accentColor, 0.5)}, transparent)`,
+                        }}
                       />
+                      {/* Tinted edge line at bottom */}
                       <div
-                        className="absolute -top-10 -left-10 w-40 h-40 rounded-full blur-[60px] pointer-events-none"
-                        style={{ backgroundColor: isHeroOverdue ? 'rgba(239,68,68,0.1)' : hexToRgba(accentColor, 0.25) }}
+                        className="absolute bottom-0 left-0 right-0 h-px"
+                        style={{
+                          background: isHeroOverdue
+                            ? 'linear-gradient(to right, transparent, rgba(239,68,68,0.2), transparent)'
+                            : `linear-gradient(to right, transparent, ${hexToRgba(accentColor, 0.15)}, transparent)`,
+                        }}
                       />
+                      {/* Soft inner glow orb - bottom right */}
+                      <div
+                        className="absolute -bottom-24 -right-24 w-64 h-64 rounded-full blur-[100px] pointer-events-none"
+                        style={{ backgroundColor: isHeroOverdue ? 'rgba(239,68,68,0.12)' : hexToRgba(accentColor, 0.12) }}
+                      />
+                      {/* Soft inner glow orb - top left */}
+                      <div
+                        className="absolute -top-12 -left-12 w-40 h-40 rounded-full blur-[70px] pointer-events-none"
+                        style={{ backgroundColor: isHeroOverdue ? 'rgba(239,68,68,0.08)' : hexToRgba(accentColor, 0.15) }}
+                      />
+                      {/* Subtle noise texture overlay for material depth */}
+                      <div className="absolute inset-0 rounded-3xl opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\' opacity=\'1\'/%3E%3C/svg%3E")' }} />
 
                       <div className="relative z-10 flex flex-col h-full justify-between">
-                        {/* Top: label */}
-                        <p className={cn(
-                          'text-xs font-semibold uppercase tracking-widest mb-2',
-                          isHeroOverdue ? 'text-red-300' : 'text-white/70'
-                        )}>
-                          {isHeroOverdue ? 'Overdue' : 'Next Up'}
-                        </p>
+                        {/* Top: label + progress ring */}
+                        <div className="flex items-center justify-between mb-2">
+                          <p className={cn(
+                            'text-xs font-semibold uppercase tracking-widest',
+                            isHeroOverdue ? 'text-red-300' : 'text-white/70'
+                          )}>
+                            {isHeroOverdue ? 'Overdue' : 'Next Up'}
+                          </p>
+
+                          {/* Progress ring */}
+                          {totalBillCount > 0 && (
+                            <div className="relative flex items-center justify-center">
+                              <svg width="88" height="88" viewBox="0 0 88 88" className="-rotate-90">
+                                {/* Track */}
+                                <circle
+                                  cx="44"
+                                  cy="44"
+                                  r={ringRadius}
+                                  fill="none"
+                                  stroke="rgba(255,255,255,0.08)"
+                                  strokeWidth="5"
+                                />
+                                {/* Progress */}
+                                <circle
+                                  cx="44"
+                                  cy="44"
+                                  r={ringRadius}
+                                  fill="none"
+                                  stroke={isHeroOverdue ? '#ef4444' : accentColor}
+                                  strokeWidth="5.5"
+                                  strokeLinecap="round"
+                                  strokeDasharray={ringCircumference}
+                                  strokeDashoffset={ringOffset}
+                                  style={{
+                                    transition: 'stroke-dashoffset 0.6s ease-out',
+                                    filter: `drop-shadow(0 0 4px ${isHeroOverdue ? 'rgba(239,68,68,0.5)' : hexToRgba(accentColor, 0.5)})`,
+                                  }}
+                                />
+                              </svg>
+                              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                <span className="text-sm font-bold text-white tabular-nums" style={{ fontFeatureSettings: '"tnum"', letterSpacing: '-0.02em' }}>{paidCount}/{totalBillCount}</span>
+                                <span className="text-[9px] font-semibold uppercase tracking-wider text-white/50">paid</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
 
                         {/* Center: countdown + name */}
                         <div className="flex-1 flex flex-col items-center justify-center py-4">
@@ -760,7 +846,14 @@ export default function DashboardPage() {
                             {heroBill.name}
                           </h2>
                           {heroBill.amount && (
-                            <p className="text-3xl sm:text-4xl font-extrabold text-white/90 mt-1 tracking-tight">
+                            <p
+                              className="text-3xl sm:text-4xl font-extrabold text-white/95 mt-1"
+                              style={{
+                                fontFeatureSettings: '"tnum", "salt"',
+                                letterSpacing: '-0.03em',
+                                fontFamily: "'SF Pro Display', 'Inter', system-ui, sans-serif",
+                              }}
+                            >
                               {formatCurrency(heroBill.amount)}
                             </p>
                           )}
@@ -773,7 +866,11 @@ export default function DashboardPage() {
                               e.stopPropagation();
                               handleMarkAsPaidFromCard(heroBill);
                             }}
-                            className="w-full py-3.5 rounded-2xl font-bold text-base text-white transition-all duration-200 active:scale-[0.98] border border-white/30 bg-white/[0.08] hover:bg-white/[0.15] backdrop-blur-sm"
+                            className="w-full py-3.5 rounded-2xl font-bold text-base text-white transition-all duration-200 active:scale-[0.98] backdrop-blur-sm"
+                            style={{
+                              background: `linear-gradient(to right, ${hexToRgba(accentColor, 0.2)}, ${hexToRgba(accentColor, 0.1)})`,
+                              border: `1px solid ${hexToRgba(accentColor, 0.3)}`,
+                            }}
                           >
                             <Check className="w-5 h-5 inline-block mr-2 -mt-0.5" />
                             Mark as Paid
@@ -828,7 +925,10 @@ export default function DashboardPage() {
                   {/* This Week */}
                   {thisWeekBills.length > 0 && (
                     <div>
-                      <h3 className="text-xs font-bold uppercase tracking-widest text-violet-400/70 mb-3 px-1">This Week</h3>
+                      <div className="flex items-center gap-3 mb-4 px-1">
+                        <h3 className="text-[11px] font-bold uppercase tracking-[0.15em]" style={{ color: hexToRgba(accentColor, 0.85) }}>This Week</h3>
+                        <div className="flex-1 h-px" style={{ background: `linear-gradient(to right, ${hexToRgba(accentColor, 0.25)}, transparent)` }} />
+                      </div>
                       <div className="space-y-2">
                         {thisWeekBills.map((bill) => (
                           <TimelineBillRow
@@ -846,7 +946,10 @@ export default function DashboardPage() {
                   {/* Next Week */}
                   {nextWeekBills.length > 0 && (
                     <div>
-                      <h3 className="text-xs font-bold uppercase tracking-widest text-violet-400/50 mb-3 px-1">Next Week</h3>
+                      <div className="flex items-center gap-3 mb-4 px-1">
+                        <h3 className="text-[11px] font-bold uppercase tracking-[0.15em]" style={{ color: hexToRgba(accentColor, 0.6) }}>Next Week</h3>
+                        <div className="flex-1 h-px" style={{ background: `linear-gradient(to right, ${hexToRgba(accentColor, 0.15)}, transparent)` }} />
+                      </div>
                       <div className="space-y-2">
                         {nextWeekBills.map((bill) => (
                           <TimelineBillRow
@@ -864,7 +967,10 @@ export default function DashboardPage() {
                   {/* Later */}
                   {laterBills.length > 0 && (
                     <div>
-                      <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500/60 mb-3 px-1">Later</h3>
+                      <div className="flex items-center gap-3 mb-4 px-1">
+                        <h3 className="text-[11px] font-bold uppercase tracking-[0.15em] text-zinc-500">Later</h3>
+                        <div className="flex-1 h-px bg-gradient-to-r from-zinc-700/40 to-transparent" />
+                      </div>
                       <div className="space-y-2">
                         {laterBills.map((bill) => (
                           <TimelineBillRow

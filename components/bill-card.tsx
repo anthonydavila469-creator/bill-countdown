@@ -107,7 +107,7 @@ export function BillCard({
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <h3 className="font-semibold text-white truncate max-w-[140px]">{bill.name}</h3>
+                <h3 className="font-semibold text-white truncate max-w-[160px]">{bill.name}</h3>
                 {/* Compact risk badge - always on same line */}
                 {riskConfig && !isPaid && (
                   <span className={cn(
@@ -216,10 +216,10 @@ export function BillCard({
       <div className="flex flex-col h-full min-h-[180px]">
         {/* Top section: emoji + name */}
         <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
             <div
               className={cn(
-                "relative p-2 rounded-2xl bg-white/20 backdrop-blur-sm",
+                "relative flex-shrink-0 p-2 rounded-2xl bg-white/20 backdrop-blur-sm",
                 isPaid && "grayscale-[30%]"
               )}
               role="img"
@@ -227,8 +227,8 @@ export function BillCard({
             >
               <IconComponent className="w-7 h-7 text-white" />
             </div>
-            <div>
-              <h3 className="font-bold text-lg text-white leading-tight">
+            <div className="min-w-0">
+              <h3 className="font-bold text-lg text-white leading-tight line-clamp-2">
                 {bill.name}
               </h3>
               {bill.amount && (

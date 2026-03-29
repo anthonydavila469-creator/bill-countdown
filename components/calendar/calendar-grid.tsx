@@ -64,6 +64,7 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
   );
 
   // Combine actual and projected bills
+  // Filter out paid bills from actual bills so they don't appear on the calendar as due
   const allBills: (Bill | ProjectedBill)[] = useMemo(
     () => [...bills.filter((b) => !b.is_paid), ...projectedBills],
     [bills, projectedBills]

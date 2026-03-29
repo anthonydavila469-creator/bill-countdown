@@ -133,9 +133,10 @@ export function projectRecurringBills(
 ): ProjectedBill[] {
   const projectedBills: ProjectedBill[] = [];
 
-  // Get recurring bills that are not paid
+  // Get recurring bills — include paid bills so we can project their future occurrences
+  // (a paid bill for the current period should still show future projected dates)
   const recurringBills = bills.filter(
-    (bill) => bill.is_recurring && bill.recurrence_interval && !bill.is_paid
+    (bill) => bill.is_recurring && bill.recurrence_interval
   );
 
   for (const bill of recurringBills) {
@@ -147,17 +148,19 @@ export function projectRecurringBills(
       currentDate = getNextDueDate(currentDate, bill.recurrence_interval!);
     }
 
-    // Skip the original bill date (it's not projected)
+    // Skip the original bill date (it's not projected — the real bill covers it)
     if (isSameDay(currentDate, billDate)) {
       currentDate = getNextDueDate(currentDate, bill.recurrence_interval!);
     }
 
     // Generate projected occurrences until end date
+    // Projected bills are always shown as unpaid (future occurrences)
     while (currentDate <= endDate) {
       projectedBills.push({
         ...bill,
         id: `${bill.id}-projected-${formatDateString(currentDate)}`,
         due_date: formatDateString(currentDate),
+        is_paid: false, // Projected future occurrences are never paid
         isProjected: true,
         sourceBillId: bill.id,
       });
