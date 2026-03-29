@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutGrid, Calendar, History, Settings } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, hexToRgba } from '@/lib/utils';
+import { useTheme } from '@/contexts/theme-context';
 
 const navItems = [
   { href: '/dashboard', label: 'Home', icon: LayoutGrid },
@@ -16,6 +17,7 @@ const navItems = [
 export function MobileBottomNav() {
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
+  const { accentColor } = useTheme();
 
   // Only render after hydration to avoid mismatch
   useEffect(() => {
@@ -26,10 +28,13 @@ export function MobileBottomNav() {
 
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50" style={{ position: 'fixed', bottom: 0, transform: 'translate3d(0,0,0)', WebkitTransform: 'translate3d(0,0,0)' }}>
-      {/* Top border glow */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+      {/* Top border glow — tinted with accent */}
+      <div
+        className="absolute top-0 left-0 right-0 h-px"
+        style={{ background: `linear-gradient(to right, transparent, ${hexToRgba(accentColor, 0.2)}, transparent)` }}
+      />
 
-      <div className="bg-[#0a0a0e] backdrop-blur-xl border-t border-white/[0.06] overflow-hidden">
+      <div className="bg-[#0a0a0e]/95 backdrop-blur-2xl border-t border-white/[0.06] overflow-hidden">
         <div className="flex items-center justify-around px-2 h-16 max-w-lg mx-auto">
           {navItems.map((item) => {
             const isActive = item.href === '/dashboard'
@@ -48,22 +53,31 @@ export function MobileBottomNav() {
                     : 'text-zinc-500 active:text-zinc-300'
                 )}
               >
-                {/* Active indicator - background highlight */}
+                {/* Active indicator - background highlight with accent tint */}
                 {isActive && (
-                  <div className="absolute inset-0 bg-violet-500/10 rounded-xl border border-violet-500/20" />
+                  <div
+                    className="absolute inset-0 rounded-xl"
+                    style={{
+                      background: hexToRgba(accentColor, 0.1),
+                      border: `1px solid ${hexToRgba(accentColor, 0.2)}`,
+                    }}
+                  />
                 )}
 
                 <div className="relative">
-                  <Icon className={cn(
-                    'w-5 h-5 transition-colors duration-200',
-                    isActive && 'text-violet-400'
-                  )} />
+                  <Icon
+                    className="w-5 h-5 transition-colors duration-200"
+                    style={isActive ? { color: accentColor } : undefined}
+                  />
                 </div>
 
-                <span className={cn(
-                  'text-[9px] font-medium transition-colors duration-200',
-                  isActive ? 'text-violet-400' : 'text-zinc-500'
-                )}>
+                <span
+                  className={cn(
+                    'text-[9px] font-semibold transition-colors duration-200',
+                    !isActive && 'text-zinc-500'
+                  )}
+                  style={isActive ? { color: accentColor } : undefined}
+                >
                   {item.label}
                 </span>
               </Link>
@@ -72,7 +86,7 @@ export function MobileBottomNav() {
         </div>
 
         {/* Safe area padding for devices with home indicator */}
-        <div className="h-[env(safe-area-inset-bottom)] bg-[#0a0a0e]" />
+        <div className="h-[env(safe-area-inset-bottom)] bg-[#0a0a0e]/95" />
       </div>
     </nav>
   );
