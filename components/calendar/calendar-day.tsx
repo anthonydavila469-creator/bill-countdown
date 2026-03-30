@@ -125,17 +125,13 @@ export function CalendarDay({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       className={cn(
-        'group relative flex flex-col p-1 md:p-2 min-h-[60px] sm:min-h-[80px] md:min-h-[110px] transition-all duration-300 cursor-pointer',
+        'group relative flex flex-col p-1 md:p-2 min-h-[60px] sm:min-h-[80px] md:min-h-[110px] transition-all duration-200 cursor-pointer',
         'border-r border-b border-white/[0.04]',
         'hover:bg-white/[0.03]',
         'focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/50 focus-visible:ring-inset',
-        // Fade out non-current month days
         !inCurrentMonth && 'opacity-30 hover:opacity-50',
-        // Selected state
-        isSelected && 'bg-amber-500/15',
-        // Today
-        today && !isSelected && 'bg-violet-500/[0.08]',
-        // Drag over state
+        isSelected && 'bg-[color-mix(in_srgb,var(--accent-primary)_10%,transparent)]',
+        today && !isSelected && 'bg-violet-500/[0.06]',
         isDragOver && 'bg-emerald-500/20 ring-2 ring-emerald-400/50 ring-inset'
       )}
       style={{
@@ -144,12 +140,18 @@ export function CalendarDay({
     >
       {/* Today indicator */}
       {today && (
-        <div className="absolute inset-1 rounded-lg border-2 border-violet-500/30 pointer-events-none" />
+        <div className="absolute inset-1 rounded-lg border border-violet-500/25 pointer-events-none" />
       )}
 
-      {/* Selected indicator */}
+      {/* Selected indicator — crisp solid border, no fuzzy glow */}
       {isSelected && (
-        <div className="absolute inset-0.5 rounded-lg border-2 border-amber-400/60 pointer-events-none" />
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            borderBottom: '2px solid var(--accent-primary)',
+            background: 'linear-gradient(to bottom, transparent 85%, color-mix(in srgb, var(--accent-primary) 8%, transparent))',
+          }}
+        />
       )}
 
       {/* Drop zone indicator */}
@@ -169,20 +171,27 @@ export function CalendarDay({
 
       {/* Header row: day number and total */}
       <div className="flex items-start justify-between mb-0.5 sm:mb-1">
-        <span
-          className={cn(
-            'text-xs sm:text-sm font-semibold transition-colors duration-200',
-            today
-              ? 'text-violet-400'
-              : isSelected
-              ? 'text-white'
-              : inCurrentMonth
-              ? 'text-zinc-400 group-hover:text-zinc-200'
-              : 'text-zinc-600'
-          )}
-        >
-          {dayNumber}
-        </span>
+        {isSelected ? (
+          <span
+            className="inline-flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-lg text-xs sm:text-sm font-bold text-white"
+            style={{ backgroundColor: 'var(--accent-primary)' }}
+          >
+            {dayNumber}
+          </span>
+        ) : (
+          <span
+            className={cn(
+              'text-xs sm:text-sm font-semibold transition-colors duration-200 pl-0.5',
+              today
+                ? 'text-violet-400'
+                : inCurrentMonth
+                ? 'text-zinc-400 group-hover:text-zinc-200'
+                : 'text-zinc-600'
+            )}
+          >
+            {dayNumber}
+          </span>
+        )}
 
         {/* Day total - only show on larger screens (md+) */}
         {dayTotal > 0 && inCurrentMonth && !isDragOver && (

@@ -276,11 +276,11 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
               </div>
 
               {/* Month/Year display */}
-              <div className="flex items-baseline gap-1">
-                <h2 className="text-xl sm:text-3xl font-light tracking-tight text-white">
+              <div className="flex items-baseline gap-2">
+                <h2 className="text-xl sm:text-3xl font-bold tracking-tight text-white">
                   {monthName}
                 </h2>
-                <span className="text-sm sm:text-lg text-zinc-500 font-light">{yearNum}</span>
+                <span className="text-sm sm:text-lg text-zinc-500 font-medium">{yearNum}</span>
               </div>
             </div>
 
@@ -459,19 +459,15 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
             </div>
         </div>
 
-        {/* Calendar container with subtle depth */}
+        {/* Calendar container */}
         <div className="relative">
-          {/* Subtle glow effect behind calendar */}
-          <div className="absolute -inset-1 bg-gradient-to-b from-violet-500/5 to-amber-500/5 rounded-3xl blur-xl opacity-50" />
-
-          <div className="relative bg-[#0a0a0f]/80 backdrop-blur-xl rounded-2xl border border-white/[0.06] overflow-hidden">
+          <div className="relative bg-[#0a0a0f]/80 backdrop-blur-xl rounded-2xl border border-white/[0.06] overflow-hidden shadow-xl shadow-black/20">
             {/* Day names header */}
-            <div className="grid grid-cols-7 border-b border-white/[0.04]">
-              {dayNames.map((day, index) => (
+            <div className="grid grid-cols-7 bg-white/[0.02] border-b border-white/[0.06]">
+              {dayNames.map((day) => (
                 <div
                   key={day}
-                  className="text-center text-[11px] font-semibold tracking-widest uppercase text-zinc-500 py-4"
-                  style={{ animationDelay: `${index * 50}ms` }}
+                  className="text-center text-[10px] sm:text-[11px] font-bold tracking-[0.15em] uppercase text-zinc-400 py-3 sm:py-4"
                 >
                   {day}
                 </div>
@@ -553,8 +549,8 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
           )}
         </div>
 
-        {/* Legend - uses CSS variables for custom colors */}
-        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 mt-4 sm:mt-6 px-4">
+        {/* Legend */}
+        <div className="flex items-center justify-center gap-1 mt-4 sm:mt-5 mx-auto px-3 py-2 rounded-xl bg-white/[0.02] border border-white/[0.05] w-fit">
           {[
             { cssVar: '--urgency-overdue', label: 'Overdue' },
             { cssVar: '--urgency-urgent', label: 'Urgent' },
@@ -563,17 +559,13 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
           ].map((item, index) => (
             <div
               key={item.label}
-              className="flex items-center gap-1.5 sm:gap-2 animate-in fade-in duration-300"
-              style={{ animationDelay: `${600 + index * 100}ms` }}
+              className="flex items-center gap-1.5 px-2.5 py-1"
             >
               <div
-                className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full"
-                style={{
-                  backgroundColor: `var(${item.cssVar})`,
-                  boxShadow: `0 0 8px color-mix(in srgb, var(${item.cssVar}) 50%, transparent)`,
-                }}
+                className="w-2 h-2 rounded-[3px]"
+                style={{ backgroundColor: `var(${item.cssVar})` }}
               />
-              <span className="text-[10px] sm:text-[11px] font-medium tracking-wide text-zinc-500 uppercase">
+              <span className="text-[10px] sm:text-[11px] font-semibold tracking-wider text-zinc-400 uppercase">
                 {item.label}
               </span>
             </div>
@@ -606,19 +598,19 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
             'all': { emoji: '📅', label: 'This Month', color: 'text-violet-400' },
           }[activeFilter];
 
-          const getUrgencyColor = (daysUntil: number) => {
-            if (daysUntil < 0) return 'bg-red-400 shadow-red-400/50';
-            if (daysUntil <= 2) return 'bg-orange-400 shadow-orange-400/50';
-            if (daysUntil <= 7) return 'bg-amber-400 shadow-amber-400/50';
-            return 'bg-emerald-400 shadow-emerald-400/50';
+          const getUrgencyCssVar = (daysUntil: number) => {
+            if (daysUntil < 0) return '--urgency-overdue';
+            if (daysUntil <= 2) return '--urgency-urgent';
+            if (daysUntil <= 7) return '--urgency-soon';
+            return '--urgency-safe';
           };
 
           const formatDueLabel = (daysUntil: number) => {
-            if (daysUntil < -1) return `${Math.abs(daysUntil)} days overdue`;
-            if (daysUntil === -1) return '1 day overdue';
-            if (daysUntil === 0) return 'Due today';
-            if (daysUntil === 1) return 'Due tomorrow';
-            return `Due in ${daysUntil} days`;
+            if (daysUntil < -1) return `${Math.abs(daysUntil)}d overdue`;
+            if (daysUntil === -1) return '1d overdue';
+            if (daysUntil === 0) return 'Today';
+            if (daysUntil === 1) return 'Tomorrow';
+            return `${daysUntil}d`;
           };
 
           return (
@@ -630,10 +622,10 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
                   <h3 className={cn('text-sm font-semibold', headerConfig.color)}>
                     {headerConfig.label}
                   </h3>
-                  <span className="text-xs text-zinc-500">({sortedBills.length})</span>
+                  <span className="text-xs text-zinc-600">({sortedBills.length})</span>
                 </div>
                 {listTotal > 0 && (
-                  <span className="text-xs font-medium text-zinc-400">
+                  <span className="text-xs font-bold text-zinc-400 tabular-nums">
                     {formatCurrency(listTotal)}
                   </span>
                 )}
@@ -651,45 +643,60 @@ export function CalendarGrid({ bills, onBillClick, onAddBill, onMarkPaid, onEdit
                   </p>
                 </div>
               ) : (
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-1.5">
                   {sortedBills.map((bill, index) => {
                     const daysUntil = getDaysUntilDue(bill.due_date);
-                    // Append T00:00:00 to parse as local midnight, not UTC
                     const dueDate = new Date(bill.due_date.includes('T') ? bill.due_date : bill.due_date + 'T00:00:00');
                     const isProjected = 'isProjected' in bill && bill.isProjected;
-                    const urgencyDot = getUrgencyColor(daysUntil);
+                    const urgencyVar = getUrgencyCssVar(daysUntil);
+                    const isOverdue = daysUntil < 0;
 
                     return (
                       <button
                         key={`${bill.id}-${bill.due_date}-${index}`}
                         onClick={() => handleBillClick(bill)}
-                        className="group flex items-center gap-3 w-full px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl hover:bg-white/[0.06] hover:border-white/10 transition-all duration-200 text-left animate-in fade-in slide-in-from-bottom-2 duration-300"
-                        style={{ animationDelay: `${index * 50}ms` }}
+                        className="group flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-white/[0.06] transition-all duration-200 text-left animate-in fade-in slide-in-from-bottom-1 duration-200"
+                        style={{
+                          animationDelay: `${index * 40}ms`,
+                          background: `linear-gradient(to right, color-mix(in srgb, var(${urgencyVar}) 6%, transparent), rgba(255,255,255,0.02))`,
+                          border: `1px solid color-mix(in srgb, var(${urgencyVar}) 12%, transparent)`,
+                        }}
                       >
-                        {/* Urgency dot */}
-                        <div className={cn('w-2.5 h-2.5 rounded-full flex-shrink-0 shadow-[0_0_6px]', urgencyDot)} />
+                        {/* Urgency bar — vertical accent */}
+                        <div
+                          className="w-[3px] self-stretch rounded-full flex-shrink-0"
+                          style={{ backgroundColor: `var(${urgencyVar})` }}
+                        />
 
                         {/* Bill info */}
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-white truncate group-hover:text-white/90">
+                          <p className="text-sm font-semibold text-white truncate">
                             {bill.name}
                             {isProjected && (
                               <span className="ml-1.5 text-[10px] text-zinc-500 font-normal">(projected)</span>
                             )}
                           </p>
-                          <p className="text-xs text-zinc-500 mt-0.5">
+                          <p className="text-[11px] text-zinc-500 mt-0.5">
                             {dueDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                            <span className="mx-1.5 text-zinc-600">·</span>
-                            <span className={cn(
-                              daysUntil < 0 ? 'text-red-400/80' : daysUntil <= 2 ? 'text-orange-400/80' : 'text-zinc-500'
-                            )}>
-                              {formatDueLabel(daysUntil)}
-                            </span>
                           </p>
                         </div>
 
-                        {/* Amount */}
-                        <span className="text-sm font-semibold text-white flex-shrink-0">
+                        {/* Countdown badge */}
+                        <span
+                          className={cn(
+                            "text-[11px] font-bold px-2 py-0.5 rounded-md flex-shrink-0",
+                            isOverdue ? "text-red-400" : "text-zinc-400"
+                          )}
+                          style={{
+                            backgroundColor: `color-mix(in srgb, var(${urgencyVar}) 12%, transparent)`,
+                            color: `var(${urgencyVar})`,
+                          }}
+                        >
+                          {formatDueLabel(daysUntil)}
+                        </span>
+
+                        {/* Amount — always white for consistency */}
+                        <span className="text-sm font-bold text-white flex-shrink-0 tabular-nums min-w-[60px] text-right">
                           {formatCurrency(bill.amount || 0)}
                         </span>
 
