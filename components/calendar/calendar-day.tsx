@@ -143,13 +143,15 @@ export function CalendarDay({
         <div className="absolute inset-1 rounded-lg border border-violet-500/25 pointer-events-none" />
       )}
 
-      {/* Selected indicator — crisp solid border, no fuzzy glow */}
+      {/* Selected indicator — crisp accent border with tight glow */}
       {isSelected && (
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            borderBottom: '2px solid var(--accent-primary)',
-            background: 'linear-gradient(to bottom, transparent 85%, color-mix(in srgb, var(--accent-primary) 8%, transparent))',
+            borderBottom: '2.5px solid var(--accent-primary)',
+            borderLeft: '1px solid color-mix(in srgb, var(--accent-primary) 20%, transparent)',
+            borderRight: '1px solid color-mix(in srgb, var(--accent-primary) 20%, transparent)',
+            background: 'linear-gradient(to bottom, color-mix(in srgb, var(--accent-primary) 4%, transparent) 0%, color-mix(in srgb, var(--accent-primary) 10%, transparent) 100%)',
           }}
         />
       )}
@@ -173,8 +175,11 @@ export function CalendarDay({
       <div className="flex items-start justify-between mb-0.5 sm:mb-1">
         {isSelected ? (
           <span
-            className="inline-flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-lg text-xs sm:text-sm font-bold text-white"
-            style={{ backgroundColor: 'var(--accent-primary)' }}
+            className="inline-flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-lg text-xs sm:text-sm font-bold text-white shadow-sm"
+            style={{
+              backgroundColor: 'var(--accent-primary)',
+              boxShadow: '0 2px 8px color-mix(in srgb, var(--accent-primary) 40%, transparent)',
+            }}
           >
             {dayNumber}
           </span>
@@ -260,7 +265,7 @@ export function CalendarDay({
           </div>
 
           {/* Mobile view - colored dots */}
-          <div className="flex md:hidden flex-wrap gap-1 mt-0.5 items-center">
+          <div className="flex md:hidden gap-[5px] mt-1 items-center justify-center w-full">
             {sortedBills.slice(0, 3).map((bill) => {
               const daysLeft = getDaysUntilDue(bill.due_date);
               const isProjected = 'isProjected' in bill && bill.isProjected;
@@ -270,17 +275,20 @@ export function CalendarDay({
                 <div
                   key={bill.id}
                   className={cn(
-                    'w-2 h-2 rounded-full flex-shrink-0',
-                    isProjected && 'opacity-60',
+                    'w-[6px] h-[6px] rounded-full flex-shrink-0',
+                    isProjected && 'opacity-70',
                     bill.is_paid && 'opacity-40'
                   )}
-                  style={{ backgroundColor: dotColor }}
+                  style={{
+                    backgroundColor: dotColor,
+                    boxShadow: `0 0 4px ${dotColor}50`,
+                  }}
                   title={bill.name}
                 />
               );
             })}
             {sortedBills.length > 3 && (
-              <span className="text-[8px] font-semibold text-zinc-500">
+              <span className="text-[8px] font-bold text-zinc-400">
                 +{sortedBills.length - 3}
               </span>
             )}
