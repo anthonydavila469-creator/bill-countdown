@@ -2,9 +2,10 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getProvider, getProviderLabel, type EmailProviderName } from '@/lib/email/providers';
 import { persistEmailConnection } from '@/lib/email/tokens';
+import { verifySignedState } from '@/lib/email/oauth-state';
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://duezo.app';
-const NATIVE_SETTINGS_URL = 'duezo://settings';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.duezo.app';
+const NATIVE_SETTINGS_URL = 'app.duezo://settings';
 
 function parseProvider(value: string | null): EmailProviderName {
   if (value === 'yahoo' || value === 'outlook') {
@@ -33,7 +34,28 @@ function buildSettingsRedirect(
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const rawState = searchParams.get('state') || searchParams.get('provider') || 'gmail';
-  const [providerPart, userIdFromState] = rawState.includes(':') ? rawState.split(':', 2) : [rawState, null];
+
+  // Try to verify as a signed state (provider:userId:timestamp:hmac)
+  const signedResult = verifySignedState(rawState);
+  let providerPart: string;
+  let userIdFromState: string | null;
+
+  if (signedResult) {
+    providerPart = signedResult.provider;
+    userIdFromState = signedResult.userId;
+  } else if (!rawState.includes(':')) {
+    // Simple provider-only state (web flow, no user ID in state)
+    providerPart = rawState;
+    userIdFromState = null;
+  } else {
+    // Signed state that failed verification — reject it
+    const fallbackProvider = parseProvider(rawState.split(':')[0]);
+    return NextResponse.redirect(buildSettingsRedirect(false, {
+      error: 'invalid_state',
+      provider: fallbackProvider,
+    }));
+  }
+
   const providerName = parseProvider(providerPart);
   const isNativeApp = Boolean(userIdFromState);
 

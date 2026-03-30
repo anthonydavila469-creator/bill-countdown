@@ -29,67 +29,14 @@ import {
   Lightbulb,
   RefreshCw,
   ArrowRight,
+  Clock as ClockIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BillImportModal } from '@/components/bill-import-modal';
 import { CustomizationSection } from '@/components/settings/customization-section';
 import { NotificationSection } from '@/components/settings/notification-section';
 import { DeleteAccountModal } from '@/components/settings/delete-account-modal';
-import { ParsedBill } from '@/types';
 import { useBillsContext } from '@/contexts/bills-context';
-
-type EmailProviderName = 'gmail' | 'yahoo' | 'outlook';
-
-interface EmailConnectionState {
-  provider: EmailProviderName;
-  email: string;
-}
-
-const EMAIL_PROVIDERS: Array<{
-  name: EmailProviderName;
-  label: string;
-  color: string;
-  logo: string;
-  description: string;
-  borderColor: string;
-  bgTint: string;
-  glowColor: string;
-}> = [
-  {
-    name: 'gmail',
-    label: 'Gmail',
-    color: '#EA4335',
-    logo: '/logos/gmail.png',
-    description: 'Google account',
-    borderColor: 'border-red-500/20 hover:border-red-500/40',
-    bgTint: 'bg-red-500/[0.04] hover:bg-red-500/[0.08]',
-    glowColor: 'rgba(234, 67, 53, 0.12)',
-  },
-  {
-    name: 'yahoo',
-    label: 'Yahoo Mail',
-    color: '#6001D2',
-    logo: '/logos/yahoo.png',
-    description: 'Yahoo account',
-    borderColor: 'border-purple-500/20 hover:border-purple-500/40',
-    bgTint: 'bg-purple-500/[0.04] hover:bg-purple-500/[0.08]',
-    glowColor: 'rgba(96, 1, 210, 0.12)',
-  },
-  {
-    name: 'outlook',
-    label: 'Outlook',
-    color: '#0078D4',
-    logo: '/logos/outlook.png',
-    description: 'Microsoft account',
-    borderColor: 'border-blue-500/20 hover:border-blue-500/40',
-    bgTint: 'bg-blue-500/[0.04] hover:bg-blue-500/[0.08]',
-    glowColor: 'rgba(0, 120, 212, 0.12)',
-  },
-];
-
-function getProviderLabel(provider: EmailProviderName): string {
-  return EMAIL_PROVIDERS.find((item) => item.name === provider)?.label || 'Email';
-}
 
 // Premium section header component - matches CustomizationSection
 function SectionHeader({
@@ -151,6 +98,142 @@ function GoogleIcon({ className }: { className?: string }) {
   );
 }
 
+// Premium toggle switch - matches CustomizationSection
+function PremiumToggle({
+  enabled,
+  onChange,
+  disabled = false,
+}: {
+  enabled: boolean;
+  onChange: (enabled: boolean) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => !disabled && onChange(!enabled)}
+      disabled={disabled}
+      className={cn(
+        'relative w-14 h-8 rounded-full transition-all duration-300',
+        !enabled && 'bg-white/10',
+        disabled && 'opacity-50 cursor-not-allowed'
+      )}
+      style={enabled ? { backgroundColor: 'var(--accent-primary)' } : undefined}
+    >
+      {/* Track glow when active */}
+      {enabled && (
+        <div
+          className="absolute inset-0 rounded-full blur-md opacity-50"
+          style={{ backgroundColor: 'var(--accent-primary)' }}
+        />
+      )}
+      {/* Thumb */}
+      <div
+        className={cn(
+          'absolute top-1 w-6 h-6 rounded-full transition-all duration-300',
+          'bg-white shadow-lg',
+          enabled ? 'left-7' : 'left-1'
+        )}
+      >
+        {/* Thumb highlight */}
+        <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white to-zinc-200" />
+      </div>
+    </button>
+  );
+}
+
+// Premium toggle field row
+function ToggleRow({
+  icon: Icon,
+  label,
+  description,
+  enabled,
+  onChange,
+  index = 0,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  description: string;
+  enabled: boolean;
+  onChange: (enabled: boolean) => void;
+  index?: number;
+}) {
+  return (
+    <div
+      className="group flex items-center justify-between p-4 bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.06] hover:border-white/[0.1] rounded-2xl transition-all duration-300 animate-in fade-in slide-in-from-bottom-2"
+      style={{ animationDelay: `${index * 75}ms`, animationFillMode: 'backwards' }}
+    >
+      <div className="flex items-center gap-4">
+        <div className="p-2.5 rounded-xl bg-white/[0.04] group-hover:bg-white/[0.06] transition-colors">
+          <Icon className="w-4 h-4 text-zinc-400" />
+        </div>
+        <div>
+          <p className="font-medium text-white tracking-wide">{label}</p>
+          <p className="text-sm text-zinc-500">{description}</p>
+        </div>
+      </div>
+      <PremiumToggle enabled={enabled} onChange={onChange} />
+    </div>
+  );
+}
+
+// Premium select field row
+function SelectRow({
+  icon: Icon,
+  label,
+  description,
+  value,
+  onChange,
+  options,
+  index = 0,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  description: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: { value: string; label: string }[];
+  index?: number;
+}) {
+  return (
+    <div
+      className="group flex items-center justify-between p-4 bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.06] hover:border-white/[0.1] rounded-2xl transition-all duration-300 animate-in fade-in slide-in-from-bottom-2"
+      style={{ animationDelay: `${index * 75}ms`, animationFillMode: 'backwards' }}
+    >
+      <div className="flex items-center gap-4">
+        <div className="p-2.5 rounded-xl bg-white/[0.04] group-hover:bg-white/[0.06] transition-colors">
+          <Icon className="w-4 h-4 text-zinc-400" />
+        </div>
+        <div>
+          <p className="font-medium text-white tracking-wide">{label}</p>
+          <p className="text-sm text-zinc-500">{description}</p>
+        </div>
+      </div>
+      <div className="relative">
+        <select
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className={cn(
+            'appearance-none pl-4 pr-10 py-2.5 min-w-[160px]',
+            'bg-white/[0.04] hover:bg-white/[0.08]',
+            'border border-white/[0.08] hover:border-white/[0.15]',
+            'rounded-xl text-white text-sm font-medium tracking-wide',
+            'focus:outline-none focus:ring-2 focus:ring-white/20',
+            'cursor-pointer transition-all duration-200'
+          )}
+        >
+          {options.map((opt) => (
+            <option key={opt.value} value={opt.value} className="bg-zinc-900 text-white">
+              {opt.label}
+            </option>
+          ))}
+        </select>
+        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+      </div>
+    </div>
+  );
+}
+
 export default function SettingsPage() {
   const router = useRouter();
   const supabase = createClient();
@@ -161,42 +244,12 @@ export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   // Settings state
-  const [emailConnection, setEmailConnection] = useState<EmailConnectionState | null>(null);
-  const [selectedProvider, setSelectedProvider] = useState<EmailProviderName | null>(null);
-  const [yahooEmail, setYahooEmail] = useState('');
-  const [yahooAppPassword, setYahooAppPassword] = useState('');
-  const [isConnectingYahoo, setIsConnectingYahoo] = useState(false);
-  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isForceRescanning, setIsForceRescanning] = useState(false);
-  const [showForceRescanConfirm, setShowForceRescanConfirm] = useState(false);
 
-  // Auto-scan state (triggers after OAuth redirect)
-  const [isAutoScanning, setIsAutoScanning] = useState(false);
-  const [autoScanNoResults, setAutoScanNoResults] = useState(false);
 
-  // Check authentication and connected email provider status
+  // Check authentication
   useEffect(() => {
     const checkAuth = async () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const oauthError = urlParams.get('error');
-      const errorDetails = urlParams.get('details');
-      if (oauthError) {
-        console.error('Email OAuth error:', oauthError, errorDetails);
-        alert(`Email connection failed: ${errorDetails || oauthError}`);
-        // Clean URL for error case only — success params are handled by auto-scan useEffect
-        window.history.replaceState({}, '', window.location.pathname);
-      }
-      const gmailJustConnected = urlParams.get('gmail') === 'connected';
-      const providerFromUrl = (urlParams.get('provider') as EmailProviderName | null) || 'gmail';
-
-      if (gmailJustConnected || urlParams.get('provider_connected')) {
-        setEmailConnection((current) => current || {
-          provider: providerFromUrl,
-          email: '',
-        });
-      }
-
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
@@ -205,79 +258,13 @@ export default function SettingsPage() {
       }
 
       setUser(user);
-      setYahooEmail((current) => current || user.email || '');
-
-      const { data: gmailToken } = await supabase
-        .from('gmail_tokens')
-        .select('email, email_provider')
-        .eq('user_id', user.id)
-        .single();
-
-      if (gmailToken) {
-        setEmailConnection({
-          provider: (gmailToken.email_provider || 'gmail') as EmailProviderName,
-          email: gmailToken.email || user.email || '',
-        });
-      } else if (!gmailJustConnected) {
-        setEmailConnection(null);
-      }
-
       setIsLoading(false);
     };
 
     checkAuth();
   }, [router, supabase.auth, supabase]);
 
-  // Auto-scan after OAuth provider connect
-  // Detects URL params like ?gmail=connected or ?provider_connected=Gmail
-  useEffect(() => {
-    if (isLoading || isAutoScanning) return;
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const gmailJustConnected = urlParams.get('gmail') === 'connected';
-    const providerConnected = urlParams.get('provider_connected');
-
-    if (!gmailJustConnected && !providerConnected) return;
-
-    // Clear URL params immediately to prevent re-trigger on refresh
-    window.history.replaceState({}, '', window.location.pathname);
-
-    const runAutoScan = async () => {
-      setIsAutoScanning(true);
-      setAutoScanNoResults(false);
-
-      try {
-        const response = await fetch('/api/suggestions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ maxResults: 200, daysBack: 60, skipAI: false }),
-        });
-
-        if (!response.ok) {
-          console.error('Auto-scan failed:', await response.text());
-          setIsAutoScanning(false);
-          return;
-        }
-
-        const { suggestions } = await response.json();
-
-        setIsAutoScanning(false);
-
-        if (suggestions && suggestions.length > 0) {
-          // Open the import modal — it will re-fetch suggestions internally
-          setIsImportModalOpen(true);
-        } else {
-          // Show friendly "no bills found" message
-          setAutoScanNoResults(true);
-        }
-      } catch (error) {
-        console.error('Auto-scan error:', error);
-        setIsAutoScanning(false);
-      }
-    };
-
-    runAutoScan();
-  }, [isLoading]); // Only re-run when loading completes
 
   // Handle sign out
   const handleSignOut = async () => {
@@ -285,116 +272,7 @@ export default function SettingsPage() {
     router.push('/');
   };
 
-  const handleConnectProvider = async (provider: EmailProviderName) => {
-    if (provider === 'yahoo') {
-      setSelectedProvider('yahoo');
-      return;
-    }
 
-    let connectUrl = `${window.location.origin}/api/email/connect?provider=${provider}`;
-
-    // Always try to attach the access token — works for both Capacitor and web
-    // In-app browsers and Capacitor webviews may not carry cookies
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.access_token) {
-        connectUrl += `&access_token=${session.access_token}`;
-      }
-    } catch (e) {
-      console.error('Failed to get session for email connect:', e);
-    }
-
-    if (Capacitor.isNativePlatform()) {
-      await Browser.open({ url: connectUrl, presentationStyle: 'fullscreen' });
-    } else {
-      window.location.href = connectUrl;
-    }
-  };
-
-  const handleYahooPasswordConnect = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    if (!yahooEmail.trim() || !yahooAppPassword.trim()) {
-      alert('Enter your Yahoo email and app password.');
-      return;
-    }
-
-    setIsConnectingYahoo(true);
-
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const headers: HeadersInit = {
-        'Content-Type': 'application/json',
-      };
-
-      if (session?.access_token) {
-        headers.Authorization = `Bearer ${session.access_token}`;
-      }
-
-      const response = await fetch('/api/email/connect-password', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          email: yahooEmail.trim(),
-          appPassword: yahooAppPassword.trim(),
-          provider: 'yahoo',
-        }),
-      });
-
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to connect Yahoo Mail');
-      }
-
-      setEmailConnection({
-        provider: 'yahoo',
-        email: yahooEmail.trim(),
-      });
-      setSelectedProvider(null);
-      setYahooAppPassword('');
-    } catch (error) {
-      console.error('Yahoo password connect failed:', error);
-      alert(error instanceof Error ? error.message : 'Failed to connect Yahoo Mail');
-    } finally {
-      setIsConnectingYahoo(false);
-    }
-  };
-
-  const handleDisconnectEmail = async () => {
-    try {
-      await fetch('/api/email/disconnect', { method: 'POST' });
-      setEmailConnection(null);
-    } catch (error) {
-      console.error('Failed to disconnect email provider:', error);
-    }
-  };
-
-  const handleImportBills = async (bills: ParsedBill[]) => {
-    try {
-
-      const response = await fetch('/api/bills/import', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bills }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        console.error('Import failed:', result);
-        throw new Error(result.error || 'Failed to import bills');
-      }
-
-
-      // Refetch bills to update the context before navigating
-      await refetch();
-
-      router.push('/dashboard');
-    } catch (error) {
-      console.error('Failed to import bills:', error);
-      throw error; // Re-throw so the modal can show the error
-    }
-  };
 
   // Handle delete account
   const handleDeleteAccount = async (password: string) => {
@@ -413,37 +291,6 @@ export default function SettingsPage() {
     await supabase.auth.signOut();
     router.push('/');
   };
-
-  // Handle force rescan
-  const handleForceRescan = async () => {
-    setIsForceRescanning(true);
-    setShowForceRescanConfirm(false);
-
-    try {
-      const response = await fetch('/api/suggestions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ forceRescan: true, skipAI: false }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to rescan emails');
-      }
-
-      const result = await response.json();
-
-      // If we got suggestions, open the import modal
-      if (result.suggestions && result.suggestions.length > 0) {
-        setIsImportModalOpen(true);
-      }
-    } catch (error) {
-      console.error('Force rescan failed:', error);
-    } finally {
-      setIsForceRescanning(false);
-    }
-  };
-
-  // Loading state
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#0F0A1E] flex items-center justify-center">
@@ -517,26 +364,6 @@ export default function SettingsPage() {
           </ul>
         </nav>
 
-        {!emailConnection && (
-          <div className="p-4 border-t border-white/5">
-            <div className="p-4 rounded-xl bg-gradient-to-br from-violet-500/10 to-violet-500/10 border border-white/5">
-              <div className="flex items-center gap-3 mb-3">
-                <Mail className="w-5 h-5 text-violet-400" />
-                <span className="text-sm font-medium text-white">Email Sync</span>
-              </div>
-              <p className="text-xs text-zinc-400 mb-3">
-                Connect Gmail, Yahoo Mail, or Outlook to detect bills from your inbox.
-              </p>
-              <Link
-                href="/dashboard/settings"
-                className="block w-full px-3 py-2 text-sm font-medium bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-white text-center"
-              >
-                Connect Email
-              </Link>
-            </div>
-          </div>
-        )}
-
         {/* User */}
         <div className="p-4 border-t border-white/5">
           <div className="flex items-center gap-3">
@@ -580,363 +407,6 @@ export default function SettingsPage() {
 
         {/* Content */}
         <div className="p-6 max-w-2xl mx-auto space-y-10">
-          {/* Auto-scan spinner after OAuth redirect */}
-          {isAutoScanning && (
-            <div className="relative overflow-hidden rounded-2xl border border-violet-500/20 bg-gradient-to-br from-violet-500/[0.06] to-blue-500/[0.04] p-8 animate-in fade-in duration-500">
-              <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDEwIEwgNDAgMTAgTSAxMCAwIEwgMTAgNDAgTSAwIDIwIEwgNDAgMjAgTSAyMCAwIEwgMjAgNDAgTSAwIDMwIEwgNDAgMzAgTSAzMCAwIEwgMzAgNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjAxKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-50" />
-              <div className="relative flex flex-col items-center text-center gap-4">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-violet-500/30 rounded-full blur-xl animate-pulse" />
-                  <div className="relative p-4 rounded-full bg-violet-500/10 border border-violet-500/20">
-                    <Mail className="w-8 h-8 text-violet-400 animate-pulse" />
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-white mb-1">Scanning your inbox...</h3>
-                  <p className="text-sm text-zinc-400">Looking for bills and due dates in your emails</p>
-                </div>
-                <div className="flex items-center gap-2 mt-1">
-                  <Loader2 className="w-4 h-4 text-violet-400 animate-spin" />
-                  <span className="text-xs text-zinc-500">This may take a moment</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* No bills found after auto-scan */}
-          {autoScanNoResults && (
-            <div className="relative overflow-hidden rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/[0.04] to-teal-500/[0.02] p-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-              <div className="flex items-start gap-4">
-                <div className="relative flex-shrink-0">
-                  <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-                    <Check className="w-5 h-5 text-emerald-400" />
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-white mb-1">Email connected successfully!</h3>
-                  <p className="text-sm text-zinc-400 leading-relaxed mb-3">
-                    No bills found yet — that&apos;s okay! We&apos;ll automatically scan again tomorrow during auto-sync 
-                    and notify you when we find new bills.
-                  </p>
-                  <div className="flex items-center gap-2 text-xs text-zinc-500">
-                    <RefreshCw className="w-3.5 h-3.5" />
-                    <span>Daily auto-sync is active</span>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setAutoScanNoResults(false)}
-                  className="flex-shrink-0 p-1.5 text-zinc-500 hover:text-white transition-colors rounded-lg hover:bg-white/5"
-                >
-                  <span className="sr-only">Dismiss</span>
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Email Connection */}
-          <section>
-            <SectionHeader
-              icon={Mail}
-              iconGradient="from-violet-500/80 to-blue-500/80"
-              title="Email Connection"
-              description="Automatically detect bills from your inbox"
-              index={0}
-            />
-
-            <div
-              className="relative overflow-hidden rounded-2xl border border-white/[0.06] animate-in fade-in slide-in-from-bottom-2 duration-500"
-              style={{ animationDelay: '100ms', animationFillMode: 'backwards' }}
-            >
-              {/* Subtle background pattern */}
-              <div className="absolute inset-0 bg-white/[0.01]" />
-              <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDEwIEwgNDAgMTAgTSAxMCAwIEwgMTAgNDAgTSAwIDIwIEwgNDAgMjAgTSAyMCAwIEwgMjAgNDAgTSAwIDMwIEwgNDAgMzAgTSAzMCAwIEwgMzAgNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjAxKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-50" />
-
-              <div className="relative p-6">
-                {!emailConnection ? (
-                  <>
-                    <div className="flex items-start gap-5 mb-6">
-                      <div className="pt-1">
-                        <h3 className="font-semibold text-white tracking-wide mb-1">
-                          Choose an email provider
-                        </h3>
-                        <p className="text-sm text-zinc-400 leading-relaxed">
-                          We&apos;ll scan your inbox for bill-related emails and automatically
-                          extract due dates, amounts, and payee information using AI.
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Privacy notice with decorative border */}
-                    <div className="relative p-5 rounded-xl bg-violet-500/[0.03] border border-violet-500/10 mb-6">
-                      {/* Corner accents */}
-                      <div className="absolute top-2 left-2 w-2 h-2 border-l border-t border-violet-400/30 rounded-tl-sm" />
-                      <div className="absolute top-2 right-2 w-2 h-2 border-r border-t border-violet-400/30 rounded-tr-sm" />
-                      <div className="absolute bottom-2 left-2 w-2 h-2 border-l border-b border-violet-400/30 rounded-bl-sm" />
-                      <div className="absolute bottom-2 right-2 w-2 h-2 border-r border-b border-violet-400/30 rounded-br-sm" />
-
-                      <div className="flex items-start gap-4">
-                        <div className="p-2 rounded-lg bg-violet-500/10">
-                          <Shield className="w-4 h-4 text-violet-400" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-violet-300 mb-2 tracking-wide">
-                            Your privacy is protected
-                          </p>
-                          <ul className="text-sm text-zinc-400 space-y-1.5">
-                            <li className="flex items-center gap-2">
-                              <div className="w-1 h-1 rounded-full bg-violet-400/60" />
-                              Read-only access to emails
-                            </li>
-                            <li className="flex items-center gap-2">
-                              <div className="w-1 h-1 rounded-full bg-violet-400/60" />
-                              Only bill-related emails are processed
-                            </li>
-                            <li className="flex items-center gap-2">
-                              <div className="w-1 h-1 rounded-full bg-violet-400/60" />
-                              You can disconnect anytime
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      {EMAIL_PROVIDERS.map((provider) => (
-                        <button
-                          key={provider.name}
-                          onClick={() => handleConnectProvider(provider.name)}
-                          className={`group relative w-full overflow-hidden rounded-2xl transition-all duration-300 border ${provider.borderColor} ${provider.bgTint}`}
-                        >
-                          {/* Glow on hover */}
-                          <div
-                            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                            style={{ background: `radial-gradient(ellipse at 20% 50%, ${provider.glowColor}, transparent 70%)` }}
-                          />
-
-                          <div className="relative flex items-center gap-4 px-5 py-5">
-                            {/* Logo container with brand-tinted background */}
-                            <div
-                              className="relative flex-shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center"
-                              style={{ backgroundColor: `${provider.color}15` }}
-                            >
-                              <Image
-                                src={provider.logo}
-                                alt={provider.label}
-                                width={36}
-                                height={36}
-                                className="object-contain drop-shadow-sm"
-                              />
-                            </div>
-
-                            {/* Text */}
-                            <div className="flex-1 text-left">
-                              <p className="text-base text-white font-semibold tracking-wide">
-                                {provider.label}
-                              </p>
-                              <p className="text-sm text-zinc-400 mt-0.5">
-                                {provider.description}
-                              </p>
-                            </div>
-
-                            {/* Connect pill */}
-                            <div
-                              className="flex-shrink-0 px-4 py-2 rounded-full text-xs font-semibold text-white/80 group-hover:text-white transition-colors duration-200"
-                              style={{ backgroundColor: `${provider.color}25`, border: `1px solid ${provider.color}40` }}
-                            >
-                              Connect
-                            </div>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-
-                    {selectedProvider === 'yahoo' && (
-                      <form
-                        onSubmit={handleYahooPasswordConnect}
-                        className="mt-6 rounded-2xl border border-purple-500/20 bg-purple-500/[0.04] p-5"
-                      >
-                        <div className="flex items-start justify-between gap-4 mb-5">
-                          <div>
-                            <h4 className="text-white font-semibold tracking-wide">Connect Yahoo with an app password</h4>
-                            <p className="text-sm text-zinc-400 mt-1">
-                              Yahoo OAuth is unavailable, so this uses secure IMAP login with your Yahoo-generated app password.
-                            </p>
-                          </div>
-                          <Link
-                            href="https://help.yahoo.com/kb/generate-manage-third-party-passwords-sln15241.html"
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1.5 text-sm text-purple-300 hover:text-purple-200 transition-colors"
-                          >
-                            <span>How to generate one</span>
-                            <ExternalLink className="w-3.5 h-3.5" />
-                          </Link>
-                        </div>
-
-                        <div className="grid gap-4 sm:grid-cols-2">
-                          <label className="block">
-                            <span className="block text-sm font-medium text-zinc-300 mb-2">Yahoo email</span>
-                            <input
-                              type="email"
-                              value={yahooEmail}
-                              onChange={(e) => setYahooEmail(e.target.value)}
-                              placeholder="you@yahoo.com"
-                              className="w-full rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-3 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-purple-400/30"
-                              autoComplete="email"
-                              required
-                            />
-                          </label>
-                          <label className="block">
-                            <span className="block text-sm font-medium text-zinc-300 mb-2">App password</span>
-                            <input
-                              type="password"
-                              value={yahooAppPassword}
-                              onChange={(e) => setYahooAppPassword(e.target.value)}
-                              placeholder="16-character app password"
-                              className="w-full rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-3 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-purple-400/30"
-                              autoComplete="current-password"
-                              required
-                            />
-                          </label>
-                        </div>
-
-                        <div className="mt-5 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-                          <p className="text-xs text-zinc-500">
-                            The app password is stored in your existing email connection record and used only for Yahoo IMAP sync.
-                          </p>
-                          <div className="flex gap-3">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setSelectedProvider(null);
-                                setYahooAppPassword('');
-                              }}
-                              className="px-4 py-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors"
-                            >
-                              Cancel
-                            </button>
-                            <button
-                              type="submit"
-                              disabled={isConnectingYahoo}
-                              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-purple-500/80 hover:bg-purple-500 text-white font-medium transition-colors disabled:opacity-60"
-                            >
-                              {isConnectingYahoo ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                              <span>{isConnectingYahoo ? 'Connecting...' : 'Connect Yahoo Mail'}</span>
-                            </button>
-                          </div>
-                        </div>
-                      </form>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-                      <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                        <div className="relative flex-shrink-0">
-                          <div className="absolute inset-0 bg-emerald-400/30 rounded-2xl blur-xl" />
-                          <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-                            <Check className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-400" />
-                          </div>
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-semibold text-white tracking-wide text-sm sm:text-base truncate">
-                            Connected: {getProviderLabel(emailConnection.provider)} ({emailConnection.email})
-                          </p>
-                          <p className="text-xs sm:text-sm text-zinc-500">
-                            {getProviderLabel(emailConnection.provider)} connected and syncing
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 self-start sm:self-auto flex-shrink-0">
-                        <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                        <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">
-                          Active
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2 sm:gap-3">
-                      <button
-                        onClick={() => setIsImportModalOpen(true)}
-                        className="group relative flex-1 flex items-center justify-center gap-2 px-3 sm:px-5 py-3 sm:py-3.5 overflow-hidden rounded-xl font-medium transition-all duration-300"
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-r from-violet-500 to-violet-500" />
-                        <div className="absolute inset-0 bg-gradient-to-r from-violet-400 to-violet-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                        <div className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700" />
-                        <Sparkles className="w-4 h-4 text-white relative z-10 flex-shrink-0" />
-                        <span className="relative z-10 text-white font-semibold text-sm sm:text-base whitespace-nowrap">
-                          Import Bills
-                        </span>
-                      </button>
-                      <button
-                        onClick={handleDisconnectEmail}
-                        className="px-3 sm:px-5 py-3 sm:py-3.5 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/[0.15] text-zinc-400 hover:text-white font-medium rounded-xl transition-all duration-300 text-sm sm:text-base"
-                      >
-                        Disconnect
-                      </button>
-                    </div>
-
-                    {/* Force Rescan Section */}
-                    <div className="mt-4 pt-4 border-t border-white/[0.06]">
-                      {!showForceRescanConfirm ? (
-                        <button
-                          onClick={() => setShowForceRescanConfirm(true)}
-                          disabled={isForceRescanning}
-                          className="flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
-                        >
-                          <RefreshCw className={cn("w-4 h-4", isForceRescanning && "animate-spin")} />
-                          <span>No bills found? Force rescan all emails</span>
-                        </button>
-                      ) : (
-                        <div className="p-4 rounded-xl bg-amber-500/[0.05] border border-amber-500/20">
-                          <div className="flex items-start gap-3 mb-3">
-                            <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
-                            <div>
-                              <p className="text-sm text-amber-200 font-medium">Force Rescan</p>
-                              <p className="text-xs text-zinc-400 mt-1">
-                                This will clear all previously processed emails (except accepted bills)
-                                and rescan everything. Use this if bills aren&apos;t appearing after the normal scan.
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={handleForceRescan}
-                              disabled={isForceRescanning}
-                              className="flex items-center gap-2 px-4 py-2 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/30 rounded-lg text-sm font-medium text-amber-200 transition-colors"
-                            >
-                              {isForceRescanning ? (
-                                <>
-                                  <Loader2 className="w-4 h-4 animate-spin" />
-                                  Rescanning...
-                                </>
-                              ) : (
-                                <>
-                                  <RefreshCw className="w-4 h-4" />
-                                  Rescan All
-                                </>
-                              )}
-                            </button>
-                            <button
-                              onClick={() => setShowForceRescanConfirm(false)}
-                              disabled={isForceRescanning}
-                              className="px-4 py-2 text-sm text-zinc-400 hover:text-white transition-colors"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          </section>
-
           {/* Notification Preferences */}
           <section>
             <NotificationSection />
@@ -1146,13 +616,6 @@ export default function SettingsPage() {
           </div>
         </div>
       </main>
-
-      {/* Bill Import Modal */}
-      <BillImportModal
-        isOpen={isImportModalOpen}
-        onClose={() => setIsImportModalOpen(false)}
-        onImport={handleImportBills}
-      />
 
       {/* Delete Account Modal */}
       <DeleteAccountModal

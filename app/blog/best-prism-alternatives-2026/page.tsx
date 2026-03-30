@@ -212,7 +212,7 @@ export default function BestPrismAlternativesPage() {
             href="/signup"
             className="inline-flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-semibold px-8 py-3.5 rounded-xl transition-colors"
           >
-            Start Free Trial <ArrowRight className="w-4 h-4" />
+            Get Started Free <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
 

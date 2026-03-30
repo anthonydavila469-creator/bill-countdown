@@ -19,5 +19,10 @@ class BridgeViewController: CAPBridgeViewController {
 
         let registeredAfterLoad = bridge?.plugin(withName: pluginName) != nil
         NSLog("[Duezo] BridgeViewController registered plugin=%@ success=%@", pluginName, registeredAfterLoad ? "true" : "false")
+
+        // Register WebAuth plugin for ASWebAuthenticationSession-based OAuth
+        let webAuthPlugin = WebAuthPlugin()
+        bridge?.registerPluginInstance(webAuthPlugin)
+        NSLog("[Duezo] BridgeViewController registered WebAuthPlugin")
     }
 }

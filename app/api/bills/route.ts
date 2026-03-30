@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
 import { scheduleNotificationsForBillWithSettings } from '@/lib/notifications/scheduler';
@@ -10,8 +11,8 @@ import type { Bill } from '@/types';
 // GET /api/bills - Get all bills for the current user
 export async function GET(request: Request) {
   try {
-    const { user } = await getAuthenticatedUser(request);
-    const supabase = await createClient();
+    const { user, method } = await getAuthenticatedUser(request);
+    const supabase = method === 'bearer' ? createAdminClient() : await createClient();
 
     if (!user) {
       return NextResponse.json(
@@ -76,8 +77,8 @@ export async function GET(request: Request) {
 // POST /api/bills - Create a new bill
 export async function POST(request: Request) {
   try {
-    const { user } = await getAuthenticatedUser(request);
-    const supabase = await createClient();
+    const { user, method } = await getAuthenticatedUser(request);
+    const supabase = method === 'bearer' ? createAdminClient() : await createClient();
 
     if (!user) {
       return NextResponse.json(

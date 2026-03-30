@@ -14,12 +14,11 @@ import { useBillsContext } from '@/contexts/bills-context';
 import { iconMap, getIconFromName } from '@/lib/get-bill-icon';
 import { useTheme } from '@/contexts/theme-context';
 import {
-  Zap,
   LayoutGrid,
   History,
   Settings,
   LogOut,
-  Mail,
+  Zap,
   Search,
   CheckCircle2,
   Calendar,
@@ -53,11 +52,10 @@ const periodFilterLabels: Record<PeriodFilter, string> = {
   allTime: 'All Time',
 };
 
-function PaidBillCard({ bill, isRecent, isEven }: { bill: Bill; isRecent?: boolean; isEven?: boolean }) {
+function PaidBillCard({ bill, isRecent, isEven, showPaidDate = true }: { bill: Bill; isRecent?: boolean; isEven?: boolean; showPaidDate?: boolean }) {
   const { accentColor } = useTheme();
   const paidDate = bill.paid_at ? new Date(bill.paid_at) : new Date();
   const isAutoPay = bill.is_autopay || bill.paid_method === 'autopay';
-  const isRecurring = bill.is_recurring && bill.next_due_date;
 
   // Get icon - prefer icon_key, then auto-detect from name
   const explicitIcon = bill.icon_key ? iconMap[bill.icon_key] : null;
@@ -65,105 +63,77 @@ function PaidBillCard({ bill, isRecent, isEven }: { bill: Bill; isRecent?: boole
   const IconComponent = explicitIcon || autoDetected.icon;
   const iconColorClass = explicitIcon ? 'text-emerald-400' : autoDetected.colorClass;
 
-  // Format next due date
-  const nextDueFormatted = isRecurring
-    ? new Date(bill.next_due_date + 'T12:00:00').toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-      })
-    : null;
-
   // Get amount display - prefer last_paid_amount for history
   const displayAmount = bill.last_paid_amount ?? bill.amount;
+  const isZeroAmount = !displayAmount || displayAmount === 0;
 
   return (
     <div className={cn(
-      "group relative p-3 sm:p-4 rounded-2xl transition-all duration-300",
-      "border border-white/5",
-      "hover:bg-white/[0.06] hover:border-white/15 hover:shadow-lg hover:shadow-black/20",
-      isRecent && "ring-1 ring-emerald-500/20",
-      isEven ? "bg-white/[0.02]" : "bg-white/[0.035]"
+      "group relative py-2 px-3 sm:py-2.5 sm:px-4 h-[52px] sm:h-[58px] rounded-xl transition-all duration-200",
+      "border border-white/[0.04]",
+      "hover:bg-white/[0.06] hover:border-white/10",
+      isRecent && "ring-1 ring-emerald-500/15",
+      isEven ? "bg-white/[0.015]" : "bg-white/[0.03]",
+      isZeroAmount && "opacity-60"
     )}>
-      {/* Left accent bar */}
-      <div
-        className="absolute left-0 top-3 bottom-3 w-1 sm:w-1.5 rounded-full transition-all duration-300"
-        style={{ backgroundColor: accentColor }}
-      />
-
-      <div className="flex items-center gap-2 sm:gap-4 pl-2 sm:pl-3">
-        {/* Icon with paid status */}
-        <div className="relative flex-shrink-0">
+      <div className="flex items-center gap-2.5 sm:gap-3 h-full">
+        {/* Icon tile with integrated paid check */}
+        <div className="flex-shrink-0 relative">
           <div
-            className={cn(
-              "w-11 h-11 sm:w-14 sm:h-14 rounded-xl border-2 flex items-center justify-center transition-all duration-200",
-              "group-hover:scale-105 group-hover:shadow-lg",
-            )}
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center"
             style={{
-              background: `linear-gradient(to bottom right, color-mix(in srgb, ${accentColor} 15%, transparent), color-mix(in srgb, ${accentColor} 10%, transparent))`,
-              borderColor: `color-mix(in srgb, ${accentColor} 30%, transparent)`,
+              background: `linear-gradient(to bottom right, color-mix(in srgb, ${accentColor} 12%, transparent), color-mix(in srgb, ${accentColor} 8%, transparent))`,
+              border: `1px solid color-mix(in srgb, ${accentColor} 15%, transparent)`,
             }}
           >
-            <IconComponent className={cn("w-5 h-5 sm:w-7 sm:h-7", iconColorClass)} />
+            <IconComponent className={cn("w-4 h-4 sm:w-[18px] sm:h-[18px]", iconColorClass)} />
           </div>
-          {/* Paid checkmark */}
-          <div className="absolute -bottom-1 -right-1 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-emerald-500 border-2 border-[#0c0c10] flex items-center justify-center shadow-lg">
-            <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+          {/* Paid check — anchored to bottom-right of icon tile */}
+          <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-emerald-500 border-2 border-[#0F0A1E] flex items-center justify-center">
+            <CheckCircle2 className="w-3 h-3 text-white" strokeWidth={3} />
           </div>
         </div>
 
-        {/* Bill info */}
+        {/* Bill info — single line layout for density */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 sm:gap-2 mb-1 flex-wrap">
-            <h3 className="font-semibold text-white text-sm sm:text-base truncate max-w-[180px] sm:max-w-none">{bill.name}</h3>
-            {/* Auto/Manual badge - compact on mobile */}
-            {isAutoPay ? (
-              <span className="flex items-center gap-1 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-violet-500/20 border border-violet-500/30 text-violet-400 text-[10px] sm:text-xs font-medium">
-                <CreditCard className="w-3 h-3" />
-                <span className="hidden sm:inline">Auto</span>
-              </span>
-            ) : (
-              <span className="flex items-center gap-1 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-violet-500/20 border border-violet-500/30 text-violet-400 text-[10px] sm:text-xs font-medium">
-                <HandMetal className="w-3 h-3" />
-                <span className="hidden sm:inline">Manual</span>
-              </span>
+          <div className="flex items-center gap-1.5">
+            <h3 className="font-semibold text-white text-[13px] sm:text-sm truncate">{bill.name}</h3>
+            <span className={cn(
+              "flex-shrink-0 px-1.5 py-px rounded text-[9px] sm:text-[10px] font-semibold uppercase tracking-wide",
+              isAutoPay
+                ? "bg-violet-500/15 text-violet-400/80"
+                : "bg-white/[0.06] text-zinc-500"
+            )}>
+              {isAutoPay ? 'Auto' : 'Manual'}
+            </span>
+          </div>
+          <p className="text-[11px] sm:text-xs text-zinc-500 mt-0.5">
+            Due {new Date(bill.due_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            {showPaidDate && (
+              <span className="text-zinc-600"> · Paid {paidDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
             )}
-          </div>
-          {/* Dates - simplified on mobile */}
-          <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm text-zinc-400">
-            <span className="flex items-center gap-1">
-              <Calendar className="w-3.5 h-3.5 text-zinc-500" />
-              <span className="sm:hidden">
-                {new Date(bill.due_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-              </span>
-              <span className="hidden sm:inline">Due: {formatDate(bill.due_date)}</span>
-            </span>
-            <span className="hidden sm:flex items-center gap-1.5">
-              <Clock className="w-4 h-4 text-emerald-500/70" />
-              Paid {paidDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-            </span>
-          </div>
+          </p>
         </div>
 
-        {/* Amount and payment link */}
-        <div className="flex flex-col items-end flex-shrink-0">
-          {displayAmount && (
-            <p className="text-base sm:text-xl font-bold text-emerald-400">
-              ${displayAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+        {/* Amount */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {isZeroAmount ? (
+            <span className="text-xs sm:text-sm font-medium text-zinc-600 bg-white/[0.04] px-2 py-0.5 rounded-md">$0.00</span>
+          ) : (
+            <p className="text-sm sm:text-base font-bold text-emerald-400 tabular-nums">
+              ${displayAmount!.toLocaleString('en-US', { minimumFractionDigits: 2 })}
             </p>
           )}
-          {/* Payment Site - always show aligned */}
-          {bill.payment_url ? (
+          {bill.payment_url && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 window.open(bill.payment_url!, '_blank');
               }}
-              className="mt-1 text-violet-400 hover:text-violet-300 transition-colors"
+              className="text-zinc-600 hover:text-violet-400 transition-colors"
             >
-              <ExternalLink className="w-4 h-4" />
+              <ExternalLink className="w-3.5 h-3.5" />
             </button>
-          ) : (
-            <div className="mt-1 w-4 h-4" /> 
           )}
         </div>
       </div>
@@ -198,77 +168,97 @@ function MonthSection({
   };
 
   return (
-    <div className="mb-6">
-      {/* Month header - more prominent styling */}
+    <div className="mb-5">
+      {/* Month header — streamlined */}
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between p-4 rounded-xl transition-all duration-200 mb-4 group sticky top-16 z-10 backdrop-blur-xl shadow-lg shadow-black/10"
+        className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 mb-3 group sticky top-16 z-10 backdrop-blur-xl"
         style={{
-          background: `linear-gradient(to right, color-mix(in srgb, ${accentColor} 8%, transparent), rgba(255,255,255,0.04), transparent)`,
+          background: `linear-gradient(to right, color-mix(in srgb, ${accentColor} 6%, rgba(15,10,30,0.95)), rgba(15,10,30,0.9))`,
           borderWidth: '1px',
           borderStyle: 'solid',
-          borderColor: `color-mix(in srgb, ${accentColor} 20%, transparent)`,
+          borderColor: `color-mix(in srgb, ${accentColor} 15%, transparent)`,
         }}
       >
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <div
-            className="w-12 h-12 rounded-xl flex items-center justify-center shadow-inner"
+            className="w-10 h-10 rounded-lg flex items-center justify-center"
             style={{
-              background: `linear-gradient(to bottom right, color-mix(in srgb, ${accentColor} 25%, transparent), color-mix(in srgb, ${accentColor} 15%, transparent))`,
-              borderWidth: '1px',
-              borderStyle: 'solid',
-              borderColor: `color-mix(in srgb, ${accentColor} 30%, transparent)`,
+              background: `linear-gradient(to bottom right, color-mix(in srgb, ${accentColor} 20%, transparent), color-mix(in srgb, ${accentColor} 12%, transparent))`,
+              border: `1px solid color-mix(in srgb, ${accentColor} 25%, transparent)`,
             }}
           >
-            <Calendar className="w-6 h-6" style={{ color: accentColor }} />
+            <Calendar className="w-5 h-5" style={{ color: accentColor }} />
           </div>
           <div className="text-left">
-            <h2 className="text-lg font-bold text-white">{label}</h2>
-            <p className="text-sm text-zinc-400">
-              {bills.length} bill{bills.length !== 1 ? 's' : ''} paid
+            <h2 className="text-base font-bold text-white">{label}</h2>
+            <p className="text-xs text-zinc-500">
+              {bills.length} bill{bills.length !== 1 ? 's' : ''}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-5">
-          <div className="text-right">
-            <p className="text-xl font-bold" style={{ color: accentColor }}>
-              ${totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-            </p>
-            <p className="text-xs text-zinc-500 font-medium">total paid</p>
-          </div>
-          <div className={cn(
-            "w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200",
-            "bg-white/5 group-hover:bg-white/10"
-          )}>
-            <ChevronRight
-              className={cn(
-                "w-5 h-5 text-zinc-400 transition-transform duration-200",
-                !isCollapsed && "rotate-90"
-              )}
-            />
-          </div>
+        <div className="flex items-center gap-4">
+          <p className="text-lg font-bold tabular-nums" style={{ color: accentColor }}>
+            ${totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+          </p>
+          <ChevronRight
+            className={cn(
+              "w-4 h-4 text-zinc-500 transition-transform duration-200",
+              !isCollapsed && "rotate-90"
+            )}
+          />
         </div>
       </button>
 
-      {/* Bills list with alternating backgrounds */}
+      {/* Bills list grouped by paid date */}
       {!isCollapsed && (
-        <div className="space-y-2 pl-2">
-          {bills.map((bill, index) => (
-            <div
-              key={bill.id}
-              className="animate-in fade-in slide-in-from-bottom-2"
-              style={{
-                animationDelay: `${index * 30}ms`,
-                animationFillMode: 'backwards',
-              }}
-            >
-              <PaidBillCard
-                bill={bill}
-                isRecent={isRecentPayment(bill)}
-                isEven={index % 2 === 0}
-              />
-            </div>
-          ))}
+        <div className="space-y-1 pl-1">
+          {(() => {
+            // Group bills by exact paid date
+            const dateGroups: Record<string, Bill[]> = {};
+            bills.forEach(bill => {
+              const paidDate = bill.paid_at ? new Date(bill.paid_at) : new Date();
+              const dateKey = paidDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+              if (!dateGroups[dateKey]) dateGroups[dateKey] = [];
+              dateGroups[dateKey].push(bill);
+            });
+
+            const dateEntries = Object.entries(dateGroups);
+            let rowIndex = 0;
+
+            return dateEntries.map(([dateLabel, dateBills]) => {
+              // Always show date subheader to reduce per-row "Paid" repetition
+              return (
+                <div key={dateLabel}>
+                  <div className="flex items-center gap-2 py-1 px-1 mt-1.5 first:mt-0">
+                    <Clock className="w-3 h-3 text-emerald-500/40" />
+                    <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest">Paid {dateLabel}</span>
+                    <div className="flex-1 h-px bg-white/[0.04]" />
+                  </div>
+                  {dateBills.map((bill) => {
+                    const currentIndex = rowIndex++;
+                    return (
+                      <div
+                        key={bill.id}
+                        className="animate-in fade-in slide-in-from-bottom-1 mb-1"
+                        style={{
+                          animationDelay: `${currentIndex * 25}ms`,
+                          animationFillMode: 'backwards',
+                        }}
+                      >
+                        <PaidBillCard
+                          bill={bill}
+                          isRecent={isRecentPayment(bill)}
+                          isEven={currentIndex % 2 === 0}
+                          showPaidDate={false}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            });
+          })()}
         </div>
       )}
     </div>
@@ -355,8 +345,6 @@ export default function HistoryPage() {
   // Auth state
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
-  const [isGmailConnected, setIsGmailConnected] = useState(false);
-
   // Use shared bills context
   const { bills: allBills, paidBills: contextPaidBills, loading: billsLoading } = useBillsContext();
 
@@ -479,15 +467,6 @@ export default function HistoryPage() {
       }
 
       setUser(user);
-
-      // Check if Gmail is connected
-      const { data: gmailToken } = await supabase
-        .from('gmail_tokens')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      setIsGmailConnected(!!gmailToken);
       setIsAuthLoading(false);
     };
 
@@ -640,26 +619,24 @@ export default function HistoryPage() {
           </ul>
         </nav>
 
-        {/* Gmail sync status - only show if not connected */}
-        {!isGmailConnected && (
-          <div className="p-4 border-t border-white/5">
-            <div className="p-4 rounded-xl bg-gradient-to-br from-violet-500/10 to-violet-500/10 border border-white/5">
-              <div className="flex items-center gap-3 mb-3">
-                <Mail className="w-5 h-5 text-violet-400" />
-                <span className="text-sm font-medium text-white">Email Sync</span>
-              </div>
-              <p className="text-xs text-zinc-400 mb-3">
-                Connect Gmail, Yahoo, or Outlook to automatically detect bills.
-              </p>
-              <Link
-                href="/dashboard/settings"
-                className="block w-full px-3 py-2 text-sm font-medium bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-white text-center"
-              >
-                Connect Email
-              </Link>
+        {/* Quick Add promo */}
+        <div className="p-4 border-t border-white/5">
+          <div className="p-4 rounded-xl bg-gradient-to-br from-violet-500/10 to-violet-500/10 border border-white/5">
+            <div className="flex items-center gap-3 mb-3">
+              <Zap className="w-5 h-5 text-violet-400" />
+              <span className="text-sm font-medium text-white">Add a Bill</span>
             </div>
+            <p className="text-xs text-zinc-400 mb-3">
+              Use Quick Add or snap a photo — AI extracts the details instantly.
+            </p>
+            <Link
+              href="/dashboard"
+              className="block w-full px-3 py-2 text-sm font-medium bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-white text-center"
+            >
+              Quick Add
+            </Link>
           </div>
-        )}
+        </div>
 
         {/* User */}
         <div className="p-4 border-t border-white/5">
@@ -750,141 +727,96 @@ export default function HistoryPage() {
             ))}
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-            {/* Total Paid Card */}
+          {/* Summary Row — This Period vs Last Period */}
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            {/* This Period */}
             <div
-              className="relative p-6 rounded-2xl border overflow-hidden"
+              className="relative p-4 sm:p-5 rounded-2xl border overflow-hidden"
               style={{
-                background: `linear-gradient(to bottom right, color-mix(in srgb, ${accentColor} 15%, transparent), color-mix(in srgb, ${accentColor} 10%, transparent), color-mix(in srgb, ${accentColor} 5%, transparent))`,
-                borderColor: `color-mix(in srgb, ${accentColor} 25%, transparent)`,
+                background: `linear-gradient(to bottom right, color-mix(in srgb, ${accentColor} 12%, transparent), color-mix(in srgb, ${accentColor} 6%, transparent))`,
+                borderColor: `color-mix(in srgb, ${accentColor} 22%, transparent)`,
               }}
             >
-              <div
-                className="absolute top-0 right-0 w-32 h-32 rounded-bl-full"
-                style={{ background: `linear-gradient(to bottom left, color-mix(in srgb, ${accentColor} 10%, transparent), transparent)` }}
-              />
-              <div className="relative">
-                <div className="flex items-center gap-3 mb-3">
-                  <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center"
-                    style={{
-                      backgroundColor: `color-mix(in srgb, ${accentColor} 20%, transparent)`,
-                      borderWidth: '1px',
-                      borderStyle: 'solid',
-                      borderColor: `color-mix(in srgb, ${accentColor} 30%, transparent)`,
-                    }}
-                  >
-                    <DollarSign className="w-5 h-5" style={{ color: accentColor }} />
-                  </div>
-                  <p className="text-sm font-medium" style={{ color: accentColor }}>Total Paid</p>
-                </div>
-                <p className="text-3xl font-bold text-white mb-1">
-                  ${totalPaid.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                </p>
-                {comparisonDiff !== null && previousPeriodStats > 0 && comparisonDiff !== 0 && (
-                  <p className={cn(
-                    "text-sm font-medium flex items-center gap-1",
-                    comparisonDiff > 0 ? "text-rose-400" : "text-emerald-400"
-                  )}>
-                    <TrendingUp className={cn("w-4 h-4", comparisonDiff < 0 && "rotate-180")} />
-                    {comparisonDiff > 0 ? '+' : ''}${Math.abs(comparisonDiff).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} vs {periodFilter === 'last30' ? 'prev. 30d' : 'last year'}
-                  </p>
-                )}
-                {periodFilter !== 'allTime' && previousPeriodStats === 0 && (
-                  <p className="text-sm text-zinc-500 font-medium">
-                    First tracked period
-                  </p>
-                )}
-              </div>
+              <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: accentColor }}>
+                {periodFilter === 'last30' ? 'This Month' : periodFilter === 'thisYear' ? 'This Year' : 'All Time'}
+              </p>
+              <p className="text-2xl sm:text-3xl font-bold text-white tabular-nums">
+                ${totalPaid.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              </p>
+              <p className="text-xs text-zinc-500 mt-1">{filteredByPeriod.length} bill{filteredByPeriod.length !== 1 ? 's' : ''} paid</p>
             </div>
 
-            {/* Bills Paid Card */}
+            {/* Last Period */}
             <div
-              className="relative p-6 rounded-2xl border overflow-hidden"
+              className="relative p-4 sm:p-5 rounded-2xl border overflow-hidden"
               style={{
-                background: `linear-gradient(to bottom right, color-mix(in srgb, ${accentColor} 10%, transparent), color-mix(in srgb, ${accentColor} 5%, transparent), transparent)`,
-                borderColor: `color-mix(in srgb, ${accentColor} 20%, transparent)`,
+                background: 'linear-gradient(to bottom right, rgba(255,255,255,0.04), rgba(255,255,255,0.02))',
+                borderColor: 'rgba(255,255,255,0.08)',
               }}
             >
-              <div
-                className="absolute top-0 right-0 w-32 h-32 rounded-bl-full"
-                style={{ background: `linear-gradient(to bottom left, color-mix(in srgb, ${accentColor} 10%, transparent), transparent)` }}
-              />
-              <div className="relative">
-                <div className="flex items-center gap-3 mb-3">
-                  <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center"
-                    style={{
-                      backgroundColor: `color-mix(in srgb, ${accentColor} 20%, transparent)`,
-                      borderWidth: '1px',
-                      borderStyle: 'solid',
-                      borderColor: `color-mix(in srgb, ${accentColor} 30%, transparent)`,
-                    }}
-                  >
-                    <Receipt className="w-5 h-5" style={{ color: accentColor }} />
-                  </div>
-                  <p className="text-sm font-medium" style={{ color: accentColor }}>Bills Paid</p>
-                </div>
-                <p className="text-3xl font-bold text-white mb-1">{filteredByPeriod.length}</p>
-                <p className="text-sm text-zinc-500">{periodFilterLabels[periodFilter].toLowerCase()}</p>
-              </div>
-            </div>
-
-            {/* Top Categories Card */}
-            <div
-              className="relative p-6 rounded-2xl border overflow-hidden sm:col-span-2 lg:col-span-1"
-              style={{
-                background: `linear-gradient(to bottom right, color-mix(in srgb, ${accentColor} 10%, transparent), color-mix(in srgb, ${accentColor} 5%, transparent), transparent)`,
-                borderColor: `color-mix(in srgb, ${accentColor} 20%, transparent)`,
-              }}
-            >
-              <div
-                className="absolute top-0 right-0 w-32 h-32 rounded-bl-full"
-                style={{ background: `linear-gradient(to bottom left, color-mix(in srgb, ${accentColor} 10%, transparent), transparent)` }}
-              />
-              <div className="relative">
-                <div className="flex items-center gap-3 mb-3">
-                  <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center"
-                    style={{
-                      backgroundColor: `color-mix(in srgb, ${accentColor} 20%, transparent)`,
-                      borderWidth: '1px',
-                      borderStyle: 'solid',
-                      borderColor: `color-mix(in srgb, ${accentColor} 30%, transparent)`,
-                    }}
-                  >
-                    <FolderOpen className="w-5 h-5" style={{ color: accentColor }} />
-                  </div>
-                  <p className="text-sm font-medium" style={{ color: accentColor }}>Top Categories</p>
-                </div>
-                {topCategories.length === 0 ? (
-                  <p className="text-sm text-zinc-500">No category data</p>
-                ) : (
-                  <div className="space-y-2">
-                    {topCategories.map((cat, index) => (
-                      <div key={cat.name} className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="w-1.5 h-1.5 rounded-full bg-zinc-500" />
-                          <span className="text-sm text-zinc-300 truncate max-w-[120px] capitalize">
-                            {cat.name.replace(/_/g, ' ')}
-                          </span>
-                        </div>
-                        <span className="text-sm font-semibold text-white">
-                          ${cat.count === 1
-                            ? cat.total.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
-                            : cat.average.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                          <span className="text-xs text-zinc-500 font-normal ml-1">
-                            {cat.count === 1 ? 'total' : '/avg'}
-                          </span>
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-2">
+                {periodFilter === 'last30' ? 'Prev. 30 Days' : periodFilter === 'thisYear' ? 'Last Year' : '—'}
+              </p>
+              {periodFilter !== 'allTime' && previousPeriodStats > 0 ? (
+                <>
+                  <p className="text-2xl sm:text-3xl font-bold text-zinc-300 tabular-nums">
+                    ${previousPeriodStats.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  </p>
+                  <p className="text-xs text-zinc-600 mt-1">previous period</p>
+                </>
+              ) : (
+                <>
+                  <p className="text-2xl sm:text-3xl font-bold text-zinc-600">—</p>
+                  <p className="text-xs text-zinc-600 mt-1">{periodFilter === 'allTime' ? 'N/A' : 'No data yet'}</p>
+                </>
+              )}
             </div>
           </div>
+
+          {/* Savings / Comparison Pill */}
+          {comparisonDiff !== null && previousPeriodStats > 0 && comparisonDiff !== 0 && (
+            <div className={cn(
+              "flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl mb-6 border",
+              comparisonDiff < 0
+                ? "bg-emerald-500/[0.12] border-emerald-500/25"
+                : "bg-rose-500/[0.08] border-rose-500/20"
+            )}>
+              <TrendingUp className={cn(
+                "w-4 h-4",
+                comparisonDiff < 0 ? "rotate-180 text-emerald-400" : "text-rose-400"
+              )} />
+              <span className={cn(
+                "text-sm font-bold tabular-nums",
+                comparisonDiff < 0 ? "text-emerald-300" : "text-rose-400"
+              )}>
+                {comparisonDiff < 0 ? 'Saved' : 'Spent'} ${Math.abs(comparisonDiff).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+              </span>
+              <span className="text-xs text-zinc-500 font-medium">
+                vs {periodFilter === 'last30' ? 'prev. 30 days' : 'last year'}
+              </span>
+            </div>
+          )}
+
+          {/* Top Categories */}
+          {topCategories.length > 0 && (
+            <div className="flex items-center gap-3 mb-6 overflow-x-auto pb-1 scrollbar-hide">
+              {topCategories.map((cat) => (
+                <div
+                  key={cat.name}
+                  className="flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-lg border"
+                  style={{
+                    background: `color-mix(in srgb, ${accentColor} 5%, transparent)`,
+                    borderColor: `color-mix(in srgb, ${accentColor} 12%, transparent)`,
+                  }}
+                >
+                  <span className="text-xs text-zinc-400 capitalize">{cat.name.replace(/_/g, ' ')}</span>
+                  <span className="text-xs font-bold text-white tabular-nums">
+                    ${cat.total.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Mobile Export Button */}
           <div className="sm:hidden mb-6">

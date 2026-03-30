@@ -4,6 +4,7 @@ import { useCallback } from 'react';
 import { Bill } from '@/types';
 import { useBillsContext, MutationState } from '@/contexts/bills-context';
 import { useToast } from '@/components/ui/toast';
+import { apiFetch } from '@/lib/api-base';
 
 interface MarkPaidResult {
   success: boolean;
@@ -48,7 +49,7 @@ export function useBillMutations() {
       });
 
       try {
-        const response = await fetch(`/api/bills/${bill.id}/pay`, {
+        const response = await apiFetch(`/api/bills/${bill.id}/pay`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ amount }),
@@ -120,7 +121,7 @@ export function useBillMutations() {
       });
 
       try {
-        const response = await fetch(`/api/bills/${originalBill.id}/pay`, {
+        const response = await apiFetch(`/api/bills/${originalBill.id}/pay`, {
           method: 'DELETE',
         });
 
@@ -193,7 +194,7 @@ export function useBillMutations() {
       dispatch({ type: 'ADD_OPTIMISTIC_BILL', bill: optimisticBill });
 
       try {
-        const response = await fetch('/api/bills', {
+        const response = await apiFetch('/api/bills', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(billData),
@@ -257,7 +258,7 @@ export function useBillMutations() {
       dispatch({ type: 'UPDATE_OPTIMISTIC_BILL', billId, updates });
 
       try {
-        const response = await fetch(`/api/bills/${billId}`, {
+        const response = await apiFetch(`/api/bills/${billId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ...bill, ...updates }),
@@ -318,7 +319,7 @@ export function useBillMutations() {
       dispatch({ type: 'ADD_DELETED_BILL', billId });
 
       try {
-        const response = await fetch(`/api/bills/${billId}`, {
+        const response = await apiFetch(`/api/bills/${billId}`, {
           method: 'DELETE',
         });
 
@@ -379,7 +380,7 @@ export function useBillMutations() {
       dispatch({ type: 'UPDATE_OPTIMISTIC_BILL', billId, updates: { due_date: newDueDate } });
 
       try {
-        const response = await fetch(`/api/bills/${billId}`, {
+        const response = await apiFetch(`/api/bills/${billId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ...bill, due_date: newDueDate }),

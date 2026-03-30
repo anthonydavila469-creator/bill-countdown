@@ -17,6 +17,7 @@ import { NotificationSettings, DEFAULT_NOTIFICATION_SETTINGS } from '@/types';
 import { cn } from '@/lib/utils';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
 import { useSubscription } from '@/hooks/use-subscription';
+import { apiFetch } from '@/lib/api-base';
 
 const REMINDER_DAY_OPTIONS = [
   { value: 7, label: '7 days before' },
@@ -111,7 +112,7 @@ export default function NotificationsSettingsPage() {
     console.log('[Duezo] saveSettings called with reminder_days:', settingsToSave.reminder_days, 'email:', settingsToSave.email_enabled);
     setSaveStatus('saving');
     const request = (async () => {
-      const res = await fetch(`/api/notifications/settings?t=${Date.now()}`, {
+      const res = await apiFetch(`/api/notifications/settings?t=${Date.now()}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settingsToSave),
@@ -155,7 +156,7 @@ export default function NotificationsSettingsPage() {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await fetch(`/api/notifications/settings?t=${Date.now()}`, {
+        const res = await apiFetch(`/api/notifications/settings?t=${Date.now()}`, {
           cache: 'no-store',
           headers: {
             'Cache-Control': 'no-cache',

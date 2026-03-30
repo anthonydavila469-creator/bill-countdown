@@ -1,5 +1,5 @@
 import type { Bill } from '@/types';
-import { apnsSender } from '@/lib/apns-sender';
+import { apnsSender } from '@/lib/apns/apns-sender';
 
 export interface APNsResult {
   sent: number;
@@ -8,6 +8,7 @@ export interface APNsResult {
 }
 
 export async function sendBillReminderAPNs(
+  userId: string,
   deviceTokens: string[],
   bill: Bill,
   daysUntilDue: number
@@ -22,17 +23,22 @@ export async function sendBillReminderAPNs(
   const body = bill.amount !== null ? `$${bill.amount.toFixed(2)} due ${dueText}` : `Due ${dueText}`;
 
   for (const deviceToken of deviceTokens) {
-    const sendResult = await apnsSender.sendPush(deviceToken, {
-      aps: {
-        alert: {
-          title: `${bill.emoji ?? '💳'} ${bill.name}`,
-          body,
+    const sendResult = await apnsSender.sendNotification({
+      userId,
+      token: deviceToken,
+      payload: {
+        aps: {
+          alert: {
+            title: `${bill.emoji ?? '💳'} ${bill.name}`,
+            body,
+          },
+          sound: 'default',
         },
-        sound: 'default',
+        billId: bill.id,
+        url: bill.payment_url ?? `/dashboard?bill=${bill.id}`,
+        deeplink: `app.duezo://bill/${bill.id}`,
+        messageType: 'bill_reminder',
       },
-      billId: bill.id,
-      url: bill.payment_url ?? `/dashboard?bill=${bill.id}`,
-      deeplink: `duezo://bill/${bill.id}`,
     });
 
     if (sendResult.success) {
@@ -40,7 +46,7 @@ export async function sendBillReminderAPNs(
       continue;
     }
 
-    if (sendResult.reason === 'Unregistered' || sendResult.reason === 'BadDeviceToken') {
+    if (sendResult.shouldDeactivateToken) {
       result.expiredTokens.push(deviceToken);
     }
 

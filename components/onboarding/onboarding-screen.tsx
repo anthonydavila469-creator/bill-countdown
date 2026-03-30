@@ -4,14 +4,13 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { TemplateSelector } from './template-selector';
 import { OptionalSetup, SetupOptions } from './optional-setup';
-import { GmailSyncStep } from './gmail-sync-step';
 import {
   getTemplateById,
   getNextDueDateForDay,
 } from '@/lib/onboarding/bill-templates';
 import { useToast } from '@/components/ui/toast';
 import { useSubscription } from '@/hooks/use-subscription';
-import { Bill } from '@/types';
+import { apiFetch } from '@/lib/api-base';
 import {
   Zap,
   Sparkles,
@@ -19,22 +18,19 @@ import {
   ArrowRight,
   Loader2,
   ChevronLeft,
-  Mail,
   Crown,
 } from 'lucide-react';
 
-type OnboardingStep = 'welcome' | 'gmail_sync' | 'templates' | 'setup' | 'creating';
+type OnboardingStep = 'welcome' | 'templates' | 'setup' | 'creating';
 
 interface OnboardingScreenProps {
   onComplete: () => void;
   onAddManually: () => void;
-  isEmailConnected?: boolean;
 }
 
 export function OnboardingScreen({
   onComplete,
   onAddManually,
-  isEmailConnected = false,
 }: OnboardingScreenProps) {
   const { addToast } = useToast();
   const { refreshSubscription } = useSubscription();
@@ -51,24 +47,6 @@ export function OnboardingScreen({
   const [isCreating, setIsCreating] = useState(false);
 
   const handleQuickAdd = () => {
-    setStep('templates');
-  };
-
-  const handleGmailSync = () => {
-    setStep('gmail_sync');
-  };
-
-  const handleGmailComplete = async (importedBills: Bill[]) => {
-    await refreshSubscription();
-    addToast({
-      message: `${importedBills.length} bill${importedBills.length === 1 ? '' : 's'} imported`,
-      description: 'Tap any bill to edit details',
-      type: 'success',
-    });
-    onComplete();
-  };
-
-  const handleGmailSkip = () => {
     setStep('templates');
   };
 
@@ -133,7 +111,7 @@ export function OnboardingScreen({
         };
 
         try {
-          const response = await fetch('/api/bills', {
+          const response = await apiFetch('/api/bills', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(billData),
@@ -176,18 +154,7 @@ export function OnboardingScreen({
         {step === 'welcome' && (
           <WelcomeStep
             onQuickAdd={handleQuickAdd}
-            onGmailSync={handleGmailSync}
             onAddManually={onAddManually}
-          />
-        )}
-
-        {/* Step: Gmail Sync */}
-        {step === 'gmail_sync' && (
-          <GmailSyncStep
-            onBack={handleBackToWelcome}
-            onComplete={handleGmailComplete}
-            onSkip={handleGmailSkip}
-            isEmailConnected={isEmailConnected}
           />
         )}
 
@@ -224,13 +191,11 @@ export function OnboardingScreen({
 // Welcome Step Component
 interface WelcomeStepProps {
   onQuickAdd: () => void;
-  onGmailSync: () => void;
   onAddManually: () => void;
 }
 
 function WelcomeStep({
   onQuickAdd,
-  onGmailSync,
   onAddManually,
 }: WelcomeStepProps) {
   return (
@@ -256,34 +221,13 @@ function WelcomeStep({
       </div>
 
       <div className="space-y-3">
-        {/* Gmail Sync */}
+        {/* Quick Add from Templates */}
         <button
-          onClick={onGmailSync}
+          onClick={onQuickAdd}
           className="group w-full p-5 rounded-2xl transition-all duration-300 bg-gradient-to-br from-violet-500/15 to-violet-500/15 border border-violet-500/30 hover:border-violet-500/50 hover:from-violet-500/20 hover:to-violet-500/20"
         >
           <div className="flex items-center gap-4">
             <div className="p-3 rounded-xl bg-gradient-to-br from-violet-500 to-violet-500">
-              <Mail className="w-5 h-5 text-white" />
-            </div>
-            <div className="flex-1 text-left">
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className="font-semibold text-white">Connect Email</h3>
-              </div>
-              <p className="text-sm text-white/50">
-                Gmail, Yahoo, or Outlook — scan your inbox for bills
-              </p>
-            </div>
-            <ArrowRight className="w-5 h-5 text-violet-400 group-hover:translate-x-1 transition-transform" />
-          </div>
-        </button>
-
-        {/* Quick Add from Templates */}
-        <button
-          onClick={onQuickAdd}
-          className="group w-full p-5 rounded-2xl transition-all duration-300 bg-white/[0.02] border border-white/10 hover:bg-white/[0.04] hover:border-white/20"
-        >
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-xl bg-white/10">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
             <div className="flex-1 text-left">
@@ -292,11 +236,11 @@ function WelcomeStep({
                 Select from common bills like rent, utilities, subscriptions
               </p>
             </div>
-            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform text-white/40" />
+            <ArrowRight className="w-5 h-5 text-violet-400 group-hover:translate-x-1 transition-transform" />
           </div>
         </button>
 
-        {/* Add Manually - tertiary option */}
+        {/* Add Manually */}
         <button
           onClick={onAddManually}
           className={cn(
@@ -343,6 +287,7 @@ function TemplatesStep({
       <div className="flex items-center gap-3 mb-6">
         <button
           onClick={onBack}
+          aria-label="Go back"
           className="p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
         >
           <ChevronLeft className="w-5 h-5" />

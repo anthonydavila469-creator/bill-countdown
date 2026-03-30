@@ -193,7 +193,7 @@ export default function VsChroniclePage() {
           href="/signup"
           className="inline-flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-semibold px-10 py-4 rounded-xl text-lg transition-colors"
         >
-          Start Free Trial <ArrowRight className="w-5 h-5" />
+          Get Started Free <ArrowRight className="w-5 h-5" />
         </Link>
       </section>
 

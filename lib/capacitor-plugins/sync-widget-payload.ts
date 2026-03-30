@@ -11,7 +11,13 @@ export interface WidgetSyncBill {
 }
 
 function isValidDateString(value: unknown): value is string {
-  return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value);
+  // Accept both YYYY-MM-DD and full ISO datetime (YYYY-MM-DDTHH:mm:ss...)
+  return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value);
+}
+
+/** Normalize any date string to YYYY-MM-DD (strip time component if present) */
+function toDateOnly(value: string): string {
+  return value.substring(0, 10);
 }
 
 function toSafeAmount(value: unknown): number {
@@ -52,6 +58,7 @@ export function normalizeBillsForWidgetSync(input: unknown): WidgetSyncBill[] {
     const dueDate = raw.due_date;
 
     if (!id || !name || !isValidDateString(dueDate)) {
+      console.warn('[Duezo] Widget sync: dropping bill', JSON.stringify({ id, name, dueDate }));
       return null;
     }
 
@@ -59,7 +66,7 @@ export function normalizeBillsForWidgetSync(input: unknown): WidgetSyncBill[] {
       id,
       name,
       amount: typeof raw.amount === 'number' && Number.isFinite(raw.amount) ? raw.amount : null,
-      due_date: dueDate,
+      due_date: toDateOnly(dueDate),
       is_paid: Boolean(raw.is_paid),
       is_autopay: typeof raw.is_autopay === 'boolean' ? raw.is_autopay : null,
       category: typeof raw.category === 'string' ? raw.category : null,

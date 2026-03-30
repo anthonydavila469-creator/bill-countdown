@@ -14,10 +14,18 @@ export const metadata: Metadata = {
     type: 'website',
   },
   alternates: { canonical: 'https://duezo.app/blog' },
-  other: { lastmod: '2026-03-01' },
+  other: { lastmod: '2026-03-26' },
 };
 
 const posts = [
+  {
+    slug: 'duezo-faq',
+    title: 'Duezo FAQ — Everything You Want to Know About the App',
+    excerpt:
+      'Real questions, honest answers. From how the AI works to whether it\'s actually free — everything people ask about Duezo, answered in plain English.',
+    date: '2026-03-26',
+    readTime: '10 min read',
+  },
   {
     slug: 'never-miss-a-bill-payment',
     title: 'Never Miss a Bill Payment Again: 7 Tips + The App That Automates It',

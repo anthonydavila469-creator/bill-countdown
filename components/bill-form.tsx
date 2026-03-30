@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { BillFormData, BillCategory, RecurrenceInterval, categoryEmojis, categoryIconKeys, BillIconKey } from '@/types';
 import { cn, formatDateForInput, getNextDueDate, formatNextDueDate } from '@/lib/utils';
 import { applyAutoCategorization } from '@/lib/auto-categorize';
+import { searchVendors, VendorSuggestion } from '@/lib/vendor-suggestions';
 import { Calendar, DollarSign, RefreshCw, ChevronDown, Link, CreditCard, Sparkles, Check, ExternalLink, AlertCircle } from 'lucide-react';
 
 interface BillFormProps {
@@ -295,6 +296,45 @@ export function BillForm({
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Vendor autocomplete
+  const [vendorSuggestions, setVendorSuggestions] = useState<VendorSuggestion[]>([]);
+  const [showVendorSuggestions, setShowVendorSuggestions] = useState(false);
+  const [matchedVendor, setMatchedVendor] = useState<string | null>(null);
+  const vendorRef = useRef<HTMLDivElement>(null);
+
+  // Close vendor suggestions on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (vendorRef.current && !vendorRef.current.contains(e.target as Node)) {
+        setShowVendorSuggestions(false);
+      }
+    };
+    if (showVendorSuggestions) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showVendorSuggestions]);
+
+  const handleNameInput = useCallback((value: string) => {
+    handleChange('name', value);
+    if (matchedVendor && value !== matchedVendor) setMatchedVendor(null);
+    const results = searchVendors(value);
+    setVendorSuggestions(results);
+    setShowVendorSuggestions(results.length > 0);
+  }, [matchedVendor]);
+
+  const handleSelectVendor = useCallback((vendor: VendorSuggestion) => {
+    setFormData(prev => ({
+      ...prev,
+      name: vendor.name,
+      amount: vendor.typical_amount !== null ? vendor.typical_amount : prev.amount,
+      category: vendor.category,
+      emoji: categoryEmojis[vendor.category],
+      payment_url: vendor.payment_url || prev.payment_url,
+    }));
+    setMatchedVendor(vendor.name);
+    setUserChangedCategory(true);
+    setShowVendorSuggestions(false);
+  }, []);
+
   // Auto-set day of month from due date when monthly is selected
   useEffect(() => {
     if (formData.recurrence_interval === 'monthly' && formData.recurrence_day_of_month === null && formData.due_date) {
@@ -431,21 +471,53 @@ export function BillForm({
           )}
         </div>
 
-        {/* Name input */}
-        <div className="flex-1">
+        {/* Name input with autocomplete */}
+        <div className="flex-1 relative" ref={vendorRef}>
           <input
             type="text"
             value={formData.name}
-            onChange={(e) => handleChange('name', e.target.value)}
+            onChange={(e) => handleNameInput(e.target.value)}
+            onFocus={() => {
+              if (vendorSuggestions.length > 0) setShowVendorSuggestions(true);
+            }}
             placeholder="Bill name"
             className={cn(
               'w-full px-4 py-4 bg-white/5 border rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all font-medium',
               errors.name ? 'border-red-500' : 'border-white/10'
             )}
             style={{ fontSize: '16px' }}
+            autoComplete="off"
           />
           {errors.name && (
             <p className="mt-1 text-sm text-red-400">{errors.name}</p>
+          )}
+          {matchedVendor && (
+            <div className="flex items-center gap-1.5 mt-1.5">
+              <Sparkles className="w-3 h-3 text-violet-400" />
+              <span className="text-xs text-violet-300">Auto-filled from {matchedVendor}</span>
+            </div>
+          )}
+
+          {/* Vendor autocomplete dropdown */}
+          {showVendorSuggestions && vendorSuggestions.length > 0 && (
+            <div className="absolute z-50 left-0 right-0 mt-1 py-1 bg-[#0a0a0f] border border-white/10 rounded-xl shadow-2xl shadow-black/80 max-h-48 overflow-y-auto">
+              {vendorSuggestions.map((vendor) => (
+                <button
+                  key={vendor.name}
+                  type="button"
+                  onClick={() => handleSelectVendor(vendor)}
+                  className="w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-white/5 transition-colors"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-base">{categoryEmojis[vendor.category]}</span>
+                    <span className="text-white text-sm font-medium">{vendor.name}</span>
+                  </div>
+                  {vendor.typical_amount !== null && (
+                    <span className="text-xs text-zinc-500">${vendor.typical_amount.toFixed(2)}/mo</span>
+                  )}
+                </button>
+              ))}
+            </div>
           )}
         </div>
       </div>

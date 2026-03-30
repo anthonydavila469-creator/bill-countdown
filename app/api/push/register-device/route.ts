@@ -1,48 +1,42 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { isValidApnsToken, normalizeApnsToken } from '@/lib/apns/apns-sender';
+import { upsertApnsToken } from '@/lib/apns/token-store';
+import { getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
 
 type RegisterDeviceRequest = {
   deviceToken?: string;
-  userId?: string;
+  deviceName?: string;
 };
 
 export async function POST(request: Request) {
   try {
-    const { deviceToken, userId } = (await request.json()) as RegisterDeviceRequest;
+    const { user } = await getAuthenticatedUser(request);
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    if (!deviceToken || !userId) {
+    const { deviceToken, deviceName } = (await request.json()) as RegisterDeviceRequest;
+
+    if (!deviceToken) {
       return NextResponse.json(
-        { error: 'deviceToken and userId are required' },
+        { error: 'deviceToken is required' },
         { status: 400 }
       );
     }
+    const userId = user.id;
+
+    const token = normalizeApnsToken(deviceToken);
+    if (!isValidApnsToken(token)) {
+      return NextResponse.json({ error: 'Malformed APNs token' }, { status: 400 });
+    }
 
     const supabase = createAdminClient();
-    const now = new Date().toISOString();
-
-    const { data, error } = await supabase
-      .from('apns_tokens')
-      .upsert(
-        {
-          user_id: userId,
-          device_token: deviceToken,
-          updated_at: now,
-        },
-        {
-          onConflict: 'user_id,device_token',
-        }
-      )
-      .select('id')
-      .single();
-
-    if (error) {
-      console.error('[push/register-device] Failed to store APNs token:', error);
-      return NextResponse.json({ success: false }, { status: 500 });
-    }
+    const savedToken = await upsertApnsToken(supabase, userId, token, deviceName);
 
     return NextResponse.json({
       success: true,
-      token_id: data.id,
+      token_id: savedToken.id,
     });
   } catch (error) {
     console.error('[push/register-device] Unexpected error:', error);

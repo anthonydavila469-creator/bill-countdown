@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     default: "Duezo — Never Miss a Bill Payment Again",
     template: "%s | Duezo",
   },
-  description: "Track every bill with beautiful countdown cards and AI-powered email sync. Smart reminders, calendar view, and spending analytics. Free to start.",
+  description: "Track every bill with beautiful countdown cards and smart bill import. Smart reminders, calendar view, and spending analytics. Free to start.",
   keywords: ["bill tracker", "bill reminders", "payment due dates", "bill countdown", "finance app", "budget tracker", "recurring bills", "autopay tracker"],
   authors: [{ name: "Duezo" }],
   creator: "Duezo",
@@ -64,6 +64,22 @@ export const viewport: Viewport = {
   ],
 };
 
+const organizationJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Duezo',
+  url: 'https://duezo.app',
+  logo: 'https://duezo.app/logo-transparent-64.png',
+  description:
+    'AI-powered bill tracking app with countdown cards, smart reminders, and Quick Add bill import. Free forever.',
+  contactPoint: {
+    '@type': 'ContactPoint',
+    email: 'support@duezo.app',
+    contactType: 'customer support',
+  },
+  sameAs: [],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -75,6 +91,10 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
       </head>
       <body
         className="antialiased bg-[#0F0A1E]"
@@ -85,7 +105,9 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <SubscriptionProvider>
-            <ToastProvider>{children}</ToastProvider>
+            <ToastProvider>
+              {children}
+            </ToastProvider>
           </SubscriptionProvider>
         </ThemeProvider>
       </body>

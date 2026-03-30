@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getProvider, type EmailProviderName } from '@/lib/email/providers';
+import { createSignedState } from '@/lib/email/oauth-state';
 
 function parseProvider(value: string | null): EmailProviderName | null {
   if (value === 'gmail' || value === 'yahoo' || value === 'outlook') {
@@ -35,15 +36,17 @@ export async function GET(request: Request) {
     const providerName = parseProvider(searchParams.get('provider')) || 'gmail';
     const provider = getProvider(providerName);
     const authUrl = new URL(provider.getAuthUrl());
-    // Encode provider + user ID in state so callback can authenticate
-    const stateData = accessToken ? `${providerName}:${user.id}` : providerName;
+    // Sign state with HMAC to prevent spoofing
+    const stateData = accessToken
+      ? createSignedState(providerName, user.id)
+      : providerName;
     authUrl.searchParams.set('state', stateData);
 
     return NextResponse.redirect(authUrl.toString());
   } catch (error) {
     const errMsg = error instanceof Error ? error.message : String(error);
     console.error('Error starting email OAuth:', errMsg);
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://duezo.app';
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.duezo.app';
     return NextResponse.redirect(
       `${appUrl}/dashboard/settings?error=connect_failed&details=${encodeURIComponent(errMsg)}`
     );

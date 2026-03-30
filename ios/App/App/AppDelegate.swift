@@ -15,7 +15,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Set default theme if none exists (first launch only)
         if let defaults = UserDefaults(suiteName: "group.app.duezo") {
             if defaults.string(forKey: "duezo_theme") == nil {
-                defaults.set("onyx", forKey: "duezo_theme")
+                defaults.set("haze", forKey: "duezo_theme")
                 defaults.synchronize()
             }
         }
@@ -53,8 +53,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
         // Called when the app was launched with an activity, including Universal Links.
-        // Feel free to add additional processing here, but if you want the App API to support
-        // tracking app url opens, make sure to keep this call
+        // Log for debugging Universal Links
+        if userActivity.activityType == NSUserActivityTypeBrowsingWeb,
+           let url = userActivity.webpageURL {
+            NSLog("[Duezo] Universal Link received: \(url.absoluteString)")
+        }
         return ApplicationDelegateProxy.shared.application(application, continue: userActivity, restorationHandler: restorationHandler)
     }
 

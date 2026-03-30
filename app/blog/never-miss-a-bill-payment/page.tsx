@@ -148,8 +148,8 @@ export default function NeverMissBillPaymentPage() {
                   {tip.isCTA && (
                     <div className="bg-violet-500/10 border border-violet-500/30 rounded-xl p-5 mt-4">
                       <p className="text-sm text-zinc-300 mb-3">
-                        <strong className="text-white">Duezo</strong> scans your email for bills, extracts the due date and amount, 
-                        and shows you a live countdown on your phone. No bank account linking required — just connect your email and 
+                        <strong className="text-white">Duezo</strong> lets you add bills with Quick Add or snap a photo to extract the due date and amount,
+                        then shows you a live countdown on your phone. No bank account linking required — just add your bills and
                         you'll see everything that's due in the next 30 days.
                       </p>
                       <Link
@@ -212,7 +212,7 @@ export default function NeverMissBillPaymentPage() {
             href="/"
             className="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white font-semibold px-8 py-4 rounded-full transition-colors text-lg"
           >
-            Start Free — 14 Days Pro <ArrowRight className="w-5 h-5" />
+            Get Started Free <ArrowRight className="w-5 h-5" />
           </Link>
           <p className="text-xs text-zinc-500 mt-4">No credit card required. Cancel anytime.</p>
         </div>

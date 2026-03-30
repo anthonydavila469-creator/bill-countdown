@@ -18,9 +18,15 @@ export default function LoginPage() {
   const [error, setError] = useState('');
 
   // Wait for mount to prevent hydration mismatch (browser extensions can inject attrs)
+  // Also check if already logged in — redirect to dashboard immediately
   useEffect(() => {
     setMounted(true);
-  }, []);
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        window.location.href = '/dashboard';
+      }
+    });
+  }, [supabase]);
 
   // On native: listen for return from OAuth browser and redirect if authenticated
   const handleAuthReturn = useCallback(() => {
@@ -42,7 +48,7 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -53,10 +59,17 @@ export default function LoginPage() {
         return;
       }
 
-      router.push('/dashboard');
-      router.refresh();
-    } catch (err) {
-      setError('An unexpected error occurred');
+      if (!data?.session) {
+        setError('Login succeeded but no session was returned. Please try again.');
+        setIsLoading(false);
+        return;
+      }
+
+      // Use hard navigation — more reliable in Capacitor WebView
+      window.location.href = '/dashboard';
+    } catch (err: any) {
+      const msg = err?.message || 'An unexpected error occurred.';
+      setError(`Login failed: ${msg}`);
       setIsLoading(false);
     }
   };
@@ -69,6 +82,8 @@ export default function LoginPage() {
         setError(result.error);
         setIsLoading(false);
       }
+      // Safety: reset loading after 30s in case browser dismiss doesn't fire
+      setTimeout(() => setIsLoading(false), 30000);
     } catch (err) {
       setError('An unexpected error occurred');
       setIsLoading(false);

@@ -1,37 +1,20 @@
 import { NextResponse } from 'next/server';
-import { apnsSender, type ApnsPayload } from '@/lib/apns-sender';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { apnsSender, buildBillDueSoonPayload } from '@/lib/apns/apns-sender';
 import {
-  DEFAULT_NOTIFICATION_SETTINGS,
-  type Bill,
-  type NotificationSettings,
-  type ReminderPreference,
-} from '@/types';
+  deactivateApnsTokensByIds,
+  listActiveApnsTokensForUser,
+  markApnsTokensVerifiedByIds,
+} from '@/lib/apns/token-store';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { type Bill } from '@/types';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-type ReminderPreferenceRow = {
-  user_id: string;
-  notification_settings: Partial<NotificationSettings> | null;
-};
-
 type BillRow = Pick<Bill, 'id' | 'user_id' | 'name' | 'amount' | 'due_date' | 'emoji' | 'payment_url'>;
-
-type DeviceTokenRow = {
-  id: string;
-  device_token: string;
-};
 
 type SentPushReminderRow = {
   bill_id: string;
-};
-
-const REMINDER_DAY_MAP: Record<ReminderPreference, number | null> = {
-  disabled: null,
-  '1day': 1,
-  '3days': 3,
-  '7days': 7,
 };
 
 function isAuthorized(request: Request): boolean {
@@ -42,14 +25,6 @@ function isAuthorized(request: Request): boolean {
   return Boolean(secret) && (cronSecretHeader === secret || authHeader === `Bearer ${secret}`);
 }
 
-function normalizeReminderPreference(value: unknown): ReminderPreference {
-  if (value === 'disabled' || value === '1day' || value === '3days' || value === '7days') {
-    return value;
-  }
-
-  return DEFAULT_NOTIFICATION_SETTINGS.remind_me;
-}
-
 function dateStringInUtc(date = new Date()): string {
   return date.toISOString().slice(0, 10);
 }
@@ -58,34 +33,6 @@ function addDays(dateString: string, days: number): string {
   const date = new Date(`${dateString}T00:00:00.000Z`);
   date.setUTCDate(date.getUTCDate() + days);
   return date.toISOString().slice(0, 10);
-}
-
-function daysBetween(targetDate: string, baseDate: string): number {
-  const target = new Date(`${targetDate}T00:00:00.000Z`).getTime();
-  const base = new Date(`${baseDate}T00:00:00.000Z`).getTime();
-  return Math.round((target - base) / 86400000);
-}
-
-function buildPushPayload(bill: BillRow, daysUntilDue: number): ApnsPayload {
-  const dueText =
-    daysUntilDue === 0 ? 'today' :
-    daysUntilDue === 1 ? 'tomorrow' :
-    `in ${daysUntilDue} days`;
-
-  const body = bill.amount !== null ? `$${bill.amount.toFixed(2)} due ${dueText}` : `Due ${dueText}`;
-
-  return {
-    aps: {
-      alert: {
-        title: `${bill.emoji ?? '💳'} ${bill.name}`,
-        body,
-      },
-      sound: 'default',
-    },
-    billId: bill.id,
-    url: bill.payment_url ?? `/dashboard?bill=${bill.id}`,
-    deeplink: `duezo://bill/${bill.id}`,
-  };
 }
 
 export async function POST(request: Request) {
@@ -99,71 +46,52 @@ export async function POST(request: Request) {
     const summary = {
       sent: 0,
       users: 0,
+      usersWithBills: 0,
       errors: [] as string[],
     };
 
-    const { data: preferenceRows, error: preferenceError } = await supabase
-      .from('user_preferences')
-      .select('user_id, notification_settings');
+    const windowStart = today; // Include bills due today through 7 days out
+    const windowEnd = addDays(today, 7);
 
-    if (preferenceError) {
-      console.error('[send-push-reminders] Failed to load preferences:', preferenceError);
-      return NextResponse.json({ sent: 0, users: 0, errors: [preferenceError.message] }, { status: 500 });
+    const { data: billRows, error: billsError } = await supabase
+      .from('bills')
+      .select('id, user_id, name, amount, due_date, emoji, payment_url')
+      .eq('is_paid', false)
+      .gte('due_date', windowStart)
+      .lte('due_date', windowEnd)
+      .order('due_date', { ascending: true });
+
+    if (billsError) {
+      console.error('[send-push-reminders] Failed to load bills:', billsError);
+      return NextResponse.json({ sent: 0, users: 0, errors: [billsError.message] }, { status: 500 });
     }
 
-    const users = ((preferenceRows ?? []) as ReminderPreferenceRow[])
-      .map((row) => ({
-        user_id: row.user_id,
-        remind_me: normalizeReminderPreference(row.notification_settings?.remind_me),
-        push_enabled: row.notification_settings?.push_enabled ?? DEFAULT_NOTIFICATION_SETTINGS.push_enabled,
-      }))
-      .filter((row) => row.push_enabled && row.remind_me !== 'disabled');
+    const billsByUser = new Map<string, BillRow[]>();
+    for (const bill of (billRows ?? []) as BillRow[]) {
+      const existing = billsByUser.get(bill.user_id) ?? [];
+      existing.push(bill);
+      billsByUser.set(bill.user_id, existing);
+    }
 
-    summary.users = users.length;
+    summary.users = billsByUser.size;
 
-    for (const user of users) {
-      const reminderDays = REMINDER_DAY_MAP[user.remind_me];
+    for (const [userId, userBills] of billsByUser.entries()) {
+      summary.usersWithBills += 1;
 
-      if (reminderDays === null) {
-        continue;
-      }
-
-      const targetDueDate = addDays(today, reminderDays);
-
-      const [billsResult, sentResult, tokensResult] = await Promise.all([
-        supabase
-          .from('bills')
-          .select('id, user_id, name, amount, due_date, emoji, payment_url')
-          .eq('user_id', user.user_id)
-          .eq('is_paid', false)
-          .eq('due_date', targetDueDate),
+      const [tokens, sentResult] = await Promise.all([
+        listActiveApnsTokensForUser(supabase, userId),
         supabase
           .from('sent_push_reminders')
           .select('bill_id')
-          .eq('user_id', user.user_id)
+          .eq('user_id', userId)
           .eq('reminder_date', today),
-        supabase
-          .from('apns_tokens')
-          .select('id, device_token')
-          .eq('user_id', user.user_id),
       ]);
 
-      if (billsResult.error) {
-        summary.errors.push(`Failed fetching bills for ${user.user_id}: ${billsResult.error.message}`);
-        continue;
-      }
-
       if (sentResult.error) {
-        summary.errors.push(`Failed fetching sent reminders for ${user.user_id}: ${sentResult.error.message}`);
+        summary.errors.push(`Failed fetching sent reminders for ${userId}: ${sentResult.error.message}`);
         continue;
       }
 
-      if (tokensResult.error) {
-        summary.errors.push(`Failed fetching APNs tokens for ${user.user_id}: ${tokensResult.error.message}`);
-        continue;
-      }
-
-      const tokens = (tokensResult.data ?? []) as DeviceTokenRow[];
       if (tokens.length === 0) {
         continue;
       }
@@ -171,77 +99,80 @@ export async function POST(request: Request) {
       const alreadySent = new Set(
         ((sentResult.data ?? []) as SentPushReminderRow[]).map((row) => row.bill_id)
       );
+      const unsentBills = userBills.filter((bill) => !alreadySent.has(bill.id));
 
-      for (const bill of (billsResult.data ?? []) as BillRow[]) {
-        if (alreadySent.has(bill.id)) {
+      if (unsentBills.length === 0) {
+        continue;
+      }
+
+      const payload = buildBillDueSoonPayload(unsentBills);
+      const invalidTokenIds: string[] = [];
+      const verifiedTokenIds: string[] = [];
+      let deliveredToAnyDevice = false;
+
+      for (const token of tokens) {
+        const result = await apnsSender.sendNotification({
+          userId,
+          tokenId: token.id,
+          token: token.token,
+          payload,
+        });
+
+        if (result.success) {
+          deliveredToAnyDevice = true;
+          verifiedTokenIds.push(token.id);
+          summary.sent += 1;
           continue;
         }
 
-        const reserveResult = await supabase
-          .from('sent_push_reminders')
-          .insert({
-            user_id: user.user_id,
-            bill_id: bill.id,
-            reminder_date: today,
-          });
-
-        if (reserveResult.error) {
-          if (reserveResult.error.code === '23505') {
-            continue;
-          }
-
-          summary.errors.push(`Failed reserving push reminder for bill ${bill.id}: ${reserveResult.error.message}`);
-          continue;
+        if (result.shouldDeactivateToken) {
+          invalidTokenIds.push(token.id);
         }
 
-        const payload = buildPushPayload(bill, daysBetween(bill.due_date, today));
-        let sentForBill = 0;
-        const invalidTokenIds: string[] = [];
+        summary.errors.push(
+          `Failed sending bill-due-soon push for ${userId} to token ${token.id}: ${result.errorCode ?? 'Unknown error'}`
+        );
+      }
 
-        for (const token of tokens) {
-          const result = await apnsSender.sendPush(token.device_token, payload);
-
-          if (result.success) {
-            sentForBill += 1;
-            continue;
-          }
-
-          if (result.reason === 'Unregistered' || result.reason === 'BadDeviceToken') {
-            invalidTokenIds.push(token.id);
-          }
-
+      if (verifiedTokenIds.length > 0) {
+        try {
+          await markApnsTokensVerifiedByIds(supabase, userId, verifiedTokenIds);
+        } catch (error) {
           summary.errors.push(
-            `Failed sending push for bill ${bill.id} to token ${token.id}: ${result.reason ?? 'Unknown error'}`
+            `Failed updating APNs verification timestamps for ${userId}: ${error instanceof Error ? error.message : 'Unknown error'}`
           );
         }
+      }
 
-        if (invalidTokenIds.length > 0) {
-          const deleteResult = await supabase
-            .from('apns_tokens')
-            .delete()
-            .in('id', invalidTokenIds);
-
-          if (deleteResult.error) {
-            summary.errors.push(`Failed deleting invalid APNs tokens for ${user.user_id}: ${deleteResult.error.message}`);
-          }
+      if (invalidTokenIds.length > 0) {
+        try {
+          await deactivateApnsTokensByIds(supabase, userId, invalidTokenIds);
+        } catch (error) {
+          summary.errors.push(
+            `Failed deactivating invalid APNs tokens for ${userId}: ${error instanceof Error ? error.message : 'Unknown error'}`
+          );
         }
+      }
 
-        if (sentForBill === 0) {
-          const rollbackResult = await supabase
-            .from('sent_push_reminders')
-            .delete()
-            .eq('user_id', user.user_id)
-            .eq('bill_id', bill.id)
-            .eq('reminder_date', today);
+      if (!deliveredToAnyDevice) {
+        continue;
+      }
 
-          if (rollbackResult.error) {
-            summary.errors.push(`Failed rolling back push reminder for bill ${bill.id}: ${rollbackResult.error.message}`);
-          }
+      const reservationRows = unsentBills.map((bill) => ({
+        user_id: userId,
+        bill_id: bill.id,
+        reminder_date: today,
+      }));
 
-          continue;
-        }
+      const reserveResult = await supabase
+        .from('sent_push_reminders')
+        .upsert(reservationRows, {
+          onConflict: 'user_id,bill_id,reminder_date',
+          ignoreDuplicates: true,
+        });
 
-        summary.sent += sentForBill;
+      if (reserveResult.error) {
+        summary.errors.push(`Failed recording sent push reminders for ${userId}: ${reserveResult.error.message}`);
       }
     }
 
@@ -261,7 +192,7 @@ export async function GET(request: Request) {
   }
 
   return NextResponse.json({
-    message: 'Send APNs push reminders for bills matching each user remind_me preference.',
+    message: 'Send APNs bill-due-soon reminders for unpaid bills due today through the next 7 days.',
     schedule: '15 8 * * *',
   });
 }

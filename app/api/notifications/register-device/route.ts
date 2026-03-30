@@ -1,36 +1,31 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { isValidApnsToken, normalizeApnsToken } from '@/lib/apns/apns-sender';
+import { upsertApnsToken } from '@/lib/apns/token-store';
+import { getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
 
 export async function POST(request: Request) {
   try {
-    const { deviceToken, userId } = (await request.json()) as { deviceToken?: string; userId?: string };
-    if (!deviceToken || !userId) {
-      return NextResponse.json({ error: 'deviceToken and userId are required' }, { status: 400 });
+    const { user } = await getAuthenticatedUser(request);
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { deviceToken, deviceName } = (await request.json()) as { deviceToken?: string; deviceName?: string };
+    if (!deviceToken) {
+      return NextResponse.json({ error: 'deviceToken is required' }, { status: 400 });
+    }
+    const userId = user.id;
+
+    const token = normalizeApnsToken(deviceToken);
+    if (!isValidApnsToken(token)) {
+      return NextResponse.json({ error: 'Malformed APNs token' }, { status: 400 });
     }
 
     const supabase = createAdminClient();
-    const now = new Date().toISOString();
-    const { data, error } = await supabase
-      .from('apns_tokens')
-      .upsert(
-        {
-          user_id: userId,
-          device_token: deviceToken,
-          updated_at: now,
-        },
-        {
-          onConflict: 'user_id,device_token',
-        }
-      )
-      .select('id')
-      .single();
+    const savedToken = await upsertApnsToken(supabase, userId, token, deviceName);
 
-    if (error) {
-      console.error('Error saving APNs token:', error);
-      return NextResponse.json({ error: 'Failed to save token' }, { status: 500 });
-    }
-
-    return NextResponse.json({ success: true, token_id: data.id });
+    return NextResponse.json({ success: true, token_id: savedToken.id });
   } catch (err) {
     console.error('Unexpected error:', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

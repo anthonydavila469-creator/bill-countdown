@@ -1,36 +1,36 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Mail, ArrowRight, Sparkles, Check, X } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Plus, ArrowRight, Sparkles, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const ONBOARDING_KEY = 'duezo_onboarding_complete';
 
 interface OnboardingModalProps {
-  isGmailConnected: boolean;
   onComplete: () => void;
-  onConnectGmail: () => void;
   onSkip: () => void;
 }
 
 export function OnboardingModal({
-  isGmailConnected,
   onComplete,
-  onConnectGmail,
   onSkip,
 }: OnboardingModalProps) {
   const [step, setStep] = useState(0);
   const [visible, setVisible] = useState(false);
+  const finishTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     // Animate in
     requestAnimationFrame(() => setVisible(true));
+    return () => {
+      if (finishTimerRef.current) clearTimeout(finishTimerRef.current);
+    };
   }, []);
 
   const finish = () => {
     localStorage.setItem(ONBOARDING_KEY, 'true');
     setVisible(false);
-    setTimeout(onComplete, 300);
+    finishTimerRef.current = setTimeout(onComplete, 300);
   };
 
   const steps = [
@@ -39,7 +39,7 @@ export function OnboardingModal({
       <div className="text-6xl mb-6">🎉</div>
       <h2 className="text-2xl font-bold text-white mb-3">Welcome to Duezo!</h2>
       <p className="text-zinc-400 leading-relaxed max-w-sm mx-auto">
-        We scan your email to find bills and track due dates so you never miss a payment.
+        Add your bills in seconds and never miss a payment again.
       </p>
       <button
         onClick={() => setStep(1)}
@@ -50,43 +50,22 @@ export function OnboardingModal({
       </button>
     </div>,
 
-    // Step 2: Connect Email
-    <div key="email" className="text-center">
+    // Step 2: Add Your Bills
+    <div key="add-bills" className="text-center">
       <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-violet-500/20 to-amber-500/20 border border-violet-500/30 flex items-center justify-center">
-        <Mail className="w-8 h-8 text-violet-400" />
+        <Plus className="w-8 h-8 text-violet-400" />
       </div>
-      <h2 className="text-2xl font-bold text-white mb-3">Connect Your Email</h2>
+      <h2 className="text-2xl font-bold text-white mb-3">Add Your Bills</h2>
       <p className="text-zinc-400 leading-relaxed max-w-sm mx-auto mb-8">
-        Connect Gmail, Yahoo, or Outlook. We&apos;ll automatically find bills in your inbox and keep your due dates up to date.
+        Start typing a name like &quot;Netflix&quot; and we&apos;ll auto-fill the details. Add a bill in 10 seconds.
       </p>
-      <div className="flex flex-col gap-3">
-        {isGmailConnected ? (
-          <div className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 font-semibold">
-            <Check className="w-4 h-4" />
-            Gmail Connected
-          </div>
-        ) : (
-          <button
-            onClick={() => {
-              onConnectGmail();
-              setStep(2);
-            }}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-violet-500 to-amber-500 text-white font-semibold hover:opacity-90 transition-opacity"
-          >
-            <Mail className="w-4 h-4" />
-            Connect Email
-          </button>
-        )}
-        <button
-          onClick={() => {
-            onSkip();
-            setStep(2);
-          }}
-          className="text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
-        >
-          Skip — I&apos;ll add bills manually
-        </button>
-      </div>
+      <button
+        onClick={() => setStep(2)}
+        className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-violet-500 to-amber-500 text-white font-semibold hover:opacity-90 transition-opacity"
+      >
+        <Plus className="w-4 h-4" />
+        Add Bills Now
+      </button>
     </div>,
 
     // Step 3: All set
@@ -96,7 +75,7 @@ export function OnboardingModal({
       </div>
       <h2 className="text-2xl font-bold text-white mb-3">You&apos;re all set!</h2>
       <p className="text-zinc-400 leading-relaxed max-w-sm mx-auto mb-2">
-        Everything is included — unlimited bills, notifications, and auto-sync.
+        Everything is included — unlimited bills and notifications.
       </p>
       <button
         onClick={finish}
@@ -130,6 +109,7 @@ export function OnboardingModal({
         {/* Close button */}
         <button
           onClick={finish}
+          aria-label="Close onboarding"
           className="absolute top-4 right-4 p-1.5 text-zinc-600 hover:text-zinc-300 transition-colors rounded-lg hover:bg-white/5"
         >
           <X className="w-4 h-4" />

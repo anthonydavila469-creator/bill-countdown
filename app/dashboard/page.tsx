@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { AddBillModal } from '@/components/add-bill-modal';
+import { QuickAddModal } from '@/components/quick-add-modal';
 import { OnboardingScreen } from '@/components/onboarding/onboarding-screen';
 import { OnboardingModal, useOnboardingComplete } from '@/components/onboarding-modal';
 import { DeleteBillModal } from '@/components/delete-bill-modal';
@@ -24,19 +25,21 @@ import { DashboardSkeleton } from '@/components/skeleton-loader';
 import { hapticSuccess, hapticLight } from '@/lib/haptics';
 import {
   Plus,
+  Camera,
   LayoutGrid,
   Calendar,
   Settings,
   LogOut,
-  Mail,
   Search,
   History,
   Check,
+  ExternalLink,
 } from 'lucide-react';
 import { useSubscription } from '@/hooks/use-subscription';
 import { Paywall } from '@/components/paywall';
 import { UpgradeModal } from '@/components/upgrade-modal';
 import { cn } from '@/lib/utils';
+import { apiFetch } from '@/lib/api-base';
 
 // Swipe-to-pay card wrapper
 function SwipeBillCard({
@@ -247,7 +250,6 @@ export default function DashboardPage() {
   // Auth state
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isGmailConnected, setIsGmailConnected] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   // Onboarding state
@@ -265,6 +267,10 @@ export default function DashboardPage() {
 
   // Modal state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
+  const [scanData, setScanData] = useState<{ name?: string | null; amount?: number | null; due_date?: string | null } | null>(null);
+  const [isScanning, setIsScanning] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [editingBill, setEditingBill] = useState<Bill | null>(null);
   const [deletingBill, setDeletingBill] = useState<Bill | null>(null);
   const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
@@ -283,15 +289,6 @@ export default function DashboardPage() {
       }
 
       setUser(user);
-
-      // Check if Gmail is connected
-      const { data: gmailToken } = await supabase
-        .from('gmail_tokens')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      setIsGmailConnected(!!gmailToken);
       setIsLoading(false);
     };
 
@@ -325,18 +322,58 @@ export default function DashboardPage() {
     await refetch();
   };
 
-  // Handle "Add Manually" from onboarding
+  // Handle "Add Manually" from onboarding — opens Quick Add
   const handleAddManuallyFromOnboarding = () => {
     setShowOnboarding(false);
-    setEditingBill(null);
-    setIsAddModalOpen(true);
+    setIsQuickAddOpen(true);
   };
 
-  // Handle Add Bill button click
+  // Handle Add Bill button click — opens Quick Add
   const handleAddBillClick = () => {
     hapticLight();
-    setEditingBill(null);
-    setIsAddModalOpen(true);
+    setScanData(null);
+    setIsQuickAddOpen(true);
+  };
+
+  // Handle Scan Bill — capture image and extract data
+  const handleScanBill = () => {
+    hapticLight();
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // Reset input so the same file can be re-selected
+    e.target.value = '';
+
+    setIsScanning(true);
+    try {
+      // Convert to base64 data URL
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const response = await apiFetch('/api/bills/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: base64 }),
+      });
+
+      if (!response.ok) throw new Error('Scan failed');
+
+      const data = await response.json();
+      setScanData(data);
+      setIsQuickAddOpen(true);
+    } catch {
+      setScanData(null);
+      setIsQuickAddOpen(true);
+    } finally {
+      setIsScanning(false);
+    }
   };
 
   // Calculate stats (only unpaid bills)
@@ -426,7 +463,6 @@ export default function DashboardPage() {
         <OnboardingScreen
           onComplete={handleOnboardingComplete}
           onAddManually={handleAddManuallyFromOnboarding}
-          isEmailConnected={isGmailConnected}
         />
     );
   }
@@ -524,33 +560,31 @@ export default function DashboardPage() {
           </ul>
         </nav>
 
-        {/* Gmail sync status - only show if not connected */}
-        {!isGmailConnected && (
-          <div className="p-4 border-t border-white/[0.06]">
-            <div className="relative p-4 rounded-xl overflow-hidden" style={{ background: `linear-gradient(to bottom right, ${hexToRgba(accentColor, 0.1)}, ${hexToRgba(accentColor, 0.05)}, ${hexToRgba(accentColor, 0.1)})`, border: `1px solid ${hexToRgba(accentColor, 0.2)}` }}>
-              {/* Decorative glow */}
-              <div className="absolute -top-10 -right-10 w-24 h-24 rounded-full blur-2xl" style={{ backgroundColor: hexToRgba(accentColor, 0.2) }} />
-              <div className="relative">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="flex items-center justify-center w-8 h-8 rounded-lg" style={{ backgroundColor: hexToRgba(accentColor, 0.2), border: `1px solid ${hexToRgba(accentColor, 0.3)}` }}>
-                    <Mail className="w-4 h-4" style={{ color: accentColor }} />
-                  </div>
-                  <span className="text-sm font-semibold text-white">Email Sync</span>
+        {/* Add Your Bills promo */}
+        <div className="p-4 border-t border-white/[0.06]">
+          <div className="relative p-4 rounded-xl overflow-hidden" style={{ background: `linear-gradient(to bottom right, ${hexToRgba(accentColor, 0.1)}, ${hexToRgba(accentColor, 0.05)}, ${hexToRgba(accentColor, 0.1)})`, border: `1px solid ${hexToRgba(accentColor, 0.2)}` }}>
+            {/* Decorative glow */}
+            <div className="absolute -top-10 -right-10 w-24 h-24 rounded-full blur-2xl" style={{ backgroundColor: hexToRgba(accentColor, 0.2) }} />
+            <div className="relative">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg" style={{ backgroundColor: hexToRgba(accentColor, 0.2), border: `1px solid ${hexToRgba(accentColor, 0.3)}` }}>
+                  <Plus className="w-4 h-4" style={{ color: accentColor }} />
                 </div>
-                <p className="text-xs text-zinc-400 mb-3 leading-relaxed">
-                  Connect Gmail, Yahoo, or Outlook to automatically detect bills.
-                </p>
-                <Link
-                  href="/dashboard/settings"
-                  className="block w-full px-3 py-2 text-sm font-semibold border border-white/10 hover:border-white/20 rounded-lg transition-all duration-200 text-white text-center"
-                  style={{ background: hexToRgba(accentColor, 0.2) }}
-                >
-                  Connect Email
-                </Link>
+                <span className="text-sm font-semibold text-white">Add Your Bills</span>
               </div>
+              <p className="text-xs text-zinc-400 mb-3 leading-relaxed">
+                Quickly add bills with smart auto-fill from 50+ vendors.
+              </p>
+              <button
+                onClick={handleAddBillClick}
+                className="block w-full px-3 py-2 text-sm font-semibold border border-white/10 hover:border-white/20 rounded-lg transition-all duration-200 text-white text-center"
+                style={{ background: hexToRgba(accentColor, 0.2) }}
+              >
+                Add a Bill
+              </button>
             </div>
           </div>
-        )}
+        </div>
 
         {/* User */}
         <div className="p-4 border-t border-white/[0.06]">
@@ -576,7 +610,7 @@ export default function DashboardPage() {
       </aside>
 
       {/* Main content */}
-      <main className="lg:ml-64 pt-[calc(env(safe-area-inset-top)+4rem)] h-screen overflow-y-auto overscroll-none pb-28">
+      <main className="lg:ml-64 pt-[calc(env(safe-area-inset-top)+4rem)] overflow-y-auto overscroll-none pb-52" style={{ height: '100dvh' }}>
         {/* Header - minimal: gear left, glowing + button right */}
         <header className="fixed top-0 left-0 right-0 z-50 lg:left-64 bg-[#0F0A1E]">
           {/* Safe area for notch */}
@@ -606,9 +640,17 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Right: Notification + Glowing Add button */}
+            {/* Right: Notification + Scan + Glowing Add button */}
             <div className="flex items-center gap-2">
               <NotificationBell />
+              <button
+                onClick={handleScanBill}
+                disabled={isScanning}
+                className="p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-white/[0.06] transition-all duration-200 disabled:opacity-50"
+                title="Scan Bill"
+              >
+                <Camera className="w-5 h-5" />
+              </button>
               <button
                 onClick={handleAddBillClick}
                 className="p-2.5 rounded-xl hover:text-white transition-all duration-200"
@@ -621,6 +663,13 @@ export default function DashboardPage() {
               >
                 <Plus className="w-6 h-6" />
               </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelected}
+                className="hidden"
+              />
             </div>
           </div>
         </header>
@@ -869,22 +918,33 @@ export default function DashboardPage() {
                           )}
                         </div>
 
-                        {/* Bottom: Mark as Paid button */}
+                        {/* Bottom: Pay Now + Mark as Paid buttons */}
                         {!heroBill.is_paid && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleMarkAsPaidFromCard(heroBill);
-                            }}
-                            className="w-full py-3.5 rounded-2xl font-bold text-base text-white transition-all duration-200 active:scale-[0.98] backdrop-blur-sm"
-                            style={{
-                              background: `linear-gradient(to right, ${hexToRgba(accentColor, 0.2)}, ${hexToRgba(accentColor, 0.1)})`,
-                              border: `1px solid ${hexToRgba(accentColor, 0.3)}`,
-                            }}
-                          >
-                            <Check className="w-5 h-5 inline-block mr-2 -mt-0.5" />
-                            Mark as Paid
-                          </button>
+                          <div className="flex flex-col gap-2.5">
+                            {heroBill.payment_url && (
+                              <a
+                                href={heroBill.payment_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="w-full py-3.5 rounded-2xl font-bold text-base text-white text-center transition-all duration-200 active:scale-[0.98]"
+                                style={{ backgroundColor: 'var(--accent-primary)' }}
+                              >
+                                <ExternalLink className="w-5 h-5 inline-block mr-2 -mt-0.5" />
+                                Pay Now
+                              </a>
+                            )}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleMarkAsPaidFromCard(heroBill);
+                              }}
+                              className="w-full py-3.5 rounded-2xl font-bold text-base text-white transition-all duration-200 active:scale-[0.98] border border-white/30 bg-white/[0.08] hover:bg-white/[0.15] backdrop-blur-sm"
+                            >
+                              <Check className="w-5 h-5 inline-block mr-2 -mt-0.5" />
+                              Mark as Paid
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -1002,7 +1062,27 @@ export default function DashboardPage() {
         </div>
       </main>
 
-      {/* Add/Edit Bill Modal */}
+      {/* Scanning overlay */}
+      {isScanning && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-3 p-6 rounded-2xl bg-[#0c0c10] border border-white/10">
+            <div className="w-8 h-8 border-2 border-white/20 border-t-violet-400 rounded-full animate-spin" />
+            <p className="text-sm text-zinc-300">Scanning bill…</p>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Add Modal */}
+      <QuickAddModal
+        isOpen={isQuickAddOpen}
+        onClose={() => { setIsQuickAddOpen(false); setScanData(null); }}
+        onSuccess={handleBillSuccess}
+        initialName={scanData?.name}
+        initialAmount={scanData?.amount}
+        initialDueDate={scanData?.due_date}
+      />
+
+      {/* Add/Edit Bill Modal (full form — used for editing) */}
       <AddBillModal
         isOpen={isAddModalOpen}
         onClose={() => {
@@ -1053,16 +1133,14 @@ export default function DashboardPage() {
       {/* Onboarding Modal for first-time users */}
       {showOnboardingModal && (
         <OnboardingModal
-          isGmailConnected={isGmailConnected}
           onComplete={() => {
             setShowOnboardingModal(false);
             setShowOnboarding(true);
           }}
-          onConnectGmail={() => {
-            window.location.href = '/api/gmail/connect';
-          }}
           onSkip={() => {
-            // Continue to next step in modal
+            setShowOnboardingModal(false);
+            localStorage.setItem('duezo_onboarding_complete', 'true');
+            router.push('/dashboard/settings');
           }}
         />
       )}

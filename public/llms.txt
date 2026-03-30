@@ -1,0 +1,38 @@
+# Duezo — Never Miss a Bill Payment Again
+
+## What is Duezo?
+Duezo is an AI-powered bill tracking app that helps you stay on top of every bill. Add bills instantly with Quick Add or scan them with your camera. Beautiful countdown cards shift color as due dates approach so you always know what's coming.
+
+## Key Features
+- Smart Bill Import: Add bills with Quick Add autocomplete (30+ vendors) or snap a photo and AI extracts the details
+- Countdown Cards: Visual cards that change color (green → amber → red) as due dates approach
+- Smart Reminders: Push notifications 7 days, 3 days, and 1 day before each bill is due
+- Calendar View: See all bills on a monthly calendar with drag-and-drop rescheduling
+- Recurring Bills: Auto-generate weekly, biweekly, monthly, or yearly bills
+- Analytics & Insights: Spending trends, category breakdowns, and monthly comparisons
+- Dark Mode: Beautiful dark UI that follows your system preference
+- No Bank Login Required: Track bills without connecting your bank account
+
+## Pricing
+Free forever. All features included — no subscriptions, no paywalls, no limits. Unlimited bills at $0/month.
+
+## Platforms
+- iOS app (native, with home screen widgets)
+- Web app (works on any browser)
+
+## Technology
+- AI-powered bill extraction using Claude by Anthropic
+- End-to-end encryption for bill data
+- No bank account linking required — your financial data stays private
+
+## Key URLs
+- Homepage: https://duezo.app
+- Sign Up: https://duezo.app/signup
+- Log In: https://duezo.app/login
+- Blog: https://duezo.app/blog
+- Privacy Policy: https://duezo.app/privacy
+- Terms of Service: https://duezo.app/terms
+
+## Contact
+- Support: support@duezo.app
+- Website: https://duezo.app

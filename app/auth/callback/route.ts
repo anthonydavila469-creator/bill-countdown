@@ -2,18 +2,60 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 
+// Detect if request is from an iOS/macOS device (SFSafariViewController in Capacitor app)
+// Broad check — better to show the "Open Duezo" page unnecessarily than to load
+// the dashboard inside SFSafariViewController
+function isAppleDevice(request: Request): boolean {
+  const ua = request.headers.get('user-agent') || '';
+  // Match iPhone, iPad (including desktop-mode iPad that sends "Macintosh"),
+  // iPod, and Safari on macOS (which could be SFSafariViewController)
+  return /iPhone|iPad|iPod|Macintosh.*Safari/.test(ua);
+}
+
+// The "return to app" HTML page shown after OAuth in SFSafariViewController.
+// Multiple redirect strategies to maximize compatibility across iOS versions.
+function nativeReturnPage(): NextResponse {
+  return new NextResponse(
+    `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<script>
+// Try Universal Link first (dismisses SFSafariViewController automatically on iOS)
+// Then fall back to custom URL scheme
+window.location.href = 'https://www.duezo.app/auth/callback/return';
+setTimeout(function() { window.location.href = 'app.duezo://auth/callback'; }, 800);
+</script>
+<style>body{background:#0F0A1E;color:#fff;font-family:system-ui;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}
+.c{text-align:center;padding:24px}
+.check{font-size:48px;margin-bottom:12px}
+.btn{display:inline-block;margin-top:20px;padding:16px 40px;background:#8B5CF6;color:#fff;font-size:18px;font-weight:700;border-radius:14px;text-decoration:none;-webkit-tap-highlight-color:transparent;box-shadow:0 4px 14px rgba(139,92,246,.4)}
+.btn:active{background:#7C3AED;transform:scale(0.97)}
+.hint{margin-top:16px;color:#a1a1aa;font-size:14px}
+</style>
+</head>
+<body><div class="c">
+<div class="check">✅</div>
+<p><strong>You're signed in!</strong></p>
+<a href="app.duezo://auth/callback" class="btn">Open Duezo</a>
+<p class="hint">Returning to Duezo...</p>
+</div>
+</body></html>`,
+    { headers: { 'Content-Type': 'text/html' } }
+  );
+}
+
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
   const next = searchParams.get('next') ?? '/dashboard';
   const transferKey = searchParams.get('transfer_key');
+  const isApple = isAppleDevice(request);
 
   if (code) {
     const supabase = await createClient();
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error && data?.session) {
-      // Native Capacitor flow: store tokens for WKWebView to retrieve
+      // Native Capacitor flow with transfer key: store tokens for WKWebView
       if (transferKey) {
         const admin = createAdminClient();
         await admin.from('auth_transfers').insert({
@@ -21,34 +63,14 @@ export async function GET(request: Request) {
           access_token: data.session.access_token,
           refresh_token: data.session.refresh_token,
         });
+        return nativeReturnPage();
+      }
 
-        // Return a page that signals the app via window.opener / postMessage.
-        // The browserPageLoaded event fires when this page loads in the SFVC,
-        // which lets the WKWebView fetch tokens and call Browser.close() immediately.
-        // Redirect to custom URL scheme to force SFSafariViewController to close
-        // and return to the native app. The app's listenForAuthReturn will pick up
-        // the session via the transfer key when it regains focus.
-        return new NextResponse(
-          `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<style>body{background:#0F0A1E;color:#fff;font-family:system-ui;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}
-.c{text-align:center}.s{width:32px;height:32px;border:3px solid rgba(139,92,246,.3);border-top-color:#8B5CF6;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}
-@keyframes spin{to{transform:rotate(360deg)}}</style>
-</head>
-<body><div class="c"><div class="s"></div><p>Returning to Duezo...</p></div>
-<script>
-// Redirect back to the native app via custom URL scheme.
-// This forces SFSafariViewController to close and returns to the app.
-setTimeout(function() {
-  window.location.href = 'app.duezo://auth/callback';
-}, 500);
-
-// Fallback: also try postMessage for any edge cases
-try { window.opener && window.opener.postMessage('auth-complete', '*'); } catch(e){}
-</script>
-</body></html>`,
-          { headers: { 'Content-Type': 'text/html' } }
-        );
+      // iOS device but no transfer key (Supabase stripped it during redirect).
+      // Still redirect back to the app — the WKWebView will detect the session
+      // when it regains focus via visibilitychange / browserFinished listeners.
+      if (isApple) {
+        return nativeReturnPage();
       }
 
       // Standard web flow: redirect to dashboard

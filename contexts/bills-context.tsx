@@ -10,6 +10,7 @@ import React, {
 } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { Bill } from '@/types';
+import { apiFetch } from '@/lib/api-base';
 
 // Mutation states for per-bill loading indicators
 export type MutationState =
@@ -184,7 +185,7 @@ export function BillsProvider({ children }: BillsProviderProps) {
   // Fetch bills from API (including paid bills for cross-page sync)
   const refetch = useCallback(async () => {
     try {
-      const response = await fetch('/api/bills?showPaid=true');
+      const response = await apiFetch('/api/bills?showPaid=true');
       if (response.ok) {
         const data = await response.json();
         const sortedBills = data.sort(
@@ -228,7 +229,7 @@ export function BillsProvider({ children }: BillsProviderProps) {
       try {
         const [{ syncWidgetPayload }, prefsResponse] = await Promise.all([
           import('../lib/capacitor-plugins/sync-widget'),
-          fetch('/api/preferences').catch(() => null),
+          apiFetch('/api/preferences').catch(() => null),
         ]);
 
         if (cancelled) {
@@ -236,7 +237,7 @@ export function BillsProvider({ children }: BillsProviderProps) {
         }
 
         const prefs = prefsResponse && prefsResponse.ok ? await prefsResponse.json() : null;
-        const theme = prefs?.color_theme || 'onyx';
+        const theme = prefs?.color_theme || 'haze';
 
         console.log(
           '[Duezo] bills-context widget sync scheduled',
@@ -256,8 +257,18 @@ export function BillsProvider({ children }: BillsProviderProps) {
 
     syncBillsToWidget();
 
+    // Also resync when app returns to foreground (covers timing race with plugin registration)
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible' && !cancelled) {
+        console.log('[Duezo] bills-context resync on foreground');
+        syncBillsToWidget();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
     return () => {
       cancelled = true;
+      document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, [state.bills, state.lastFetched, state.loading]);
 

@@ -1,8 +1,14 @@
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
 import { scheduleNotificationsForBillWithSettings, cancelNotificationsForBill } from '@/lib/notifications/scheduler';
-import type { Bill } from '@/types';
+import type { Bill, BillCategory } from '@/types';
+
+const VALID_CATEGORIES: BillCategory[] = [
+  'utilities', 'subscription', 'rent', 'housing', 'insurance',
+  'phone', 'internet', 'credit_card', 'loan', 'health', 'other',
+];
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -12,8 +18,8 @@ interface RouteParams {
 export async function GET(request: Request, { params }: RouteParams) {
   try {
     const { id } = await params;
-    const { user } = await getAuthenticatedUser(request);
-    const supabase = await createClient();
+    const { user, method } = await getAuthenticatedUser(request);
+    const supabase = method === 'bearer' ? createAdminClient() : await createClient();
 
     if (!user) {
       return NextResponse.json(
@@ -57,8 +63,8 @@ export async function GET(request: Request, { params }: RouteParams) {
 export async function PUT(request: Request, { params }: RouteParams) {
   try {
     const { id } = await params;
-    const { user } = await getAuthenticatedUser(request);
-    const supabase = await createClient();
+    const { user, method } = await getAuthenticatedUser(request);
+    const supabase = method === 'bearer' ? createAdminClient() : await createClient();
 
     if (!user) {
       return NextResponse.json(
@@ -69,6 +75,28 @@ export async function PUT(request: Request, { params }: RouteParams) {
 
     // Parse request body
     const body = await request.json();
+
+    // Validate fields
+    if (body.amount !== undefined && body.amount !== null) {
+      if (typeof body.amount !== 'number' || body.amount < 0) {
+        return NextResponse.json({ error: 'amount must be a number >= 0' }, { status: 400 });
+      }
+    }
+    if (body.due_date !== undefined && body.due_date !== null) {
+      if (typeof body.due_date !== 'string' || isNaN(Date.parse(body.due_date))) {
+        return NextResponse.json({ error: 'due_date must be a valid ISO date string' }, { status: 400 });
+      }
+    }
+    if (body.name !== undefined) {
+      if (typeof body.name !== 'string' || body.name.trim() === '') {
+        return NextResponse.json({ error: 'name must be a non-empty string' }, { status: 400 });
+      }
+    }
+    if (body.category !== undefined && body.category !== null) {
+      if (!VALID_CATEGORIES.includes(body.category)) {
+        return NextResponse.json({ error: `category must be one of: ${VALID_CATEGORIES.join(', ')}` }, { status: 400 });
+      }
+    }
 
     // Update bill (RLS ensures user can only update their own)
     const { data: bill, error } = await supabase
@@ -141,8 +169,8 @@ export async function PUT(request: Request, { params }: RouteParams) {
 export async function DELETE(request: Request, { params }: RouteParams) {
   try {
     const { id } = await params;
-    const { user } = await getAuthenticatedUser(request);
-    const supabase = await createClient();
+    const { user, method } = await getAuthenticatedUser(request);
+    const supabase = method === 'bearer' ? createAdminClient() : await createClient();
 
     if (!user) {
       return NextResponse.json(

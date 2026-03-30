@@ -87,8 +87,8 @@ export async function PUT(request: Request) {
       .single();
 
     // If no existing row, include safe defaults so the upsert insert
-    // doesn't violate the chk_color_theme constraint (DB default is 'default'
-    // which is NOT in the allowed list — must be 'amethyst' or similar).
+    // doesn't violate the chk_color_theme constraint (DB default must match
+    // the allowed list — currently 'haze').
     const updateData: Record<string, unknown> = {
       user_id: user.id,
     };
@@ -112,11 +112,6 @@ export async function PUT(request: Request) {
     // Notification settings can be updated by anyone
     if (body.notification_settings !== undefined) {
       updateData.notification_settings = body.notification_settings;
-    }
-
-    // Gmail syncs counter can be incremented
-    if (body.gmail_syncs_used !== undefined) {
-      updateData.gmail_syncs_used = body.gmail_syncs_used;
     }
 
     // Upsert preferences

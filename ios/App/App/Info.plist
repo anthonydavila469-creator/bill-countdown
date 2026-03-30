@@ -52,6 +52,8 @@
 	</array>
 	<key>NSUserNotificationUsageDescription</key>
 	<string>Duezo sends reminders when your bills are due so you never miss a payment.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

@@ -17,6 +17,7 @@ import {
 import { ParsedBill, BillCategory } from '@/types';
 import { cn, formatCurrency } from '@/lib/utils';
 import { getIconFromName } from '@/lib/get-bill-icon';
+import { apiFetch } from '@/lib/api-base';
 
 interface BillImportModalProps {
   isOpen: boolean;
@@ -174,7 +175,7 @@ export function BillImportModal({
         setParseProgress((prev) => Math.min(prev + 3, 90));
       }, 200);
 
-      const response = await fetch('/api/suggestions', {
+      const response = await apiFetch('/api/suggestions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ maxResults: 200, daysBack: 90 }),
