@@ -114,7 +114,7 @@ export default function AboutPage() {
           </p>
           <p>
             Duezo started as a weekend project and turned into a full app with
-            AI-powered email parsing, iOS widgets, push notifications, and a
+            photo scan, iOS widgets, push notifications, and a
             calendar view. It&apos;s still just me — no team, no VC money, no
             investors. Just a solo developer building the app I wish existed.
           </p>
@@ -157,14 +157,14 @@ export default function AboutPage() {
         <div className="text-center p-8 rounded-2xl bg-gradient-to-br from-violet-500/10 to-violet-500/5 border border-violet-500/20">
           <h2 className="text-2xl font-bold mb-3">Try Duezo Free</h2>
           <p className="text-zinc-400 mb-6">
-            Every feature, no limits, no cost. The app I built for myself — now
-            yours.
+            Track up to 5 bills free. Upgrade to Pro for unlimited bills and
+            all features.
           </p>
           <Link
-            href="/signup"
+            href="https://apps.apple.com/us/app/duezo/id6759273131"
             className="group inline-flex items-center gap-2 px-6 py-3 text-base font-semibold bg-gradient-to-r from-violet-500 to-violet-500 rounded-full hover:opacity-90 transition-opacity"
           >
-            Get Started Free
+            Download on the App Store
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>

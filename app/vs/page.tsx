@@ -42,25 +42,25 @@ const comparisons = [
     slug: 'rocket-money',
     title: 'Duezo vs Rocket Money',
     description: 'Rocket Money does a lot. Duezo just tracks bills. If you don\'t need subscription cancellation or budgeting, save money.',
-    pricing: 'Duezo: $4.99/mo · Rocket Money: $6–12/mo',
+    pricing: 'Duezo: $3.99/mo · Rocket Money: $6–12/mo',
   },
   {
     slug: 'ynab',
     title: 'Duezo vs YNAB',
     description: 'YNAB is the gold standard for budgeting. But if you just want bill tracking, it\'s overkill — and 3x more expensive.',
-    pricing: 'Duezo: $4.99/mo · YNAB: $14.99/mo',
+    pricing: 'Duezo: $3.99/mo · YNAB: $14.99/mo',
   },
   {
     slug: 'copilot-money',
     title: 'Duezo vs Copilot Money',
-    description: 'Copilot is premium budgeting at $15/mo. Duezo is bill-focused at $5/mo. Save $120/year if you don\'t need full budgeting.',
-    pricing: 'Duezo: $4.99/mo · Copilot: $14.99/mo',
+    description: 'Copilot is premium budgeting at $15/mo. Duezo is bill-focused at $3.99/mo. Save $130/year if you don\'t need full budgeting.',
+    pricing: 'Duezo: $3.99/mo · Copilot: $14.99/mo',
   },
   {
     slug: 'chronicle',
     title: 'Duezo vs Chronicle',
-    description: 'Both are $4.99/mo. Chronicle requires manual entry. Duezo scans your email automatically. Same price, less work.',
-    pricing: 'Both $4.99/mo',
+    description: 'Chronicle requires manual entry at $4.99/mo. Duezo has Quick Add and photo scan at $3.99/mo. Lower price, less work.',
+    pricing: 'Duezo: $3.99/mo · Chronicle: $4.99/mo',
   },
 ];
 
@@ -156,13 +156,13 @@ export default function ComparisonsPage() {
       <section className="max-w-3xl mx-auto px-6 py-20 text-center">
         <h2 className="text-3xl font-bold mb-4">Want to Try Duezo?</h2>
         <p className="text-zinc-400 text-lg mb-8">
-          Simple bill tracking. No bank linking. $4.99/mo.
+          Simple bill tracking. No bank linking. $3.99/mo.
         </p>
         <Link
-          href="/signup"
+          href="https://apps.apple.com/us/app/duezo/id6759273131"
           className="inline-flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-semibold px-10 py-4 rounded-xl text-lg transition-colors"
         >
-          Get Started Free <ArrowRight className="w-5 h-5" />
+          Download on the App Store <ArrowRight className="w-5 h-5" />
         </Link>
       </section>
 

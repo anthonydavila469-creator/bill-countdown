@@ -14,11 +14,11 @@ Duezo is an AI-powered bill tracking app that helps you stay on top of every bil
 - No Bank Login Required: Track bills without connecting your bank account
 
 ## Pricing
-Free forever. All features included — no subscriptions, no paywalls, no limits. Unlimited bills at $0/month.
+Free to download with up to 5 bills. Duezo Pro is $3.99/month or $19.99/year (yearly includes a 7-day free trial) for unlimited bills and all features.
 
 ## Platforms
-- iOS app (native, with home screen widgets)
-- Web app (works on any browser)
+- iPhone app (native, with home screen widgets)
+- Website for product info, support, and account access
 
 ## Technology
 - AI-powered bill extraction using Claude by Anthropic
@@ -27,7 +27,7 @@ Free forever. All features included — no subscriptions, no paywalls, no limits
 
 ## Key URLs
 - Homepage: https://duezo.app
-- Sign Up: https://duezo.app/signup
+- App Store: https://apps.apple.com/us/app/duezo/id6759273131
 - Log In: https://duezo.app/login
 - Blog: https://duezo.app/blog
 - Privacy Policy: https://duezo.app/privacy

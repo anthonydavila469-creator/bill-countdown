@@ -76,13 +76,13 @@ export default function BestPrismAlternativesPage() {
               </div>
             </div>
             <h2 className="text-2xl font-bold mb-2">1. Duezo — Best Overall Prism Replacement</h2>
-            <p className="text-zinc-400 mb-1"><strong className="text-white">Price:</strong> $4.99/mo or $39.99/yr</p>
+            <p className="text-zinc-400 mb-1"><strong className="text-white">Price:</strong> Free to start · $3.99/mo or $19.99/yr</p>
             <p className="text-zinc-400 mb-4"><strong className="text-white">Platforms:</strong> iOS, Web</p>
             <p className="text-zinc-300 leading-relaxed mb-4">
               Duezo is the closest thing to a modern Prism. It&apos;s built with the same philosophy — simple bill tracking without budgeting bloat — but adds features Prism never had.
             </p>
             <p className="text-zinc-300 leading-relaxed mb-4">
-              The standout feature is <strong className="text-white">AI-powered Gmail scanning</strong>. Connect your Gmail and Duezo automatically finds bill notifications, extracts amounts and due dates, and creates bill entries for you. No manual entry, no bank linking.
+              Add bills in seconds with <strong className="text-white">Quick Add</strong> (autocomplete for 30+ vendors) or snap a photo and let AI extract the vendor, amount, and due date. No bank linking required.
             </p>
             <p className="text-zinc-300 leading-relaxed mb-4">
               The <strong className="text-white">countdown timer UI</strong> is unique — every bill shows a visual countdown to its due date, color-coded by urgency. It makes bill tracking feel less like a chore and more like a game.
@@ -90,12 +90,12 @@ export default function BestPrismAlternativesPage() {
             <h3 className="font-semibold text-lg mb-2">What we like:</h3>
             <ul className="space-y-2 text-zinc-300 mb-4">
               {[
-                'AI auto-detects bills from Gmail — zero manual entry',
+                'Quick Add and AI photo scan — add bills in seconds',
                 'Beautiful countdown timers for every bill',
                 'No bank linking required (privacy win)',
                 'Price increase alerts when a bill goes up',
                 'Simple and fast — set up in under 2 minutes',
-                'Most affordable option at $4.99/mo',
+                'Free to start, $3.99/mo Pro',
               ].map((item, i) => (
                 <li key={i} className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-violet-400 mt-1 flex-shrink-0" />
@@ -109,10 +109,10 @@ export default function BestPrismAlternativesPage() {
               <li>No Android app yet (web works on Android)</li>
             </ul>
             <Link
-              href="/signup"
+              href="https://apps.apple.com/us/app/duezo/id6759273131"
               className="inline-flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-semibold px-6 py-3 rounded-xl transition-colors"
             >
-              Try Duezo Free <ArrowRight className="w-4 h-4" />
+              Download on the App Store <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
 
@@ -183,7 +183,7 @@ export default function BestPrismAlternativesPage() {
               </thead>
               <tbody>
                 {[
-                  ['Duezo', '$4.99/mo', 'Simple bill tracking', 'No'],
+                  ['Duezo', '$3.99/mo', 'Simple bill tracking', 'No'],
                   ['Rocket Money', '$6–12/mo', 'All-in-one finance', 'Yes'],
                   ['YNAB', '$14.99/mo', 'Serious budgeting', 'Yes'],
                   ['Monarch Money', '$9.99/mo', 'Couples', 'Yes'],
@@ -200,7 +200,7 @@ export default function BestPrismAlternativesPage() {
           </div>
 
           <p className="text-zinc-300 leading-relaxed mt-6">
-            If you loved Prism for its simplicity and just want to know when your bills are due, <strong className="text-white">Duezo is the closest replacement</strong>. It&apos;s the only app on this list that doesn&apos;t require bank linking, uses AI to detect bills from your email, and has visual countdown timers that make bill tracking actually enjoyable.
+            If you loved Prism for its simplicity and just want to know when your bills are due, <strong className="text-white">Duezo is the closest replacement</strong>. It&apos;s the only app on this list that doesn&apos;t require bank linking, has Quick Add and AI photo scan for fast bill entry, and visual countdown timers that make bill tracking actually enjoyable.
           </p>
         </div>
 
@@ -209,10 +209,10 @@ export default function BestPrismAlternativesPage() {
           <h2 className="text-2xl font-bold mb-3">Ready to Try Duezo?</h2>
           <p className="text-zinc-400 mb-6">Start your free trial. No bank linking. No credit card required.</p>
           <Link
-            href="/signup"
+            href="https://apps.apple.com/us/app/duezo/id6759273131"
             className="inline-flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-semibold px-8 py-3.5 rounded-xl transition-colors"
           >
-            Get Started Free <ArrowRight className="w-4 h-4" />
+            Download on the App Store <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
 

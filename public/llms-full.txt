@@ -1,15 +1,15 @@
-Last updated: March 26, 2026
+Last updated: April 11, 2026
 
 # Duezo — Complete Site Map & Page Descriptions
 
 ## / (Homepage)
-The Duezo landing page introduces the app to new visitors. It explains what Duezo does — AI-powered bill tracking with beautiful countdown cards — and shows a live demo of bill cards shifting color as due dates approach. The page covers key features (Quick Add with vendor autocomplete, Photo Scan with AI extraction, countdown cards, reminders, recurring bills, calendar view, analytics, dark mode), pricing (100% free forever), and a three-step "How it Works" walkthrough. Designed for anyone who has ever missed a bill payment and wants a simple, visual way to stay on top of due dates. Includes structured data for SoftwareApplication and FAQPage schemas.
+The Duezo landing page now serves as an iPhone-first marketing and trust surface for the live App Store app. It explains what Duezo does — fast bill entry, photo scan, countdown cards, reminders, and privacy-first bill tracking — and directs visitors to download the app from the App Store. The page also clarifies that the website exists for product information, support, and account access rather than acting as the primary product experience. Includes structured data for SoftwareApplication and FAQPage schemas.
 
-## /signup
-The sign-up page lets new users create a free Duezo account. Users can register with email/password or sign in with Google OAuth. No credit card is required. After signing up, users are taken directly to the dashboard where they can start adding bills immediately. This page is for anyone ready to start tracking their bills.
+## App Store
+The primary acquisition path is the App Store: https://apps.apple.com/us/app/duezo/id6759273131 — the website exists for product information, support, and account access.
 
 ## /login
-The login page for existing Duezo users. Supports email/password and Google OAuth sign-in. Includes a "forgot password" flow. After logging in, users land on their bill dashboard. This page is for returning users who want to check their upcoming bills.
+The login page is for existing Duezo users and support/account-access flows. It supports email/password and Google OAuth sign-in, plus forgot-password recovery. It should remain accessible without being a primary marketing CTA.
 
 ## /about
 The about page tells the story of Duezo and its creator, Anthony Dyess. It explains why the app was built (one too many late fees), the bootstrapped philosophy (no VC, no investors), and the indie developer ethos. Includes the founder's credentials and values (bootstrapped, indie-built, real human support). This page is for users who want to know who is behind the app and why it exists. Builds trust by showing a real person stands behind the product.

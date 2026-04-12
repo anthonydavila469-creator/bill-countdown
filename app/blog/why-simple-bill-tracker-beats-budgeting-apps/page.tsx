@@ -37,11 +37,11 @@ const faqs = [
   },
   {
     q: 'Can I track bills without linking my bank account?',
-    a: 'Yes, and for many people this is the right call. Duezo scans your bill emails instead — it reads the confirmation and statement emails your providers already send you, pulls out due dates and amounts, and sets up reminders. No bank credentials, no Plaid, no explaining to your partner why a third-party app has access to your account balance. If privacy matters to you or you just want less friction, email-based bill tracking is the cleaner approach.',
+    a: 'Yes, and for many people this is the right call. Duezo uses Quick Add and AI photo scan instead of bank linking — add a bill in seconds with autocomplete or snap a photo of any statement. No bank credentials, no Plaid, no explaining to your partner why a third-party app has access to your account balance. If privacy matters to you or you just want less friction, this is the cleaner approach.',
   },
   {
     q: 'What is a good Prism alternative that is still simple?',
-    a: 'Duezo is built to fill exactly that gap. It focuses on due-date visibility and reminders without requiring a full financial setup. You get countdown timers, email-based bill detection, and push notifications before bills hit — that is basically what Prism did, updated for 2026. Chronicle is another option if you prefer fully manual entry. Both are simpler than the all-in-one budgeting platforms.',
+    a: 'Duezo is built to fill exactly that gap. It focuses on due-date visibility and reminders without requiring a full financial setup. You get countdown timers, Quick Add, AI photo scan, and push notifications before bills hit — that is basically what Prism did, updated for 2026. Chronicle is another option if you prefer fully manual entry. Both are simpler than the all-in-one budgeting platforms.',
   },
   {
     q: 'What is wrong with Copilot Money for bill tracking?',
@@ -71,12 +71,12 @@ export default function WhySimpleBillTrackerPage() {
         operatingSystem: 'iOS, Web',
         offers: {
           '@type': 'Offer',
-          price: '4.99',
+          price: '3.99',
           priceCurrency: 'USD',
         },
         url: 'https://duezo.app',
         description:
-          'Duezo is a simple bill tracker that scans your emails to find due dates and send reminders — no bank linking, no budgeting system required.',
+          'Duezo is a simple bill tracker with Quick Add, AI photo scan, and countdown timers — no bank linking, no budgeting system required.',
       },
       {
         '@type': 'FAQPage',
@@ -313,25 +313,24 @@ export default function WhySimpleBillTrackerPage() {
 
           <p className="text-zinc-300 leading-relaxed mb-4">
             Here is how it works. You add bills with Quick Add — start typing a vendor name and pick from autocomplete — or snap a photo of any bill
-            or statement and AI extracts the details. Duezo reads those bills, extracts due dates and amounts, and sets up
+            or statement and AI extracts the details. Duezo sets up
             countdown timers automatically. You get push notifications before each bill hits. That&apos;s the whole product.
           </p>
 
           <p className="text-zinc-300 leading-relaxed mb-4">
             There&apos;s no bank linking. No Plaid connection. No account credentials for your financial institutions.
-            Your bills get found because your providers already tell you about them in email — Duezo just reads that
-            information and puts it somewhere useful.
+            You add bills yourself with Quick Add or photo scan — fast, private, and under your control.
           </p>
 
           <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-6 my-8 space-y-4">
             <h3 className="text-lg font-semibold">What Duezo does</h3>
             <ul className="space-y-3 text-zinc-300">
               {[
-                'Scans bill emails to detect due dates and amounts automatically',
+                'Quick Add and AI photo scan to add bills in seconds',
                 'Shows countdown timers for every upcoming bill at a glance',
                 'Sends push notifications before bills are due (you choose the timing)',
                 'Works without bank account linking or financial credentials',
-                'Stays current as new bills arrive without manual input',
+                'Recurring bills auto-generate each month after setup',
               ].map((item, i) => (
                 <li key={i} className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-violet-400 mt-1 flex-shrink-0" />
@@ -424,10 +423,10 @@ export default function WhySimpleBillTrackerPage() {
             Try Duezo free. No bank linking, no budgeting system, no learning curve. Just bill reminders that work.
           </p>
           <Link
-            href="/signup"
+            href="https://apps.apple.com/us/app/duezo/id6759273131"
             className="inline-flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-semibold px-8 py-3.5 rounded-xl transition-colors"
           >
-            Try Duezo Free <ArrowRight className="w-4 h-4" />
+            Download on the App Store <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
 

@@ -286,14 +286,14 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Sign up link */}
+          {/* App Store link */}
           <p className="text-center text-sm text-zinc-400">
-            Don&apos;t have an account?{' '}
+            New to Duezo?{' '}
             <Link
-              href="/signup"
+              href="https://apps.apple.com/us/app/duezo/id6759273131"
               className="text-violet-400 hover:text-violet-300 font-medium transition-colors"
             >
-              Sign up for free
+              Download on the App Store
             </Link>
           </p>
         </div>

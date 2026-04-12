@@ -5,7 +5,7 @@ import { ArrowRight, Check, X, Minus } from 'lucide-react';
 export const metadata: Metadata = {
   title: 'Duezo vs Prism Bills: The Best Prism Alternative in 2026 | Duezo',
   description:
-    'Prism Bills shut down in December 2023. Duezo is the spiritual successor — bill tracking with countdown timers, email scanning, and a sustainable business model.',
+    'Prism Bills shut down in December 2023. Duezo is the spiritual successor — bill tracking with countdown timers, Quick Add, photo scan, and a sustainable business model.',
   keywords: [
     'prism bills alternative',
     'prism app replacement',
@@ -28,14 +28,13 @@ type Row = [string, string | boolean, string | boolean];
 
 const rows: Row[] = [
   ['Status', 'Active', 'Shut down (Dec 2023)'],
-  ['Monthly price', '$4.99/mo', 'Free'],
+  ['Monthly price', '$3.99/mo', 'Free'],
   ['Bill tracking', true, true],
   ['Countdown timers', true, false],
-  ['AI email scanning', true, false],
+  ['AI photo scan', true, false],
   ['Direct biller payments', false, true],
   ['Bank account linking', false, true],
   ['Price increase alerts', true, false],
-  ['Bill history', true, true],
   ['iOS app', true, true],
   ['Android app', 'Coming soon', true],
   ['Web app', true, false],
@@ -123,8 +122,8 @@ export default function VsPrismPage() {
           <div>
             <h3 className="font-semibold text-lg mb-2">🔄 A Different (More Sustainable) Approach</h3>
             <p className="text-zinc-400">
-              Prism connected directly to billers, which was amazing — but also incredibly expensive and fragile. Every time a biller changed their system, Prism had to fix it. 
-              <strong className="text-white"> Duezo takes a different approach:</strong> we scan your Gmail for bill notifications. 
+              Prism connected directly to billers, which was amazing — but also incredibly expensive and fragile. Every time a biller changed their system, Prism had to fix it.
+              <strong className="text-white"> Duezo takes a different approach:</strong> you add bills with Quick Add or photo scan, and Duezo tracks every due date with countdown timers.
               It&apos;s simpler, more reliable, and doesn&apos;t require maintaining integrations with thousands of companies.
             </p>
           </div>
@@ -140,7 +139,7 @@ export default function VsPrismPage() {
             <h3 className="font-semibold text-lg mb-2">💰 Paid App = Sustainable App</h3>
             <p className="text-zinc-400">
               Prism was free, which was great for users — but terrible for business. They tried ads, but it wasn&apos;t enough to cover costs. 
-              <strong className="text-white"> Duezo costs $4.99/mo</strong> (about the price of Netflix). 
+              <strong className="text-white"> Duezo costs $3.99/mo</strong> (about the price of Netflix).
               That means we can stay in business, keep improving the app, and not shut down like Prism did.
             </p>
           </div>
@@ -166,7 +165,7 @@ export default function VsPrismPage() {
           </div>
           <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-6">
             <p className="text-zinc-300 italic mb-3">
-              &quot;I don&apos;t mind paying $5/mo if it means the app won&apos;t disappear like Prism did. Duezo does everything I need.&quot;
+              &quot;I don&apos;t mind paying $3.99/mo if it means the app won&apos;t disappear like Prism did. Duezo does everything I need.&quot;
             </p>
             <p className="text-zinc-500 text-sm">— James R., switched from Prism</p>
           </div>
@@ -181,8 +180,8 @@ export default function VsPrismPage() {
             {[
               'Loved Prism and want a replacement',
               'Want bill tracking that won\'t shut down',
-              'Don\'t mind paying $5/mo for a sustainable app',
-              'Prefer email scanning over direct biller connections',
+              'Don\'t mind paying $3.99/mo for a sustainable app',
+              'Prefer Quick Add and photo scan over direct biller connections',
               'Want countdown timers for visual urgency',
               'Need both iOS and web access',
             ].map((item, i) => (
@@ -212,7 +211,7 @@ export default function VsPrismPage() {
             </li>
             <li className="flex items-start gap-2">
               <span className="text-violet-400">•</span>
-              AI-powered email scanning that works with any biller
+              Quick Add and AI photo scan that works with any bill
             </li>
             <li className="flex items-start gap-2">
               <span className="text-violet-400">•</span>
@@ -236,12 +235,12 @@ export default function VsPrismPage() {
           Built for former Prism users. Designed to last.
         </p>
         <Link
-          href="/signup"
+          href="https://apps.apple.com/us/app/duezo/id6759273131"
           className="inline-flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-semibold px-10 py-4 rounded-xl text-lg transition-colors"
         >
-          Get Started Free <ArrowRight className="w-5 h-5" />
+          Download on the App Store <ArrowRight className="w-5 h-5" />
         </Link>
-        <p className="text-zinc-500 text-sm mt-4">$4.99/mo · Sustainable · Cancel anytime</p>
+        <p className="text-zinc-500 text-sm mt-4">$3.99/mo · Sustainable · Cancel anytime</p>
       </section>
 
       <div className="max-w-4xl mx-auto px-6 pb-16 flex flex-wrap justify-center gap-6 text-sm text-zinc-500">

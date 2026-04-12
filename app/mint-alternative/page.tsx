@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowRight, Check, X, Shield, Zap, Mail, Clock } from 'lucide-react';
+import { ArrowRight, Check, X, Shield, Zap, Clock } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Best Mint Alternative for Bill Tracking (2026) | Duezo',
   description:
-    'Mint shut down in March 2024, leaving 24 million users without a bill tracker. Duezo is the best Mint alternative — AI-powered, no bank linking, $4.99/mo. Try free.',
+    'Mint shut down in March 2024, leaving 24 million users without a bill tracker. Duezo is the best Mint alternative — bill countdowns, no bank linking, $3.99/mo. Try free.',
   keywords: [
     'mint alternative',
     'mint app alternative',
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Best Mint Alternative for Bill Tracking (2026) | Duezo',
     description:
-      'Mint is gone. Duezo tracks your bills automatically via email — no bank linking, no ads, no bloat. The cleanest Mint replacement for bill tracking.',
+      'Mint is gone. Duezo tracks your bills with countdowns and reminders — no bank linking, no ads, no bloat. The cleanest Mint replacement for bill tracking.',
     url: 'https://duezo.app/mint-alternative',
     siteName: 'Duezo',
     type: 'website',
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Best Mint Alternative for Bill Tracking (2026) | Duezo',
-    description: 'Mint is gone. Duezo tracks your bills automatically — no bank linking, no ads.',
+    description: 'Mint is gone. Duezo tracks your bills with countdowns and reminders — no bank linking, no ads.',
   },
   alternates: {
     canonical: 'https://duezo.app/mint-alternative',
@@ -43,7 +43,7 @@ const faqs = [
   },
   {
     q: 'Is Duezo a good Mint replacement for bill tracking?',
-    a: "Yes — especially if you used Mint mainly to see what bills were coming up. Duezo scans your Gmail for bill emails, extracts the amount and due date automatically, and shows you a countdown for each bill. No bank linking required. Simple, focused, and private.",
+    a: "Yes — especially if you used Mint mainly to see what bills were coming up. Duezo lets you add bills with Quick Add or photo scan, then shows a countdown for each one. No bank linking required. Simple, focused, and private.",
   },
   {
     q: 'Does Duezo replace all of Mint?',
@@ -51,11 +51,11 @@ const faqs = [
   },
   {
     q: 'Does Duezo require a bank account link?',
-    a: "No. Duezo reads your bill confirmation emails instead of linking to your bank. Your financial accounts stay completely private. It's the opposite of how Mint worked — and for many former Mint users, that's a major upgrade.",
+    a: "No. Duezo never asks for your bank login or financial credentials. You add bills with Quick Add or photo scan. Your financial accounts stay completely private. It's the opposite of how Mint worked — and for many former Mint users, that's a major upgrade.",
   },
   {
     q: 'How much does Duezo cost?',
-    a: "Duezo Pro is $4.99/month or $39.99/year. There's a free trial — no credit card required. Way less than most budgeting apps, and it does the one thing you actually need: tells you what bills are due and when.",
+    a: "Duezo is free to download with up to 5 bills. Duezo Pro is $3.99/month or $19.99/year (yearly includes a 7-day free trial). Way less than most budgeting apps, and it does the one thing you actually need: tells you what bills are due and when.",
   },
   {
     q: 'Will Duezo shut down like Mint?',
@@ -83,14 +83,9 @@ export default function MintAlternativePage() {
               operatingSystem: 'iOS, Web',
               offers: {
                 '@type': 'Offer',
-                price: '4.99',
+                price: '3.99',
                 priceCurrency: 'USD',
                 priceValidUntil: '2026-12-31',
-              },
-              aggregateRating: {
-                '@type': 'AggregateRating',
-                ratingValue: '4.8',
-                ratingCount: '50',
               },
             },
           }),
@@ -130,10 +125,10 @@ export default function MintAlternativePage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              href="/signup"
+              href="https://apps.apple.com/us/app/duezo/id6759273131"
               className="inline-flex items-center justify-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-semibold px-8 py-3.5 rounded-xl transition-colors"
             >
-              Try Duezo Free <ArrowRight className="w-4 h-4" />
+              Download on the App Store <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
               href="/vs/mint"
@@ -168,7 +163,7 @@ export default function MintAlternativePage() {
               quote:
                 'Everything I try wants access to my bank account. Mint was bad enough, but at least I knew the company.',
               source: 'Hacker News comment',
-              duezo: 'Duezo reads your bill emails. No bank linking. Ever.',
+              duezo: 'Duezo works without bank linking. Quick Add or photo scan. Ever.',
             },
           ].map((item, i) => (
             <div
@@ -209,9 +204,8 @@ export default function MintAlternativePage() {
             <tbody className="text-sm">
               {[
                 ['Bill due date tracking', true, true],
-                ['Automatic bill detection', true, true],
+                ['Quick Add & photo scan', false, true],
                 ['Countdown timers', false, true],
-                ['AI-powered Gmail scanning', false, true],
                 ['No bank linking required', false, true],
                 ['No ads', false, true],
                 ['No data selling', false, true],
@@ -253,9 +247,9 @@ export default function MintAlternativePage() {
         <div className="grid md:grid-cols-2 gap-8">
           {[
             {
-              icon: Mail,
-              title: 'Automatic Bill Detection',
-              desc: 'Duezo scans your Gmail for bill notifications, invoices, and statements. It extracts amounts and due dates automatically — no manual entry, no bank access needed.',
+              icon: Clock,
+              title: 'Fast Bill Entry',
+              desc: 'Add bills in seconds with Quick Add (autocomplete for 30+ vendors) or snap a photo and let AI extract the details. No bank access needed.',
             },
             {
               icon: Clock,
@@ -265,7 +259,7 @@ export default function MintAlternativePage() {
             {
               icon: Shield,
               title: 'No Bank Linking. Ever.',
-              desc: "Mint required bank access. That data was used to serve ads. Duezo uses Gmail instead — just bill emails. Your bank accounts, credit cards, and financial life stay private.",
+              desc: "Mint required bank access. That data was used to serve ads. Duezo never asks for bank credentials. Your bank accounts, credit cards, and financial life stay private.",
             },
             {
               icon: Zap,
@@ -323,16 +317,16 @@ export default function MintAlternativePage() {
           Done Waiting for a Good Mint Replacement?
         </h2>
         <p className="text-zinc-400 text-lg mb-8">
-          Duezo tracks your bills from your email automatically. See what&apos;s due, when it&apos;s due, and never pay a late fee because you forgot.
+          Duezo tracks your bills with countdowns and reminders. See what&apos;s due, when it&apos;s due, and never pay a late fee because you forgot.
         </p>
         <Link
-          href="/signup"
+          href="https://apps.apple.com/us/app/duezo/id6759273131"
           className="inline-flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-semibold px-10 py-4 rounded-xl text-lg transition-colors"
         >
-          Get Started Free <ArrowRight className="w-5 h-5" />
+          Download on the App Store <ArrowRight className="w-5 h-5" />
         </Link>
         <p className="text-zinc-500 text-sm mt-4">
-          $4.99/mo after trial · No bank linking required · Cancel anytime
+          Free to start · $3.99/mo Pro · No bank linking required · Cancel anytime
         </p>
       </section>
 

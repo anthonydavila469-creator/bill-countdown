@@ -5,7 +5,7 @@ import { ArrowRight, Check, X } from 'lucide-react';
 export const metadata: Metadata = {
   title: 'Duezo vs Mint: Bill Tracking After Mint Shut Down (2026) | Duezo',
   description:
-    'Mint shut down in 2024 and merged into Credit Karma. If you just used Mint for bill tracking, Duezo is a simpler, privacy-focused alternative at $4.99/mo.',
+    'Mint shut down in 2024 and merged into Credit Karma. If you just used Mint for bill tracking, Duezo is a simpler, privacy-focused alternative at $3.99/mo.',
   keywords: [
     'mint alternative',
     'mint app replacement',
@@ -28,11 +28,11 @@ type Row = [string, string | boolean, string | boolean];
 
 const rows: Row[] = [
   ['Status', 'Active', 'Shut down (2024)'],
-  ['Monthly price', '$4.99/mo', 'Free'],
+  ['Monthly price', '$3.99/mo', 'Free'],
   ['Bill tracking', true, true],
   ['Bill reminders', true, true],
   ['Countdown timers', true, false],
-  ['AI email scanning', true, false],
+  ['Quick Add & photo scan', true, false],
   ['Full budgeting', false, true],
   ['Investment tracking', false, true],
   ['Credit score', false, true],
@@ -136,14 +136,14 @@ export default function VsMintPage() {
             <h3 className="font-semibold text-lg mb-2">🚫 No Ads, No Data Selling</h3>
             <p className="text-zinc-400">
               Mint was free, but you paid with your data. The app showed ads and monetized your financial information. 
-              <strong className="text-white"> Duezo costs $4.99/mo</strong>, which means our business model is simple: you pay us, we serve you. 
+              <strong className="text-white"> Duezo costs $3.99/mo</strong>, which means our business model is simple: you pay us, we serve you.
               No ads. No selling your data. No hidden agenda.
             </p>
           </div>
           <div>
             <h3 className="font-semibold text-lg mb-2">🔒 Privacy-First Approach</h3>
             <p className="text-zinc-400">
-              Mint required linking all your bank accounts and credit cards. Duezo scans your <strong className="text-white">Gmail for bill notifications</strong> — 
+              Mint required linking all your bank accounts and credit cards. Duezo uses <strong className="text-white">Quick Add and photo scan</strong> —
               no bank linking required. Your financial data stays with your bank, where it belongs.
             </p>
           </div>
@@ -167,23 +167,19 @@ export default function VsMintPage() {
           <ol className="space-y-4 text-zinc-300 text-lg">
             <li className="flex gap-3">
               <span className="text-violet-400 font-bold">1.</span>
-              <span>Sign up for Duezo (2 minutes)</span>
+              <span>Download Duezo free on the App Store</span>
             </li>
             <li className="flex gap-3">
               <span className="text-violet-400 font-bold">2.</span>
-              <span>Connect your Gmail account</span>
+              <span>Add your bills with Quick Add (autocomplete for 30+ vendors) or snap a photo</span>
             </li>
             <li className="flex gap-3">
               <span className="text-violet-400 font-bold">3.</span>
-              <span>Duezo automatically scans for bill notifications — no manual entry needed</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="text-violet-400 font-bold">4.</span>
-              <span>You&apos;re done. Bills appear with countdown timers.</span>
+              <span>You&apos;re done. Every bill gets a countdown timer and reminders.</span>
             </li>
           </ol>
           <p className="text-zinc-400 mt-6">
-            No need to manually add every biller like you had to with Mint.
+            Most people add all their bills in under 5 minutes.
           </p>
         </div>
       </section>
@@ -199,8 +195,8 @@ export default function VsMintPage() {
                 'Want a simpler, less bloated app',
                 'Don\'t want ads or data monetization',
                 'Prefer not to link bank accounts',
-                'Want automatic bill detection',
-                'Don\'t mind paying $5/mo for privacy',
+                'Want Quick Add and photo scan for fast entry',
+                'Don\'t mind paying $3.99/mo for privacy',
               ].map((item, i) => (
                 <li key={i} className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-violet-400 mt-1 flex-shrink-0" />
@@ -241,7 +237,7 @@ export default function VsMintPage() {
             Free apps either disappear or find other ways to make money — usually through ads, data monetization, or getting acquired and shut down.
           </p>
           <p className="text-zinc-300 text-lg leading-relaxed">
-            Duezo costs <strong className="text-white">$4.99/mo</strong>. That&apos;s the price of staying in business, 
+            Duezo costs <strong className="text-white">$3.99/mo</strong>. That&apos;s the price of staying in business,
             keeping your data private, and actually caring about bill tracking. If you want an app that will still be here in 5 years, it has to make money from users — not from selling your data.
           </p>
         </div>
@@ -254,12 +250,12 @@ export default function VsMintPage() {
           No ads. No data selling. Just simple bill tracking.
         </p>
         <Link
-          href="/signup"
+          href="https://apps.apple.com/us/app/duezo/id6759273131"
           className="inline-flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-semibold px-10 py-4 rounded-xl text-lg transition-colors"
         >
-          Get Started Free <ArrowRight className="w-5 h-5" />
+          Download on the App Store <ArrowRight className="w-5 h-5" />
         </Link>
-        <p className="text-zinc-500 text-sm mt-4">$4.99/mo · Privacy-focused · Cancel anytime</p>
+        <p className="text-zinc-500 text-sm mt-4">$3.99/mo · Privacy-focused · Cancel anytime</p>
       </section>
 
       <div className="max-w-4xl mx-auto px-6 pb-16 flex flex-wrap justify-center gap-6 text-sm text-zinc-500">

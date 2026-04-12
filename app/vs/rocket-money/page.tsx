@@ -5,7 +5,7 @@ import { ArrowRight, Check, X, Minus } from 'lucide-react';
 export const metadata: Metadata = {
   title: 'Duezo vs Rocket Money: Honest Comparison (2026) | Duezo',
   description:
-    'Compare Duezo vs Rocket Money for bill tracking. Duezo is $4.99/mo, focused on bills only, with Gmail scanning instead of bank linking. See the full comparison.',
+    'Compare Duezo vs Rocket Money for bill tracking. Duezo is $3.99/mo, focused on bills only, with no bank linking required. See the full comparison.',
   keywords: [
     'duezo vs rocket money',
     'rocket money alternative',
@@ -25,12 +25,11 @@ export const metadata: Metadata = {
 type Row = [string, string | boolean, string | boolean, string?];
 
 const rows: Row[] = [
-  ['Monthly price', '$4.99/mo', '$6–12/mo'],
-  ['Annual price', '$39.99/yr', '$48–144/yr'],
+  ['Monthly price', '$3.99/mo', '$6–12/mo'],
+  ['Annual price', '$19.99/yr', '$48–144/yr'],
   ['Bill tracking', true, true],
   ['Countdown timers', true, false],
-  ['AI bill detection', true, true],
-  ['Gmail scanning (no bank link)', true, false],
+  ['Quick Add & photo scan', true, false],
   ['Bank account linking', false, true],
   ['Subscription cancellation', false, true],
   ['Bill negotiation', false, true],
@@ -108,10 +107,10 @@ export default function VsRocketMoneyPage() {
               {[
                 'Just want to track bill due dates',
                 'Don\'t want to link your bank account',
-                'Prefer Gmail-based bill detection',
+                'Prefer Quick Add and photo scan over bank linking',
                 'Want visual countdown timers',
                 'Want a simple, focused app',
-                'Want to save money ($4.99 vs $6–12/mo)',
+                'Want to save money ($3.99 vs $6–12/mo)',
               ].map((item, i) => (
                 <li key={i} className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-violet-400 mt-1 flex-shrink-0" />
@@ -148,13 +147,13 @@ export default function VsRocketMoneyPage() {
           <div>
             <h3 className="font-semibold text-lg mb-2">💰 Pricing</h3>
             <p className="text-zinc-400">
-              Duezo is a flat <strong className="text-white">$4.99/mo</strong>. Rocket Money uses a &quot;choose your price&quot; model ranging from $6–12/month for premium, which can feel unclear. If you just need bill tracking, Duezo saves you money every month.
+              Duezo is a flat <strong className="text-white">$3.99/mo</strong> (or $19.99/year). Rocket Money uses a &quot;choose your price&quot; model ranging from $6–12/month for premium, which can feel unclear. If you just need bill tracking, Duezo saves you money every month.
             </p>
           </div>
           <div>
             <h3 className="font-semibold text-lg mb-2">🔒 Privacy</h3>
             <p className="text-zinc-400">
-              Rocket Money requires linking your bank accounts via Plaid. Duezo takes a different approach — it scans your Gmail for bill notifications. Your bank credentials never leave your bank. For privacy-conscious users, this is a significant advantage.
+              Rocket Money requires linking your bank accounts via Plaid. Duezo takes a different approach — you add bills with Quick Add or photo scan. No bank credentials, no Plaid, no third-party account access. For privacy-conscious users, this is a significant advantage.
             </p>
           </div>
           <div>
@@ -170,13 +169,13 @@ export default function VsRocketMoneyPage() {
       <section className="max-w-3xl mx-auto px-6 py-20 text-center">
         <h2 className="text-3xl font-bold mb-4">Ready to Try Duezo?</h2>
         <p className="text-zinc-400 text-lg mb-8">
-          Simple bill tracking. No bank linking. $4.99/mo.
+          Simple bill tracking. No bank linking. $3.99/mo.
         </p>
         <Link
-          href="/signup"
+          href="https://apps.apple.com/us/app/duezo/id6759273131"
           className="inline-flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-semibold px-10 py-4 rounded-xl text-lg transition-colors"
         >
-          Get Started Free <ArrowRight className="w-5 h-5" />
+          Download on the App Store <ArrowRight className="w-5 h-5" />
         </Link>
       </section>
 

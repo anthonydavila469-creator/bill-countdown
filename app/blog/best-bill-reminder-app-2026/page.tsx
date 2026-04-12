@@ -84,7 +84,7 @@ export default function BestBillReminderApp2026Page() {
                 name: 'What is the best bill reminder app for iPhone in 2026?',
                 acceptedAnswer: {
                   '@type': 'Answer',
-                  text: 'Duezo is the best bill reminder app for iPhone if you want something simple and free. It shows countdown timers for every bill and doesn\'t require bank account linking. For a full budgeting suite, YNAB or Copilot are strong options but cost $99–$109 per year.',
+                  text: 'Duezo is the best bill reminder app for iPhone if you want something simple with no bank linking. It shows countdown timers for every bill and is free to start ($3.99/mo Pro). For a full budgeting suite, YNAB or Copilot are strong options but cost $99–$109 per year.',
                 },
               },
               {
@@ -92,7 +92,7 @@ export default function BestBillReminderApp2026Page() {
                 name: 'Is there a bill reminder app that doesn\'t require a bank login?',
                 acceptedAnswer: {
                   '@type': 'Answer',
-                  text: 'Yes. Duezo, BillOut, and TimelyBills all work without connecting to your bank account. Duezo can optionally scan your Gmail for bill notifications to auto-detect bills, but it never touches your bank credentials.',
+                  text: 'Yes. Duezo, BillOut, and TimelyBills all work without connecting to your bank account. Duezo uses Quick Add and AI photo scan to add bills fast — it never touches your bank credentials.',
                 },
               },
               {
@@ -183,7 +183,7 @@ export default function BestBillReminderApp2026Page() {
               </thead>
               <tbody>
                 {[
-                  ['Duezo', 'Free', 'No', 'Simple countdown reminders'],
+                  ['Duezo', 'Free to start', 'No', 'Simple countdown reminders'],
                   ['YNAB', '$14.99/mo', 'Optional', 'Serious budgeters'],
                   ['Rocket Money', '$6–12/mo', 'Yes', 'All-in-one finance'],
                   ['Copilot', '$13/mo', 'Yes', 'Apple power users'],
@@ -219,7 +219,7 @@ export default function BestBillReminderApp2026Page() {
               1. Duezo — Best Simple Bill Reminder App
             </h2>
             <p className="text-zinc-400 mb-1">
-              <strong className="text-white">Price:</strong> Free
+              <strong className="text-white">Price:</strong> Free to start · $3.99/mo or $19.99/yr Pro
             </p>
             <p className="text-zinc-400 mb-1">
               <strong className="text-white">Platforms:</strong> iOS
@@ -242,18 +242,18 @@ export default function BestBillReminderApp2026Page() {
             </p>
 
             <p className="text-zinc-300 leading-relaxed mb-4">
-              You can add bills manually or connect your Gmail to let Duezo scan for bill
-              notifications. It pulls the amount, due date, and biller name from your emails
-              automatically. No bank credentials involved — it reads emails, not transactions.
+              You can add bills with Quick Add (autocomplete for 30+ vendors) or snap a photo
+              and let AI extract the vendor, amount, and due date. No bank credentials involved —
+              your financial accounts stay completely private.
             </p>
 
             <h3 className="font-semibold text-lg mb-2">Pros:</h3>
             <ul className="space-y-2 text-zinc-300 mb-4">
               {[
-                'Completely free — no premium tier, no hidden fees',
+                'Free to start — $3.99/mo Pro for unlimited bills',
                 'No bank account linking (your bank info stays with your bank)',
                 'Countdown timers make due dates impossible to ignore',
-                'AI scans Gmail for bills — auto-detects amounts and dates',
+                'Quick Add and AI photo scan — add bills in seconds',
                 'Set up in under 2 minutes',
                 'Price increase alerts when a bill amount changes',
               ].map((item, i) => (
@@ -280,13 +280,13 @@ export default function BestBillReminderApp2026Page() {
 
             <p className="text-zinc-300 leading-relaxed mb-6">
               <strong className="text-white">Bottom line:</strong> If you just want to know
-              what&apos;s due and when — without linking your bank, learning a budgeting methodology,
-              or paying a monthly subscription — Duezo is the best bill reminder app for iPhone right
-              now. It does one job and does it really well.
+              what&apos;s due and when — without linking your bank or learning a budgeting methodology
+              — Duezo is the best bill reminder app for iPhone right now. Free to start, $3.99/mo Pro.
+              It does one job and does it really well.
             </p>
 
             <Link
-              href="https://apps.apple.com/app/duezo-bills-due-soon/id6740806498"
+              href="https://apps.apple.com/us/app/duezo/id6759273131"
               className="inline-flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-semibold px-6 py-3 rounded-xl transition-colors"
             >
               Download Duezo Free <ArrowRight className="w-4 h-4" />
@@ -714,7 +714,7 @@ export default function BestBillReminderApp2026Page() {
           </p>
 
           <p className="text-zinc-300 leading-relaxed">
-            No bank login. No subscription fees. No 30-minute setup. Just your bills, counted down.
+            No bank login. No 30-minute setup. Just your bills, counted down. Free to start, $3.99/mo Pro.
           </p>
 
           <hr className="border-zinc-800 my-10" />
@@ -726,11 +726,11 @@ export default function BestBillReminderApp2026Page() {
             {[
               {
                 q: 'What is the best bill reminder app for iPhone in 2026?',
-                a: "It depends on what you need. For simple bill reminders with no bank linking, Duezo is our top pick — it's free and shows countdown timers for every bill. For full budgeting, YNAB is the best (but costs $14.99/mo). For an all-in-one approach, Rocket Money has the most features but comes with some trust concerns.",
+                a: "It depends on what you need. For simple bill reminders with no bank linking, Duezo is our top pick — it's free to start and shows countdown timers for every bill. For full budgeting, YNAB is the best (but costs $14.99/mo). For an all-in-one approach, Rocket Money has the most features but comes with some trust concerns.",
               },
               {
                 q: "Is there a bill reminder app that doesn't require a bank login?",
-                a: "Yes — Duezo, BillOut, and TimelyBills all work without connecting to your bank. Duezo can optionally scan your Gmail for bill notifications to auto-detect bills, but it never accesses your bank account or financial data.",
+                a: "Yes — Duezo, BillOut, and TimelyBills all work without connecting to your bank. Duezo uses Quick Add and AI photo scan to add bills fast — it never accesses your bank account or financial data.",
               },
               {
                 q: 'Is Rocket Money safe to use?',
@@ -746,7 +746,7 @@ export default function BestBillReminderApp2026Page() {
               },
               {
                 q: 'What is the cheapest bill reminder app?',
-                a: "Duezo is completely free. BillOut and TimelyBills also have free tiers. On the other end, YNAB costs $14.99/month ($109/year) and Copilot costs $13/month ($95/year). Rocket Money's premium ranges from $6–12/month.",
+                a: "Duezo is free to start with up to 5 bills. Duezo Pro is $3.99/month or $19.99/year. BillOut and TimelyBills also have free tiers. On the other end, YNAB costs $14.99/month ($109/year) and Copilot costs $13/month ($95/year). Rocket Money's premium ranges from $6–12/month.",
               },
             ].map((faq, i) => (
               <div key={i} className="border-b border-zinc-800/50 pb-6">
@@ -764,7 +764,7 @@ export default function BestBillReminderApp2026Page() {
             See your bills counted down. No bank login. No credit card. No catch.
           </p>
           <Link
-            href="https://apps.apple.com/app/duezo-bills-due-soon/id6740806498"
+            href="https://apps.apple.com/us/app/duezo/id6759273131"
             className="inline-flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-semibold px-8 py-3.5 rounded-xl transition-colors"
           >
             Download on the App Store <ArrowRight className="w-4 h-4" />

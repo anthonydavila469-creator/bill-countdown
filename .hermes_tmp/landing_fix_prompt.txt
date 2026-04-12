@@ -1,0 +1,134 @@
+Fix the landing page in this repo. Do not just describe the issue—edit the code and make it correct.
+
+Stack:
+- Next.js 16 with App Router
+- React 19
+- TypeScript 5
+- Tailwind CSS 4
+- next/image, next/link, lucide-react
+- Deploy target: Vercel
+
+What is broken right now:
+- The landing page is rendering inside a shallow horizontal strip instead of using the viewport properly.
+- There is massive empty black space above and below the hero.
+- The hero is vertically collapsed.
+- The phone mockup on the right is clipped/cropped.
+- The layout is not balancing correctly across breakpoints.
+- The visual direction is fine, but the implementation is bad.
+
+The current intended direction:
+- Premium dark landing page
+- Black background
+- Purple glow / purple accent lighting
+- Bold headline on the left
+- Supporting copy + CTA below it
+- iPhone app mockup on the right
+- Clean, high-end, minimal feel
+
+Your job:
+1. Find the actual root cause of the broken layout.
+2. Fix it cleanly in code.
+3. Preserve the visual direction, but improve the structure and spacing.
+4. Make it production-ready.
+
+Start by inspecting these likely sources of failure:
+- app/layout.tsx
+- app/page.tsx
+- app/globals.css
+- landing page / hero components under components/*
+- any shared layout wrappers
+- any viewport-related metadata/export in the App Router
+- any full-screen wrappers, absolute-positioned hero elements, overflow rules, transforms, max-heights, or broken flex/grid alignment
+
+Search aggressively for these patterns:
+- h-screen
+- min-h-screen
+- overflow-hidden
+- max-h-
+- absolute inset-0
+- top-1/2
+- -translate-y-1/2
+- scale-
+- translate-
+- fixed heights on sections or wrappers
+- parent containers that clip children
+- next/image usage with fill but without a correctly sized parent
+
+Important constraints:
+- Keep this within the existing Next.js + Tailwind stack.
+- Do not add unnecessary dependencies.
+- Keep components as Server Components unless interactivity is actually needed.
+- Use next/image correctly.
+- No hacky magic-number positioning unless absolutely unavoidable.
+- No fake centering tricks.
+- No “just make it work” band-aids.
+
+Implementation requirements:
+- The hero must occupy the first viewport naturally.
+- Use responsive min-height patterns, not brittle fixed pixel heights.
+- Prefer min-h-[100svh] or min-h-[100dvh] where appropriate for mobile-safe viewport behavior.
+- Desktop: clear 2-column layout with text left and device mockup right.
+- Tablet/mobile: stack cleanly, keep the device visible, keep CTA above the fold.
+- No horizontal scrollbar.
+- No clipping of the phone mockup.
+- No huge black dead space above or below the hero.
+- Decorative glow/background effects must not control layout.
+- Structural layout and decorative layers must be separated.
+
+Design guidance:
+- Use a centered max-width container.
+- Use consistent responsive horizontal padding.
+- Improve spacing between logo/header, headline, subhead, CTA, and hero media.
+- Use clamp() where useful for headline sizing, spacing, and section rhythm.
+- Constrain the phone mockup responsively with width/aspect-ratio/max-width rules.
+- If the current hero component is messy, rewrite it instead of patching broken CSS.
+- Keep the premium black + purple aesthetic.
+
+Good patterns to prefer:
+- A main section with something like a container and responsive grid:
+  - single column on mobile
+  - 2 columns on lg+
+- Clear separation between:
+  - page shell
+  - hero content
+  - decorative glow/background layers
+  - device mockup/media wrapper
+- Device/media wrapper should be sized intentionally, not floated around with absolute offsets
+- If using next/image with fill, ensure the parent has explicit dimensions and positioning
+- If using a normal Image, give it sensible width behavior, sizes, and priority for the hero asset
+
+What I want fixed specifically:
+- Remove the giant empty vertical space
+- Make the hero fill the viewport correctly
+- Make the right-side phone mockup fully visible and visually balanced
+- Improve the headline/subheadline/CTA spacing
+- Make the layout look deliberate at all key breakpoints
+
+Acceptance criteria:
+- Looks correct at:
+  - 390x844
+  - 768x1024
+  - 1440x900
+  - 1728x1117
+- Hero occupies the viewport naturally
+- CTA is visible above the fold
+- Phone mockup is fully visible
+- No awkward clipping, overflow, or giant blank areas
+- Clean responsive behavior
+- Typecheck/build still pass
+
+Execution requirements:
+- Actually edit the repo
+- Run the app locally and inspect the result
+- Validate the layout visually after changes
+- Run typecheck/build/lint if available
+- Do not stop at a diagnosis—ship the fix
+
+Deliverables:
+1. Brief diagnosis of the root cause
+2. Exact files changed
+3. Summary of the fix
+4. Any design tradeoffs you made
+5. If useful, a short note on why the old structure failed
+
+Be decisive. If the hero/layout code is structurally bad, replace it with a simpler and cleaner version instead of trying to preserve broken CSS.
