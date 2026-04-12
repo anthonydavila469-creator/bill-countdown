@@ -5,7 +5,7 @@ import { ArrowRight, Mail, Code, Wrench } from 'lucide-react';
 export const metadata: Metadata = {
   title: 'About Duezo — Built by Anthony Dyess',
   description:
-    'Duezo is a free bill tracking app built by Anthony Dyess, an indie developer who got tired of paying late fees. No VC, no investors — just one developer solving a real problem.',
+    'Duezo is a bill tracking app built by Anthony Dyess, an indie developer who got tired of paying late fees. No VC, no investors — just one developer solving a real problem.',
   keywords: [
     'about duezo',
     'duezo developer',
@@ -20,6 +20,11 @@ export const metadata: Metadata = {
     url: 'https://duezo.app/about',
     siteName: 'Duezo',
     type: 'website',
+  },
+  twitter: {
+    title: 'About Duezo — Built by Anthony Dyess',
+    description:
+      'Meet the solo developer behind Duezo. Built after one too many late fees.',
   },
   alternates: { canonical: 'https://duezo.app/about' },
 };
@@ -36,7 +41,7 @@ export default function AboutPage() {
       url: 'https://duezo.app',
     },
     description:
-      'Indie developer and creator of Duezo, a free bill tracking app.',
+      'Indie developer and creator of Duezo, a bill tracking app.',
   };
 
   return (

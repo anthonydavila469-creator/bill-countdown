@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { ArrowRight, Check, X, Shield, Zap, Clock } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Best Mint Alternative for Bill Tracking (2026) | Duezo',
+  title: 'Best Mint Alternative for Bill Tracking (2026)',
   description:
     'Mint shut down in March 2024, leaving 24 million users without a bill tracker. Duezo is the best Mint alternative — bill countdowns, no bank linking, $3.99/mo. Try free.',
   keywords: [
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     'bill reminder app no bank',
   ],
   openGraph: {
-    title: 'Best Mint Alternative for Bill Tracking (2026) | Duezo',
+    title: 'Best Mint Alternative for Bill Tracking (2026)',
     description:
       'Mint is gone. Duezo tracks your bills with countdowns and reminders — no bank linking, no ads, no bloat. The cleanest Mint replacement for bill tracking.',
     url: 'https://duezo.app/mint-alternative',
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Best Mint Alternative for Bill Tracking (2026) | Duezo',
+    title: 'Best Mint Alternative for Bill Tracking (2026)',
     description: 'Mint is gone. Duezo tracks your bills with countdowns and reminders — no bank linking, no ads.',
   },
   alternates: {
@@ -74,7 +74,7 @@ export default function MintAlternativePage() {
             '@context': 'https://schema.org',
             '@type': 'WebPage',
             name: 'Best Mint Alternative for Bill Tracking (2026)',
-            description: 'Duezo is the best Mint alternative for bill tracking — AI-powered, no bank linking required.',
+            description: 'Duezo is the best Mint alternative for bill tracking — countdowns, Quick Add, photo scan, reminders, and no bank linking required.',
             url: 'https://duezo.app/mint-alternative',
             mainEntity: {
               '@type': 'SoftwareApplication',

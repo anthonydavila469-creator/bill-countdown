@@ -3,9 +3,9 @@ import Link from 'next/link';
 import { ArrowRight, Check, Clock, AlertTriangle, Zap } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Never Miss a Bill Payment Again: 7 Tips + The App That Automates It | Duezo',
+  title: 'How to Never Miss a Bill Payment Again',
   description:
-    'Late fees cost Americans $14 billion a year. Here are 7 proven ways to never miss a bill payment — including the AI bill tracker that does the work for you.',
+    'Late fees cost Americans $14 billion a year. Here are 7 proven ways to never miss a bill payment — plus the bill countdown app that keeps you on track.',
   keywords: [
     'never miss a bill payment',
     'how to remember to pay bills',
@@ -15,11 +15,16 @@ export const metadata: Metadata = {
     'automatic bill reminders',
   ],
   openGraph: {
-    title: 'Never Miss a Bill Payment Again: 7 Tips + The App That Automates It',
+    title: 'How to Never Miss a Bill Payment Again',
     description: 'Late fees cost Americans $14 billion a year. Here is how to stop missing bill due dates for good.',
     url: 'https://duezo.app/blog/never-miss-a-bill-payment',
     siteName: 'Duezo',
     type: 'article',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'How to Never Miss a Bill Payment Again',
+    description: 'Late fees cost Americans $14 billion a year. Here is how to stop missing bill due dates for good.',
   },
   alternates: { canonical: 'https://duezo.app/blog/never-miss-a-bill-payment' },
 };
@@ -33,7 +38,7 @@ export default function NeverMissBillPaymentPage() {
           __html: JSON.stringify({
             '@context': 'https://schema.org',
             '@type': 'Article',
-            headline: 'Never Miss a Bill Payment Again: 7 Tips + The App That Automates It',
+            headline: 'How to Never Miss a Bill Payment Again',
             datePublished: '2026-03-01',
             dateModified: '2026-03-01',
             author: { '@type': 'Organization', name: 'Duezo' },
@@ -60,11 +65,11 @@ export default function NeverMissBillPaymentPage() {
             <span className="text-xs text-zinc-500">March 2026 · 6 min read</span>
           </div>
           <h1 className="text-3xl md:text-4xl font-bold leading-tight mb-4">
-            Never Miss a Bill Payment Again: 7 Tips + The App That Automates It
+            How to Never Miss a Bill Payment Again
           </h1>
           <p className="text-lg text-zinc-400 leading-relaxed">
-            Late fees cost Americans over <strong className="text-white">$14 billion a year</strong>. Most of it is completely avoidable. 
-            Here's how to get your bills under control — and the tool that handles the hard part for you.
+            Late fees cost Americans over <strong className="text-white">$14 billion a year</strong>. Most of it is completely avoidable.
+            Here's how to get your bills under control — and the app that keeps every due date front and center.
           </p>
         </header>
 
@@ -116,9 +121,9 @@ export default function NeverMissBillPaymentPage() {
             },
             {
               num: '05',
-              title: 'Check email for bills — but don\'t rely on seeing them',
+              title: 'Use a countdown to make due dates feel real',
               icon: <Zap className="w-5 h-5 text-violet-400" />,
-              content: `Most billing emails land in promotions folders, get buried under spam, or look like marketing. You can scan for "amount due" and "due date" in your inbox, but don't trust yourself to catch every one. This is the gap that tools like Duezo were built to close — automatically.`,
+              content: `A date on a statement is easy to ignore. A countdown that says "3 days left" is not. When you can see exactly how many days remain before each bill is due, urgency kicks in naturally. This is why countdown-style trackers outperform simple calendar entries — they make the deadline feel immediate.`,
             },
             {
               num: '06',
@@ -130,7 +135,7 @@ export default function NeverMissBillPaymentPage() {
               num: '07',
               title: 'Let an app do the tracking for you',
               icon: <Zap className="w-5 h-5 text-violet-400" />,
-              content: `This is the highest-leverage thing on this list. A good bill tracking app does three things: finds your bills automatically, shows you what's coming up, and reminds you before the due date. You stop thinking about it and the app thinks for you.`,
+              content: `This is the highest-leverage thing on this list. A good bill tracking app does three things: makes it fast to add bills, shows you what's coming up with a live countdown, and reminds you before the due date. You stop thinking about it and the app handles the rest.`,
               isCTA: true,
             },
           ].map((tip) => (
@@ -152,12 +157,14 @@ export default function NeverMissBillPaymentPage() {
                         then shows you a live countdown on your phone. No bank account linking required — just add your bills and
                         you'll see everything that's due in the next 30 days.
                       </p>
-                      <Link
-                        href="/"
+                      <a
+                        href="https://apps.apple.com/us/app/duezo/id6759273131"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="inline-flex items-center gap-2 text-sm font-semibold text-violet-400 hover:text-violet-300 transition-colors"
                       >
-                        Try Duezo free for 14 days <ArrowRight className="w-4 h-4" />
-                      </Link>
+                        Download Duezo on the App Store <ArrowRight className="w-4 h-4" />
+                      </a>
                     </div>
                   )}
                 </div>
@@ -206,15 +213,17 @@ export default function NeverMissBillPaymentPage() {
         <div className="max-w-2xl mx-auto px-6 text-center">
           <h2 className="text-2xl font-bold mb-4">Ready to Stop Worrying About Bills?</h2>
           <p className="text-zinc-400 mb-8">
-            Duezo finds your bills in your email and shows you exactly what's due and when — no spreadsheets, no bank linking, no forgetting.
+            Add your bills in seconds, see a live countdown for every due date, and get reminders before anything slips — no bank linking, no spreadsheets.
           </p>
-          <Link
-            href="/"
+          <a
+            href="https://apps.apple.com/us/app/duezo/id6759273131"
+            target="_blank"
+            rel="noopener noreferrer"
             className="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white font-semibold px-8 py-4 rounded-full transition-colors text-lg"
           >
-            Get Started Free <ArrowRight className="w-5 h-5" />
-          </Link>
-          <p className="text-xs text-zinc-500 mt-4">No credit card required. Cancel anytime.</p>
+            Download on the App Store <ArrowRight className="w-5 h-5" />
+          </a>
+          <p className="text-xs text-zinc-500 mt-4">Free to start. Pro is $3.99/month or $19.99/year, with a 7-day free trial on yearly.</p>
         </div>
       </section>
     </main>
