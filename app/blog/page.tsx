@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { ArrowRight, Calendar } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Blog | Duezo — Bill Tracking Tips & Guides',
+  title: 'Blog — Bill Tracking Tips & Guides',
   description:
     'Tips, comparisons, and guides to help you stay on top of your bills. From the team behind Duezo.',
   openGraph: {
@@ -12,6 +12,11 @@ export const metadata: Metadata = {
     url: 'https://duezo.app/blog',
     siteName: 'Duezo',
     type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Duezo Blog — Bill Tracking Tips & Guides',
+    description: 'Tips, comparisons, and guides to help you stay on top of your bills.',
   },
   alternates: { canonical: 'https://duezo.app/blog' },
   other: { lastmod: '2026-03-26' },

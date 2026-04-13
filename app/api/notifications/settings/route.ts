@@ -2,7 +2,9 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
 import { NextResponse } from 'next/server';
-import { DEFAULT_NOTIFICATION_SETTINGS, type NotificationSettings, type ReminderPreference } from '@/types';
+import { DEFAULT_NOTIFICATION_SETTINGS, type Bill, type NotificationSettings, type ReminderPreference } from '@/types';
+import { scheduleNotificationsForBill } from '@/lib/notifications/scheduler';
+import { generateInAppReminders } from '@/lib/notifications/generate-reminders';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -10,10 +12,6 @@ export const revalidate = 0;
 const VALID_REMIND_ME_VALUES = new Set<ReminderPreference>(['disabled', '1day', '3days', '7days']);
 
 function normalizeNotificationSettings(raw: Partial<NotificationSettings> | null | undefined): NotificationSettings {
-  const remindMe = VALID_REMIND_ME_VALUES.has(raw?.remind_me as ReminderPreference)
-    ? (raw?.remind_me as ReminderPreference)
-    : DEFAULT_NOTIFICATION_SETTINGS.remind_me;
-
   const reminderDays = Array.isArray(raw?.reminder_days)
     ? raw.reminder_days
     : [raw?.lead_days ?? DEFAULT_NOTIFICATION_SETTINGS.lead_days];
@@ -22,10 +20,31 @@ function normalizeNotificationSettings(raw: Partial<NotificationSettings> | null
     .filter((day) => typeof day === 'number' && day >= 0 && day <= 30)
     .sort((a, b) => b - a);
 
+  const derivedRemindMe: ReminderPreference = uniqueReminderDays.length === 0
+    ? 'disabled'
+    : uniqueReminderDays.length === 1 && uniqueReminderDays[0] === 1
+      ? '1day'
+      : uniqueReminderDays.length === 1 && uniqueReminderDays[0] === 3
+        ? '3days'
+        : uniqueReminderDays.length === 1 && uniqueReminderDays[0] === 7
+          ? '7days'
+          : uniqueReminderDays.includes(1)
+            ? '1day'
+            : uniqueReminderDays.includes(3)
+              ? '3days'
+              : uniqueReminderDays.includes(7)
+                ? '7days'
+                : DEFAULT_NOTIFICATION_SETTINGS.remind_me;
+
+  const remindMe = Array.isArray(raw?.reminder_days)
+    ? derivedRemindMe
+    : VALID_REMIND_ME_VALUES.has(raw?.remind_me as ReminderPreference)
+      ? (raw?.remind_me as ReminderPreference)
+      : derivedRemindMe;
+
   const normalizedReminderDays = remindMe === 'disabled'
     ? []
-    :
-    uniqueReminderDays.length > 0
+    : uniqueReminderDays.length > 0
       ? uniqueReminderDays
       : [...DEFAULT_NOTIFICATION_SETTINGS.reminder_days];
 
@@ -104,7 +123,6 @@ export async function PUT(request: Request) {
     const body = await request.json() as Partial<NotificationSettings>;
     console.log('[notifications/settings][PUT] auth user:', user.id, 'body:', body);
 
-    // Get existing settings and merge
     const { data: existing } = await supabase
       .from('user_preferences')
       .select('notification_settings')
@@ -126,7 +144,6 @@ export async function PUT(request: Request) {
       );
     }
 
-    // Validate settings
     if (typeof newSettings.lead_days !== 'number' || newSettings.lead_days < 0 || newSettings.lead_days > 30) {
       return NextResponse.json(
         { error: 'Invalid lead_days value' },
@@ -134,58 +151,97 @@ export async function PUT(request: Request) {
       );
     }
 
-    // Validate reminder_days if provided
-    if (newSettings.reminder_days !== undefined) {
-      if (!Array.isArray(newSettings.reminder_days) || newSettings.reminder_days.some((d: number) => typeof d !== 'number' || d < 0 || d > 30)) {
-        return NextResponse.json(
-          { error: 'Invalid reminder_days value' },
-          { status: 400 }
-        );
-      }
+    if (!Array.isArray(newSettings.reminder_days) || newSettings.reminder_days.some((d: number) => typeof d !== 'number' || d < 0 || d > 30)) {
+      return NextResponse.json(
+        { error: 'Invalid reminder_days value' },
+        { status: 400 }
+      );
     }
 
-    if (newSettings.remind_me === 'disabled') {
-      newSettings.reminder_days = [];
-    } else if (newSettings.remind_me === '1day') {
-      newSettings.reminder_days = [1];
-      newSettings.lead_days = 1;
-    } else if (newSettings.remind_me === '3days') {
-      newSettings.reminder_days = [3];
-      newSettings.lead_days = 3;
-    } else if (newSettings.remind_me === '7days') {
-      newSettings.reminder_days = [7];
-      newSettings.lead_days = 7;
-    }
-
-    // Use the service role client after auth succeeds so writes are not sensitive to
-    // RLS/upsert edge cases, while still scoping the update to the authenticated user.
     const adminSupabase = createAdminClient();
 
-    // Upsert preferences with new notification settings
-    const { data: preferences, error } = await adminSupabase
+    let preferences: { notification_settings?: Partial<NotificationSettings> | null } | null = null;
+
+    const { data: updatedPreferences, error: updateError } = await adminSupabase
       .from('user_preferences')
-      .upsert({
-        user_id: user.id,
-        notification_settings: newSettings,
-      }, {
-        onConflict: 'user_id',
-      })
+      .update({ notification_settings: newSettings })
+      .eq('user_id', user.id)
       .select('notification_settings')
-      .single();
+      .maybeSingle();
 
-    console.log('[notifications/settings][PUT] upsert result:', { preferences, error });
-
-    if (error) {
-      console.error('Error updating notification settings:', error);
+    if (updateError) {
+      console.error('Error updating notification settings:', updateError);
       return NextResponse.json(
         { error: 'Failed to update notification settings' },
         { status: 500 }
       );
     }
 
+    if (updatedPreferences) {
+      preferences = updatedPreferences;
+    } else {
+      const { data: insertedPreferences, error: insertError } = await adminSupabase
+        .from('user_preferences')
+        .insert({
+          user_id: user.id,
+          color_theme: 'amethyst',
+          dashboard_layout: {},
+          notification_settings: newSettings,
+        })
+        .select('notification_settings')
+        .single();
+
+      console.log('[notifications/settings][PUT] insert fallback result:', { insertedPreferences, insertError });
+
+      if (insertError) {
+        console.error('Error inserting notification settings:', insertError);
+        return NextResponse.json(
+          { error: 'Failed to update notification settings' },
+          { status: 500 }
+        );
+      }
+
+      preferences = insertedPreferences;
+    }
+
+    console.log('[notifications/settings][PUT] save result:', { preferences });
+
     const responseSettings = normalizeNotificationSettings(
       (preferences?.notification_settings as Partial<NotificationSettings> | null | undefined) ?? newSettings
     );
+
+    try {
+      const { data: unpaidBills, error: billsError } = await adminSupabase
+        .from('bills')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_paid', false);
+
+      if (billsError) {
+        console.error('[notifications/settings][PUT] failed to fetch unpaid bills for resync:', billsError);
+      } else if (unpaidBills && unpaidBills.length > 0) {
+        for (const bill of unpaidBills as Bill[]) {
+          try {
+            const scheduleResult = await scheduleNotificationsForBill(bill, responseSettings);
+            if (scheduleResult.skipped.length > 0) {
+              console.log('[notifications/settings][PUT] schedule sync notes for bill', bill.id, scheduleResult.skipped);
+            }
+          } catch (scheduleError) {
+            console.error('[notifications/settings][PUT] schedule sync failed for bill', bill.id, scheduleError);
+          }
+        }
+
+        try {
+          const inAppResult = await generateInAppReminders(adminSupabase, unpaidBills as Bill[], user.id, responseSettings);
+          console.log('[notifications/settings][PUT] in-app reminder sync:', inAppResult);
+        } catch (inAppError) {
+          console.error('[notifications/settings][PUT] in-app reminder sync failed:', inAppError);
+        }
+      }
+    } catch (resyncError) {
+      console.error('[notifications/settings][PUT] post-save resync failed:', resyncError);
+    }
+
     console.log('[notifications/settings][PUT] response payload:', responseSettings);
 
     return NextResponse.json(responseSettings, {

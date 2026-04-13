@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { ArrowRight, Search } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Duezo Comparisons: vs Rocket Money, YNAB, Prism, Mint & More | Duezo',
+  title: 'Duezo Comparisons — vs Rocket Money, YNAB, Prism, Mint & More',
   description:
     'Compare Duezo to other bill tracking and budgeting apps. See honest side-by-side comparisons with Rocket Money, YNAB, Chronicle, Prism Bills, Mint, and Copilot Money.',
   keywords: [
@@ -20,6 +20,11 @@ export const metadata: Metadata = {
     url: 'https://duezo.app/vs',
     siteName: 'Duezo',
     type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Compare Duezo to Other Bill Tracking Apps',
+    description: 'Honest side-by-side comparisons with Rocket Money, YNAB, Prism, Mint, and more.',
   },
   alternates: { canonical: 'https://duezo.app/vs' },
 };

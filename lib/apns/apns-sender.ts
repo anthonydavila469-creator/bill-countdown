@@ -1,11 +1,12 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { connect } from 'node:http2';
 import { SignJWT, importPKCS8 } from 'jose';
 
 const APNS_HOST = 'https://api.push.apple.com';
 const APNS_JWT_TTL_SECONDS = 50 * 60;
 const APNS_JWT_REFRESH_BUFFER_SECONDS = 60;
-const APNS_TOKEN_PATTERN = /^[a-fA-F0-9]{64,255}$/;
+const APNS_TOKEN_PATTERN = /^[a-f0-9]{64}$/i;
 const INVALID_TOKEN_REASONS = new Set([
   'BadDeviceToken',
   'DeviceTokenNotForTopic',
@@ -179,34 +180,65 @@ class ApnsSender {
     const { bundleId, topic } = getRequiredEnv();
     const jwt = await this.getJwt(forceRefresh);
 
-    const response = await fetch(`${APNS_HOST}/3/device/${token}`, {
-      method: 'POST',
-      headers: {
+    return await new Promise((resolve, reject) => {
+      const client = connect(APNS_HOST);
+      const timeout = setTimeout(() => {
+        client.destroy(new Error('APNS request timeout'));
+      }, 60000);
+
+      const cleanup = () => {
+        clearTimeout(timeout);
+        if (!client.destroyed) {
+          client.close();
+        }
+      };
+
+      client.on('error', (error) => {
+        cleanup();
+        reject(error);
+      });
+
+      const req = client.request({
+        ':method': 'POST',
+        ':path': `/3/device/${token}`,
         authorization: `bearer ${jwt}`,
         'apns-topic': topic,
         'apns-push-type': 'alert',
         'apns-priority': '10',
         'apns-collapse-id': payload.billId ?? bundleId,
         'content-type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-      cache: 'no-store',
-      signal: AbortSignal.timeout(15000),
+      });
+
+      let status: number | null = null;
+      let raw = '';
+
+      req.setEncoding('utf8');
+      req.on('response', (headers) => {
+        const headerStatus = headers[':status'];
+        status = typeof headerStatus === 'number' ? headerStatus : Number(headerStatus ?? 0) || null;
+      });
+      req.on('data', (chunk) => {
+        raw += chunk;
+      });
+      req.on('error', (error) => {
+        cleanup();
+        reject(error);
+      });
+      req.on('end', () => {
+        cleanup();
+        let body: APNsResponseBody | null = null;
+        if (raw) {
+          try {
+            body = JSON.parse(raw) as APNsResponseBody;
+          } catch {
+            body = null;
+          }
+        }
+        resolve({ status, body });
+      });
+
+      req.end(JSON.stringify(payload));
     });
-
-    let body: APNsResponseBody | null = null;
-
-    try {
-      const text = await response.text();
-      body = text ? (JSON.parse(text) as APNsResponseBody) : null;
-    } catch {
-      body = null;
-    }
-
-    return {
-      status: response.status,
-      body,
-    };
   }
 
   async sendNotification(input: ApnsSendInput): Promise<ApnsSendResult> {

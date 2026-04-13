@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { ArrowRight, Check, X, Minus } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Duezo vs Prism Bills: The Best Prism Alternative in 2026 | Duezo',
+  title: 'Duezo vs Prism Bills — The Best Prism Alternative in 2026',
   description:
     'Prism Bills shut down in December 2023. Duezo is the spiritual successor — bill tracking with countdown timers, Quick Add, photo scan, and a sustainable business model.',
   keywords: [
@@ -20,6 +20,11 @@ export const metadata: Metadata = {
     url: 'https://duezo.app/vs/prism',
     siteName: 'Duezo',
     type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Duezo: The Prism Alternative You\'ve Been Looking For',
+    description: 'Prism shut down in 2023. Duezo is built for the same people — countdown timers, no bank linking.',
   },
   alternates: { canonical: 'https://duezo.app/vs/prism' },
 };

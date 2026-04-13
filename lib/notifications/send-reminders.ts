@@ -40,13 +40,27 @@ function normalizeReminderPreference(value: unknown): ReminderPreference {
   return DEFAULT_NOTIFICATION_SETTINGS.remind_me;
 }
 
-function dateStringInUtc(date = new Date()): string {
-  return date.toISOString().slice(0, 10);
+function normalizeReminderDays(settings: Partial<NotificationSettings> | null | undefined): number[] {
+  if (Array.isArray(settings?.reminder_days) && settings.reminder_days.length > 0) {
+    return [...new Set(settings.reminder_days)]
+      .filter((day) => typeof day === 'number' && day >= 0 && day <= 30)
+      .sort((a, b) => b - a);
+  }
+
+  const legacyPreference = normalizeReminderPreference(settings?.remind_me);
+  const legacyDay = REMINDER_DAY_MAP[legacyPreference];
+  if (legacyDay !== null) {
+    return [legacyDay];
+  }
+
+  if (typeof settings?.lead_days === 'number' && settings.lead_days >= 0 && settings.lead_days <= 30) {
+    return [settings.lead_days];
+  }
+
+  return [...DEFAULT_NOTIFICATION_SETTINGS.reminder_days];
 }
 
-function addDays(dateString: string, days: number): string {
-  const date = new Date(`${dateString}T00:00:00.000Z`);
-  date.setUTCDate(date.getUTCDate() + days);
+function dateStringInUtc(date = new Date()): string {
   return date.toISOString().slice(0, 10);
 }
 
@@ -76,29 +90,20 @@ export async function sendDueDateReminders(runDate = new Date()): Promise<SendRe
   const users = ((preferenceRows ?? []) as ReminderPreferenceRow[])
     .map((row) => ({
       user_id: row.user_id,
-      remind_me: normalizeReminderPreference(row.notification_settings?.remind_me),
+      reminder_days: normalizeReminderDays(row.notification_settings),
     }))
-    .filter((row) => row.remind_me !== 'disabled');
+    .filter((row) => row.reminder_days.length > 0);
 
   summary.users = users.length;
 
   for (const user of users) {
-    const reminderDays = REMINDER_DAY_MAP[user.remind_me];
-
-    if (reminderDays === null) {
-      continue;
-    }
-
-    const targetDueDate = addDays(today, reminderDays);
-
     const [userResult, billsResult, sentResult] = await Promise.all([
       supabase.auth.admin.getUserById(user.user_id),
       supabase
         .from('bills')
         .select('id, user_id, name, amount, due_date')
         .eq('user_id', user.user_id)
-        .eq('is_paid', false)
-        .eq('due_date', targetDueDate),
+        .eq('is_paid', false),
       supabase
         .from('sent_reminders')
         .select('bill_id')
@@ -128,6 +133,11 @@ export async function sendDueDateReminders(runDate = new Date()): Promise<SendRe
     );
 
     for (const bill of (billsResult.data ?? []) as BillRow[]) {
+      const daysUntilDue = daysBetween(bill.due_date, today);
+      if (!user.reminder_days.includes(daysUntilDue)) {
+        continue;
+      }
+
       if (alreadySent.has(bill.id)) {
         continue;
       }
@@ -154,7 +164,7 @@ export async function sendDueDateReminders(runDate = new Date()): Promise<SendRe
         bill.name,
         bill.due_date,
         bill.amount,
-        daysBetween(bill.due_date, today)
+        daysUntilDue
       );
 
       if (!sendResult.success) {

@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { ArrowRight, Check, X } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Duezo vs Mint: Bill Tracking After Mint Shut Down (2026) | Duezo',
+  title: 'Duezo vs Mint — Bill Tracking After Mint Shut Down (2026)',
   description:
     'Mint shut down in 2024 and merged into Credit Karma. If you just used Mint for bill tracking, Duezo is a simpler, privacy-focused alternative at $3.99/mo.',
   keywords: [
@@ -20,6 +20,11 @@ export const metadata: Metadata = {
     url: 'https://duezo.app/vs/mint',
     siteName: 'Duezo',
     type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Duezo vs Mint: The Bill Tracker That Won\'t Shut Down',
+    description: 'Mint shut down in 2024. Duezo is a simpler, privacy-focused bill tracking alternative.',
   },
   alternates: { canonical: 'https://duezo.app/vs/mint' },
 };

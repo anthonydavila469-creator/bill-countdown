@@ -185,6 +185,22 @@ export default function NeverMissBillPaymentPage() {
             The goal isn't perfection — it's building enough redundancy that no single ball can drop unnoticed.
           </p>
 
+          {/* Comparison links */}
+          <div className="flex flex-wrap gap-3 mb-8 text-sm">
+            <Link
+              href="/vs/mint"
+              className="inline-flex items-center gap-1.5 text-zinc-400 hover:text-violet-400 transition-colors border border-zinc-800 rounded-lg px-3 py-1.5"
+            >
+              Duezo vs Mint <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+            <Link
+              href="/vs"
+              className="inline-flex items-center gap-1.5 text-zinc-400 hover:text-violet-400 transition-colors border border-zinc-800 rounded-lg px-3 py-1.5"
+            >
+              All Comparisons <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
           {/* Related */}
           <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
             <h3 className="font-bold mb-4 text-white">Related Articles</h3>

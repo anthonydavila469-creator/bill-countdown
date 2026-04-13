@@ -166,7 +166,8 @@ export default function LandingPage() {
             {/* Copy */}
             <div className="max-w-[540px]">
               <h1 className="text-[clamp(2.75rem,6.5vw,5rem)] font-black tracking-[-0.05em] leading-[0.95] mb-7">
-                Never miss{' '}
+                Never miss
+                <br />
                 <span className="bg-gradient-to-r from-[#a78bfa] via-[#c084fc] to-[#e9d5ff] bg-clip-text text-transparent">
                   a bill again.
                 </span>
@@ -242,7 +243,8 @@ export default function LandingPage() {
             The problem
           </p>
           <h2 className="text-[clamp(1.75rem,4vw,3rem)] font-black tracking-[-0.04em] text-center mb-5 leading-[1.05]">
-            You know what you owe.{' '}
+            You know what you owe.
+            <br />
             <span className="text-zinc-500">You just can&apos;t track when it&apos;s all due.</span>
           </h2>
           <p className="text-zinc-500 text-center mb-16 max-w-lg mx-auto text-[17px] leading-relaxed">
@@ -412,7 +414,7 @@ export default function LandingPage() {
                 <User className="w-6 h-6 text-violet-400" />
               </div>
               <p className="text-[20px] sm:text-[22px] text-zinc-300 leading-[1.5] mb-6">
-                &ldquo;I paid a late fee on a bill I had the money for. I just forgot the date. I tried other finance apps, but they all wanted my bank login and a bunch of extra stuff I didn&apos;t care about. I didn&apos;t need a budget app. I just needed something that showed me what was due and when. That&apos;s why I made Duezo.&rdquo;
+                &ldquo;I paid a late fee on a bill I had the money for. I just forgot the date. Every finance app wanted my bank login. I didn&apos;t want budgets, categories, or spending reports. I wanted one thing: a countdown to every due date. So I built it.&rdquo;
               </p>
               <p className="text-[15px] text-zinc-500">
                 — The founder of Duezo, who still uses it every day.
