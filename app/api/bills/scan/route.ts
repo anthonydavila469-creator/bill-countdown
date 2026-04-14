@@ -6,6 +6,48 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import Anthropic from '@anthropic-ai/sdk';
 import { createHash } from 'crypto';
 import { classifyDocument } from '@/lib/bill-classifier';
+import {
+  buildAmountCandidates,
+  buildDueDateCandidates,
+  type ClaudeScanResult,
+  resolveAmount,
+  resolveDueDate,
+} from '@/lib/bill-scan-ranker';
+
+function hasExplicitYear(input?: string | null) {
+  if (!input) return false;
+  return /\b(19\d{2}|20\d{2})\b/.test(input);
+}
+
+function reconcileAmbiguousYear(isoDate: string | null, now = new Date()) {
+  if (!isoDate) return null;
+  const parsed = new Date(`${isoDate}T00:00:00`);
+  if (Number.isNaN(parsed.getTime())) return isoDate;
+
+  const base = new Date(now);
+  base.setHours(0, 0, 0, 0);
+
+  const month = parsed.getMonth();
+  const day = parsed.getDate();
+  const currentYearCandidate = new Date(base.getFullYear(), month, day);
+  const nextYearCandidate = new Date(base.getFullYear() + 1, month, day);
+
+  const currentIso = `${currentYearCandidate.getFullYear()}-${String(currentYearCandidate.getMonth() + 1).padStart(2, '0')}-${String(currentYearCandidate.getDate()).padStart(2, '0')}`;
+  const nextIso = `${nextYearCandidate.getFullYear()}-${String(nextYearCandidate.getMonth() + 1).padStart(2, '0')}-${String(nextYearCandidate.getDate()).padStart(2, '0')}`;
+
+  const currentDelta = Math.round((currentYearCandidate.getTime() - base.getTime()) / 86400000);
+  const nextDelta = Math.round((nextYearCandidate.getTime() - base.getTime()) / 86400000);
+
+  if (currentDelta >= -45 && currentDelta <= 330) {
+    return currentIso;
+  }
+
+  if (nextDelta >= 0) {
+    return nextIso;
+  }
+
+  return isoDate;
+}
 
 function getAnthropic() {
   return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -282,7 +324,10 @@ Rules:
 - due_date: The payment due date in YYYY-MM-DD format.
 - confidence: Include a 0 to 1 confidence score for vendor_name, amount_due, due_date, and overall.
 - evidence: Copy the exact supporting text snippet for each field when available; otherwise use null.
+- evidence.raw_text: Include a compact plain-text summary of the most relevant bill text you used for extraction (especially lines around totals and due dates).
 - warnings: Include an array of short strings for ambiguity, missing fields, or conflicts. Use [] when none.
+- candidates.amounts: optional array of top amount candidates with fields value, normalizedValue, label, sourceText, and locationHint.
+- candidates.due_dates: optional array of top due date candidates with fields value, normalizedValue, label, sourceText, and locationHint.
 - If a field cannot be determined, use null.
 - Return all keys shown above, even when values are null or false.`,
             },
@@ -314,11 +359,15 @@ Rules:
 
     // Strip markdown code fences if present
     const jsonStr = content.replace(/^```(?:json)?\s*|\s*```$/g, '').trim();
-    const parsed = JSON.parse(jsonStr);
+    const parsed = JSON.parse(jsonStr) as ClaudeScanResult;
     const normalizedName = typeof parsed.vendor_name === 'string' ? parsed.vendor_name : null;
-    const normalizedAmount = typeof parsed.amount_due === 'number' ? parsed.amount_due : null;
+    const normalizedAmountString = typeof parsed.amount_due === 'string'
+      ? parsed.amount_due
+      : typeof parsed.amount_due === 'number'
+        ? String(parsed.amount_due)
+        : null;
     const normalizedDueDate = typeof parsed.due_date === 'string' ? parsed.due_date : null;
-    const isBill = typeof parsed.is_bill === 'boolean' ? parsed.is_bill : normalizedName !== null || normalizedAmount !== null || normalizedDueDate !== null;
+    const isBill = typeof parsed.is_bill === 'boolean' ? parsed.is_bill : normalizedName !== null || normalizedAmountString !== null || normalizedDueDate !== null;
     const documentType = typeof parsed.document_type === 'string' ? parsed.document_type : null;
     const warnings = Array.isArray(parsed.warnings)
       ? parsed.warnings.filter((warning: unknown): warning is string => typeof warning === 'string')
@@ -337,6 +386,77 @@ Rules:
     const evidenceDueDateText = typeof evidence.due_date_text === 'string' ? evidence.due_date_text : null;
     const documentClassification = isBill ? 'bill' : 'non_bill';
 
+    const amountCandidates = buildAmountCandidates({
+      ...parsed,
+      vendor_name: normalizedName,
+      amount_due: normalizedAmountString,
+      due_date: normalizedDueDate,
+      warnings,
+      is_bill: isBill,
+      document_type: documentType,
+    });
+    const dueDateCandidates = buildDueDateCandidates({
+      ...parsed,
+      vendor_name: normalizedName,
+      amount_due: normalizedAmountString,
+      due_date: normalizedDueDate,
+      warnings,
+      is_bill: isBill,
+      document_type: documentType,
+    });
+
+    const amountResult = resolveAmount({
+      claudeAmount: normalizedAmountString,
+      claudeConfidence: confidenceAmount ?? 0,
+      candidates: amountCandidates,
+    });
+    const dueDateResult = resolveDueDate({
+      claudeDueDate: normalizedDueDate,
+      claudeConfidence: confidenceDueDate ?? 0,
+      candidates: dueDateCandidates,
+    });
+
+    const finalAmount = amountResult.finalValue;
+    const dueDateEvidenceHasYear = hasExplicitYear(evidenceDueDateText) || hasExplicitYear(parsed.evidence?.raw_text);
+    const safeDueDate = !dueDateEvidenceHasYear
+      ? reconcileAmbiguousYear(dueDateResult.finalValue)
+      : dueDateResult.finalValue;
+    const finalDueDate = safeDueDate;
+    const dueDateDecision =
+      safeDueDate !== dueDateResult.finalValue
+        ? 'overridden_by_ranker'
+        : dueDateResult.resolution.decision;
+    const dueDateReason =
+      safeDueDate !== dueDateResult.finalValue
+        ? 'rolled_forward_ambiguous_past_due_date'
+        : dueDateResult.resolution.reason;
+    const needsReview =
+      amountResult.resolution.decision === 'needs_review' ||
+      dueDateDecision === 'needs_review';
+
+    const rankingPayload = {
+      version: 'ranker-v1' as const,
+      candidates: {
+        amounts: amountResult.candidates,
+        due_dates: dueDateResult.candidates,
+      },
+      resolution: {
+        amount_due: amountResult.resolution,
+        due_date: {
+          ...dueDateResult.resolution,
+          finalValue: finalDueDate,
+          decision: dueDateDecision,
+          reason: dueDateReason,
+        },
+      },
+    };
+
+    const finalResolvedPayload = {
+      amount_due: finalAmount,
+      due_date: finalDueDate,
+      needs_review: needsReview,
+    };
+
     const { error: extractionResultError } = await supabase
       .from('bill_extraction_results')
       .insert({
@@ -345,11 +465,11 @@ Rules:
         prompt_version: promptVersion,
         raw_json: parsed,
         name_raw: normalizedName,
-        amount_raw: normalizedAmount,
+        amount_raw: normalizedAmountString ? Number(normalizedAmountString) : null,
         due_date_raw: normalizedDueDate,
         name_normalized: normalizedName,
-        amount_normalized: normalizedAmount,
-        due_date_normalized: normalizedDueDate,
+        amount_normalized: finalAmount ? Number(finalAmount) : null,
+        due_date_normalized: finalDueDate,
         confidence_name: confidenceName,
         confidence_amount: confidenceAmount,
         confidence_due_date: confidenceDueDate,
@@ -359,6 +479,8 @@ Rules:
         evidence_due_date_text: evidenceDueDateText,
         is_bill: isBill,
         document_type: documentType,
+        ranking_json: rankingPayload,
+        final_resolved_json: finalResolvedPayload,
       });
 
     if (extractionResultError) {
@@ -396,8 +518,8 @@ Rules:
     return NextResponse.json({
       scan_session_id: scanSessionId,
       name: normalizedName,
-      amount: normalizedAmount,
-      due_date: normalizedDueDate,
+      amount: finalAmount ? Number(finalAmount) : null,
+      due_date: finalDueDate,
       confidence: {
         vendor_name: confidenceName,
         amount_due: confidenceAmount,
@@ -406,6 +528,18 @@ Rules:
       },
       is_bill: isBill,
       warnings,
+      review: {
+        needs_review: needsReview,
+        amount_due: {
+          decision: amountResult.resolution.decision,
+          highlighted: amountResult.resolution.decision !== 'accepted_claude',
+        },
+        due_date: {
+          decision: dueDateDecision,
+          highlighted: dueDateDecision !== 'accepted_claude',
+        },
+      },
+      ranking: rankingPayload,
     });
   } catch (error) {
     console.error('Bill scan error:', error);

@@ -1,6 +1,6 @@
 import { config } from 'dotenv';
 import { createClient } from '@supabase/supabase-js';
-import { apnsSender } from '../lib/apns/apns-sender.ts';
+import { apnsSender } from '../lib/apns/apns-sender';
 
 config({ path: '.env.local' });
 
