@@ -109,7 +109,7 @@ async function logParseRun(payload: {
       vendor_resolution_confidence: payload.vendorConfidence ?? null,
       template_id: payload.templateId ?? null,
       template_match_confidence: payload.templateMatchConfidence ?? null,
-      ai_model: payload.aiUsed ? 'claude-sonnet-4-20250514' : null,
+      ai_model: payload.aiUsed ? 'claude-sonnet-4-6' : null,
       ai_prompt_version: payload.aiUsed ? 'verify-bill-v1' : null,
       ai_used: payload.aiUsed,
       ai_mode: payload.aiMode ?? null,

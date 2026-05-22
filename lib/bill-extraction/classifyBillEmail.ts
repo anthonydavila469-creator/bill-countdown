@@ -60,7 +60,7 @@ export async function classifyBillEmail(email: BillPromptEmailInput): Promise<Bi
   const userPrompt = buildBillUserPrompt(email);
 
   const resp = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514", // match your console model
+    model: "claude-sonnet-4-6", // match your console model
     temperature: 0,
     max_tokens: 900,
     system: BILL_SYSTEM_PROMPT,

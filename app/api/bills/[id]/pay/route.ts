@@ -65,13 +65,11 @@ export async function POST(request: Request, { params }: RouteParams) {
       );
     }
 
-    // Check if next instance was already generated (duplicate prevention)
-    if (bill.generated_next) {
-      return NextResponse.json(
-        { error: 'Next recurring bill already generated' },
-        { status: 400 }
-      );
-    }
+    // Don't hard-block on generated_next.
+    // Some older/stale recurring bills were left with generated_next=true while still unpaid,
+    // which made them impossible to mark as paid from the app.
+    // We keep the next-bill creation path idempotent below by checking for an existing unpaid
+    // bill with the same name + next due date before inserting a new one.
 
     // Mark the bill as paid and set generated_next flag if recurring
     // Use custom amount if provided, otherwise use bill's amount

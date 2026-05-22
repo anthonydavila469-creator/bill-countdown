@@ -2,7 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import type { AiVerificationResult, FieldConfidence, FieldEvidence, NormalizedEmail, ParsedBillFields } from '@/types/parser';
 import { clamp, normalizeWhitespace, wordWindowAround } from './utils';
 
-const VERIFY_MODEL = 'claude-sonnet-4-20250514';
+const VERIFY_MODEL = 'claude-sonnet-4-6';
 const VERIFY_SYSTEM_PROMPT = [
   'You verify deterministic bill extraction results from short snippets, not full emails.',
   'Return strict JSON only.',

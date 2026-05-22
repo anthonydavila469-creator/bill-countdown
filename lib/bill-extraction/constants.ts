@@ -494,13 +494,13 @@ export const CONFIDENCE_WEIGHTS = {
 // ============================================================================
 
 export const AI_CONFIG = {
-  model: 'claude-sonnet-4-20250514',
+  model: 'claude-sonnet-4-6',
   maxTokens: 2048,
   maxBodyLength: 3000, // Truncate email body to this length
 };
 
 export const AI_CONFIG_HAIKU = {
-  model: 'claude-3-5-haiku-20241022',
+  model: 'claude-haiku-4-5-20251001',
   maxTokens: 2048,
   maxBodyLength: 3000, // Same truncation as Sonnet
 };
@@ -663,7 +663,7 @@ export const PAYMENT_LINK_VALIDATION = {
  * AI configuration for payment link selection
  */
 export const PAYMENT_LINK_AI_CONFIG = {
-  model: 'claude-sonnet-4-20250514',
+  model: 'claude-sonnet-4-6',
   maxTokens: 512,
   temperature: 0,                   // Deterministic selection
 };

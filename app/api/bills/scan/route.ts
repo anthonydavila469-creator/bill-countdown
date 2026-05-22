@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
+import { createBearerSupabaseClient, getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
 import { isRateLimited } from '@/lib/rate-limit';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -13,6 +13,13 @@ import {
   resolveAmount,
   resolveDueDate,
 } from '@/lib/bill-scan-ranker';
+import { buildBillScanV2, mapSourceDocumentType, wantsV2Response } from '@/lib/bill-scan-v2';
+import {
+  BILL_SCAN_V2_PROMPT,
+  mapClaudeV2ToBillScanV2,
+  parseBillScanV2Claude,
+} from '@/lib/bill-scan-v2-extract';
+import { postProcessBillScanV2 } from '@/lib/bill-scan-v2-postprocess';
 
 function hasExplicitYear(input?: string | null) {
   if (!input) return false;
@@ -158,9 +165,11 @@ export async function POST(request: Request) {
   let scanSessionId: string | null = null;
 
   try {
-    const { user, method } = await getAuthenticatedUser(request);
-    const supabase = method === 'bearer' ? createAdminClient() : await createClient();
-    const adminSupabase = createAdminClient();
+    const auth = await getAuthenticatedUser(request);
+    const { user, method } = auth;
+    const supabase = method === 'bearer' ? createBearerSupabaseClient(auth) : await createClient();
+    const storageSupabase = method === 'bearer' ? supabase : createAdminClient();
+    const canCreateStorageBucket = method !== 'bearer';
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -170,7 +179,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
     }
 
-    const { image, source_type } = await request.json();
+    const requestBody = await request.json();
+    const { image, source_type } = requestBody ?? {};
+    // Opt-in to the v2 response shape via `?v=2` or `responseVersion: 2`.
+    // v1 remains the default for every existing client.
+    const includeV2 = wantsV2Response(request.url, requestBody);
     if (!image || typeof image !== 'string') {
       return NextResponse.json({ error: 'Missing image data' }, { status: 400 });
     }
@@ -195,7 +208,7 @@ export async function POST(request: Request) {
     }
 
     const promptVersion = 'bill-scan-v2';
-    const modelName = 'claude-sonnet-4-20250514';
+    const modelName = 'claude-sonnet-4-6';
     const imageHash = createHash('sha256').update(base64Data).digest('hex');
     const imageBuffer = Buffer.from(base64Data, 'base64');
     const fileSizeBytes = imageBuffer.byteLength;
@@ -226,9 +239,11 @@ export async function POST(request: Request) {
     const imageExtension = getFileExtension(mediaType);
     const imageStoragePath = `${user.id}/${scanSessionId}.${imageExtension}`;
 
-    await ensureBillScansBucket(adminSupabase);
+    if (canCreateStorageBucket) {
+      await ensureBillScansBucket(storageSupabase);
+    }
 
-    const { error: uploadError } = await adminSupabase.storage
+    const { error: uploadError } = await storageSupabase.storage
       .from(BILL_SCANS_BUCKET)
       .upload(imageStoragePath, imageBuffer, {
         contentType: mediaType,
@@ -515,10 +530,14 @@ Rules:
       console.error('Error updating bill scan session:', scanSessionUpdateError);
     }
 
-    return NextResponse.json({
+    const finalAmountNumber = finalAmount ? Number(finalAmount) : null;
+
+    // v1 response body — unchanged. Built as an object so the optional
+    // v2 block can be attached without altering any v1 field.
+    const responseBody: Record<string, unknown> = {
       scan_session_id: scanSessionId,
       name: normalizedName,
-      amount: finalAmount ? Number(finalAmount) : null,
+      amount: finalAmountNumber,
       due_date: finalDueDate,
       confidence: {
         vendor_name: confidenceName,
@@ -540,19 +559,99 @@ Rules:
         },
       },
       ranking: rankingPayload,
-    });
+    };
+
+    // v2: additive, only when the caller opted in. Phase 2 runs a
+    // dedicated vision call that OCRs the full screenshot (subject bar
+    // included) and classifies bill identity per the v2 prompt. The v1
+    // body above is untouched. The ranker-resolved amount/due date are
+    // reused so v1 and v2 agree on those numbers.
+    if (includeV2) {
+      // Phase 1 fallback: a null-filled v2 object derived from the v1
+      // pipeline. Used if the v2 vision call fails or returns invalid
+      // JSON so the response always carries a well-formed v2 object.
+      const fallbackV2 = buildBillScanV2({
+        scanSessionId: scanSessionId!,
+        vendorRawName: normalizedName,
+        amountDue: finalAmountNumber,
+        dueDate: finalDueDate,
+        documentType,
+        isBill,
+        sourceType,
+        rawVisibleText: typeof parsed.evidence?.raw_text === 'string' ? parsed.evidence.raw_text : null,
+        overallConfidence,
+        fieldConfidence: {
+          vendorName: confidenceName,
+          amountDue: confidenceAmount,
+          dueDate: confidenceDueDate,
+        },
+        evidence: {
+          vendorText: evidenceVendorText,
+          amountText: evidenceAmountText,
+          dueDateText: evidenceDueDateText,
+          rawText: typeof parsed.evidence?.raw_text === 'string' ? parsed.evidence.raw_text : null,
+        },
+        reviewNeeded: needsReview,
+        reviewReason: needsReview ? (dueDateReason ?? amountResult.resolution.reason ?? null) : null,
+        warnings,
+      });
+
+      try {
+        const v2Response = await getAnthropic().messages.create({
+          model: modelName,
+          max_tokens: 1500,
+          messages: [
+            {
+              role: 'user',
+              content: [
+                {
+                  type: 'image',
+                  source: { type: 'base64', media_type: mediaType, data: base64Data },
+                },
+                { type: 'text', text: BILL_SCAN_V2_PROMPT },
+              ],
+            },
+          ],
+        });
+        const v2TextBlock = v2Response.content.find((block) => block.type === 'text');
+        const v2Text = v2TextBlock?.type === 'text' ? v2TextBlock.text : null;
+        const v2Parsed = parseBillScanV2Claude(v2Text);
+        const v2Mapped = v2Parsed
+          ? mapClaudeV2ToBillScanV2(v2Parsed, {
+              scanSessionId: scanSessionId!,
+              fallbackSourceDocumentType: mapSourceDocumentType(sourceType),
+              resolvedAmountDue: finalAmountNumber,
+              resolvedDueDate: finalDueDate,
+            })
+          : fallbackV2;
+        // Phase 3: deterministic identity post-processing (vendor
+        // normalization, account-type classification, payment-
+        // confirmation separation, identity confidence) — the model
+        // output is only a hint.
+        responseBody.v2 = postProcessBillScanV2(v2Mapped);
+      } catch (v2Error) {
+        console.error('Bill scan v2 extraction failed (returning fallback v2):', v2Error);
+        responseBody.v2 = postProcessBillScanV2(fallbackV2);
+      }
+    }
+
+    return NextResponse.json(responseBody);
   } catch (error) {
     console.error('Bill scan error:', error);
 
     if (scanSessionId) {
-      const supabase = createAdminClient();
-      await supabase
-        .from('bill_scan_sessions')
-        .update({
-          extraction_status: 'failed',
-          error_code: error instanceof Error ? error.name : 'unknown_error',
-        })
-        .eq('id', scanSessionId);
+      try {
+        const supabase = createAdminClient();
+        await supabase
+          .from('bill_scan_sessions')
+          .update({
+            extraction_status: 'failed',
+            error_code: error instanceof Error ? error.name : 'unknown_error',
+          })
+          .eq('id', scanSessionId);
+      } catch (updateError) {
+        console.error('Failed to mark scan session failed:', updateError);
+      }
     }
 
     return NextResponse.json(

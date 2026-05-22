@@ -120,6 +120,26 @@ export async function PUT(request: Request, { params }: RouteParams) {
         typical_min: body.typical_min,
         typical_max: body.typical_max,
         icon_key: body.icon_key,
+        // v2 bill-identity fields. `undefined` keys are dropped during
+        // JSON serialization, so a client that omits them performs a
+        // partial update and never nulls out existing identity values.
+        vendor_brand: body.vendor_brand,
+        vendor_legal_name: body.vendor_legal_name,
+        bill_display_name: body.bill_display_name,
+        account_type: body.account_type,
+        service_category: body.service_category,
+        account_identifier_last4: body.account_identifier_last4,
+        account_nickname: body.account_nickname,
+        service_address: body.service_address,
+        bill_account_key: body.bill_account_key,
+        identity_confidence: body.identity_confidence,
+        source_document_type: body.source_document_type,
+        payment_status: body.payment_status,
+        minimum_due: body.minimum_due,
+        statement_balance: body.statement_balance,
+        document_type: body.document_type,
+        raw_source_text: body.raw_source_text,
+        detected_subject_text: body.detected_subject_text,
       })
       .eq('id', id)
       .select()
