@@ -20,6 +20,11 @@ import {
   parseBillScanV2Claude,
 } from '@/lib/bill-scan-v2-extract';
 import { postProcessBillScanV2 } from '@/lib/bill-scan-v2-postprocess';
+import {
+  classifyAndExtractPayLater,
+  parseScanPurpose,
+  wantsV3Response,
+} from '@/lib/pay-later-scan';
 
 function hasExplicitYear(input?: string | null) {
   if (!input) return false;
@@ -163,6 +168,10 @@ async function ensureBillScansBucket(adminSupabase: ReturnType<typeof createAdmi
 
 export async function POST(request: Request) {
   let scanSessionId: string | null = null;
+  // Hoisted so the catch-all can return a graceful 200 body shaped for
+  // the version of the response the caller asked for (v1 / v2 / v3),
+  // even when the v1 extraction itself fails.
+  let capturedRequestBody: unknown = null;
 
   try {
     const auth = await getAuthenticatedUser(request);
@@ -180,10 +189,24 @@ export async function POST(request: Request) {
     }
 
     const requestBody = await request.json();
+    capturedRequestBody = requestBody;
     const { image, source_type } = requestBody ?? {};
     // Opt-in to the v2 response shape via `?v=2` or `responseVersion: 2`.
     // v1 remains the default for every existing client.
     const includeV2 = wantsV2Response(request.url, requestBody);
+    // Opt-in to the v3 response shape via `?v=3` or `responseVersion: 3`.
+    // v3 is additive: it carries everything v2 does, plus a `classification`
+    // field and an optional `payLater` object (when scanPurpose != "bill"
+    // and the screenshot reads as a Pay Later plan). Existing v1/v2
+    // callers are unaffected.
+    const includeV3 = wantsV3Response(request.url, requestBody);
+    // v3 always carries the v2 fields too — a v3 caller never has to ask
+    // for v2 separately.
+    const wantsV2 = includeV2 || includeV3;
+    // Default "bill" keeps every existing v1/v2 caller on the bills-only
+    // path verbatim — they never set `scanPurpose`. Only v3 callers
+    // typically set it to "payLater" or "auto".
+    const scanPurpose = parseScanPurpose(requestBody);
     if (!image || typeof image !== 'string') {
       return NextResponse.json({ error: 'Missing image data' }, { status: 400 });
     }
@@ -374,7 +397,27 @@ Rules:
 
     // Strip markdown code fences if present
     const jsonStr = content.replace(/^```(?:json)?\s*|\s*```$/g, '').trim();
-    const parsed = JSON.parse(jsonStr) as ClaudeScanResult;
+    // Lenient parse: some models wrap the JSON in a sentence of prose
+    // ("This appears to be a Shop Pay installment plan, not a bill:
+    // { ... }"). A strict JSON.parse throws on that, dropping the
+    // whole request into the catch-all 500 below. Try the strict
+    // parse first; on failure, fall back to extracting the first
+    // {...} block from the response so we still get usable data.
+    let parsed: ClaudeScanResult;
+    try {
+      parsed = JSON.parse(jsonStr) as ClaudeScanResult;
+    } catch (parseError) {
+      const objectMatch = jsonStr.match(/\{[\s\S]*\}/);
+      if (objectMatch) {
+        try {
+          parsed = JSON.parse(objectMatch[0]) as ClaudeScanResult;
+        } catch {
+          throw parseError; // propagate the original — outer catch handles it.
+        }
+      } else {
+        throw parseError;
+      }
+    }
     const normalizedName = typeof parsed.vendor_name === 'string' ? parsed.vendor_name : null;
     const normalizedAmountString = typeof parsed.amount_due === 'string'
       ? parsed.amount_due
@@ -566,7 +609,7 @@ Rules:
     // included) and classifies bill identity per the v2 prompt. The v1
     // body above is untouched. The ranker-resolved amount/due date are
     // reused so v1 and v2 agree on those numbers.
-    if (includeV2) {
+    if (wantsV2) {
       // Phase 1 fallback: a null-filled v2 object derived from the v1
       // pipeline. Used if the v2 vision call fails or returns invalid
       // JSON so the response always carries a well-formed v2 object.
@@ -595,6 +638,28 @@ Rules:
         reviewReason: needsReview ? (dueDateReason ?? amountResult.resolution.reason ?? null) : null,
         warnings,
       });
+
+      // Phase 10: Pay Later classification + extraction, attached when
+      // the caller opted into v3. Runs deterministically over the v1
+      // ranker's vendor/amount/date + the OCR raw_text already gathered.
+      // For v3 callers who left `scanPurpose: "bill"`, the classifier
+      // short-circuits and we return classification: "bill" with no
+      // payLater object — no behavioral change.
+      if (includeV3) {
+        const payLaterResult = classifyAndExtractPayLater({
+          rawText: typeof parsed.evidence?.raw_text === 'string' ? parsed.evidence.raw_text : null,
+          vendorName: normalizedName,
+          amountDue: finalAmountNumber,
+          dueDate: finalDueDate,
+          scanPurpose,
+        });
+        responseBody.classification = payLaterResult.classification;
+        if (payLaterResult.payLater) {
+          responseBody.payLater = payLaterResult.payLater;
+        } else {
+          responseBody.payLater = null;
+        }
+      }
 
       try {
         const v2Response = await getAnthropic().messages.create({
@@ -654,9 +719,37 @@ Rules:
       }
     }
 
-    return NextResponse.json(
-      { error: 'Failed to scan bill' },
-      { status: 500 }
-    );
+    // Phase-12 hardening: return a 200 with safe nulls + a diagnostic
+    // warning instead of a hard 500. The iOS client decodes the body
+    // and shows the friendly "couldn't read" review state with an
+    // Enter-Manually CTA — much better UX than an error toast.
+    //
+    // Shape mirrors the version of the response the caller asked for:
+    //   - v1 callers get the normal v1 nulls + warning.
+    //   - v2 callers also get v2: null.
+    //   - v3 callers also get classification: 'unknown' + payLater: null
+    //     so the Pay Later scan-review sheet lands on the "Enter
+    //     Manually" surface.
+    const includeV2Fallback = wantsV2Response(request.url, capturedRequestBody);
+    const includeV3Fallback = wantsV3Response(request.url, capturedRequestBody);
+    const diagnostic = error instanceof Error ? `${error.name}: ${error.message}` : 'unknown_error';
+
+    const safeBody: Record<string, unknown> = {
+      scan_session_id: scanSessionId,
+      name: null,
+      amount: null,
+      due_date: null,
+      is_bill: false,
+      warnings: [`scan_failed: ${diagnostic}`],
+    };
+    if (includeV2Fallback || includeV3Fallback) {
+      safeBody.v2 = null;
+    }
+    if (includeV3Fallback) {
+      safeBody.classification = 'unknown';
+      safeBody.payLater = null;
+    }
+
+    return NextResponse.json(safeBody);
   }
 }
