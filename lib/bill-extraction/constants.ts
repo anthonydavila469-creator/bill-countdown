@@ -494,7 +494,7 @@ export const CONFIDENCE_WEIGHTS = {
 // ============================================================================
 
 export const AI_CONFIG = {
-  model: 'claude-sonnet-4-6',
+  model: 'claude-sonnet-4-20250514',
   maxTokens: 2048,
   maxBodyLength: 3000, // Truncate email body to this length
 };
@@ -663,7 +663,7 @@ export const PAYMENT_LINK_VALIDATION = {
  * AI configuration for payment link selection
  */
 export const PAYMENT_LINK_AI_CONFIG = {
-  model: 'claude-sonnet-4-6',
+  model: 'claude-sonnet-4-20250514',
   maxTokens: 512,
   temperature: 0,                   // Deterministic selection
 };

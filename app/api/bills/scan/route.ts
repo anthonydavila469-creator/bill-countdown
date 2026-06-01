@@ -231,7 +231,7 @@ export async function POST(request: Request) {
     }
 
     const promptVersion = 'bill-scan-v2';
-    const modelName = 'claude-sonnet-4-6';
+    const modelName = 'claude-sonnet-4-20250514';
     const imageHash = createHash('sha256').update(base64Data).digest('hex');
     const imageBuffer = Buffer.from(base64Data, 'base64');
     const fileSizeBytes = imageBuffer.byteLength;
