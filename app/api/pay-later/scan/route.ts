@@ -64,9 +64,16 @@ export async function POST(request: Request) {
     const timezone = typeof body?.timezone === 'string' ? body!.timezone : 'UTC';
     const currentDate =
       typeof body?.currentDate === 'string' ? body!.currentDate : todayLocal();
+    // Optional on-device OCR text. When the client sends usable text it may
+    // omit the image(s) entirely — the scanner takes the faster text path.
+    const ocrText = typeof body?.ocrText === 'string' ? body!.ocrText : null;
+    const hasOcrText = !!ocrText && ocrText.trim().length > 0;
 
-    if (images.length === 0) {
-      return NextResponse.json({ error: 'images is required (1–8 data URLs)' }, { status: 400 });
+    if (images.length === 0 && !hasOcrText) {
+      return NextResponse.json(
+        { error: 'images (1–8 data URLs) or ocrText is required' },
+        { status: 400 },
+      );
     }
     if (images.length > MAX_IMAGES_PER_SCAN) {
       return NextResponse.json(
@@ -94,6 +101,7 @@ export async function POST(request: Request) {
       screenshots,
       timezone,
       currentDate,
+      ocrText,
     });
 
     let raw: PayLaterScanResult;
@@ -204,7 +212,8 @@ async function insertScanAttempt(
         user_id: args.userId,
         scanner_version: PAY_LATER_SCANNER_VERSION,
         validator_version: PAY_LATER_VALIDATOR_VERSION,
-        model: PAY_LATER_VISION_MODEL,
+        // Actual model used — vision (Sonnet) or the OCR fast path (Haiku).
+        model: args.validated.model,
         source_type: args.sourceType,
         provider_normalized: args.providerNormalized,
         confidence: args.validated.confidence,

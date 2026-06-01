@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import { createBearerSupabaseClient, getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
 import { isRateLimited } from '@/lib/rate-limit';
 import { createClient } from '@/lib/supabase/server';
@@ -262,49 +262,42 @@ export async function POST(request: Request) {
     const imageExtension = getFileExtension(mediaType);
     const imageStoragePath = `${user.id}/${scanSessionId}.${imageExtension}`;
 
-    if (canCreateStorageBucket) {
-      await ensureBillScansBucket(storageSupabase);
-    }
-
-    const { error: uploadError } = await storageSupabase.storage
-      .from(BILL_SCANS_BUCKET)
-      .upload(imageStoragePath, imageBuffer, {
-        contentType: mediaType,
-        upsert: true,
-      });
-
-    if (uploadError) {
-      console.error('Error uploading bill scan image:', uploadError);
-      await supabase
-        .from('bill_scan_sessions')
-        .update({
-          extraction_status: 'failed',
-          error_code: 'image_upload_failed',
-        })
-        .eq('id', scanSessionId);
-
-      return NextResponse.json({ error: 'Failed to store bill scan image' }, { status: 500 });
-    }
-
-    const { error: imagePathUpdateError } = await supabase
-      .from('bill_scan_sessions')
-      .update({
-        image_storage_path: imageStoragePath,
-      })
-      .eq('id', scanSessionId);
-
-    if (imagePathUpdateError) {
-      console.error('Error updating image storage path:', imagePathUpdateError);
-      await supabase
-        .from('bill_scan_sessions')
-        .update({
-          extraction_status: 'failed',
-          error_code: 'image_path_update_failed',
-        })
-        .eq('id', scanSessionId);
-
-      return NextResponse.json({ error: 'Failed to persist bill scan metadata' }, { status: 500 });
-    }
+    // Persist the source image for the self-improving pipeline, but OFF the
+    // critical path. Extraction below reads `base64Data` directly and never
+    // the stored copy, so the upload + metadata writes run after the
+    // response via `after()`. An upload failure is logged, not surfaced —
+    // it must never fail a scan the user is waiting on.
+    const sessionIdForStorage = scanSessionId;
+    after(async () => {
+      try {
+        if (canCreateStorageBucket) {
+          await ensureBillScansBucket(storageSupabase);
+        }
+        const { error: uploadError } = await storageSupabase.storage
+          .from(BILL_SCANS_BUCKET)
+          .upload(imageStoragePath, imageBuffer, {
+            contentType: mediaType,
+            upsert: true,
+          });
+        if (uploadError) {
+          console.error('Error uploading bill scan image:', uploadError);
+          await supabase
+            .from('bill_scan_sessions')
+            .update({ error_code: 'image_upload_failed' })
+            .eq('id', sessionIdForStorage);
+          return;
+        }
+        const { error: imagePathUpdateError } = await supabase
+          .from('bill_scan_sessions')
+          .update({ image_storage_path: imageStoragePath })
+          .eq('id', sessionIdForStorage);
+        if (imagePathUpdateError) {
+          console.error('Error updating image storage path:', imagePathUpdateError);
+        }
+      } catch (storageError) {
+        console.error('Deferred bill scan image upload failed:', storageError);
+      }
+    });
 
     // Phase 5: Pre-screen with classifier (logs only, does not block)
     const classification = classifyDocument('scan', fileSizeBytes, imageHash);
@@ -515,63 +508,74 @@ Rules:
       needs_review: needsReview,
     };
 
-    const { error: extractionResultError } = await supabase
-      .from('bill_extraction_results')
-      .insert({
-        scan_session_id: scanSessionId,
-        model_name: modelName,
-        prompt_version: promptVersion,
-        raw_json: parsed,
-        name_raw: normalizedName,
-        amount_raw: normalizedAmountString ? Number(normalizedAmountString) : null,
-        due_date_raw: normalizedDueDate,
-        name_normalized: normalizedName,
-        amount_normalized: finalAmount ? Number(finalAmount) : null,
-        due_date_normalized: finalDueDate,
-        confidence_name: confidenceName,
-        confidence_amount: confidenceAmount,
-        confidence_due_date: confidenceDueDate,
-        overall_confidence: overallConfidence,
-        evidence_vendor_text: evidenceVendorText,
-        evidence_amount_text: evidenceAmountText,
-        evidence_due_date_text: evidenceDueDateText,
-        is_bill: isBill,
-        document_type: documentType,
-        ranking_json: rankingPayload,
-        final_resolved_json: finalResolvedPayload,
-      });
+    // Self-improving-pipeline telemetry — also OFF the critical path. The
+    // response below is built entirely from the in-memory values computed
+    // above, so the extraction-result insert + session update run after the
+    // response via `after()`. A telemetry-write failure is logged, never
+    // surfaced to the user.
+    const sessionIdForResult = scanSessionId;
+    after(async () => {
+      try {
+        const { error: extractionResultError } = await supabase
+          .from('bill_extraction_results')
+          .insert({
+            scan_session_id: sessionIdForResult,
+            model_name: modelName,
+            prompt_version: promptVersion,
+            raw_json: parsed,
+            name_raw: normalizedName,
+            amount_raw: normalizedAmountString ? Number(normalizedAmountString) : null,
+            due_date_raw: normalizedDueDate,
+            name_normalized: normalizedName,
+            amount_normalized: finalAmount ? Number(finalAmount) : null,
+            due_date_normalized: finalDueDate,
+            confidence_name: confidenceName,
+            confidence_amount: confidenceAmount,
+            confidence_due_date: confidenceDueDate,
+            overall_confidence: overallConfidence,
+            evidence_vendor_text: evidenceVendorText,
+            evidence_amount_text: evidenceAmountText,
+            evidence_due_date_text: evidenceDueDateText,
+            is_bill: isBill,
+            document_type: documentType,
+            ranking_json: rankingPayload,
+            final_resolved_json: finalResolvedPayload,
+          });
 
-    if (extractionResultError) {
-      console.error('Error creating bill extraction result:', extractionResultError);
-      await supabase
-        .from('bill_scan_sessions')
-        .update({
-          extraction_status: 'failed',
-          error_code: 'extraction_result_insert_failed',
-          latency_ms: latencyMs,
-          vendor_guess_raw: normalizedName,
-          vendor_guess_normalized: normalizedName,
-        })
-        .eq('id', scanSessionId);
+        if (extractionResultError) {
+          console.error('Error creating bill extraction result:', extractionResultError);
+          await supabase
+            .from('bill_scan_sessions')
+            .update({
+              extraction_status: 'failed',
+              error_code: 'extraction_result_insert_failed',
+              latency_ms: latencyMs,
+              vendor_guess_raw: normalizedName,
+              vendor_guess_normalized: normalizedName,
+            })
+            .eq('id', sessionIdForResult);
+          return;
+        }
 
-      return NextResponse.json({ error: 'Failed to persist bill scan result' }, { status: 500 });
-    }
+        const { error: scanSessionUpdateError } = await supabase
+          .from('bill_scan_sessions')
+          .update({
+            extraction_status: 'success',
+            document_classification: documentClassification,
+            classification_confidence: overallConfidence,
+            vendor_guess_raw: normalizedName,
+            vendor_guess_normalized: normalizedName,
+            latency_ms: latencyMs,
+          })
+          .eq('id', sessionIdForResult);
 
-    const { error: scanSessionUpdateError } = await supabase
-      .from('bill_scan_sessions')
-      .update({
-        extraction_status: 'success',
-        document_classification: documentClassification,
-        classification_confidence: overallConfidence,
-        vendor_guess_raw: normalizedName,
-        vendor_guess_normalized: normalizedName,
-        latency_ms: latencyMs,
-      })
-      .eq('id', scanSessionId);
-
-    if (scanSessionUpdateError) {
-      console.error('Error updating bill scan session:', scanSessionUpdateError);
-    }
+        if (scanSessionUpdateError) {
+          console.error('Error updating bill scan session:', scanSessionUpdateError);
+        }
+      } catch (telemetryError) {
+        console.error('Deferred bill extraction telemetry failed:', telemetryError);
+      }
+    });
 
     const finalAmountNumber = finalAmount ? Number(finalAmount) : null;
 

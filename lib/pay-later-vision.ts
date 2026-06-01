@@ -26,7 +26,19 @@ import Anthropic from '@anthropic-ai/sdk';
 // MARK: - Exact model ID (hard requirement from Phase 13 spec)
 
 export const PAY_LATER_VISION_MODEL = 'claude-sonnet-4-6' as const;
+// Fast path: when the iOS client has already run on-device OCR and sends
+// usable text, we extract from that text with Claude Haiku and skip the
+// image entirely — no upload, no vision tokens, a much faster model. We
+// fall back to the vision model + image whenever the OCR text is missing
+// or too weak to trust.
+export const PAY_LATER_TEXT_MODEL = 'claude-haiku-4-5-20251001' as const;
 export const PAY_LATER_SCANNER_VERSION = '2026.05.24-vision-v1' as const;
+
+// Minimum on-device OCR text we trust enough to skip the image. Below
+// this length, or with no digits at all (a plan always has amounts and
+// dates), we keep the image and use the vision model so a weak OCR never
+// silently degrades extraction.
+const MIN_OCR_TEXT_CHARS = 40;
 
 // MARK: - Public types
 //
@@ -77,7 +89,9 @@ export interface PayLaterInstallment {
 
 export interface PayLaterScanResult {
   scanVersion: string;
-  model: typeof PAY_LATER_VISION_MODEL;
+  // Either PAY_LATER_VISION_MODEL (image path) or PAY_LATER_TEXT_MODEL
+  // (on-device-OCR fast path), recorded for telemetry.
+  model: string;
   sourceType: PayLaterSourceType;
   providerName: string | null;
   providerNormalized: PayLaterProviderNormalized | null;
@@ -113,6 +127,12 @@ export interface PayLaterVisionInput {
   screenshots: PayLaterImage[];
   timezone: string;     // e.g. "America/Chicago"
   currentDate: string;  // YYYY-MM-DD in the user's timezone
+  /**
+   * On-device OCR text extracted from the screenshot(s) by the client.
+   * When present and usable, the scanner skips the image(s) and extracts
+   * from this text with Haiku. Optional — omit to force the vision path.
+   */
+  ocrText?: string | null;
 }
 
 export type PayLaterVisionFailureReason =
@@ -278,9 +298,34 @@ RULES:
 
 All amounts MUST be integer cents (e.g. $37.00 → 3700). All dates MUST be YYYY-MM-DD.`;
 
-function buildUserPrompt(input: PayLaterVisionInput): string {
+/**
+ * Is the client-supplied OCR text trustworthy enough to skip the image?
+ * A real Pay Later plan always shows amounts and dates, so we require a
+ * minimum length AND at least one digit before taking the text-only path.
+ */
+function hasUsableOcrText(text: string | null | undefined): text is string {
+  if (typeof text !== 'string') return false;
+  const trimmed = text.trim();
+  return trimmed.length >= MIN_OCR_TEXT_CHARS && /\d/.test(trimmed);
+}
+
+function buildUserPrompt(input: PayLaterVisionInput, mode: 'image' | 'text'): string {
+  const header = `Current date: ${input.currentDate} (${input.timezone}).`;
+  if (mode === 'text') {
+    return [
+      header,
+      'The text below was extracted on-device (OCR) from the user\'s Pay Later',
+      'screenshot(s). Treat it as the full screenshot contents. If several',
+      'screenshots were concatenated, merge the evidence into ONE plan.',
+      'Call the extract_pay_later_plan tool with the structured plan.',
+      '',
+      '--- BEGIN EXTRACTED TEXT ---',
+      (input.ocrText ?? '').trim(),
+      '--- END EXTRACTED TEXT ---',
+    ].join('\n');
+  }
   return [
-    `Current date: ${input.currentDate} (${input.timezone}).`,
+    header,
     `Number of screenshots: ${input.screenshots.length}.`,
     'Extract the Pay Later / BNPL installment plan from these screenshots.',
     'If they describe the same plan, merge the evidence into ONE result.',
@@ -324,9 +369,9 @@ const MAX_SCREENSHOTS = 8;
  * call the tool.
  */
 export async function scanPayLaterPlan(input: PayLaterVisionInput): Promise<PayLaterVisionResponse> {
-  if (input.screenshots.length === 0) {
-    return { ok: false, reason: 'no_images', message: 'At least one screenshot is required.' };
-  }
+  // Text-first: trust the client's on-device OCR when it's substantial.
+  const useTextPath = hasUsableOcrText(input.ocrText);
+
   if (input.screenshots.length > MAX_SCREENSHOTS) {
     return {
       ok: false,
@@ -334,34 +379,54 @@ export async function scanPayLaterPlan(input: PayLaterVisionInput): Promise<PayL
       message: `Up to ${MAX_SCREENSHOTS} screenshots per scan.`,
     };
   }
-
-  const parsedImages: ParsedImage[] = [];
-  for (const img of input.screenshots) {
-    const parsed = parseDataURL(img.dataURL);
-    if (!parsed) {
-      return {
-        ok: false,
-        reason: 'image_decode_failed',
-        message: 'One or more screenshots could not be decoded as a base64 image data URL.',
-      };
-    }
-    parsedImages.push(parsed);
+  // Need something to read from — usable OCR text or at least one image.
+  if (!useTextPath && input.screenshots.length === 0) {
+    return {
+      ok: false,
+      reason: 'no_images',
+      message: 'At least one screenshot (or usable OCR text) is required.',
+    };
   }
 
-  const imageBlocks = parsedImages.map((p) => ({
-    type: 'image' as const,
-    source: { type: 'base64' as const, media_type: p.mediaType, data: p.base64 },
-  }));
+  let model: string;
+  let maxTokens: number;
+  let messages: Anthropic.MessageParam[];
 
-  const messages: Anthropic.MessageParam[] = [
-    {
-      role: 'user',
-      content: [
-        ...imageBlocks,
-        { type: 'text', text: buildUserPrompt(input) },
-      ],
-    },
-  ];
+  if (useTextPath) {
+    // Fast path: extract from on-device OCR text with Haiku. No image is
+    // decoded or sent, so this skips the upload and all vision tokens.
+    model = PAY_LATER_TEXT_MODEL;
+    maxTokens = 1536;
+    messages = [
+      { role: 'user', content: [{ type: 'text', text: buildUserPrompt(input, 'text') }] },
+    ];
+  } else {
+    // Fallback path: send the image(s) to the vision model, unchanged.
+    const parsedImages: ParsedImage[] = [];
+    for (const img of input.screenshots) {
+      const parsed = parseDataURL(img.dataURL);
+      if (!parsed) {
+        return {
+          ok: false,
+          reason: 'image_decode_failed',
+          message: 'One or more screenshots could not be decoded as a base64 image data URL.',
+        };
+      }
+      parsedImages.push(parsed);
+    }
+    const imageBlocks = parsedImages.map((p) => ({
+      type: 'image' as const,
+      source: { type: 'base64' as const, media_type: p.mediaType, data: p.base64 },
+    }));
+    model = PAY_LATER_VISION_MODEL;
+    maxTokens = 4096;
+    messages = [
+      {
+        role: 'user',
+        content: [...imageBlocks, { type: 'text', text: buildUserPrompt(input, 'image') }],
+      },
+    ];
+  }
 
   const startedAt = Date.now();
   try {
@@ -370,8 +435,8 @@ export async function scanPayLaterPlan(input: PayLaterVisionInput): Promise<PayL
     // `input_schema` literal we declared above doesn't trip the
     // wider SDK types.
     const response = await getAnthropic().messages.create({
-      model: PAY_LATER_VISION_MODEL,
-      max_tokens: 4096,
+      model,
+      max_tokens: maxTokens,
       system: SYSTEM_PROMPT,
       tools: [TOOL_SCHEMA as unknown as Anthropic.Tool],
       tool_choice: { type: 'tool', name: TOOL_NAME } as unknown as Anthropic.MessageCreateParams['tool_choice'],
@@ -380,7 +445,7 @@ export async function scanPayLaterPlan(input: PayLaterVisionInput): Promise<PayL
 
     const toolUse = response.content.find((c) => c.type === 'tool_use');
     if (toolUse && toolUse.type === 'tool_use' && toolUse.name === TOOL_NAME) {
-      const raw = normalizeToolInputToResult(toolUse.input);
+      const raw = normalizeToolInputToResult(toolUse.input, model);
       return { ok: true, raw, latencyMs: Date.now() - startedAt };
     }
 
@@ -404,7 +469,7 @@ export async function scanPayLaterPlan(input: PayLaterVisionInput): Promise<PayL
 // strict shape with safe defaults so downstream code can trust the
 // types. Anything the model omits gets filled with sensible nulls.
 
-function normalizeToolInputToResult(input: unknown): PayLaterScanResult {
+function normalizeToolInputToResult(input: unknown, model: string): PayLaterScanResult {
   const obj = (input ?? {}) as Record<string, unknown>;
 
   const installments = Array.isArray(obj.installments)
@@ -413,7 +478,7 @@ function normalizeToolInputToResult(input: unknown): PayLaterScanResult {
 
   return {
     scanVersion: PAY_LATER_SCANNER_VERSION,
-    model: PAY_LATER_VISION_MODEL,
+    model,
     sourceType: enumOrFallback<PayLaterSourceType>(
       obj.sourceType,
       ['email', 'app', 'browser', 'merchant_order_page', 'mixed', 'unknown'],
