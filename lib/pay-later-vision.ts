@@ -1,5 +1,5 @@
 /**
- * Pay Later vision scanner — Claude Sonnet 4.6 with tool-use forcing.
+ * Pay Later vision scanner — Claude Sonnet 4 (vision) with tool-use forcing.
  *
  * This is the dedicated extractor for BNPL / Pay Later screenshots. It
  * is intentionally separate from the bill-scan pipeline:
@@ -18,14 +18,21 @@
  * extraction as a tool-call input — no assistant prefill, no
  * unstructured natural-language parsing.
  *
- * Model: `claude-sonnet-4-6` (hard requirement — do not change).
+ * Image (vision) fallback model: `claude-sonnet-4-20250514` — the dated
+ * Sonnet 4 ID pinned across the whole app. The on-device-OCR fast path
+ * extracts from text with Haiku (`PAY_LATER_TEXT_MODEL`).
  */
 
 import Anthropic from '@anthropic-ai/sdk';
 
-// MARK: - Exact model ID (hard requirement from Phase 13 spec)
+// MARK: - Model IDs
 
-export const PAY_LATER_VISION_MODEL = 'claude-sonnet-4-6' as const;
+// Image (vision) fallback model. Pinned to the dated Sonnet 4 ID used
+// everywhere else in the app. The prior `claude-sonnet-4-6` alias is NOT
+// a recognized model ID in our Anthropic SDK (@anthropic-ai/sdk 0.71.2
+// knows claude-sonnet-4-0 / -20250514 / -5 / -5-20250929, not -4-6), so
+// the fallback path would have failed at runtime on any weak-OCR scan.
+export const PAY_LATER_VISION_MODEL = 'claude-sonnet-4-20250514' as const;
 // Fast path: when the iOS client has already run on-device OCR and sends
 // usable text, we extract from that text with Claude Haiku and skip the
 // image entirely — no upload, no vision tokens, a much faster model. We
