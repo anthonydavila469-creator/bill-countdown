@@ -28,11 +28,14 @@ export async function GET(request: Request, { params }: RouteParams) {
       );
     }
 
-    // Fetch bill (RLS ensures user can only see their own)
+    // Scope to the authenticated user. The Bearer path uses the
+    // service-role client (RLS bypassed), so we MUST filter by user_id
+    // here — never rely on RLS for ownership on this route.
     const { data: bill, error } = await supabase
       .from('bills')
       .select('*')
       .eq('id', id)
+      .eq('user_id', user.id)
       .single();
 
     if (error) {
@@ -98,7 +101,9 @@ export async function PUT(request: Request, { params }: RouteParams) {
       }
     }
 
-    // Update bill (RLS ensures user can only update their own)
+    // Scope the update to the authenticated user. The Bearer path uses
+    // the service-role client (RLS bypassed), so this user_id filter is
+    // what prevents updating another user's bill.
     const { data: bill, error } = await supabase
       .from('bills')
       .update({
@@ -122,6 +127,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
         icon_key: body.icon_key,
       })
       .eq('id', id)
+      .eq('user_id', user.id)
       .select()
       .single();
 
@@ -179,16 +185,17 @@ export async function DELETE(request: Request, { params }: RouteParams) {
       );
     }
 
-    // Cancel any pending notifications for this bill (fire and forget)
-    cancelNotificationsForBill(id).catch(err => {
-      console.error('Failed to cancel notifications for deleted bill:', err);
-    });
-
-    // Delete bill (RLS ensures user can only delete their own)
-    const { error } = await supabase
+    // Scope the delete to the authenticated user and confirm a row was
+    // actually removed. The Bearer path uses the service-role client
+    // (RLS bypassed), so this user_id filter is what prevents deleting
+    // another user's bill; .select() lets us 404 when nothing matched
+    // instead of reporting a misleading success.
+    const { data: deleted, error } = await supabase
       .from('bills')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .select('id');
 
     if (error) {
       console.error('Error deleting bill:', error);
@@ -197,6 +204,20 @@ export async function DELETE(request: Request, { params }: RouteParams) {
         { status: 500 }
       );
     }
+
+    if (!deleted || deleted.length === 0) {
+      return NextResponse.json(
+        { error: 'Bill not found' },
+        { status: 404 }
+      );
+    }
+
+    // Only after confirming the user owned and deleted the bill do we
+    // cancel its notifications — prevents cancelling another user's
+    // notifications by passing their bill id. Fire and forget.
+    cancelNotificationsForBill(id).catch(err => {
+      console.error('Failed to cancel notifications for deleted bill:', err);
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {
