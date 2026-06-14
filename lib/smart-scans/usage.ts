@@ -5,6 +5,8 @@ import type {
   SmartScanUsageEvent,
   SmartScanUsageStatus,
 } from './quota';
+import * as quota from './quota.ts';
+import { createAdminClient } from '../supabase/admin.ts';
 
 const SMART_SCAN_USAGE_TABLE = 'smart_scan_usage_events';
 
@@ -99,7 +101,7 @@ interface SupabaseQueryLike extends PromiseLike<QueryResponse<unknown[]>> {
   single(): Promise<QueryResponse<unknown>>;
 }
 type QueryResponse<T> = { data: T | null; error: { message?: string; code?: string } | null };
-type QuotaModule = typeof import('./quota');
+type QuotaModule = typeof quota;
 
 export async function loadSmartScanSubscriptionState(
   userId: string,
@@ -439,12 +441,9 @@ function compactRecord<T extends Record<string, unknown>>(record: T): Partial<T>
 }
 
 async function loadQuotaModule(): Promise<QuotaModule> {
-  const quotaModulePath = './quota.ts';
-  return import(quotaModulePath) as Promise<QuotaModule>;
+  return quota;
 }
 
 async function createServiceRoleClient(): Promise<SupabaseLike> {
-  const adminModulePath = '../supabase/admin.ts';
-  const { createAdminClient } = await import(adminModulePath) as typeof import('../supabase/admin');
   return createAdminClient() as unknown as SupabaseLike;
 }

@@ -21,6 +21,13 @@ import {
 } from '@/lib/bill-scan-v2-extract';
 import { postProcessBillScanV2 } from '@/lib/bill-scan-v2-postprocess';
 import {
+  chargeSmartScanUsageEvent,
+  finishChargedSmartScanUsageEvent,
+  releaseSmartScanUsageEvent,
+  reserveSmartScanUsage,
+  type SmartScanUsageEventRow,
+} from '@/lib/smart-scans/usage';
+import {
   classifyAndExtractPayLater,
   parseScanPurpose,
   wantsV3Response,
@@ -168,6 +175,9 @@ async function ensureBillScansBucket(adminSupabase: ReturnType<typeof createAdmi
 
 export async function POST(request: Request) {
   let scanSessionId: string | null = null;
+  let smartScanUsageEvent: SmartScanUsageEventRow | null = null;
+  let smartScanCharged = false;
+  let authenticatedUserId: string | null = null;
   // Hoisted so the catch-all can return a graceful 200 body shaped for
   // the version of the response the caller asked for (v1 / v2 / v3),
   // even when the v1 extraction itself fails.
@@ -183,6 +193,7 @@ export async function POST(request: Request) {
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    authenticatedUserId = user.id;
 
     if (isRateLimited(`bill-scan:${user.id}`, 10, 60_000)) {
       return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
@@ -236,6 +247,20 @@ export async function POST(request: Request) {
     const imageBuffer = Buffer.from(base64Data, 'base64');
     const fileSizeBytes = imageBuffer.byteLength;
     const { width: imageWidth, height: imageHeight } = getImageDimensions(imageBuffer, mediaType);
+    const usageReservation = await reserveSmartScanUsage({
+      userId: user.id,
+      scanKind: 'bill',
+      route: '/api/bills/scan',
+      imageCount: 1,
+      fileSizeBytes,
+      modelProvider: 'anthropic',
+      modelName,
+    });
+
+    if (!usageReservation.ok) {
+      return NextResponse.json(usageReservation.limitResponse, { status: 403 });
+    }
+    smartScanUsageEvent = usageReservation.event;
 
     const { data: scanSession, error: scanSessionError } = await supabase
       .from('bill_scan_sessions')
@@ -255,6 +280,7 @@ export async function POST(request: Request) {
 
     if (scanSessionError || !scanSession) {
       console.error('Error creating bill scan session:', scanSessionError);
+      await releaseReservedSmartScan('bill_scan_session_failed');
       return NextResponse.json({ error: 'Failed to initialize bill scan' }, { status: 500 });
     }
 
@@ -283,6 +309,7 @@ export async function POST(request: Request) {
         })
         .eq('id', scanSessionId);
 
+      await releaseReservedSmartScan('image_upload_failed');
       return NextResponse.json({ error: 'Failed to store bill scan image' }, { status: 500 });
     }
 
@@ -303,6 +330,7 @@ export async function POST(request: Request) {
         })
         .eq('id', scanSessionId);
 
+      await releaseReservedSmartScan('image_path_update_failed');
       return NextResponse.json({ error: 'Failed to persist bill scan metadata' }, { status: 500 });
     }
 
@@ -315,6 +343,9 @@ export async function POST(request: Request) {
     }
 
     const startedAt = Date.now();
+    await chargeSmartScan('model_call_started', {
+      billScanSessionId: scanSessionId,
+    });
 
     const response = await getAnthropic().messages.create({
       model: modelName,
@@ -387,6 +418,10 @@ Rules:
         })
         .eq('id', scanSessionId);
 
+      await finishChargedSmartScan('empty_model_response', {
+        billScanSessionId: scanSessionId,
+        latencyMs,
+      });
       return NextResponse.json({
         scan_session_id: scanSessionId,
         name: null,
@@ -554,6 +589,10 @@ Rules:
         })
         .eq('id', scanSessionId);
 
+      await finishChargedSmartScan('extraction_result_insert_failed', {
+        billScanSessionId: scanSessionId,
+        latencyMs,
+      });
       return NextResponse.json({ error: 'Failed to persist bill scan result' }, { status: 500 });
     }
 
@@ -700,6 +739,10 @@ Rules:
       }
     }
 
+    await finishChargedSmartScan(null, {
+      billScanSessionId: scanSessionId,
+      latencyMs,
+    });
     return NextResponse.json(responseBody);
   } catch (error) {
     console.error('Bill scan error:', error);
@@ -719,6 +762,17 @@ Rules:
       }
     }
 
+    const diagnostic = error instanceof Error ? error.name : 'unknown_error';
+    if (smartScanUsageEvent && authenticatedUserId) {
+      if (smartScanCharged) {
+        await finishChargedSmartScan(diagnostic, {
+          billScanSessionId: scanSessionId,
+        });
+      } else {
+        await releaseReservedSmartScan(diagnostic);
+      }
+    }
+
     // Phase-12 hardening: return a 200 with safe nulls + a diagnostic
     // warning instead of a hard 500. The iOS client decodes the body
     // and shows the friendly "couldn't read" review state with an
@@ -732,7 +786,7 @@ Rules:
     //     Manually" surface.
     const includeV2Fallback = wantsV2Response(request.url, capturedRequestBody);
     const includeV3Fallback = wantsV3Response(request.url, capturedRequestBody);
-    const diagnostic = error instanceof Error ? `${error.name}: ${error.message}` : 'unknown_error';
+    const warningDiagnostic = error instanceof Error ? `${error.name}: ${error.message}` : 'unknown_error';
 
     const safeBody: Record<string, unknown> = {
       scan_session_id: scanSessionId,
@@ -740,7 +794,7 @@ Rules:
       amount: null,
       due_date: null,
       is_bill: false,
-      warnings: [`scan_failed: ${diagnostic}`],
+      warnings: [`scan_failed: ${warningDiagnostic}`],
     };
     if (includeV2Fallback || includeV3Fallback) {
       safeBody.v2 = null;
@@ -751,5 +805,50 @@ Rules:
     }
 
     return NextResponse.json(safeBody);
+  }
+
+  async function releaseReservedSmartScan(errorCode: string) {
+    if (!smartScanUsageEvent || !authenticatedUserId) return;
+    try {
+      await releaseSmartScanUsageEvent({
+        userId: authenticatedUserId,
+        eventId: smartScanUsageEvent.id,
+        errorCode,
+        billScanSessionId: scanSessionId,
+      });
+    } catch (usageError) {
+      console.error('Failed to release Smart Scan usage:', usageError);
+    }
+  }
+
+  async function chargeSmartScan(chargeReason: string, metadata: { billScanSessionId?: string | null }) {
+    if (!smartScanUsageEvent || !authenticatedUserId || smartScanCharged) return;
+    smartScanUsageEvent = await chargeSmartScanUsageEvent({
+      userId: authenticatedUserId,
+      eventId: smartScanUsageEvent.id,
+      modelProvider: 'anthropic',
+      modelName: 'claude-sonnet-4-20250514',
+      chargeReason,
+      billScanSessionId: metadata.billScanSessionId ?? null,
+    });
+    smartScanCharged = true;
+  }
+
+  async function finishChargedSmartScan(
+    errorCode: string | null,
+    metadata: { billScanSessionId?: string | null; latencyMs?: number | null },
+  ) {
+    if (!smartScanUsageEvent || !authenticatedUserId || !smartScanCharged) return;
+    try {
+      smartScanUsageEvent = await finishChargedSmartScanUsageEvent({
+        userId: authenticatedUserId,
+        eventId: smartScanUsageEvent.id,
+        errorCode,
+        billScanSessionId: metadata.billScanSessionId ?? null,
+        latencyMs: metadata.latencyMs ?? null,
+      });
+    } catch (usageError) {
+      console.error('Failed to finish Smart Scan usage:', usageError);
+    }
   }
 }

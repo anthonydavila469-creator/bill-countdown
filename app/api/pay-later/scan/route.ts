@@ -32,6 +32,13 @@ import {
 import { isRateLimited } from '@/lib/rate-limit';
 import { createClient } from '@/lib/supabase/server';
 import {
+  chargeSmartScanUsageEvent,
+  finishChargedSmartScanUsageEvent,
+  releaseSmartScanUsageEvent,
+  reserveSmartScanUsage,
+  type SmartScanUsageEventRow,
+} from '@/lib/smart-scans/usage';
+import {
   PAY_LATER_SCANNER_VERSION,
   PAY_LATER_VISION_MODEL,
   scanPayLaterPlan,
@@ -48,6 +55,10 @@ const MAX_IMAGES_PER_SCAN = 8;
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
 export async function POST(request: Request) {
+  let smartScanUsageEvent: SmartScanUsageEventRow | null = null;
+  let smartScanCharged = false;
+  let authenticatedUserId: string | null = null;
+
   try {
     const auth = await getAuthenticatedUser(request);
     const { user, method } = auth;
@@ -55,6 +66,7 @@ export async function POST(request: Request) {
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    authenticatedUserId = user.id;
     if (isRateLimited(`pay-later-scan:${user.id}`, 10, 60_000)) {
       return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
     }
@@ -88,6 +100,30 @@ export async function POST(request: Request) {
       }
       screenshots.push({ dataURL: img });
     }
+
+    const usageReservation = await reserveSmartScanUsage({
+      userId: user.id,
+      scanKind: 'pay_later',
+      route: '/api/pay-later/scan',
+      imageCount: screenshots.length,
+      modelProvider: 'anthropic',
+      modelName: PAY_LATER_VISION_MODEL,
+    });
+
+    if (!usageReservation.ok) {
+      return NextResponse.json(usageReservation.limitResponse, { status: 403 });
+    }
+    smartScanUsageEvent = usageReservation.event;
+
+    smartScanUsageEvent = await chargeSmartScanUsageEvent({
+      userId: user.id,
+      eventId: smartScanUsageEvent.id,
+      modelProvider: 'anthropic',
+      modelName: PAY_LATER_VISION_MODEL,
+      chargeReason: 'model_call_started',
+      imageCount: screenshots.length,
+    });
+    smartScanCharged = true;
 
     const scanResult = await scanPayLaterPlan({
       userId: user.id,
@@ -126,6 +162,12 @@ export async function POST(request: Request) {
       providerNormalized: validated.providerNormalized,
     });
 
+    await finishSmartScanUsage({
+      payLaterScanAttemptId: attemptId,
+      latencyMs,
+      errorCode: visionError ? 'vision_failed' : null,
+    });
+
     // `...validated` already carries `model` + `scanVersion` +
     // `validatorVersion` — don't re-specify them here or TypeScript
     // flags them as duplicate keys.
@@ -135,6 +177,22 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error('Pay Later scan route error:', error);
+    const errorCode = error instanceof Error ? error.name : 'unknown_error';
+    if (smartScanUsageEvent && authenticatedUserId) {
+      if (smartScanCharged) {
+        await finishSmartScanUsage({ errorCode });
+      } else {
+        try {
+          await releaseSmartScanUsageEvent({
+            userId: authenticatedUserId,
+            eventId: smartScanUsageEvent.id,
+            errorCode,
+          });
+        } catch (usageError) {
+          console.error('Failed to release Smart Scan usage:', usageError);
+        }
+      }
+    }
     // Never throw a 500 to the iOS client — return the unreadable
     // shape so the review sheet always opens.
     const fallback = validatePayLaterScan(
@@ -146,6 +204,26 @@ export async function POST(request: Request) {
       scanAttemptId: null,
       ...fallback,
     });
+  }
+
+  async function finishSmartScanUsage(metadata: {
+    payLaterScanAttemptId?: string | null;
+    latencyMs?: number | null;
+    errorCode?: string | null;
+  }) {
+    if (!smartScanUsageEvent || !authenticatedUserId || !smartScanCharged) return;
+    try {
+      smartScanUsageEvent = await finishChargedSmartScanUsageEvent({
+        userId: authenticatedUserId,
+        eventId: smartScanUsageEvent.id,
+        errorCode: metadata.errorCode ?? null,
+        imageCount: null,
+        latencyMs: metadata.latencyMs ?? null,
+        payLaterScanAttemptId: metadata.payLaterScanAttemptId ?? null,
+      });
+    } catch (usageError) {
+      console.error('Failed to finish Smart Scan usage:', usageError);
+    }
   }
 }
 
