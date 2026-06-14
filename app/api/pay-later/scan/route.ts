@@ -30,6 +30,7 @@ import {
   getAuthenticatedUser,
 } from '@/lib/auth/get-authenticated-user';
 import { isRateLimited } from '@/lib/rate-limit';
+import { logScanError } from '@/lib/scan-error-codes';
 import { createClient } from '@/lib/supabase/server';
 import {
   chargeSmartScanUsageEvent,
@@ -140,7 +141,10 @@ export async function POST(request: Request) {
       raw = scanResult.raw;
       latencyMs = scanResult.latencyMs;
     } else {
-      visionError = `${scanResult.reason}: ${scanResult.message}`;
+      // P1-6: `scanResult.reason` is a stable, app-owned code (see
+      // scan-error-codes / pay-later-vision). Persist and surface the
+      // code only — never the raw `message`.
+      visionError = scanResult.reason;
       raw = unreadableFallback(visionError);
     }
 
@@ -176,8 +180,9 @@ export async function POST(request: Request) {
       ...validated,
     });
   } catch (error) {
-    console.error('Pay Later scan route error:', error);
-    const errorCode = error instanceof Error ? error.name : 'unknown_error';
+    // P1-6: log raw detail to the controlled server log; classify to a
+    // stable code for telemetry and the client fallback.
+    const errorCode = logScanError('pay-later/scan', error);
     if (smartScanUsageEvent && authenticatedUserId) {
       if (smartScanCharged) {
         await finishSmartScanUsage({ errorCode });
@@ -195,11 +200,7 @@ export async function POST(request: Request) {
     }
     // Never throw a 500 to the iOS client — return the unreadable
     // shape so the review sheet always opens.
-    const fallback = validatePayLaterScan(
-      unreadableFallback(
-        error instanceof Error ? `${error.name}: ${error.message}` : 'unknown error',
-      ),
-    );
+    const fallback = validatePayLaterScan(unreadableFallback(errorCode));
     return NextResponse.json({
       scanAttemptId: null,
       ...fallback,

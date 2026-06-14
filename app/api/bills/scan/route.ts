@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createBearerSupabaseClient, getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
 import { isRateLimited } from '@/lib/rate-limit';
+import { logScanError } from '@/lib/scan-error-codes';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import Anthropic from '@anthropic-ai/sdk';
@@ -745,7 +746,9 @@ Rules:
     });
     return NextResponse.json(responseBody);
   } catch (error) {
-    console.error('Bill scan error:', error);
+    // P1-6: log raw detail to the controlled server log; classify to a
+    // stable, app-owned code for telemetry and the client warning.
+    const errorCode = logScanError('bills/scan', error);
 
     if (scanSessionId) {
       try {
@@ -754,7 +757,7 @@ Rules:
           .from('bill_scan_sessions')
           .update({
             extraction_status: 'failed',
-            error_code: error instanceof Error ? error.name : 'unknown_error',
+            error_code: errorCode,
           })
           .eq('id', scanSessionId);
       } catch (updateError) {
@@ -762,7 +765,7 @@ Rules:
       }
     }
 
-    const diagnostic = error instanceof Error ? error.name : 'unknown_error';
+    const diagnostic = errorCode;
     if (smartScanUsageEvent && authenticatedUserId) {
       if (smartScanCharged) {
         await finishChargedSmartScan(diagnostic, {
@@ -786,7 +789,6 @@ Rules:
     //     Manually" surface.
     const includeV2Fallback = wantsV2Response(request.url, capturedRequestBody);
     const includeV3Fallback = wantsV3Response(request.url, capturedRequestBody);
-    const warningDiagnostic = error instanceof Error ? `${error.name}: ${error.message}` : 'unknown_error';
 
     const safeBody: Record<string, unknown> = {
       scan_session_id: scanSessionId,
@@ -794,7 +796,7 @@ Rules:
       amount: null,
       due_date: null,
       is_bill: false,
-      warnings: [`scan_failed: ${warningDiagnostic}`],
+      warnings: [`scan_failed: ${errorCode}`],
     };
     if (includeV2Fallback || includeV3Fallback) {
       safeBody.v2 = null;

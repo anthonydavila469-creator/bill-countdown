@@ -22,6 +22,11 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
+// `.ts` extension is required: pay-later-vision is loaded at runtime by
+// `node --test` (e.g. pay-later-validator.test.mjs), and Node's
+// type-stripping resolver does not add extensions. `allowImportingTsExtensions`
+// keeps the Next/tsc build happy.
+import { logScanError, scanErrorMessage, type ScanErrorCode } from './scan-error-codes.ts';
 
 // MARK: - Exact model ID (hard requirement from Phase 13 spec)
 
@@ -120,7 +125,9 @@ export type PayLaterVisionFailureReason =
   | 'too_many_images'
   | 'image_decode_failed'
   | 'model_no_tool_call'
-  | 'model_call_failed';
+  // Stable codes from classifyScanError (P1-6) — the catch path maps the
+  // raw model/provider error to one of these instead of leaking text.
+  | ScanErrorCode;
 
 export interface PayLaterVisionFailure {
   ok: false;
@@ -390,10 +397,13 @@ export async function scanPayLaterPlan(input: PayLaterVisionInput): Promise<PayL
       message: 'Model did not invoke the extract_pay_later_plan tool.',
     };
   } catch (error) {
+    // P1-6: never return raw provider/model text. Map to a stable code
+    // (raw detail stays in the controlled server log via logScanError).
+    const code = logScanError('pay-later-vision', error);
     return {
       ok: false,
-      reason: 'model_call_failed',
-      message: error instanceof Error ? `${error.name}: ${error.message}` : 'unknown error',
+      reason: code,
+      message: scanErrorMessage(code),
     };
   }
 }
