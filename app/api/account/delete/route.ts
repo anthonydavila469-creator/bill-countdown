@@ -3,6 +3,10 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
 import { NextResponse } from 'next/server';
 import { isRateLimited } from '@/lib/rate-limit';
+import {
+  BILL_SCANS_BUCKET,
+  removeUserStorageObjects,
+} from '@/lib/account/delete-account-data';
 
 // DELETE /api/account/delete - Permanently delete user account and all data
 export async function DELETE(request: Request) {
@@ -128,7 +132,43 @@ export async function DELETE(request: Request) {
       console.error('Error deleting user preferences:', prefsError);
     }
 
-    // 8. Finally, delete the auth user
+    // 8. Delete scanner telemetry rows (Privacy P1-7). These already cascade
+    // on the auth.users delete below, but deleting them explicitly keeps
+    // account deletion deterministic and lets the verification script prove
+    // zero residual rows even if a cascade is ever loosened. Child rows
+    // (bill_extraction_results, bill_corrections, scan_corrections) cascade
+    // from these parents. Best-effort: a missing table on this project must
+    // not block the deletion.
+    for (const table of ['scan_attempts', 'bill_scan_sessions', 'smart_scan_usage_events']) {
+      const { error: scanErr } = await adminClient
+        .from(table)
+        .delete()
+        .eq('user_id', userId);
+      if (scanErr) {
+        console.error(`Error deleting ${table}:`, scanErr.message);
+      }
+    }
+
+    // 9. Remove raw bill-scan images from Supabase Storage (Privacy P1-1).
+    // An auth.users delete does NOT remove storage objects, so without this
+    // a deleted user's screenshots survive as orphaned private files.
+    // Best-effort: a storage failure is logged but does not block deleting
+    // the auth user, so the account still disappears even if cleanup lags.
+    let storageObjectsRemoved = 0;
+    try {
+      const result = await removeUserStorageObjects(
+        adminClient.storage.from(BILL_SCANS_BUCKET),
+        userId
+      );
+      storageObjectsRemoved = result.removed;
+    } catch (storageError) {
+      console.error(
+        'Error removing bill-scan storage objects:',
+        storageError instanceof Error ? storageError.message : storageError
+      );
+    }
+
+    // 10. Finally, delete the auth user
     const { error: deleteUserError } = await adminClient.auth.admin.deleteUser(userId);
 
     if (deleteUserError) {
@@ -141,7 +181,8 @@ export async function DELETE(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: 'Account deleted successfully'
+      message: 'Account deleted successfully',
+      storage_objects_removed: storageObjectsRemoved,
     });
   } catch (error) {
     console.error('Unexpected error deleting account:', error);
