@@ -1,25 +1,9 @@
-import { createClient } from '@/lib/supabase/server';
-import { clearEmailConnection } from '@/lib/email/tokens';
-import { NextResponse } from 'next/server';
-import { getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
+// Gmail disconnect — DISABLED. Email scanning is not part of the current Duezo
+// product (owner decision 2026-06-14). See lib/email/feature-status.ts and
+// audits/EMAIL_PRIVACY_READINESS.md. Stored tokens are removed by the one-time
+// owner cleanup described in the audit, not through this route.
+import { emailScanningDisabledResponse } from '@/lib/email/feature-status';
 
-export async function POST(request: Request) {
-  try {
-    const supabase = await createClient();
-    const { user } = await getAuthenticatedUser(request);
-
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    await clearEmailConnection(supabase, user.id);
-
-    return NextResponse.json({
-      success: true,
-      message: 'Gmail disconnected successfully',
-    });
-  } catch (error) {
-    console.error('Gmail disconnect error:', error);
-    return NextResponse.json({ error: 'Failed to disconnect Gmail' }, { status: 500 });
-  }
+export async function POST() {
+  return emailScanningDisabledResponse();
 }

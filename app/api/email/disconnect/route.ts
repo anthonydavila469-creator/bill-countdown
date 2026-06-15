@@ -1,25 +1,9 @@
-import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
-import { clearEmailConnection } from '@/lib/email/tokens';
+// Email provider disconnect — DISABLED. Email scanning is not part of the
+// current Duezo product (owner decision 2026-06-14). See
+// lib/email/feature-status.ts and audits/EMAIL_PRIVACY_READINESS.md. Stored
+// tokens are removed by the one-time owner cleanup described in the audit.
+import { emailScanningDisabledResponse } from '@/lib/email/feature-status';
 
-export async function POST(request: Request) {
-  try {
-    const { user } = await getAuthenticatedUser(request);
-    const supabase = await createClient();
-
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    await clearEmailConnection(supabase, user.id);
-
-    return NextResponse.json({
-      success: true,
-      message: 'Email provider disconnected successfully',
-    });
-  } catch (error) {
-    console.error('Email disconnect error:', error);
-    return NextResponse.json({ error: 'Failed to disconnect email provider' }, { status: 500 });
-  }
+export async function POST() {
+  return emailScanningDisabledResponse();
 }

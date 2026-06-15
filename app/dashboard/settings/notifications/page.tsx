@@ -417,7 +417,11 @@ export default function NotificationsSettingsPage() {
             </select>
           </div>
 
-          {/* Auto-Sync Gmail */}
+          {/* Auto-Sync Gmail — hidden: email scanning is not part of the current
+              Duezo product (owner decision 2026-06-14). The mailbox auto-sync
+              cron is disabled; this control is inert. See
+              audits/EMAIL_PRIVACY_READINESS.md. */}
+          {false && (
           <div className="flex items-center justify-between p-4 bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.06] rounded-2xl transition-all">
             <div className="flex items-center gap-4">
               <div className="p-2.5 rounded-xl bg-white/[0.04]">
@@ -438,6 +442,7 @@ export default function NotificationsSettingsPage() {
               />
             </div>
           </div>
+          )}
 
           {/* Info */}
           <div className="p-4 rounded-xl bg-violet-500/[0.03] border border-violet-500/10">
