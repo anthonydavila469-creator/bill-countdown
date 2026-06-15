@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
-import { createAdminClient } from '@/lib/supabase/admin';
 import { NextResponse } from 'next/server';
-import { getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
+import { createBearerSupabaseClient, getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
 import { scheduleNotificationsForBillWithSettings, cancelNotificationsForBill } from '@/lib/notifications/scheduler';
 import type { Bill, BillCategory } from '@/types';
 
@@ -18,8 +17,9 @@ interface RouteParams {
 export async function GET(request: Request, { params }: RouteParams) {
   try {
     const { id } = await params;
-    const { user, method } = await getAuthenticatedUser(request);
-    const supabase = method === 'bearer' ? createAdminClient() : await createClient();
+    const auth = await getAuthenticatedUser(request);
+    const { user, method } = auth;
+    const supabase = method === 'bearer' ? createBearerSupabaseClient(auth) : await createClient();
 
     if (!user) {
       return NextResponse.json(
@@ -28,11 +28,13 @@ export async function GET(request: Request, { params }: RouteParams) {
       );
     }
 
-    // Fetch bill (RLS ensures user can only see their own)
+    // Fetch bill. Owner-scoped: bearer requests may use a service-role client,
+    // so we never rely on RLS alone — always filter by user_id.
     const { data: bill, error } = await supabase
       .from('bills')
       .select('*')
       .eq('id', id)
+      .eq('user_id', user.id)
       .single();
 
     if (error) {
@@ -63,8 +65,9 @@ export async function GET(request: Request, { params }: RouteParams) {
 export async function PUT(request: Request, { params }: RouteParams) {
   try {
     const { id } = await params;
-    const { user, method } = await getAuthenticatedUser(request);
-    const supabase = method === 'bearer' ? createAdminClient() : await createClient();
+    const auth = await getAuthenticatedUser(request);
+    const { user, method } = auth;
+    const supabase = method === 'bearer' ? createBearerSupabaseClient(auth) : await createClient();
 
     if (!user) {
       return NextResponse.json(
@@ -98,7 +101,8 @@ export async function PUT(request: Request, { params }: RouteParams) {
       }
     }
 
-    // Update bill (RLS ensures user can only update their own)
+    // Update bill. Owner-scoped: bearer requests may use a service-role client,
+    // so we never rely on RLS alone — always filter by user_id.
     const { data: bill, error } = await supabase
       .from('bills')
       .update({
@@ -142,6 +146,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
         detected_subject_text: body.detected_subject_text,
       })
       .eq('id', id)
+      .eq('user_id', user.id)
       .select()
       .single();
 
@@ -189,8 +194,9 @@ export async function PUT(request: Request, { params }: RouteParams) {
 export async function DELETE(request: Request, { params }: RouteParams) {
   try {
     const { id } = await params;
-    const { user, method } = await getAuthenticatedUser(request);
-    const supabase = method === 'bearer' ? createAdminClient() : await createClient();
+    const auth = await getAuthenticatedUser(request);
+    const { user, method } = auth;
+    const supabase = method === 'bearer' ? createBearerSupabaseClient(auth) : await createClient();
 
     if (!user) {
       return NextResponse.json(
@@ -199,16 +205,16 @@ export async function DELETE(request: Request, { params }: RouteParams) {
       );
     }
 
-    // Cancel any pending notifications for this bill (fire and forget)
-    cancelNotificationsForBill(id).catch(err => {
-      console.error('Failed to cancel notifications for deleted bill:', err);
-    });
-
-    // Delete bill (RLS ensures user can only delete their own)
-    const { error } = await supabase
+    // Delete bill. Owner-scoped: bearer requests may use a service-role client,
+    // so we never rely on RLS alone — always filter by user_id. `.select()`
+    // lets us tell an owned delete from a no-op so we only cancel notifications
+    // (and only return success) when this user actually owned the bill.
+    const { data: deleted, error } = await supabase
       .from('bills')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .select('id');
 
     if (error) {
       console.error('Error deleting bill:', error);
@@ -217,6 +223,19 @@ export async function DELETE(request: Request, { params }: RouteParams) {
         { status: 500 }
       );
     }
+
+    if (!deleted || deleted.length === 0) {
+      return NextResponse.json(
+        { error: 'Bill not found' },
+        { status: 404 }
+      );
+    }
+
+    // Cancel any pending notifications now that the owned bill is gone
+    // (fire and forget).
+    cancelNotificationsForBill(id).catch(err => {
+      console.error('Failed to cancel notifications for deleted bill:', err);
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {
