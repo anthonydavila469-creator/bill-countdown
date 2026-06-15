@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server';
 import { DEFAULT_NOTIFICATION_SETTINGS, type Bill, type NotificationSettings, type ReminderPreference } from '@/types';
 import { scheduleNotificationsForBill } from '@/lib/notifications/scheduler';
 import { generateInAppReminders } from '@/lib/notifications/generate-reminders';
+import { devLog } from '@/lib/log/dev-log';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -121,7 +122,8 @@ export async function PUT(request: Request) {
     }
 
     const body = await request.json() as Partial<NotificationSettings>;
-    console.log('[notifications/settings][PUT] auth user:', user.id, 'body:', body);
+    // user id + notification preference body are sensitive — dev-only.
+    devLog('[notifications/settings][PUT] auth user:', user.id, 'body:', body);
 
     const { data: existing } = await supabase
       .from('user_preferences')
@@ -191,7 +193,7 @@ export async function PUT(request: Request) {
         .select('notification_settings')
         .single();
 
-      console.log('[notifications/settings][PUT] insert fallback result:', { insertedPreferences, insertError });
+      devLog('[notifications/settings][PUT] insert fallback result:', { insertedPreferences, insertError });
 
       if (insertError) {
         console.error('Error inserting notification settings:', insertError);
@@ -204,7 +206,7 @@ export async function PUT(request: Request) {
       preferences = insertedPreferences;
     }
 
-    console.log('[notifications/settings][PUT] save result:', { preferences });
+    devLog('[notifications/settings][PUT] save result:', { preferences });
 
     const responseSettings = normalizeNotificationSettings(
       (preferences?.notification_settings as Partial<NotificationSettings> | null | undefined) ?? newSettings
@@ -242,7 +244,7 @@ export async function PUT(request: Request) {
       console.error('[notifications/settings][PUT] post-save resync failed:', resyncError);
     }
 
-    console.log('[notifications/settings][PUT] response payload:', responseSettings);
+    devLog('[notifications/settings][PUT] response payload:', responseSettings);
 
     return NextResponse.json(responseSettings, {
       headers: {

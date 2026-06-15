@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { generateInAppReminders } from '@/lib/notifications/generate-reminders';
+import { cronAuthGuard } from '@/lib/auth/cron-auth';
 import type { Bill } from '@/types';
 
 /**
@@ -14,13 +15,11 @@ import type { Bill } from '@/types';
  */
 export async function POST(request: Request) {
   try {
-    // Verify cron secret
-    const authHeader = request.headers.get('authorization');
-    const expectedToken = `Bearer ${process.env.CRON_SECRET}`;
+    // Verify cron secret (fails closed if CRON_SECRET is missing)
+    const denied = cronAuthGuard(request);
+    if (denied) return denied;
 
-    if (!authHeader || authHeader !== expectedToken) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const authHeader = request.headers.get('authorization')!;
 
     const results: { reminders?: unknown; inAppReminders?: unknown; errors: string[] } = {
       errors: [],
@@ -83,12 +82,8 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
-  const authHeader = request.headers.get('authorization');
-  const expectedToken = `Bearer ${process.env.CRON_SECRET}`;
-
-  if (!authHeader || authHeader !== expectedToken) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const denied = cronAuthGuard(request);
+  if (denied) return denied;
 
   return NextResponse.json({
     message: 'Daily tasks cron - combines reminders + in-app feed generation',

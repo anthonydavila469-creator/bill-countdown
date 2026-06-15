@@ -4,6 +4,7 @@ import { getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
 import { ParsedBill, categoryEmojis, BillCategory } from '@/types';
 import { getFallbackPaymentUrl, isValidPaymentUrl } from '@/lib/vendor-payment-urls';
 import { getEmailConnection } from '@/lib/email/tokens';
+import { devLog } from '@/lib/log/dev-log';
 
 // POST /api/bills/import - Import multiple parsed bills
 export async function POST(request: Request) {
@@ -19,7 +20,9 @@ export async function POST(request: Request) {
     const body = await request.json();
     const parsedBills: ParsedBill[] = body.bills;
 
-    console.log('Received bills to import:', JSON.stringify(parsedBills, null, 2));
+    // Raw bill payloads (names, amounts, due dates, payment URLs) are sensitive
+    // — never log them in production.
+    devLog('Received bills to import:', JSON.stringify(parsedBills, null, 2));
 
     if (!parsedBills || !Array.isArray(parsedBills) || parsedBills.length === 0) {
       console.error('No bills provided or invalid format');
@@ -84,7 +87,7 @@ export async function POST(request: Request) {
       notes: null,
     }));
 
-    console.log('Bills to insert:', JSON.stringify(billsToInsert, null, 2));
+    devLog('Bills to insert:', JSON.stringify(billsToInsert, null, 2));
 
     // Insert bills into database
     const { data: insertedBills, error: insertError } = await supabase
