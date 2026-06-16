@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowRight, Check, X, Shield, Zap, Mail, Clock } from 'lucide-react';
+import { ArrowRight, Check, X, Shield, Zap, Clock } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Best Prism App Alternative in 2026 | Duezo',
   description:
-    'Prism shut down in December 2023. Duezo is the best Prism alternative — AI-powered bill tracking with countdown timers, Gmail scanning, and no bank linking required. $4.99/mo.',
+    'Prism shut down in December 2023. Duezo is the best Prism alternative — bill tracking with countdown timers, Quick Add, photo scan, and no bank linking required. $3.99/mo.',
   keywords: [
     'prism app alternative',
     'prism replacement',
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Best Prism App Alternative in 2026 | Duezo',
     description:
-      'Prism shut down in Dec 2023. Duezo picks up where Prism left off — AI bill tracking, countdown timers, no bank linking.',
+      'Prism shut down in Dec 2023. Duezo picks up where Prism left off — countdown timers, Quick Add, photo scan, no bank linking.',
     url: 'https://duezo.app/prism-alternative',
     siteName: 'Duezo',
     type: 'website',
@@ -40,15 +40,15 @@ const faqs = [
   },
   {
     q: 'Is Duezo a good replacement for Prism?',
-    a: 'Yes. Duezo was built with the same philosophy — simple bill tracking without budgeting bloat. It adds AI-powered Gmail scanning and visual countdown timers that Prism never had.',
+    a: 'Yes. Duezo was built with the same philosophy — simple bill tracking without budgeting bloat. It adds Quick Add, AI photo scan, and visual countdown timers that Prism never had.',
   },
   {
     q: 'Does Duezo require bank linking?',
-    a: 'No. Duezo scans your Gmail for bill notifications instead of linking to your bank account, giving you better privacy and security.',
+    a: 'No. Duezo never asks for bank credentials. You add bills with Quick Add or photo scan. Your bank accounts stay completely private.',
   },
   {
     q: 'How much does Duezo cost?',
-    a: 'Duezo is $4.99/month or $39.99/year (save 33%). There\'s a free trial so you can try it risk-free.',
+    a: 'Duezo is free to download with up to 5 bills. Duezo Pro is $3.99/month or $19.99/year (yearly includes a 7-day free trial).',
   },
 ];
 
@@ -73,7 +73,7 @@ export default function PrismAlternativePage() {
               operatingSystem: 'iOS, Web',
               offers: {
                 '@type': 'Offer',
-                price: '4.99',
+                price: '3.99',
                 priceCurrency: 'USD',
                 priceValidUntil: '2026-12-31',
               },
@@ -117,15 +117,15 @@ export default function PrismAlternativePage() {
           </h1>
           <p className="text-lg md:text-xl text-zinc-400 max-w-2xl mx-auto mb-10">
             We know how frustrating it was when Prism disappeared. Duezo picks
-            up where Prism left off — with AI-powered Gmail scanning, visual
+            up where Prism left off — with Quick Add, AI photo scan, visual
             countdown timers, and no bank linking required.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              href="/signup"
+              href="https://apps.apple.com/us/app/duezo/id6759273131"
               className="inline-flex items-center justify-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-semibold px-8 py-3.5 rounded-xl transition-colors"
             >
-              Try Duezo Free <ArrowRight className="w-4 h-4" />
+              Download on the App Store <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
               href="/blog/best-prism-alternatives-2026"
@@ -154,7 +154,7 @@ export default function PrismAlternativePage() {
               quote:
                 "Haven't found a bill syncing app since Prism died. Everything else wants to be a full budgeting suite.",
               source: 'Reddit user, r/ynab',
-              duezo: 'Duezo syncs bills from Gmail automatically.',
+              duezo: 'Duezo has Quick Add and photo scan. No bloat.',
             },
             {
               quote:
@@ -199,9 +199,8 @@ export default function PrismAlternativePage() {
             <tbody className="text-sm">
               {[
                 ['Bill due date tracking', true, true],
-                ['Automatic bill detection', true, true],
+                ['Quick Add & photo scan', false, true],
                 ['Countdown timers', false, true],
-                ['AI-powered Gmail scanning', false, true],
                 ['No bank linking required', false, true],
                 ['Bill pay reminders', true, true],
                 ['Recurring bill support', true, true],
@@ -241,9 +240,9 @@ export default function PrismAlternativePage() {
         <div className="grid md:grid-cols-2 gap-8">
           {[
             {
-              icon: Mail,
-              title: 'AI Gmail Scanning',
-              desc: 'Duezo reads your bill emails and automatically creates bill entries with amounts and due dates. No manual entry needed.',
+              icon: Zap,
+              title: 'Quick Add & Photo Scan',
+              desc: 'Add bills in seconds with autocomplete for 30+ vendors, or snap a photo and let AI extract the vendor, amount, and due date.',
             },
             {
               icon: Clock,
@@ -253,7 +252,7 @@ export default function PrismAlternativePage() {
             {
               icon: Shield,
               title: 'Privacy First',
-              desc: 'No bank linking required. Duezo scans Gmail — your financial accounts stay private and secure.',
+              desc: 'No bank linking required. Duezo never asks for bank credentials. Your financial accounts stay private and secure.',
             },
             {
               icon: Zap,
@@ -299,13 +298,13 @@ export default function PrismAlternativePage() {
           free trial today.
         </p>
         <Link
-          href="/signup"
+          href="https://apps.apple.com/us/app/duezo/id6759273131"
           className="inline-flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-semibold px-10 py-4 rounded-xl text-lg transition-colors"
         >
-          Get Started Free <ArrowRight className="w-5 h-5" />
+          Download on the App Store <ArrowRight className="w-5 h-5" />
         </Link>
         <p className="text-zinc-500 text-sm mt-4">
-          $4.99/mo after trial · No bank linking required · Cancel anytime
+          Free to start · $3.99/mo Pro · No bank linking required · Cancel anytime
         </p>
       </section>
 

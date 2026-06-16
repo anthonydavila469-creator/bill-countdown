@@ -94,21 +94,21 @@ export default function BillTrackerNoBankAccountPage() {
           {/* #1 Duezo */}
           <div className="bg-violet-500/5 border border-violet-500/20 rounded-2xl p-6 md:p-8">
             <h2 className="text-2xl font-bold mb-2">1. Duezo — Best Overall (No Bank Required)</h2>
-            <p className="text-zinc-400 mb-1"><strong className="text-white">Price:</strong> Free trial · $4.99/mo or $39.99/yr</p>
+            <p className="text-zinc-400 mb-1"><strong className="text-white">Price:</strong> Free to start · $3.99/mo or $19.99/yr</p>
             <p className="text-zinc-400 mb-4"><strong className="text-white">Platforms:</strong> iOS, Web</p>
             <p className="text-zinc-300 leading-relaxed mb-4">
-              Duezo takes a completely different approach: instead of your bank account, it reads your Gmail. Every time a biller sends you an email — Netflix, your electric company, your insurance provider — Duezo finds it, extracts the amount and due date, and adds it to your bill list automatically.
+              Duezo takes a completely different approach: instead of linking your bank account, you add bills with Quick Add (autocomplete for 30+ vendors) or snap a photo and let AI extract the vendor, amount, and due date. No bank credentials, no Plaid, no third-party account access.
             </p>
             <p className="text-zinc-300 leading-relaxed mb-4">
-              The result is the same as bank linking (automatic bill detection, zero manual entry), but the data path is completely different. Duezo never sees your banking credentials or transaction history. It sees only bill notification emails.
+              Every bill gets a visual countdown timer, color-coded by urgency. You get push notifications before bills are due, an iOS home screen widget, and a calendar view — all without handing over any financial credentials.
             </p>
-            <h3 className="font-semibold text-lg mb-2">Why it works better than bank linking:</h3>
+            <h3 className="font-semibold text-lg mb-2">Why it works without bank linking:</h3>
             <ul className="space-y-2 text-zinc-300 mb-4">
               {[
-                'Bills show up the moment the email arrives — before the money leaves your account',
-                'Catches bills that don\'t appear in bank transactions (auto-pay, credit cards)',
+                'Quick Add with autocomplete for 30+ vendors — add a bill in seconds',
+                'AI photo scan extracts vendor, amount, and due date from any bill or statement',
                 'No exposure to Plaid or financial data brokers',
-                'Gmail access is read-only and revokable anytime',
+                'Your bank credentials stay with your bank',
                 'Works for bills that vary each month (utilities, phone) — not just subscriptions',
               ].map((item, i) => (
                 <li key={i} className="flex items-start gap-2">
@@ -118,10 +118,10 @@ export default function BillTrackerNoBankAccountPage() {
               ))}
             </ul>
             <Link
-              href="/signup"
+              href="https://apps.apple.com/us/app/duezo/id6759273131"
               className="inline-flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-semibold px-6 py-3 rounded-xl transition-colors"
             >
-              Try Duezo Free <ArrowRight className="w-4 h-4" />
+              Download on the App Store <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
 
@@ -197,13 +197,13 @@ export default function BillTrackerNoBankAccountPage() {
           {/* Bottom line */}
           <h2 className="text-2xl font-bold mb-4">The Bottom Line</h2>
           <p className="text-zinc-300 leading-relaxed">
-            If you want automatic bill tracking without handing over your bank credentials, <strong className="text-white">Duezo is the clear winner</strong>. It&apos;s the only app that automates bill detection via Gmail — which means the same zero-effort experience as bank-linked apps, without the privacy tradeoff.
+            If you want fast bill tracking without handing over your bank credentials, <strong className="text-white">Duezo is the clear winner</strong>. Quick Add and AI photo scan make adding bills nearly effortless — without the privacy tradeoff of bank linking.
           </p>
           <p className="text-zinc-300 leading-relaxed mt-4">
             If you prefer pure manual entry with no connectivity at all, Chronicle is the best option for Apple devices.
           </p>
           <p className="text-zinc-300 leading-relaxed mt-4">
-            But if your goal is &quot;I want all my bills tracked automatically and I don&apos;t want to share my banking info&quot; — that&apos;s exactly what Duezo was built for.
+            But if your goal is &quot;I want to track all my bills quickly and I don&apos;t want to share my banking info&quot; — that&apos;s exactly what Duezo was built for.
           </p>
         </div>
 
@@ -212,10 +212,10 @@ export default function BillTrackerNoBankAccountPage() {
           <h2 className="text-2xl font-bold mb-3">Try Duezo — No Bank Account Required</h2>
           <p className="text-zinc-400 mb-6">Add your bills with Quick Add or Photo Scan. We handle the rest. Free to start.</p>
           <Link
-            href="/signup"
+            href="https://apps.apple.com/us/app/duezo/id6759273131"
             className="inline-flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-semibold px-8 py-3.5 rounded-xl transition-colors"
           >
-            Get Started Free <ArrowRight className="w-4 h-4" />
+            Download on the App Store <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
 

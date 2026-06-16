@@ -1,0 +1,2 @@
+# Supabase anon key — public by design (also shipped in the iOS app). Not a secret.
+lib/auth/get-authenticated-user.ts:jwt:17

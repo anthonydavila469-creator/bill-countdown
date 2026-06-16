@@ -5,7 +5,7 @@ import { ArrowRight, Check, X } from 'lucide-react';
 export const metadata: Metadata = {
   title: 'Duezo vs Chronicle: Which Bill Organizer Is Better? (2026) | Duezo',
   description:
-    'Compare Duezo vs Chronicle Bill Organizer. Both are $4.99/mo, but Duezo scans your Gmail automatically while Chronicle requires manual entry. See the full comparison.',
+    'Compare Duezo ($3.99/mo) vs Chronicle Bill Organizer ($4.99/mo). Duezo has Quick Add, AI photo scan, and countdown timers. See the full comparison.',
   keywords: [
     'duezo vs chronicle',
     'chronicle bill organizer alternative',
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'Duezo vs Chronicle: Which Bill Organizer Is Better?',
-    description: 'Same price, different approach. Chronicle requires manual entry. Duezo scans your email automatically.',
+    description: 'Chronicle requires manual entry. Duezo has Quick Add with autocomplete and AI photo scan — faster setup, lower price.',
     url: 'https://duezo.app/vs/chronicle',
     siteName: 'Duezo',
     type: 'website',
@@ -26,12 +26,12 @@ export const metadata: Metadata = {
 type Row = [string, string | boolean, string | boolean];
 
 const rows: Row[] = [
-  ['Monthly price', '$4.99/mo', '$4.99/mo'],
-  ['Annual price', '$39.99/yr', '$49.99/yr'],
+  ['Monthly price', '$3.99/mo', '$4.99/mo'],
+  ['Annual price', '$19.99/yr', '$49.99/yr'],
   ['Bill tracking', true, true],
   ['Countdown timers', true, false],
-  ['AI email scanning', true, false],
-  ['Manual bill entry', 'Optional', 'Required'],
+  ['Quick Add & photo scan', true, false],
+  ['Manual bill entry', 'Also available', 'Required'],
   ['iOS app', true, true],
   ['Web app', true, false],
   ['Android support', 'Coming soon', false],
@@ -71,7 +71,7 @@ export default function VsChroniclePage() {
           </span>
         </h1>
         <p className="text-lg text-zinc-400 max-w-2xl mx-auto">
-          Both apps track bills. Both cost $4.99/mo. But Chronicle makes you type in every bill manually. Duezo scans your email and does it for you.
+          Both apps track bills. Chronicle makes you type in every bill manually. Duezo has Quick Add with autocomplete and AI photo scan — faster setup at a lower price.
         </p>
       </section>
 
@@ -106,12 +106,12 @@ export default function VsChroniclePage() {
             <h2 className="text-xl font-bold mb-4 text-violet-400">Choose Duezo if you…</h2>
             <ul className="space-y-3 text-zinc-300">
               {[
-                'Want bills detected automatically from email',
-                'Don\'t want to manually type in due dates',
+                'Want Quick Add with autocomplete for 30+ vendors',
+                'Want AI photo scan to grab bill details from a photo',
                 'Need both iOS and web access',
                 'Want visual countdown timers',
                 'Want price increase alerts',
-                'Prefer automation over manual tracking',
+                'Prefer a lower price ($3.99/mo vs $4.99/mo)',
               ].map((item, i) => (
                 <li key={i} className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-violet-400 mt-1 flex-shrink-0" />
@@ -146,10 +146,10 @@ export default function VsChroniclePage() {
         <h2 className="text-2xl md:text-3xl font-bold text-center mb-10">The Big Difference</h2>
         <div className="space-y-8">
           <div>
-            <h3 className="font-semibold text-lg mb-2">🤖 Automation vs Manual Entry</h3>
+            <h3 className="font-semibold text-lg mb-2">🤖 Quick Add & Photo Scan vs Manual Entry</h3>
             <p className="text-zinc-400">
-              This is the core difference. Chronicle is a beautiful, simple bill organizer — but you have to type in every bill, every due date, every amount. 
-              Duezo uses AI to scan your Gmail and automatically detect bills. That means <strong className="text-white">zero manual entry</strong> for most users.
+              This is the core difference. Chronicle is a beautiful, simple bill organizer — but you have to type in every bill, every due date, every amount.
+              Duezo has <strong className="text-white">Quick Add with autocomplete for 30+ vendors</strong> and AI photo scan that extracts the vendor, amount, and due date from any bill or statement. Setup takes minutes, not hours.
             </p>
           </div>
           <div>
@@ -174,11 +174,10 @@ export default function VsChroniclePage() {
         <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-8">
           <h3 className="text-xl font-bold mb-4">Honest Take</h3>
           <p className="text-zinc-300 text-lg leading-relaxed mb-4">
-            Chronicle is a solid app. It&apos;s clean, privacy-focused, and does what it says. But in 2026, manually typing in bills feels outdated.
+            Chronicle is a solid app. It&apos;s clean, privacy-focused, and does what it says. But manually typing in every bill feels slow when you have Quick Add and photo scan available.
           </p>
           <p className="text-zinc-300 text-lg leading-relaxed">
-            If you&apos;re going to pay $4.99/mo for a bill tracker, why not get one that <strong className="text-white">does the work for you</strong>? 
-            That&apos;s the philosophy behind Duezo.
+            Duezo is also <strong className="text-white">cheaper ($3.99/mo vs $4.99/mo)</strong> and adds countdown timers, widgets, and price increase alerts.
           </p>
         </div>
       </section>
@@ -187,13 +186,13 @@ export default function VsChroniclePage() {
       <section className="max-w-3xl mx-auto px-6 py-20 text-center">
         <h2 className="text-3xl font-bold mb-4">Ready to Try Duezo?</h2>
         <p className="text-zinc-400 text-lg mb-8">
-          Automatic bill detection. No manual entry. $4.99/mo.
+          Quick Add, photo scan, countdown timers. $3.99/mo.
         </p>
         <Link
-          href="/signup"
+          href="https://apps.apple.com/us/app/duezo/id6759273131"
           className="inline-flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-semibold px-10 py-4 rounded-xl text-lg transition-colors"
         >
-          Get Started Free <ArrowRight className="w-5 h-5" />
+          Download on the App Store <ArrowRight className="w-5 h-5" />
         </Link>
       </section>
 

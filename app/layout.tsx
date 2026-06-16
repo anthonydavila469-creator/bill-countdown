@@ -9,8 +9,8 @@ export const metadata: Metadata = {
     default: "Duezo — Never Miss a Bill Payment Again",
     template: "%s | Duezo",
   },
-  description: "Track every bill with beautiful countdown cards and smart bill import. Smart reminders, calendar view, and spending analytics. Free to start.",
-  keywords: ["bill tracker", "bill reminders", "payment due dates", "bill countdown", "finance app", "budget tracker", "recurring bills", "autopay tracker"],
+  description: "Track every bill with countdown cards and smart reminders. Calendar view, widgets, and Quick Add. No bank linking required. Free to start.",
+  keywords: ["bill tracker", "bill reminders", "payment due dates", "bill countdown", "finance app", "recurring bills", "iPhone bill tracker"],
   authors: [{ name: "Duezo" }],
   creator: "Duezo",
   metadataBase: new URL("https://duezo.app"),
@@ -69,9 +69,9 @@ const organizationJsonLd = {
   '@type': 'Organization',
   name: 'Duezo',
   url: 'https://duezo.app',
-  logo: 'https://duezo.app/logo-transparent-64.png',
+  logo: 'https://duezo.app/duezo-d-logo-transparent.png',
   description:
-    'AI-powered bill tracking app with countdown cards, smart reminders, and Quick Add bill import. Free forever.',
+    'iPhone bill tracking app with countdown cards, smart reminders, and fast bill entry.',
   contactPoint: {
     '@type': 'ContactPoint',
     email: 'support@duezo.app',

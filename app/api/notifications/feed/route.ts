@@ -28,7 +28,7 @@ export async function GET(request: Request) {
         read_at,
         message,
         created_at,
-        bills (
+        bill:bills (
           name,
           emoji,
           amount,
@@ -38,7 +38,7 @@ export async function GET(request: Request) {
         )
       `)
       .eq('user_id', user.id)
-      .eq('channel', 'in_app')
+      .in('channel', ['in_app', 'push'])
       .gte('scheduled_for', thirtyDaysAgo.toISOString())
       .order('scheduled_for', { ascending: false })
       .limit(50);
@@ -77,7 +77,7 @@ export async function PATCH(request: Request) {
         .from('bill_notifications_queue')
         .update({ read_at: now })
         .eq('user_id', user.id)
-        .eq('channel', 'in_app')
+        .in('channel', ['in_app', 'push'])
         .is('read_at', null);
 
       if (error) {

@@ -5,7 +5,7 @@ import { ArrowRight, Calendar } from 'lucide-react';
 export const metadata: Metadata = {
   title: 'Duezo FAQ — Everything You Want to Know About the App | Duezo',
   description:
-    'Answers to the most common questions about Duezo: how it works, what it costs, privacy, bank logins, AI bill parsing, and more. Written in plain English.',
+    'Answers to the most common questions about Duezo: how it works, what it costs, privacy, bank logins, AI photo scan, and more. Written in plain English.',
   keywords: [
     'duezo faq',
     'duezo questions',
@@ -36,8 +36,8 @@ const faqs = [
     a: "Quick Add is the fastest — tap +, start typing a vendor name, and pick from 30+ autocomplete suggestions. The name and category fill in automatically. Or snap a photo of any bill or statement and AI extracts the name, amount, and due date for you. You can also set bills as recurring so they auto-generate each month.",
   },
   {
-    q: 'Is Duezo actually free or is there a catch?',
-    a: "It's actually free. No trial period, no freemium tier, no limit on the number of bills. Every feature — email parsing, push notifications, calendar view, widgets, analytics — is included at no cost. There is no premium plan because there is no premium plan to upsell you to. The developer built this for himself and decided to share it.",
+    q: 'How much does Duezo cost?',
+    a: "Duezo is free to download with up to 5 bills. Every core feature — push notifications, calendar view, widgets, Quick Add — is included in the free tier. Duezo Pro is $3.99/month or $19.99/year (yearly includes a 7-day free trial) for unlimited bills and all features. The developer built this for himself and keeps the pricing simple.",
   },
   {
     q: 'Do I have to connect my bank account?',
@@ -49,7 +49,7 @@ const faqs = [
   },
   {
     q: 'What if the AI gets the amount or due date wrong?',
-    a: "It happens occasionally, especially with unusual email formats. You can edit any bill at any time — just tap on it and change the amount, date, or name. The AI is right about 95% of the time, but Duezo always lets you have the final say. Think of the AI as a fast first draft, not the final answer.",
+    a: "It happens occasionally, especially with unusual bill formats. You can edit any bill at any time — just tap on it and change the amount, date, or name. The AI is right about 95% of the time, but Duezo always lets you have the final say. Think of the AI as a fast first draft, not the final answer.",
   },
   {
     q: 'Is my data safe? Who can see my bills?',
@@ -65,7 +65,7 @@ const faqs = [
   },
   {
     q: 'How is Duezo different from Rocket Money or YNAB?',
-    a: "Rocket Money and YNAB are full budgeting platforms. They connect to your bank, categorize transactions, and help you plan spending. Duezo does one thing: it tells you what bills are due and when. No bank connection, no transaction tracking, no budget categories. If you want a complete financial picture, those apps are great. If you just want to stop paying late fees, Duezo is simpler, faster, and free.",
+    a: "Rocket Money and YNAB are full budgeting platforms. They connect to your bank, categorize transactions, and help you plan spending. Duezo does one thing: it tells you what bills are due and when. No bank connection, no transaction tracking, no budget categories. If you want a complete financial picture, those apps are great. If you just want to stop paying late fees, Duezo is simpler, faster, and more affordable at $3.99/mo.",
   },
   {
     q: 'What are the countdown cards?',
@@ -168,13 +168,13 @@ export default function DuezoFaqPage() {
             Ready to stop paying late fees?
           </h2>
           <p className="text-zinc-400 mb-6">
-            Try Duezo free — every feature included, no bank login required.
+            Download Duezo free — no bank login required. $3.99/mo Pro for unlimited bills.
           </p>
           <Link
-            href="/signup"
+            href="https://apps.apple.com/us/app/duezo/id6759273131"
             className="group inline-flex items-center gap-2 px-6 py-3 text-base font-semibold bg-gradient-to-r from-violet-500 to-violet-500 rounded-full hover:opacity-90 transition-opacity"
           >
-            Get Started Free
+            Download on the App Store
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>

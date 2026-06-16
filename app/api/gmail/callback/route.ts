@@ -1,13 +1,8 @@
-import { NextResponse } from 'next/server';
+// Gmail OAuth callback — DISABLED. Email scanning is not part of the current
+// Duezo product (owner decision 2026-06-14). See lib/email/feature-status.ts
+// and audits/EMAIL_PRIVACY_READINESS.md.
+import { emailScanningDisabledResponse } from '@/lib/email/feature-status';
 
-export async function GET(request: Request) {
-  const url = new URL('/api/email/callback', request.url);
-  const currentUrl = new URL(request.url);
-
-  currentUrl.searchParams.forEach((value, key) => {
-    url.searchParams.set(key, value);
-  });
-
-  url.searchParams.set('provider', 'gmail');
-  return NextResponse.redirect(url);
+export async function GET() {
+  return emailScanningDisabledResponse();
 }

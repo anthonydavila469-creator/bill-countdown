@@ -2,8 +2,24 @@ import Link from 'next/link';
 import { Zap, ArrowLeft } from 'lucide-react';
 
 export const metadata = {
-  title: 'Privacy Policy | Duezo',
-  description: 'How Duezo collects, uses, and protects your data.',
+  title: 'Privacy Policy',
+  description:
+    'Read Duezo\u2019s privacy policy to understand what data we collect, how bill data is handled, and how we protect your information.',
+  openGraph: {
+    title: 'Privacy Policy | Duezo',
+    description:
+      'Read Duezo\u2019s privacy policy to understand what data we collect, how bill data is handled, and how we protect your information.',
+    url: 'https://duezo.app/privacy',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Privacy Policy | Duezo',
+    description:
+      'Read Duezo\u2019s privacy policy to understand what data we collect, how bill data is handled, and how we protect your information.',
+  },
+  alternates: {
+    canonical: 'https://duezo.app/privacy',
+  },
 };
 
 export default function PrivacyPage() {
@@ -36,7 +52,7 @@ export default function PrivacyPage() {
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="mb-12">
           <h1 className="text-4xl font-bold tracking-tight mb-4">Privacy Policy</h1>
-          <p className="text-zinc-500 text-sm">Last updated: February 2026</p>
+          <p className="text-zinc-500 text-sm">Last updated: April 2026</p>
         </div>
 
         <div className="prose prose-invert max-w-none space-y-10">
@@ -64,7 +80,7 @@ export default function PrivacyPage() {
               <div>
                 <h3 className="text-lg font-medium text-white mb-2">Bill Information</h3>
                 <p>
-                  We store the bill data you create or import, including bill names, amounts, due
+                  We store the bill data you create, including bill names, amounts, due
                   dates, categories, payment status, and recurring schedules.
                 </p>
               </div>
@@ -86,57 +102,30 @@ export default function PrivacyPage() {
             </div>
           </section>
 
-          {/* How We Use Gmail Data */}
+          {/* How We Handle Your Bill Data */}
           <section>
-            <h2 className="text-2xl font-semibold text-white mb-4">2. How We Use Gmail Data</h2>
+            <h2 className="text-2xl font-semibold text-white mb-4">2. How We Handle Your Bill Data</h2>
             <div className="space-y-4 text-zinc-300 leading-relaxed">
               <p>
-                If you choose to connect your Gmail account, we request <strong className="text-white">read-only</strong> access
-                to your emails. Here&rsquo;s exactly how we handle your email data:
+                All bill data in Duezo is created by you — either through Quick Add, photo scan,
+                or manual entry. Here&rsquo;s how we handle it:
               </p>
               <ul className="list-disc list-inside space-y-2 ml-2">
                 <li>
-                  We only search for and process emails that appear to be bill-related (e.g.,
-                  invoices, payment reminders, statements).
+                  Bill details (names, amounts, due dates, categories, and recurring schedules)
+                  are stored securely in our database.
                 </li>
                 <li>
-                  We <strong className="text-white">do not</strong> store the full content of your emails. Only extracted
-                  bill details (payee name, amount, due date) are saved.
+                  We <strong className="text-white">do not</strong> access your email, bank accounts, or any
+                  external financial services.
                 </li>
                 <li>
-                  We <strong className="text-white">do not</strong> read, modify, or delete any emails in your inbox.
+                  We <strong className="text-white">do not</strong> share your bill data with third parties for
+                  advertising.
                 </li>
                 <li>
-                  We <strong className="text-white">do not</strong> share your email data with third parties for advertising.
-                </li>
-                <li>
-                  You can disconnect Gmail at any time from Settings, which revokes our access
-                  immediately.
-                </li>
-              </ul>
-            </div>
-          </section>
-
-          {/* How We Use AI */}
-          <section>
-            <h2 className="text-2xl font-semibold text-white mb-4">3. How We Use AI</h2>
-            <div className="space-y-4 text-zinc-300 leading-relaxed">
-              <p>
-                We use Anthropic&rsquo;s Claude AI to process bill-related emails and extract
-                structured data (bill names, amounts, due dates, and categories). This processing
-                happens on Anthropic&rsquo;s servers.
-              </p>
-              <ul className="list-disc list-inside space-y-2 ml-2">
-                <li>
-                  Only the text content of bill-related emails is sent to the AI for processing.
-                </li>
-                <li>
-                  Anthropic does not use your data to train their models (per their data processing
-                  terms).
-                </li>
-                <li>
-                  Extracted bill data is stored in our database. The original email content is not
-                  retained after processing.
+                  Your data is used solely to provide the bill tracking and reminder features
+                  of the Service.
                 </li>
               </ul>
             </div>
@@ -144,7 +133,7 @@ export default function PrivacyPage() {
 
           {/* Third-Party Services */}
           <section>
-            <h2 className="text-2xl font-semibold text-white mb-4">4. Third-Party Services</h2>
+            <h2 className="text-2xl font-semibold text-white mb-4">3. Third-Party Services</h2>
             <div className="space-y-4 text-zinc-300 leading-relaxed">
               <p>We use the following third-party services to operate Duezo:</p>
               <div className="rounded-xl border border-white/10 overflow-hidden">
@@ -165,12 +154,8 @@ export default function PrivacyPage() {
                       <td className="p-4 text-zinc-400">Subscription payment processing</td>
                     </tr>
                     <tr>
-                      <td className="p-4 text-zinc-300">Anthropic (Claude)</td>
-                      <td className="p-4 text-zinc-400">AI-powered bill extraction from emails</td>
-                    </tr>
-                    <tr>
-                      <td className="p-4 text-zinc-300">Google (Gmail API)</td>
-                      <td className="p-4 text-zinc-400">Email access for bill detection (optional)</td>
+                      <td className="p-4 text-zinc-300">Apple (APNs)</td>
+                      <td className="p-4 text-zinc-400">Push notification delivery</td>
                     </tr>
                     <tr>
                       <td className="p-4 text-zinc-300">Vercel</td>
@@ -187,7 +172,7 @@ export default function PrivacyPage() {
 
           {/* Data Security */}
           <section>
-            <h2 className="text-2xl font-semibold text-white mb-4">5. Data Security</h2>
+            <h2 className="text-2xl font-semibold text-white mb-4">4. Data Security</h2>
             <div className="space-y-4 text-zinc-300 leading-relaxed">
               <p>We take security seriously and implement the following measures:</p>
               <ul className="list-disc list-inside space-y-2 ml-2">
@@ -203,9 +188,6 @@ export default function PrivacyPage() {
                   practices.
                 </li>
                 <li>
-                  OAuth tokens for Gmail are stored encrypted and can be revoked at any time.
-                </li>
-                <li>
                   We do not store passwords in plaintext.
                 </li>
               </ul>
@@ -214,21 +196,13 @@ export default function PrivacyPage() {
 
           {/* User Rights */}
           <section>
-            <h2 className="text-2xl font-semibold text-white mb-4">6. Your Rights</h2>
+            <h2 className="text-2xl font-semibold text-white mb-4">5. Your Rights</h2>
             <div className="space-y-4 text-zinc-300 leading-relaxed">
               <p>You have the following rights regarding your data:</p>
               <ul className="list-disc list-inside space-y-2 ml-2">
                 <li>
                   <strong className="text-white">Delete your account</strong> — You can permanently delete your account
                   and all associated data from Settings. This action is immediate and irreversible.
-                </li>
-                <li>
-                  <strong className="text-white">Export your data</strong> — You can export your payment history as CSV
-                  from the History page.
-                </li>
-                <li>
-                  <strong className="text-white">Disconnect Gmail</strong> — You can revoke Gmail access at any time
-                  from Settings.
                 </li>
                 <li>
                   <strong className="text-white">Access your data</strong> — All your bill data is visible within the
@@ -240,7 +214,7 @@ export default function PrivacyPage() {
 
           {/* Changes */}
           <section>
-            <h2 className="text-2xl font-semibold text-white mb-4">7. Changes to This Policy</h2>
+            <h2 className="text-2xl font-semibold text-white mb-4">6. Changes to This Policy</h2>
             <p className="text-zinc-300 leading-relaxed">
               We may update this Privacy Policy from time to time. We will notify you of any
               significant changes by email or through a notice within the application. Continued use
@@ -250,7 +224,7 @@ export default function PrivacyPage() {
 
           {/* Contact */}
           <section>
-            <h2 className="text-2xl font-semibold text-white mb-4">8. Contact Us</h2>
+            <h2 className="text-2xl font-semibold text-white mb-4">7. Contact Us</h2>
             <p className="text-zinc-300 leading-relaxed">
               If you have any questions about this Privacy Policy or how we handle your data, please
               contact us at{' '}

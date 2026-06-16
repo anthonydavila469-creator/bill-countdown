@@ -3,21 +3,16 @@ import { sendBillReminderEmail } from '@/lib/notifications/email-sender';
 import { sendBillReminderPushToAll } from '@/lib/notifications/push-sender';
 import { sendBillReminderAPNs } from '@/lib/notifications/apns-sender';
 import { NextResponse } from 'next/server';
+import { cronAuthGuard } from '@/lib/auth/cron-auth';
 import { DEFAULT_NOTIFICATION_SETTINGS } from '@/types';
 import type { Bill, NotificationSettings, PushSubscription, BillNotification } from '@/types';
 
 // POST /api/cron/send-bill-reminders - Process and send pending notifications
 export async function POST(request: Request) {
   try {
-    const authHeader = request.headers.get('authorization');
-    const expectedToken = `Bearer ${process.env.CRON_SECRET}`;
-
-    if (!authHeader || authHeader !== expectedToken) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+    // Verify cron secret (fails closed if CRON_SECRET is missing)
+    const denied = cronAuthGuard(request);
+    if (denied) return denied;
 
     const supabase = createAdminClient();
     const now = new Date();

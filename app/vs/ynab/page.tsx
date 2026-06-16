@@ -5,7 +5,7 @@ import { ArrowRight, Check, X } from 'lucide-react';
 export const metadata: Metadata = {
   title: 'Duezo vs YNAB: Do You Need a Full Budget App? (2026) | Duezo',
   description:
-    'Compare Duezo vs YNAB (You Need A Budget). YNAB is $14.99/mo for full budgeting. Duezo is $4.99/mo for simple bill tracking. Find out which is right for you.',
+    'Compare Duezo vs YNAB (You Need A Budget). YNAB is $14.99/mo for full budgeting. Duezo is $3.99/mo for simple bill tracking. Find out which is right for you.',
   keywords: [
     'duezo vs ynab',
     'ynab alternative',
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'Duezo vs YNAB: Do You Need a Full Budget App?',
-    description: 'YNAB is $14.99/mo for budgeting. Duezo is $4.99/mo for bill tracking. Which do you actually need?',
+    description: 'YNAB is $14.99/mo for budgeting. Duezo is $3.99/mo for bill tracking. Which do you actually need?',
     url: 'https://duezo.app/vs/ynab',
     siteName: 'Duezo',
     type: 'website',
@@ -26,11 +26,11 @@ export const metadata: Metadata = {
 type Row = [string, string | boolean, string | boolean];
 
 const rows: Row[] = [
-  ['Monthly price', '$4.99/mo', '$14.99/mo'],
-  ['Annual price', '$39.99/yr', '$109/yr'],
+  ['Monthly price', '$3.99/mo', '$14.99/mo'],
+  ['Annual price', '$19.99/yr', '$109/yr'],
   ['Bill tracking', true, true],
   ['Countdown timers', true, false],
-  ['AI bill detection from Gmail', true, false],
+  ['Quick Add & photo scan', true, false],
   ['Zero-based budgeting', false, true],
   ['Envelope/category budgeting', false, true],
   ['Bank account syncing', false, true],
@@ -110,7 +110,7 @@ export default function VsYnabPage() {
                 'Just want to know when bills are due',
                 'Find YNAB overwhelming or too complex',
                 'Don\'t want to spend time setting up categories',
-                'Want automatic bill detection from email',
+                'Want Quick Add and photo scan for fast bill entry',
                 'Want to save $10/mo vs YNAB',
                 'Already have a budgeting system (or don\'t want one)',
               ].map((item, i) => (
@@ -165,12 +165,12 @@ export default function VsYnabPage() {
           Skip the budgeting complexity. Track your bills in 2 minutes.
         </p>
         <Link
-          href="/signup"
+          href="https://apps.apple.com/us/app/duezo/id6759273131"
           className="inline-flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-semibold px-10 py-4 rounded-xl text-lg transition-colors"
         >
-          Get Started Free <ArrowRight className="w-5 h-5" />
+          Download on the App Store <ArrowRight className="w-5 h-5" />
         </Link>
-        <p className="text-zinc-500 text-sm mt-4">$4.99/mo · 67% less than YNAB · Cancel anytime</p>
+        <p className="text-zinc-500 text-sm mt-4">$3.99/mo · 73% less than YNAB · Cancel anytime</p>
       </section>
 
       <div className="max-w-4xl mx-auto px-6 pb-16 flex flex-wrap justify-center gap-6 text-sm text-zinc-500">

@@ -2,8 +2,24 @@ import Link from 'next/link';
 import { Zap, ArrowLeft } from 'lucide-react';
 
 export const metadata = {
-  title: 'Terms of Service | Duezo',
-  description: 'Terms and conditions for using Duezo.',
+  title: 'Terms of Service',
+  description:
+    'Read Duezo\u2019s terms of service, including account responsibilities, acceptable use, and important service limitations.',
+  openGraph: {
+    title: 'Terms of Service | Duezo',
+    description:
+      'Read Duezo\u2019s terms of service, including account responsibilities, acceptable use, and important service limitations.',
+    url: 'https://duezo.app/terms',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Terms of Service | Duezo',
+    description:
+      'Read Duezo\u2019s terms of service, including account responsibilities, acceptable use, and important service limitations.',
+  },
+  alternates: {
+    canonical: 'https://duezo.app/terms',
+  },
 };
 
 export default function TermsPage() {
@@ -58,16 +74,16 @@ export default function TermsPage() {
                 bill due dates. The Service includes:
               </p>
               <ul className="list-disc list-inside space-y-2 ml-2">
-                <li>Manual bill creation and tracking with countdown cards</li>
-                <li>Optional Gmail integration to detect bills from your inbox</li>
-                <li>Bill detail extraction (amounts, due dates, categories)</li>
-                <li>Payment reminders and notifications</li>
-                <li>Calendar view and payment history</li>
+                <li>Quick Add and photo-scan bill entry with countdown cards</li>
+                <li>Bill detail tracking (amounts, due dates, categories)</li>
+                <li>Push notification reminders</li>
+                <li>Calendar view</li>
                 <li>Home screen widgets</li>
               </ul>
               <p>
                 Duezo is a bill <em>tracking</em> tool. We do not process payments, transfer funds,
-                or act as a financial institution. Duezo is free to use.
+                link bank accounts, or act as a financial institution. Duezo offers a free tier
+                with core features and an optional paid subscription for additional functionality.
               </p>
             </div>
           </section>

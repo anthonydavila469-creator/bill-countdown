@@ -9,6 +9,11 @@ import { EmailInput, ProcessedBill, ExtractionResult } from './types';
 import { BILL_EXTRACTION_SYSTEM_PROMPT, buildEmailPrompt, parseAIResponse } from './prompts';
 import { normalizeDueDate } from './date-utils';
 
+// Raw email subjects and AI extraction output (bill names, amounts, due dates)
+// are sensitive. Never log them in production — gate every debug log behind a
+// non-production check so they cannot land in Vercel/runtime logs.
+const DEBUG_EXTRACTION_LOGS = process.env.NODE_ENV !== 'production';
+
 // AI Configuration
 const AI_CONFIG = {
   model: 'claude-sonnet-4-20250514',
@@ -61,15 +66,19 @@ export async function extractBillFromEmail(
       .map(block => block.text)
       .join('');
 
-    // Log raw extraction result for debugging
-    console.log(`[EXTRACT] Email: ${email.subject}`);
-    console.log(`[EXTRACT] Result:`, responseText);
+    // Log raw extraction result for debugging (non-production only).
+    if (DEBUG_EXTRACTION_LOGS) {
+      console.log(`[EXTRACT] Email: ${email.subject}`);
+      console.log(`[EXTRACT] Result:`, responseText);
+    }
 
     // Parse AI response
     const parsed = parseAIResponse(responseText);
 
     if (!parsed) {
-      console.error('[extractBillFromEmail] Failed to parse response for:', email.subject);
+      if (DEBUG_EXTRACTION_LOGS) {
+        console.error('[extractBillFromEmail] Failed to parse response for:', email.subject);
+      }
       return {
         success: false,
         skipped: false,
@@ -80,7 +89,9 @@ export async function extractBillFromEmail(
 
     // Handle skip
     if (parsed.skip) {
-      console.log('[extractBillFromEmail] Skipped:', email.subject, '-', parsed.skip_reason);
+      if (DEBUG_EXTRACTION_LOGS) {
+        console.log('[extractBillFromEmail] Skipped:', email.subject, '-', parsed.skip_reason);
+      }
       return {
         success: false,
         skipped: true,
@@ -123,14 +134,16 @@ export async function extractBillFromEmail(
       review_reasons: reviewReasons,
     };
 
-    console.log('[extractBillFromEmail] Extracted:', {
-      subject: email.subject.substring(0, 50),
-      name: bill.name,
-      amount: bill.amount,
-      due_date: bill.due_date,
-      confidence: bill.confidence,
-      needs_review: bill.needs_review,
-    });
+    if (DEBUG_EXTRACTION_LOGS) {
+      console.log('[extractBillFromEmail] Extracted:', {
+        subject: email.subject.substring(0, 50),
+        name: bill.name,
+        amount: bill.amount,
+        due_date: bill.due_date,
+        confidence: bill.confidence,
+        needs_review: bill.needs_review,
+      });
+    }
 
     return {
       success: true,
@@ -138,7 +151,9 @@ export async function extractBillFromEmail(
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('[extractBillFromEmail] Error:', email.subject, '-', errorMessage);
+    if (DEBUG_EXTRACTION_LOGS) {
+      console.error('[extractBillFromEmail] Error:', email.subject, '-', errorMessage);
+    }
 
     return {
       success: false,

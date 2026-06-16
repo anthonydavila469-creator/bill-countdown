@@ -48,3 +48,6 @@ android/capacitor-cordova-android-plugins/build/
 android/build/
 logs/apns-sends-*.json
 !logs/.gitkeep
+
+# here-now skill local state (contains publish tokens)
+.herenow/

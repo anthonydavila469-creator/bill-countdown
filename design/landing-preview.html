@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Duezo Landing Preview</title>
+  <style>
+    :root {
+      --bg: #08080c;
+      --panel: rgba(255,255,255,.015);
+      --panel-border: rgba(255,255,255,.06);
+      --muted: #a1a1aa;
+      --soft: #71717a;
+      --white: #fafafa;
+      --violet: #8b5cf6;
+      --fuchsia: #d946ef;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
+      background: var(--bg);
+      color: var(--white);
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    .shell { max-width: 1320px; margin: 0 auto; padding: 0 40px; }
+
+    /* ── Nav ── */
+    .nav {
+      position: sticky; top: 0; z-index: 20;
+      backdrop-filter: blur(20px);
+      background: rgba(8,8,12,.78);
+      border-bottom: 1px solid rgba(255,255,255,.04);
+    }
+    .nav-inner { height: 72px; display:flex; align-items:center; justify-content:space-between; }
+    .brand { display:flex; align-items:center; gap:12px; }
+    .brand img.icon { width:36px; height:36px; border-radius:9px; }
+    .brand img.wordmark { height:24px; width:auto; }
+    .nav-right { display:flex; align-items:center; gap:20px; }
+    .signin { color:#5f5f68; font-size:14px; }
+    .nav-cta, .hero-cta, .final-cta {
+      display:inline-flex; align-items:center; justify-content:center; gap:10px;
+      border-radius:999px; font-weight:700; transition:.2s ease; cursor:pointer;
+    }
+    .nav-cta { padding:10px 20px; background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.08); font-size:14px; font-weight:600; }
+
+    /* ── Hero ── */
+    .hero { min-height:100svh; display:flex; align-items:center; padding-top:72px; position:relative; overflow:clip; }
+    .hero-glow {
+      position:absolute; top:12%; right:10%; width:700px; height:700px;
+      background:rgba(139,92,246,.14); filter:blur(180px); border-radius:50%; pointer-events:none;
+    }
+    .hero-grid { position:relative; display:grid; grid-template-columns: 1.15fr .85fr; gap: 64px; align-items:center; }
+    h1 {
+      margin:0 0 24px; font-size:clamp(50px, 7vw, 88px); line-height:.92; letter-spacing:-.055em; font-weight:900;
+    }
+    h1 .grad, .final-title .grad {
+      background: linear-gradient(90deg, #b794ff 0%, #f0abfc 48%, #ddd6fe 100%);
+      -webkit-background-clip:text; background-clip:text; color:transparent;
+      font-style:italic;
+    }
+    .sub {
+      color: var(--muted); font-size: 21px; line-height: 1.6; max-width: 480px; margin: 0 0 40px;
+    }
+    .hero-cta {
+      background: #fff; color:#09090b; padding:18px 40px; font-size:16px; font-weight:700;
+      box-shadow: 0 0 60px rgba(139,92,246,.3);
+    }
+    .hero-cta:hover { box-shadow: 0 0 80px rgba(139,92,246,.4); }
+    .hero-meta { margin-top:20px; color:var(--soft); font-size:13px; letter-spacing:.04em; }
+    .phone-wrap { position:relative; display:flex; justify-content:flex-end; }
+    .phone-glow {
+      position:absolute; inset:auto; top:60px; width:480px; height:480px;
+      background:rgba(139,92,246,.2); filter:blur(90px); border-radius:50%; z-index:0;
+    }
+    .phone {
+      position:relative; z-index:1; width:340px; padding:12px; border-radius:52px;
+      background: linear-gradient(180deg, rgba(30,20,56,.9), rgba(10,10,14,.95));
+      border:1px solid rgba(255,255,255,.1);
+      box-shadow: 0 100px 200px -40px rgba(124,58,237,.5), 0 0 0 1px rgba(255,255,255,.04);
+      -webkit-mask-image: linear-gradient(to bottom, black 75%, transparent 100%);
+      mask-image: linear-gradient(to bottom, black 75%, transparent 100%);
+    }
+    .phone .phone-inner { overflow:hidden; border-radius:40px; background:#000; }
+    .phone img { width:100%; display:block; }
+    .hero-fade { height:128px; background:linear-gradient(to bottom, transparent, var(--bg)); margin-top:-128px; position:relative; z-index:2; }
+
+    /* ── Sections ── */
+    section { padding: 112px 0; border-top:1px solid rgba(255,255,255,.04); }
+    .center { text-align:center; }
+    .kicker { color:rgba(183,148,255,.7); text-transform:uppercase; letter-spacing:.2em; font-size:13px; font-weight:600; margin-bottom:20px; }
+    .section-title { font-size: clamp(28px, 4vw, 52px); line-height:1.02; letter-spacing:-.04em; margin:0 0 16px; font-weight:900; }
+    .section-copy { max-width:520px; margin:0 auto; color:var(--muted); font-size:17px; line-height:1.7; }
+
+    /* ── Relief card ── */
+    .relief-card {
+      max-width:860px; margin:80px auto 0; padding:48px; border-radius:28px;
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
+      border:1px solid rgba(255,255,255,.07);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+    }
+    .relief-card p:first-child { font-size:26px; line-height:1.25; letter-spacing:-.03em; margin:0 0 16px; font-weight:700; }
+    .relief-card p:last-child { margin:0; color:var(--muted); font-size:17px; line-height:1.7; }
+
+    /* ── Cards ── */
+    .grid3 { display:grid; grid-template-columns: repeat(3, 1fr); gap:20px; margin-top:64px; }
+    .grid2 { display:grid; grid-template-columns: repeat(2, 1fr); gap:20px; margin-top:64px; max-width:860px; margin-left:auto; margin-right:auto; }
+    .card {
+      padding:32px; border-radius:24px; background:var(--panel); border:1px solid var(--panel-border);
+    }
+    .card:hover { background:rgba(255,255,255,.03); }
+    .icon-box {
+      width:44px; height:44px; border-radius:16px; background:rgba(139,92,246,.1); border:1px solid rgba(139,92,246,.15);
+      display:grid; place-items:center; margin-bottom:20px; font-size:18px;
+    }
+    .icon-box-neutral {
+      width:44px; height:44px; border-radius:16px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07);
+      display:grid; place-items:center; margin-bottom:20px; font-size:18px;
+    }
+    .card h3 { margin:0 0 8px; font-size:19px; letter-spacing:-.02em; font-weight:700; }
+    .card p { margin:0; color:var(--muted); line-height:1.7; font-size:15px; }
+
+    /* ── Social proof ── */
+    .proof-title { font-size:clamp(24px, 3.5vw, 40px); line-height:1.2; letter-spacing:-.035em; font-weight:700; margin:0 0 20px; }
+
+    /* ── Final CTA ── */
+    .final { position:relative; text-align:center; overflow:hidden; padding:128px 0; }
+    .final::before {
+      content:""; position:absolute; width:600px; height:300px; left:50%; top:50%; transform:translate(-50%,-50%);
+      background:rgba(139,92,246,.15); filter:blur(140px); border-radius:50%; pointer-events:none;
+    }
+    .final-inner { position:relative; max-width:660px; margin:0 auto; }
+    .final-title { font-size: clamp(32px, 5vw, 64px); line-height:.96; letter-spacing:-.045em; font-weight:900; margin:0 0 24px; }
+    .final-copy { color:var(--muted); font-size:18px; line-height:1.7; margin:0 auto 48px; max-width:440px; }
+    .final-cta {
+      background:#fff; color:#09090b; padding:20px 48px; font-size:17px; font-weight:700;
+      box-shadow:0 0 70px rgba(139,92,246,.35);
+    }
+    .final-cta:hover { box-shadow:0 0 90px rgba(139,92,246,.45); }
+
+    /* ── Footer ── */
+    footer { padding:40px 0; border-top:1px solid rgba(255,255,255,.04); }
+    .footer-inner { display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap; color:var(--soft); font-size:13px; }
+    .footer-links { display:flex; gap:18px; flex-wrap:wrap; }
+
+    /* ── Responsive ── */
+    @media (max-width: 980px) {
+      .shell { padding: 0 24px; }
+      .hero-grid, .grid3, .grid2 { grid-template-columns:1fr; }
+      .hero { min-height:auto; padding-top: 56px; padding-bottom:48px; }
+      h1 { font-size: clamp(44px, 14vw, 72px); }
+      .sub { font-size:18px; }
+      .phone-wrap { justify-content:center; }
+      .phone { width:min(300px, 80vw); }
+      section { padding:84px 0; }
+      .final { padding:96px 0; }
+      .relief-card { padding:32px; }
+      .relief-card p:first-child { font-size:22px; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <div class="shell nav-inner">
+      <div class="brand">
+        <img class="icon" src="../public/duezo-d-logo-transparent.png" alt="Duezo icon">
+        <img class="wordmark" src="../public/duezo-name-font-transparent.png" alt="Duezo">
+      </div>
+      <div class="nav-right">
+        <a class="signin" href="#">Sign in</a>
+        <a class="nav-cta" href="https://apps.apple.com/us/app/duezo/id6759273131"> Get the App</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <section class="hero">
+      <div class="hero-glow"></div>
+      <div class="shell hero-grid">
+        <div>
+          <h1>Every bill.<br><span class="grad">Counted down.</span></h1>
+          <p class="sub">Your brain can't track 10 due dates. Your phone can. No bank linking. No budgets. Just clarity.</p>
+          <a class="hero-cta" href="https://apps.apple.com/us/app/duezo/id6759273131"> Download Free for iPhone</a>
+          <div class="hero-meta">No bank linking required · Set up in 60 seconds</div>
+        </div>
+        <div class="phone-wrap">
+          <div class="phone-glow"></div>
+          <div class="phone">
+            <div class="phone-inner">
+              <img src="../public/new_dashboard.jpg" alt="Duezo dashboard — bills counted down with days remaining on each card">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-fade"></div>
+    </section>
+
+    <section class="center">
+      <div class="shell">
+        <p class="proof-title" style="color:#d4d4d8;">You check your bank twice a day.<br>You still miss bills.</p>
+        <p class="section-copy" style="margin-bottom:0;">Late fees average $1,200 a year. Not because you're bad with money — because no one can hold 10 due dates in their head.</p>
+        <div class="relief-card center">
+          <p>Open the app. See every bill. See the countdown.<br>Close the app. Done.</p>
+          <p>One glance replaces the twice-a-day bank check. Every bill has a number. That number goes down. You always know what's coming.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell center">
+        <div class="kicker">How it works</div>
+        <h2 class="section-title">See every bill in 60 seconds</h2>
+        <p class="section-copy">Three steps. No bank login. No spreadsheet.</p>
+        <div class="grid3">
+          <div class="card"><div class="icon-box"></div><h3>Download Duezo</h3><p>Free on the App Store. Create an account in seconds — no bank credentials, ever.</p></div>
+          <div class="card"><div class="icon-box">⌁</div><h3>Add your bills</h3><p>Quick Add with autocomplete or snap a photo. AI extracts the name, amount, and due date.</p></div>
+          <div class="card"><div class="icon-box">◔</div><h3>Watch countdowns</h3><p>Every bill gets a countdown. Cards shift color as due dates approach. You always know what's next.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell center">
+        <div class="kicker">Why Duezo</div>
+        <h2 class="section-title">Not a budget app.<br><span style="color:#71717a;font-weight:400;font-style:italic;">Not even close.</span></h2>
+        <div class="grid2">
+          <div class="card"><div class="icon-box-neutral">◔</div><h3>Countdown on every bill</h3><p>No other app does this. Every bill shows days remaining — not just a date buried in a list.</p></div>
+          <div class="card"><div class="icon-box-neutral">✦</div><h3>No bank linking. Ever.</h3><p>Your bank login stays with your bank. Duezo works without credentials, connections, or Plaid.</p></div>
+          <div class="card"><div class="icon-box-neutral">✺</div><h3>Smart push reminders</h3><p>7 days, 3 days, 1 day — reminders that actually land before the late fee does.</p></div>
+          <div class="card"><div class="icon-box-neutral">⌘</div><h3>AI photo scan</h3><p>Snap a photo of any bill or statement. AI pulls the vendor, amount, and due date in seconds.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="center">
+      <div class="shell">
+        <p class="proof-title">"They call it the ADHD tax.<br>It's optional."</p>
+        <p class="section-copy">$1,200 a year in late fees — not because you forgot the bills exist, but because you couldn't hold every due date in your head. That's what Duezo fixes.</p>
+      </div>
+    </section>
+
+    <section class="final">
+      <div class="shell final-inner">
+        <h2 class="final-title">Stop guessing.<br><span class="grad">Start counting down.</span></h2>
+        <p class="final-copy">Free on iPhone. Set up in 60 seconds. No bank linking required.</p>
+        <a class="final-cta" href="https://apps.apple.com/us/app/duezo/id6759273131"> Download Free for iPhone</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="shell footer-inner">
+      <div class="brand">
+        <img class="icon" src="../public/duezo-d-logo-transparent.png" alt="Duezo icon" style="width:22px;height:22px;border-radius:6px;">
+        <img class="wordmark" src="../public/duezo-name-font-transparent.png" alt="Duezo" style="height:18px;opacity:.5;">
+      </div>
+      <div class="footer-links">
+        <span>Privacy</span><span>Terms</span><span>About</span><a href="mailto:support@duezo.app">Contact</a><a href="https://x.com/duezoapp" target="_blank" rel="noopener noreferrer" aria-label="Duezo on X">𝕏</a>
+      </div>
+      <span>© 2026 Duezo</span>
+    </div>
+  </footer>
+</body>
+</html>

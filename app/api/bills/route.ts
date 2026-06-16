@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
-import { createAdminClient } from '@/lib/supabase/admin';
 import { NextResponse } from 'next/server';
-import { getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
+import { createBearerSupabaseClient, getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
 import { scheduleNotificationsForBillWithSettings } from '@/lib/notifications/scheduler';
 import { generateInAppReminders } from '@/lib/notifications/generate-reminders';
 import { getFallbackPaymentUrl } from '@/lib/vendor-payment-urls';
@@ -11,8 +10,9 @@ import type { Bill } from '@/types';
 // GET /api/bills - Get all bills for the current user
 export async function GET(request: Request) {
   try {
-    const { user, method } = await getAuthenticatedUser(request);
-    const supabase = method === 'bearer' ? createAdminClient() : await createClient();
+    const auth = await getAuthenticatedUser(request);
+    const { user, method } = auth;
+    const supabase = method === 'bearer' ? createBearerSupabaseClient(auth) : await createClient();
 
     if (!user) {
       return NextResponse.json(
@@ -77,8 +77,9 @@ export async function GET(request: Request) {
 // POST /api/bills - Create a new bill
 export async function POST(request: Request) {
   try {
-    const { user, method } = await getAuthenticatedUser(request);
-    const supabase = method === 'bearer' ? createAdminClient() : await createClient();
+    const auth = await getAuthenticatedUser(request);
+    const { user, method } = auth;
+    const supabase = method === 'bearer' ? createBearerSupabaseClient(auth) : await createClient();
 
     if (!user) {
       return NextResponse.json(
@@ -99,29 +100,48 @@ export async function POST(request: Request) {
     }
 
     // Create bill
+    const insertPayload: Record<string, unknown> = {
+      user_id: user.id,
+      name: body.name,
+      amount: body.amount || null,
+      due_date: body.due_date,
+      emoji: body.emoji || '📄',
+      category: body.category || null,
+      is_recurring: body.is_recurring || false,
+      recurrence_interval: body.recurrence_interval || null,
+      recurrence_day_of_month: body.recurrence_day_of_month || null,
+      recurrence_weekday: body.recurrence_weekday || null,
+      notes: body.notes || null,
+      payment_url: body.payment_url || getFallbackPaymentUrl(body.name) || null,
+      is_autopay: body.is_autopay || false,
+      source: body.source || 'manual',
+      gmail_message_id: body.gmail_message_id || null,
+      is_variable: body.is_variable || false,
+      typical_min: body.typical_min || null,
+      typical_max: body.typical_max || null,
+      icon_key: body.icon_key || null,
+    };
+
+    // v2 bill-identity fields — included ONLY when the client actually
+    // sends them, so the insert never references an identity column on
+    // a Supabase project that hasn't run the identity migration yet.
+    // (The `.select()` below echoes back whatever was stored.)
+    const IDENTITY_KEYS = [
+      'vendor_brand', 'vendor_legal_name', 'bill_display_name', 'account_type',
+      'service_category', 'account_identifier_last4', 'account_nickname',
+      'service_address', 'bill_account_key', 'identity_confidence',
+      'source_document_type', 'payment_status', 'minimum_due',
+      'statement_balance', 'document_type', 'raw_source_text', 'detected_subject_text',
+    ] as const;
+    for (const key of IDENTITY_KEYS) {
+      if (body[key] !== undefined && body[key] !== null) {
+        insertPayload[key] = body[key];
+      }
+    }
+
     const { data: bill, error } = await supabase
       .from('bills')
-      .insert({
-        user_id: user.id,
-        name: body.name,
-        amount: body.amount || null,
-        due_date: body.due_date,
-        emoji: body.emoji || '📄',
-        category: body.category || null,
-        is_recurring: body.is_recurring || false,
-        recurrence_interval: body.recurrence_interval || null,
-        recurrence_day_of_month: body.recurrence_day_of_month || null,
-        recurrence_weekday: body.recurrence_weekday || null,
-        notes: body.notes || null,
-        payment_url: body.payment_url || getFallbackPaymentUrl(body.name) || null,
-        is_autopay: body.is_autopay || false,
-        source: body.source || 'manual',
-        gmail_message_id: body.gmail_message_id || null,
-        is_variable: body.is_variable || false,
-        typical_min: body.typical_min || null,
-        typical_max: body.typical_max || null,
-        icon_key: body.icon_key || null,
-      })
+      .insert(insertPayload)
       .select()
       .single();
 

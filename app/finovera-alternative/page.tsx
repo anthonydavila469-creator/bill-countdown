@@ -5,7 +5,7 @@ import { ArrowRight, Check, X, Shield, Zap, Clock, Camera } from 'lucide-react';
 export const metadata: Metadata = {
   title: 'Best Finovera Alternative in 2026 | Duezo',
   description:
-    'Finovera shut down in June 2024. Duezo is the best Finovera alternative — AI-powered bill tracking that scans your Gmail, shows due date countdowns, and never requires bank linking. Free to try.',
+    'Finovera shut down in June 2024. Duezo is the best Finovera alternative — bill tracking with countdown timers, Quick Add, photo scan, and no bank linking. Free to try.',
   keywords: [
     'finovera alternative',
     'finovera replacement',
@@ -14,12 +14,12 @@ export const metadata: Metadata = {
     'bill reminder app no bank account',
     'finovera app alternative 2026',
     'e-bill aggregator alternative',
-    'bill tracking app gmail',
+    'bill tracking app iPhone',
   ],
   openGraph: {
     title: 'Best Finovera Alternative in 2026 | Duezo',
     description:
-      'Finovera shut down in June 2024. Duezo picks up where it left off — AI bill tracking, countdown timers, no bank linking required.',
+      'Finovera shut down in June 2024. Duezo picks up where it left off — bill countdowns, Quick Add, photo scan, no bank linking required.',
     url: 'https://duezo.app/finovera-alternative',
     siteName: 'Duezo',
     type: 'website',
@@ -41,15 +41,15 @@ const faqs = [
   },
   {
     q: 'Is Duezo a good replacement for Finovera?',
-    a: 'Yes. Like Finovera, Duezo automatically finds your bills — but instead of linking to bank accounts, it scans your Gmail for bill notification emails. This means instant bill detection without sharing your banking credentials.',
+    a: 'Yes. Duezo lets you add bills fast with Quick Add or photo scan, then tracks every due date with countdown timers. No bank linking required — your credentials stay with your bank.',
   },
   {
     q: 'Does Duezo require bank linking?',
-    a: 'No. Duezo scans your Gmail for bill emails instead of linking to your bank account. This is both more private and more accurate — it finds bills from every vendor that sends you a notification email.',
+    a: 'No. Duezo never asks for bank credentials. You add bills with Quick Add or photo scan. Your bank accounts stay completely private.',
   },
   {
     q: 'How much does Duezo cost?',
-    a: "Duezo is $4.99/month or $39.99/year (save 33%). There's a free trial with no credit card required.",
+    a: "Duezo is free to download with up to 5 bills. Duezo Pro is $3.99/month or $19.99/year (yearly includes a 7-day free trial).",
   },
   {
     q: 'What about Prism — did that also shut down?',
@@ -78,7 +78,7 @@ export default function FioveraAlternativePage() {
               operatingSystem: 'iOS, Web',
               offers: {
                 '@type': 'Offer',
-                price: '4.99',
+                price: '3.99',
                 priceCurrency: 'USD',
                 priceValidUntil: '2026-12-31',
               },
@@ -105,14 +105,14 @@ export default function FioveraAlternativePage() {
         </h1>
         <p className="text-xl text-zinc-400 max-w-2xl mx-auto mb-10">
           Finovera went dark. But you still need to track bills without logging into 10 different websites.
-          Duezo scans your Gmail automatically — same idea, better execution.
+          Duezo tracks every bill with countdowns and reminders — same idea, better execution.
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link
-            href="/signup"
+            href="https://apps.apple.com/us/app/duezo/id6759273131"
             className="inline-flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-semibold px-8 py-4 rounded-2xl text-lg transition-colors"
           >
-            Try Duezo Free <ArrowRight className="w-5 h-5" />
+            Download on the App Store <ArrowRight className="w-5 h-5" />
           </Link>
           <p className="text-zinc-500 text-sm">No bank account required. No credit card needed.</p>
         </div>
@@ -149,10 +149,10 @@ export default function FioveraAlternativePage() {
             </thead>
             <tbody>
               {[
-                ['Automatic bill detection', true, true],
+                ['Automatic bill detection', false, true],
                 ['No bank account required', true, true],
                 ['Bill due date tracking', true, true],
-                ['Email-based bill scanning', false, true],
+                ['Quick Add & photo scan', false, true],
                 ['Visual countdown timers', false, true],
                 ['iOS home screen widget', false, true],
                 ['Price increase alerts', false, true],
@@ -186,7 +186,7 @@ export default function FioveraAlternativePage() {
       <section className="max-w-5xl mx-auto px-6 py-16">
         <h2 className="text-3xl font-bold text-center mb-4">How Duezo Works</h2>
         <p className="text-zinc-400 text-center max-w-xl mx-auto mb-12">
-          Same end result as Finovera — all your bills in one place, without logging in everywhere. Different method: your Gmail already has all the answers.
+          Same end result as Finovera — all your bills in one place, without logging in everywhere. Add bills fast, track them with countdowns.
         </p>
         <div className="grid md:grid-cols-3 gap-6">
           {[
@@ -197,8 +197,8 @@ export default function FioveraAlternativePage() {
             },
             {
               icon: Zap,
-              title: 'Bills Detected Automatically',
-              desc: 'AI extracts the bill name, amount, and due date from each notification. No manual entry. No biller logins. Just instant detection.',
+              title: 'AI Photo Scan',
+              desc: 'Snap a photo of any bill or statement. AI extracts the vendor, amount, and due date in seconds. No biller logins needed.',
             },
             {
               icon: Clock,
@@ -228,9 +228,8 @@ export default function FioveraAlternativePage() {
           <div>
             <h3 className="font-semibold text-lg mb-2">Your Privacy Is Protected</h3>
             <p className="text-zinc-400 leading-relaxed mb-2">
-              Finovera stored your billing credentials. Duezo doesn&apos;t. We only read bill notification emails —
-              we never see your banking passwords, SSN, or account numbers. Gmail access is read-only and can be revoked
-              anytime from your Google account settings.
+              Finovera stored your billing credentials. Duezo doesn&apos;t. We never ask for bank logins,
+              passwords, SSN, or account numbers. You add bills yourself with Quick Add or photo scan.
             </p>
             <p className="text-zinc-400 text-sm">
               Duezo stores only: bill name, amount, due date. That&apos;s it.
@@ -260,12 +259,12 @@ export default function FioveraAlternativePage() {
             Start your free trial. Add a bill in 30 seconds. Your bills show up automatically.
           </p>
           <Link
-            href="/signup"
+            href="https://apps.apple.com/us/app/duezo/id6759273131"
             className="inline-flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-semibold px-8 py-4 rounded-2xl text-lg transition-colors"
           >
-            Start Free — No Bank Account Required <ArrowRight className="w-5 h-5" />
+            Download on the App Store <ArrowRight className="w-5 h-5" />
           </Link>
-          <p className="text-zinc-600 text-sm mt-4">$4.99/mo or $39.99/yr · Free trial · Cancel anytime</p>
+          <p className="text-zinc-600 text-sm mt-4">Free to start · $3.99/mo or $19.99/yr Pro · Cancel anytime</p>
         </div>
       </section>
 

@@ -1,14 +1,11 @@
 import { NextResponse } from 'next/server';
 
+import { cronAuthGuard } from '@/lib/auth/cron-auth';
 import { runExtractionLearningPass } from '@/app/cron/extraction-learning-pass';
 
 export async function GET(request: Request) {
-  const authHeader = request.headers.get('authorization');
-  const expectedToken = `Bearer ${process.env.CRON_SECRET}`;
-
-  if (!authHeader || authHeader !== expectedToken) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const denied = cronAuthGuard(request);
+  if (denied) return denied;
 
   const result = await runExtractionLearningPass();
 

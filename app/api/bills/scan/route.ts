@@ -1,11 +1,73 @@
 import { NextResponse } from 'next/server';
-import { getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
+import { createBearerSupabaseClient, getAuthenticatedUser } from '@/lib/auth/get-authenticated-user';
 import { isRateLimited } from '@/lib/rate-limit';
+import { logScanError } from '@/lib/scan-error-codes';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import Anthropic from '@anthropic-ai/sdk';
 import { createHash } from 'crypto';
 import { classifyDocument } from '@/lib/bill-classifier';
+import {
+  buildAmountCandidates,
+  buildDueDateCandidates,
+  type ClaudeScanResult,
+  resolveAmount,
+  resolveDueDate,
+} from '@/lib/bill-scan-ranker';
+import { buildBillScanV2, mapSourceDocumentType, wantsV2Response } from '@/lib/bill-scan-v2';
+import {
+  BILL_SCAN_V2_PROMPT,
+  mapClaudeV2ToBillScanV2,
+  parseBillScanV2Claude,
+} from '@/lib/bill-scan-v2-extract';
+import { postProcessBillScanV2 } from '@/lib/bill-scan-v2-postprocess';
+import {
+  chargeSmartScanUsageEvent,
+  finishChargedSmartScanUsageEvent,
+  releaseSmartScanUsageEvent,
+  reserveSmartScanUsage,
+  type SmartScanUsageEventRow,
+} from '@/lib/smart-scans/usage';
+import {
+  classifyAndExtractPayLater,
+  parseScanPurpose,
+  wantsV3Response,
+} from '@/lib/pay-later-scan';
+
+function hasExplicitYear(input?: string | null) {
+  if (!input) return false;
+  return /\b(19\d{2}|20\d{2})\b/.test(input);
+}
+
+function reconcileAmbiguousYear(isoDate: string | null, now = new Date()) {
+  if (!isoDate) return null;
+  const parsed = new Date(`${isoDate}T00:00:00`);
+  if (Number.isNaN(parsed.getTime())) return isoDate;
+
+  const base = new Date(now);
+  base.setHours(0, 0, 0, 0);
+
+  const month = parsed.getMonth();
+  const day = parsed.getDate();
+  const currentYearCandidate = new Date(base.getFullYear(), month, day);
+  const nextYearCandidate = new Date(base.getFullYear() + 1, month, day);
+
+  const currentIso = `${currentYearCandidate.getFullYear()}-${String(currentYearCandidate.getMonth() + 1).padStart(2, '0')}-${String(currentYearCandidate.getDate()).padStart(2, '0')}`;
+  const nextIso = `${nextYearCandidate.getFullYear()}-${String(nextYearCandidate.getMonth() + 1).padStart(2, '0')}-${String(nextYearCandidate.getDate()).padStart(2, '0')}`;
+
+  const currentDelta = Math.round((currentYearCandidate.getTime() - base.getTime()) / 86400000);
+  const nextDelta = Math.round((nextYearCandidate.getTime() - base.getTime()) / 86400000);
+
+  if (currentDelta >= -45 && currentDelta <= 330) {
+    return currentIso;
+  }
+
+  if (nextDelta >= 0) {
+    return nextIso;
+  }
+
+  return isoDate;
+}
 
 function getAnthropic() {
   return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -114,21 +176,49 @@ async function ensureBillScansBucket(adminSupabase: ReturnType<typeof createAdmi
 
 export async function POST(request: Request) {
   let scanSessionId: string | null = null;
+  let smartScanUsageEvent: SmartScanUsageEventRow | null = null;
+  let smartScanCharged = false;
+  let authenticatedUserId: string | null = null;
+  // Hoisted so the catch-all can return a graceful 200 body shaped for
+  // the version of the response the caller asked for (v1 / v2 / v3),
+  // even when the v1 extraction itself fails.
+  let capturedRequestBody: unknown = null;
 
   try {
-    const { user, method } = await getAuthenticatedUser(request);
-    const supabase = method === 'bearer' ? createAdminClient() : await createClient();
-    const adminSupabase = createAdminClient();
+    const auth = await getAuthenticatedUser(request);
+    const { user, method } = auth;
+    const supabase = method === 'bearer' ? createBearerSupabaseClient(auth) : await createClient();
+    const storageSupabase = method === 'bearer' ? supabase : createAdminClient();
+    const canCreateStorageBucket = method !== 'bearer';
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    authenticatedUserId = user.id;
 
     if (isRateLimited(`bill-scan:${user.id}`, 10, 60_000)) {
       return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
     }
 
-    const { image, source_type } = await request.json();
+    const requestBody = await request.json();
+    capturedRequestBody = requestBody;
+    const { image, source_type } = requestBody ?? {};
+    // Opt-in to the v2 response shape via `?v=2` or `responseVersion: 2`.
+    // v1 remains the default for every existing client.
+    const includeV2 = wantsV2Response(request.url, requestBody);
+    // Opt-in to the v3 response shape via `?v=3` or `responseVersion: 3`.
+    // v3 is additive: it carries everything v2 does, plus a `classification`
+    // field and an optional `payLater` object (when scanPurpose != "bill"
+    // and the screenshot reads as a Pay Later plan). Existing v1/v2
+    // callers are unaffected.
+    const includeV3 = wantsV3Response(request.url, requestBody);
+    // v3 always carries the v2 fields too — a v3 caller never has to ask
+    // for v2 separately.
+    const wantsV2 = includeV2 || includeV3;
+    // Default "bill" keeps every existing v1/v2 caller on the bills-only
+    // path verbatim — they never set `scanPurpose`. Only v3 callers
+    // typically set it to "payLater" or "auto".
+    const scanPurpose = parseScanPurpose(requestBody);
     if (!image || typeof image !== 'string') {
       return NextResponse.json({ error: 'Missing image data' }, { status: 400 });
     }
@@ -158,6 +248,20 @@ export async function POST(request: Request) {
     const imageBuffer = Buffer.from(base64Data, 'base64');
     const fileSizeBytes = imageBuffer.byteLength;
     const { width: imageWidth, height: imageHeight } = getImageDimensions(imageBuffer, mediaType);
+    const usageReservation = await reserveSmartScanUsage({
+      userId: user.id,
+      scanKind: 'bill',
+      route: '/api/bills/scan',
+      imageCount: 1,
+      fileSizeBytes,
+      modelProvider: 'anthropic',
+      modelName,
+    });
+
+    if (!usageReservation.ok) {
+      return NextResponse.json(usageReservation.limitResponse, { status: 403 });
+    }
+    smartScanUsageEvent = usageReservation.event;
 
     const { data: scanSession, error: scanSessionError } = await supabase
       .from('bill_scan_sessions')
@@ -177,6 +281,7 @@ export async function POST(request: Request) {
 
     if (scanSessionError || !scanSession) {
       console.error('Error creating bill scan session:', scanSessionError);
+      await releaseReservedSmartScan('bill_scan_session_failed');
       return NextResponse.json({ error: 'Failed to initialize bill scan' }, { status: 500 });
     }
 
@@ -184,9 +289,11 @@ export async function POST(request: Request) {
     const imageExtension = getFileExtension(mediaType);
     const imageStoragePath = `${user.id}/${scanSessionId}.${imageExtension}`;
 
-    await ensureBillScansBucket(adminSupabase);
+    if (canCreateStorageBucket) {
+      await ensureBillScansBucket(storageSupabase);
+    }
 
-    const { error: uploadError } = await adminSupabase.storage
+    const { error: uploadError } = await storageSupabase.storage
       .from(BILL_SCANS_BUCKET)
       .upload(imageStoragePath, imageBuffer, {
         contentType: mediaType,
@@ -203,6 +310,7 @@ export async function POST(request: Request) {
         })
         .eq('id', scanSessionId);
 
+      await releaseReservedSmartScan('image_upload_failed');
       return NextResponse.json({ error: 'Failed to store bill scan image' }, { status: 500 });
     }
 
@@ -223,6 +331,7 @@ export async function POST(request: Request) {
         })
         .eq('id', scanSessionId);
 
+      await releaseReservedSmartScan('image_path_update_failed');
       return NextResponse.json({ error: 'Failed to persist bill scan metadata' }, { status: 500 });
     }
 
@@ -235,6 +344,9 @@ export async function POST(request: Request) {
     }
 
     const startedAt = Date.now();
+    await chargeSmartScan('model_call_started', {
+      billScanSessionId: scanSessionId,
+    });
 
     const response = await getAnthropic().messages.create({
       model: modelName,
@@ -282,7 +394,10 @@ Rules:
 - due_date: The payment due date in YYYY-MM-DD format.
 - confidence: Include a 0 to 1 confidence score for vendor_name, amount_due, due_date, and overall.
 - evidence: Copy the exact supporting text snippet for each field when available; otherwise use null.
+- evidence.raw_text: Include a compact plain-text summary of the most relevant bill text you used for extraction (especially lines around totals and due dates).
 - warnings: Include an array of short strings for ambiguity, missing fields, or conflicts. Use [] when none.
+- candidates.amounts: optional array of top amount candidates with fields value, normalizedValue, label, sourceText, and locationHint.
+- candidates.due_dates: optional array of top due date candidates with fields value, normalizedValue, label, sourceText, and locationHint.
 - If a field cannot be determined, use null.
 - Return all keys shown above, even when values are null or false.`,
             },
@@ -304,6 +419,10 @@ Rules:
         })
         .eq('id', scanSessionId);
 
+      await finishChargedSmartScan('empty_model_response', {
+        billScanSessionId: scanSessionId,
+        latencyMs,
+      });
       return NextResponse.json({
         scan_session_id: scanSessionId,
         name: null,
@@ -314,11 +433,35 @@ Rules:
 
     // Strip markdown code fences if present
     const jsonStr = content.replace(/^```(?:json)?\s*|\s*```$/g, '').trim();
-    const parsed = JSON.parse(jsonStr);
+    // Lenient parse: some models wrap the JSON in a sentence of prose
+    // ("This appears to be a Shop Pay installment plan, not a bill:
+    // { ... }"). A strict JSON.parse throws on that, dropping the
+    // whole request into the catch-all 500 below. Try the strict
+    // parse first; on failure, fall back to extracting the first
+    // {...} block from the response so we still get usable data.
+    let parsed: ClaudeScanResult;
+    try {
+      parsed = JSON.parse(jsonStr) as ClaudeScanResult;
+    } catch (parseError) {
+      const objectMatch = jsonStr.match(/\{[\s\S]*\}/);
+      if (objectMatch) {
+        try {
+          parsed = JSON.parse(objectMatch[0]) as ClaudeScanResult;
+        } catch {
+          throw parseError; // propagate the original — outer catch handles it.
+        }
+      } else {
+        throw parseError;
+      }
+    }
     const normalizedName = typeof parsed.vendor_name === 'string' ? parsed.vendor_name : null;
-    const normalizedAmount = typeof parsed.amount_due === 'number' ? parsed.amount_due : null;
+    const normalizedAmountString = typeof parsed.amount_due === 'string'
+      ? parsed.amount_due
+      : typeof parsed.amount_due === 'number'
+        ? String(parsed.amount_due)
+        : null;
     const normalizedDueDate = typeof parsed.due_date === 'string' ? parsed.due_date : null;
-    const isBill = typeof parsed.is_bill === 'boolean' ? parsed.is_bill : normalizedName !== null || normalizedAmount !== null || normalizedDueDate !== null;
+    const isBill = typeof parsed.is_bill === 'boolean' ? parsed.is_bill : normalizedName !== null || normalizedAmountString !== null || normalizedDueDate !== null;
     const documentType = typeof parsed.document_type === 'string' ? parsed.document_type : null;
     const warnings = Array.isArray(parsed.warnings)
       ? parsed.warnings.filter((warning: unknown): warning is string => typeof warning === 'string')
@@ -337,6 +480,77 @@ Rules:
     const evidenceDueDateText = typeof evidence.due_date_text === 'string' ? evidence.due_date_text : null;
     const documentClassification = isBill ? 'bill' : 'non_bill';
 
+    const amountCandidates = buildAmountCandidates({
+      ...parsed,
+      vendor_name: normalizedName,
+      amount_due: normalizedAmountString,
+      due_date: normalizedDueDate,
+      warnings,
+      is_bill: isBill,
+      document_type: documentType,
+    });
+    const dueDateCandidates = buildDueDateCandidates({
+      ...parsed,
+      vendor_name: normalizedName,
+      amount_due: normalizedAmountString,
+      due_date: normalizedDueDate,
+      warnings,
+      is_bill: isBill,
+      document_type: documentType,
+    });
+
+    const amountResult = resolveAmount({
+      claudeAmount: normalizedAmountString,
+      claudeConfidence: confidenceAmount ?? 0,
+      candidates: amountCandidates,
+    });
+    const dueDateResult = resolveDueDate({
+      claudeDueDate: normalizedDueDate,
+      claudeConfidence: confidenceDueDate ?? 0,
+      candidates: dueDateCandidates,
+    });
+
+    const finalAmount = amountResult.finalValue;
+    const dueDateEvidenceHasYear = hasExplicitYear(evidenceDueDateText) || hasExplicitYear(parsed.evidence?.raw_text);
+    const safeDueDate = !dueDateEvidenceHasYear
+      ? reconcileAmbiguousYear(dueDateResult.finalValue)
+      : dueDateResult.finalValue;
+    const finalDueDate = safeDueDate;
+    const dueDateDecision =
+      safeDueDate !== dueDateResult.finalValue
+        ? 'overridden_by_ranker'
+        : dueDateResult.resolution.decision;
+    const dueDateReason =
+      safeDueDate !== dueDateResult.finalValue
+        ? 'rolled_forward_ambiguous_past_due_date'
+        : dueDateResult.resolution.reason;
+    const needsReview =
+      amountResult.resolution.decision === 'needs_review' ||
+      dueDateDecision === 'needs_review';
+
+    const rankingPayload = {
+      version: 'ranker-v1' as const,
+      candidates: {
+        amounts: amountResult.candidates,
+        due_dates: dueDateResult.candidates,
+      },
+      resolution: {
+        amount_due: amountResult.resolution,
+        due_date: {
+          ...dueDateResult.resolution,
+          finalValue: finalDueDate,
+          decision: dueDateDecision,
+          reason: dueDateReason,
+        },
+      },
+    };
+
+    const finalResolvedPayload = {
+      amount_due: finalAmount,
+      due_date: finalDueDate,
+      needs_review: needsReview,
+    };
+
     const { error: extractionResultError } = await supabase
       .from('bill_extraction_results')
       .insert({
@@ -345,11 +559,11 @@ Rules:
         prompt_version: promptVersion,
         raw_json: parsed,
         name_raw: normalizedName,
-        amount_raw: normalizedAmount,
+        amount_raw: normalizedAmountString ? Number(normalizedAmountString) : null,
         due_date_raw: normalizedDueDate,
         name_normalized: normalizedName,
-        amount_normalized: normalizedAmount,
-        due_date_normalized: normalizedDueDate,
+        amount_normalized: finalAmount ? Number(finalAmount) : null,
+        due_date_normalized: finalDueDate,
         confidence_name: confidenceName,
         confidence_amount: confidenceAmount,
         confidence_due_date: confidenceDueDate,
@@ -359,6 +573,8 @@ Rules:
         evidence_due_date_text: evidenceDueDateText,
         is_bill: isBill,
         document_type: documentType,
+        ranking_json: rankingPayload,
+        final_resolved_json: finalResolvedPayload,
       });
 
     if (extractionResultError) {
@@ -374,6 +590,10 @@ Rules:
         })
         .eq('id', scanSessionId);
 
+      await finishChargedSmartScan('extraction_result_insert_failed', {
+        billScanSessionId: scanSessionId,
+        latencyMs,
+      });
       return NextResponse.json({ error: 'Failed to persist bill scan result' }, { status: 500 });
     }
 
@@ -393,11 +613,15 @@ Rules:
       console.error('Error updating bill scan session:', scanSessionUpdateError);
     }
 
-    return NextResponse.json({
+    const finalAmountNumber = finalAmount ? Number(finalAmount) : null;
+
+    // v1 response body — unchanged. Built as an object so the optional
+    // v2 block can be attached without altering any v1 field.
+    const responseBody: Record<string, unknown> = {
       scan_session_id: scanSessionId,
       name: normalizedName,
-      amount: normalizedAmount,
-      due_date: normalizedDueDate,
+      amount: finalAmountNumber,
+      due_date: finalDueDate,
       confidence: {
         vendor_name: confidenceName,
         amount_due: confidenceAmount,
@@ -406,24 +630,227 @@ Rules:
       },
       is_bill: isBill,
       warnings,
-    });
-  } catch (error) {
-    console.error('Bill scan error:', error);
+      review: {
+        needs_review: needsReview,
+        amount_due: {
+          decision: amountResult.resolution.decision,
+          highlighted: amountResult.resolution.decision !== 'accepted_claude',
+        },
+        due_date: {
+          decision: dueDateDecision,
+          highlighted: dueDateDecision !== 'accepted_claude',
+        },
+      },
+      ranking: rankingPayload,
+    };
 
-    if (scanSessionId) {
-      const supabase = createAdminClient();
-      await supabase
-        .from('bill_scan_sessions')
-        .update({
-          extraction_status: 'failed',
-          error_code: error instanceof Error ? error.name : 'unknown_error',
-        })
-        .eq('id', scanSessionId);
+    // v2: additive, only when the caller opted in. Phase 2 runs a
+    // dedicated vision call that OCRs the full screenshot (subject bar
+    // included) and classifies bill identity per the v2 prompt. The v1
+    // body above is untouched. The ranker-resolved amount/due date are
+    // reused so v1 and v2 agree on those numbers.
+    if (wantsV2) {
+      // Phase 1 fallback: a null-filled v2 object derived from the v1
+      // pipeline. Used if the v2 vision call fails or returns invalid
+      // JSON so the response always carries a well-formed v2 object.
+      const fallbackV2 = buildBillScanV2({
+        scanSessionId: scanSessionId!,
+        vendorRawName: normalizedName,
+        amountDue: finalAmountNumber,
+        dueDate: finalDueDate,
+        documentType,
+        isBill,
+        sourceType,
+        rawVisibleText: typeof parsed.evidence?.raw_text === 'string' ? parsed.evidence.raw_text : null,
+        overallConfidence,
+        fieldConfidence: {
+          vendorName: confidenceName,
+          amountDue: confidenceAmount,
+          dueDate: confidenceDueDate,
+        },
+        evidence: {
+          vendorText: evidenceVendorText,
+          amountText: evidenceAmountText,
+          dueDateText: evidenceDueDateText,
+          rawText: typeof parsed.evidence?.raw_text === 'string' ? parsed.evidence.raw_text : null,
+        },
+        reviewNeeded: needsReview,
+        reviewReason: needsReview ? (dueDateReason ?? amountResult.resolution.reason ?? null) : null,
+        warnings,
+      });
+
+      // Phase 10: Pay Later classification + extraction, attached when
+      // the caller opted into v3. Runs deterministically over the v1
+      // ranker's vendor/amount/date + the OCR raw_text already gathered.
+      // For v3 callers who left `scanPurpose: "bill"`, the classifier
+      // short-circuits and we return classification: "bill" with no
+      // payLater object — no behavioral change.
+      if (includeV3) {
+        const payLaterResult = classifyAndExtractPayLater({
+          rawText: typeof parsed.evidence?.raw_text === 'string' ? parsed.evidence.raw_text : null,
+          vendorName: normalizedName,
+          amountDue: finalAmountNumber,
+          dueDate: finalDueDate,
+          scanPurpose,
+        });
+        responseBody.classification = payLaterResult.classification;
+        if (payLaterResult.payLater) {
+          responseBody.payLater = payLaterResult.payLater;
+        } else {
+          responseBody.payLater = null;
+        }
+      }
+
+      try {
+        const v2Response = await getAnthropic().messages.create({
+          model: modelName,
+          max_tokens: 1500,
+          messages: [
+            {
+              role: 'user',
+              content: [
+                {
+                  type: 'image',
+                  source: { type: 'base64', media_type: mediaType, data: base64Data },
+                },
+                { type: 'text', text: BILL_SCAN_V2_PROMPT },
+              ],
+            },
+          ],
+        });
+        const v2TextBlock = v2Response.content.find((block) => block.type === 'text');
+        const v2Text = v2TextBlock?.type === 'text' ? v2TextBlock.text : null;
+        const v2Parsed = parseBillScanV2Claude(v2Text);
+        const v2Mapped = v2Parsed
+          ? mapClaudeV2ToBillScanV2(v2Parsed, {
+              scanSessionId: scanSessionId!,
+              fallbackSourceDocumentType: mapSourceDocumentType(sourceType),
+              resolvedAmountDue: finalAmountNumber,
+              resolvedDueDate: finalDueDate,
+            })
+          : fallbackV2;
+        // Phase 3: deterministic identity post-processing (vendor
+        // normalization, account-type classification, payment-
+        // confirmation separation, identity confidence) — the model
+        // output is only a hint.
+        responseBody.v2 = postProcessBillScanV2(v2Mapped);
+      } catch (v2Error) {
+        console.error('Bill scan v2 extraction failed (returning fallback v2):', v2Error);
+        responseBody.v2 = postProcessBillScanV2(fallbackV2);
+      }
     }
 
-    return NextResponse.json(
-      { error: 'Failed to scan bill' },
-      { status: 500 }
-    );
+    await finishChargedSmartScan(null, {
+      billScanSessionId: scanSessionId,
+      latencyMs,
+    });
+    return NextResponse.json(responseBody);
+  } catch (error) {
+    // P1-6: log raw detail to the controlled server log; classify to a
+    // stable, app-owned code for telemetry and the client warning.
+    const errorCode = logScanError('bills/scan', error);
+
+    if (scanSessionId) {
+      try {
+        const supabase = createAdminClient();
+        await supabase
+          .from('bill_scan_sessions')
+          .update({
+            extraction_status: 'failed',
+            error_code: errorCode,
+          })
+          .eq('id', scanSessionId);
+      } catch (updateError) {
+        console.error('Failed to mark scan session failed:', updateError);
+      }
+    }
+
+    const diagnostic = errorCode;
+    if (smartScanUsageEvent && authenticatedUserId) {
+      if (smartScanCharged) {
+        await finishChargedSmartScan(diagnostic, {
+          billScanSessionId: scanSessionId,
+        });
+      } else {
+        await releaseReservedSmartScan(diagnostic);
+      }
+    }
+
+    // Phase-12 hardening: return a 200 with safe nulls + a diagnostic
+    // warning instead of a hard 500. The iOS client decodes the body
+    // and shows the friendly "couldn't read" review state with an
+    // Enter-Manually CTA — much better UX than an error toast.
+    //
+    // Shape mirrors the version of the response the caller asked for:
+    //   - v1 callers get the normal v1 nulls + warning.
+    //   - v2 callers also get v2: null.
+    //   - v3 callers also get classification: 'unknown' + payLater: null
+    //     so the Pay Later scan-review sheet lands on the "Enter
+    //     Manually" surface.
+    const includeV2Fallback = wantsV2Response(request.url, capturedRequestBody);
+    const includeV3Fallback = wantsV3Response(request.url, capturedRequestBody);
+
+    const safeBody: Record<string, unknown> = {
+      scan_session_id: scanSessionId,
+      name: null,
+      amount: null,
+      due_date: null,
+      is_bill: false,
+      warnings: [`scan_failed: ${errorCode}`],
+    };
+    if (includeV2Fallback || includeV3Fallback) {
+      safeBody.v2 = null;
+    }
+    if (includeV3Fallback) {
+      safeBody.classification = 'unknown';
+      safeBody.payLater = null;
+    }
+
+    return NextResponse.json(safeBody);
+  }
+
+  async function releaseReservedSmartScan(errorCode: string) {
+    if (!smartScanUsageEvent || !authenticatedUserId) return;
+    try {
+      await releaseSmartScanUsageEvent({
+        userId: authenticatedUserId,
+        eventId: smartScanUsageEvent.id,
+        errorCode,
+        billScanSessionId: scanSessionId,
+      });
+    } catch (usageError) {
+      console.error('Failed to release Smart Scan usage:', usageError);
+    }
+  }
+
+  async function chargeSmartScan(chargeReason: string, metadata: { billScanSessionId?: string | null }) {
+    if (!smartScanUsageEvent || !authenticatedUserId || smartScanCharged) return;
+    smartScanUsageEvent = await chargeSmartScanUsageEvent({
+      userId: authenticatedUserId,
+      eventId: smartScanUsageEvent.id,
+      modelProvider: 'anthropic',
+      modelName: 'claude-sonnet-4-20250514',
+      chargeReason,
+      billScanSessionId: metadata.billScanSessionId ?? null,
+    });
+    smartScanCharged = true;
+  }
+
+  async function finishChargedSmartScan(
+    errorCode: string | null,
+    metadata: { billScanSessionId?: string | null; latencyMs?: number | null },
+  ) {
+    if (!smartScanUsageEvent || !authenticatedUserId || !smartScanCharged) return;
+    try {
+      smartScanUsageEvent = await finishChargedSmartScanUsageEvent({
+        userId: authenticatedUserId,
+        eventId: smartScanUsageEvent.id,
+        errorCode,
+        billScanSessionId: metadata.billScanSessionId ?? null,
+        latencyMs: metadata.latencyMs ?? null,
+      });
+    } catch (usageError) {
+      console.error('Failed to finish Smart Scan usage:', usageError);
+    }
   }
 }

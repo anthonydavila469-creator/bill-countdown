@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Duezo Landing Preview</title>
+  <style>
+    :root {
+      --bg: #08080c;
+      --panel: rgba(255,255,255,0.04);
+      --panel-2: rgba(255,255,255,0.025);
+      --border: rgba(255,255,255,0.08);
+      --text: #ffffff;
+      --muted: #a1a1aa;
+      --soft: #71717a;
+      --violet: #8b5cf6;
+      --violet-2: #c084fc;
+      --violet-3: #e9d5ff;
+      --shadow: 0 30px 80px rgba(124,58,237,0.28);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 78% 18%, rgba(139,92,246,0.24), transparent 22%),
+        radial-gradient(circle at 68% 28%, rgba(168,85,247,0.14), transparent 18%),
+        linear-gradient(180deg, #09090d 0%, #08080c 100%);
+      color: var(--text);
+    }
+    a { color: inherit; text-decoration: none; }
+    .wrap { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
+    .nav {
+      position: sticky; top: 0; z-index: 20;
+      backdrop-filter: blur(18px);
+      background: rgba(8,8,12,0.72);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .nav-inner {
+      height: 74px; display: flex; align-items: center; justify-content: space-between; gap: 24px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand img.logo { width: 38px; height: 38px; border-radius: 10px; }
+    .brand img.wordmark { height: 24px; width: auto; }
+    .nav-links { display: flex; gap: 28px; color: var(--soft); font-size: 14px; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+      border-radius: 999px; padding: 14px 22px; font-weight: 700;
+      transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+    .btn.primary {
+      background: white; color: #08080c;
+      box-shadow: 0 0 36px rgba(139,92,246,0.24);
+    }
+    .btn.primary:hover { transform: translateY(-1px); }
+    .btn.ghost {
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #e4e4e7;
+    }
+    .hero {
+      min-height: calc(100vh - 74px);
+      display: grid; grid-template-columns: 1.05fr .95fr; gap: 44px; align-items: center;
+      padding: 56px 0 72px;
+    }
+    .eyebrow { color: rgba(196,181,253,.85); font-size: 13px; letter-spacing: .22em; text-transform: uppercase; font-weight: 700; }
+    h1 {
+      margin: 18px 0 24px; font-size: clamp(50px, 7vw, 88px); line-height: .95; letter-spacing: -.06em;
+    }
+    .grad {
+      background: linear-gradient(90deg, var(--violet-3), var(--violet-2), #ddd6fe);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .sub {
+      max-width: 560px; color: var(--muted); font-size: clamp(18px, 2vw, 21px); line-height: 1.68; margin-bottom: 30px;
+    }
+    .cta-row { display:flex; flex-wrap:wrap; gap:14px; margin-bottom: 24px; }
+    .chips { display:flex; flex-wrap:wrap; gap: 18px 22px; color: var(--soft); font-size: 14px; }
+    .chip { display:flex; align-items:center; gap:8px; }
+    .dot { width: 8px; height: 8px; border-radius: 999px; background: linear-gradient(180deg, #c4b5fd, #8b5cf6); box-shadow: 0 0 10px rgba(139,92,246,.6); }
+    .phone-shell {
+      width: min(350px, 100%); margin: 0 auto; padding: 10px;
+      border-radius: 48px; border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(30,20,56,.82), rgba(10,10,14,.96));
+      box-shadow: var(--shadow), 0 16px 40px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.03);
+      position: relative;
+    }
+    .phone-glow {
+      position:absolute; inset: 50% auto auto 50%; width: 440px; height: 440px; transform: translate(-50%,-50%);
+      background: radial-gradient(circle, rgba(139,92,246,.28), rgba(139,92,246,.08) 42%, transparent 70%);
+      filter: blur(18px); pointer-events:none;
+    }
+    .phone-screen { overflow:hidden; border-radius: 38px; background:black; position: relative; z-index: 2; }
+    .phone-screen img { display:block; width:100%; height:auto; }
+    section.block { padding: 92px 0; border-top: 1px solid rgba(255,255,255,0.05); }
+    .section-head { text-align:center; max-width: 760px; margin: 0 auto 50px; }
+    h2 { font-size: clamp(34px, 4.5vw, 58px); line-height: 1.04; letter-spacing: -.05em; margin: 12px 0 16px; }
+    .section-head p { color: var(--muted); font-size: 18px; line-height: 1.65; margin: 0 auto; max-width: 640px; }
+    .grid-3, .grid-2 { display:grid; gap: 20px; }
+    .grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .card {
+      border: 1px solid rgba(255,255,255,0.08); border-radius: 28px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.022));
+      padding: 28px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+    }
+    .card h3 { margin: 0 0 10px; font-size: 22px; letter-spacing: -.03em; }
+    .card p { margin: 0; color: var(--muted); line-height: 1.65; font-size: 15px; }
+    .mini { color: rgba(196,181,253,.85); font-weight: 700; text-transform: uppercase; letter-spacing: .18em; font-size: 12px; }
+    .feature-icon {
+      width: 44px; height: 44px; border-radius: 16px; margin-bottom: 18px;
+      background: rgba(139,92,246,0.12); border: 1px solid rgba(139,92,246,0.2);
+      display:flex; align-items:center; justify-content:center; color:#c4b5fd; font-size:18px;
+    }
+    .quote {
+      max-width: 840px; margin: 0 auto 28px; padding: 40px;
+      border-radius: 32px; border: 1px solid rgba(255,255,255,.08);
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+    }
+    .quote p { margin: 0 0 18px; color: #e4e4e7; font-size: 24px; line-height: 1.55; letter-spacing: -.02em; }
+    .quote .by { color: var(--soft); font-size: 15px; }
+    .pricing .card { min-height: 100%; }
+    .price { font-size: 54px; font-weight: 900; letter-spacing: -.05em; margin: 0 0 12px; }
+    .price span { font-size: 16px; font-weight: 500; color: var(--soft); }
+    ul.clean { list-style: none; padding: 0; margin: 0 0 28px; display: grid; gap: 12px; }
+    ul.clean li { color: #d4d4d8; font-size: 15px; display:flex; gap: 10px; align-items:flex-start; }
+    ul.clean li::before { content: "✓"; color: #c4b5fd; font-weight: 800; }
+    .faq { max-width: 860px; margin: 0 auto; display:grid; gap:14px; }
+    .faq-item { border: 1px solid rgba(255,255,255,.08); border-radius: 20px; background: rgba(255,255,255,.02); padding: 22px 24px; }
+    .faq-item strong { display:block; margin-bottom: 10px; font-size: 17px; }
+    .faq-item p { margin: 0; color: var(--muted); line-height: 1.65; }
+    .final {
+      text-align:center; max-width: 760px; margin: 0 auto;
+      padding: 22px 0 10px;
+    }
+    .final p { color: var(--muted); font-size: 19px; line-height: 1.7; margin: 0 auto 28px; max-width: 620px; }
+    .footer { border-top: 1px solid rgba(255,255,255,0.05); padding: 28px 0 42px; color: var(--soft); font-size: 13px; }
+    @media (max-width: 960px) {
+      .nav-links { display:none; }
+      .hero { grid-template-columns: 1fr; gap: 34px; text-align: center; }
+      .sub { margin-left:auto; margin-right:auto; }
+      .cta-row, .chips { justify-content:center; }
+      .grid-3, .grid-2 { grid-template-columns: 1fr; }
+      .quote p { font-size: 21px; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <div class="wrap nav-inner">
+      <div class="brand">
+        <img class="logo" src="duezo-d-logo-transparent.png" alt="Duezo logo" />
+        <img class="wordmark" src="duezo-name-font-transparent.png" alt="Duezo" />
+      </div>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#why">Why Duezo</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#faq">FAQ</a>
+      </div>
+      <a class="btn primary" href="#">Download for iPhone</a>
+    </div>
+  </nav>
+
+  <main class="wrap">
+    <section class="hero">
+      <div>
+        <div class="eyebrow">iPhone bill tracking</div>
+        <h1>Never miss<br><span class="grad">a bill again.</span></h1>
+        <p class="sub">Duezo tracks every bill with clear countdowns, smart reminders, and fast AI-assisted entry — without linking your bank account.</p>
+        <div class="cta-row">
+          <a class="btn primary" href="#">Download Free for iPhone</a>
+          <a class="btn ghost" href="#features">See how it works</a>
+        </div>
+        <div class="chips">
+          <div class="chip"><span class="dot"></span>No bank linking required</div>
+          <div class="chip"><span class="dot"></span>Built for iPhone</div>
+          <div class="chip"><span class="dot"></span>Free to download</div>
+        </div>
+      </div>
+      <div style="position:relative;">
+        <div class="phone-glow"></div>
+        <div class="phone-shell">
+          <div class="phone-screen">
+            <img src="new_dashboard.jpg" alt="Duezo dashboard screenshot" />
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="block">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">The problem</div>
+        <h2>You know what you owe.<br><span style="color:#71717a;">You just can’t track when it’s all due.</span></h2>
+        <p>Budgeting apps are overkill, bank linking is a trust hurdle, and calendar apps don’t understand bills. Duezo does.</p>
+      </div>
+      <div class="grid-3">
+        <div class="card"><h3>Budgeting apps are overkill</h3><p>You wanted bill reminders, not a full financial operating system. Duezo stays focused on due dates, not budget bloat.</p></div>
+        <div class="card"><h3>Bank linking is a trust hurdle</h3><p>Handing over account credentials just to track due dates feels wrong. Duezo works without your bank login.</p></div>
+        <div class="card"><h3>Calendar apps are too dumb</h3><p>Dates alone are not enough. You need bill-specific urgency, reminders, and a clean view of what’s due next.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="features" class="block">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">How it works</div>
+        <h2>Set up in 60 seconds</h2>
+        <p>Three steps. No bank login. No spreadsheet.</p>
+      </div>
+      <div class="grid-3">
+        <div class="card"><div class="mini">01</div><div class="feature-icon"></div><h3>Download Duezo</h3><p>Free on the App Store. Create an account in seconds with zero banking credentials.</p></div>
+        <div class="card"><div class="mini">02</div><div class="feature-icon">✦</div><h3>Add your bills</h3><p>Use Quick Add with vendor autocomplete, or snap a bill photo and let AI extract the details.</p></div>
+        <div class="card"><div class="mini">03</div><div class="feature-icon">⏱</div><h3>Watch countdowns</h3><p>Every bill gets a countdown card. You can see what’s due next instantly without digging around.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="why" class="block">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Why Duezo</div>
+        <h2>Not a budget app.<br><span style="color:#71717a; font-style:italic; font-weight:500;">Not even close.</span></h2>
+        <p>Duezo does one thing: track your bills and count down to every due date. No bank linking. No budgets. No bloat.</p>
+      </div>
+      <div class="grid-2">
+        <div class="card"><div class="feature-icon">⏳</div><h3>Countdown on every bill</h3><p>Days remaining is the hero state — not just a boring date in a list.</p></div>
+        <div class="card"><div class="feature-icon">🔒</div><h3>No bank linking. Ever.</h3><p>Your bank login stays with your bank. Duezo works without Plaid or credential sharing.</p></div>
+        <div class="card"><div class="feature-icon">🔔</div><h3>Push reminders that land early</h3><p>Get notified before the late fee shows up. Free gets basics, Pro unlocks custom timing.</p></div>
+        <div class="card"><div class="feature-icon">📷</div><h3>AI photo scan</h3><p>Snap a photo of a bill or statement and pull in the vendor, amount, and due date fast.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Built by someone who had this problem</div>
+      </div>
+      <div class="quote">
+        <p>“I paid a late fee on a bill I had the money for. I just forgot the date. Every finance app wanted my bank login. I didn’t want budgets, categories, or spending reports. I wanted one thing: a countdown to every due date. So I built it.”</p>
+        <div class="by">— The founder of Duezo, who still uses it every day</div>
+      </div>
+      <div class="grid-3">
+        <div class="card"><h3>No bank linking</h3><p>No credentials collected. No Plaid. No account access required.</p></div>
+        <div class="card"><h3>Bills only, no bloat</h3><p>Not a budgeting suite. Not a spending dashboard. Just bill tracking done well.</p></div>
+        <div class="card"><h3>Indie-built for iPhone</h3><p>Native iOS experience with widgets, reminders, and direct founder support.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="pricing" class="block pricing">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Pricing</div>
+        <h2>Start free. Upgrade when you’re ready.</h2>
+        <p>Free to download. App Store billing. Simple and clear.</p>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Free</h3>
+          <p style="margin-bottom:16px;color:#71717a;">Get started with the basics</p>
+          <div class="price">$0 <span>forever</span></div>
+          <ul class="clean">
+            <li>Up to 5 bills</li>
+            <li>Countdown dashboard</li>
+            <li>Quick Add and Photo Scan</li>
+            <li>Basic reminders</li>
+            <li>Purple theme</li>
+          </ul>
+          <a class="btn ghost" href="#">Download Free</a>
+        </div>
+        <div class="card" style="border-color:rgba(139,92,246,.3); background:linear-gradient(180deg, rgba(139,92,246,.08), rgba(255,255,255,.02));">
+          <div class="mini" style="margin-bottom:10px;">Pro</div>
+          <h3>Duezo Pro</h3>
+          <p style="margin-bottom:16px;color:#71717a;">Everything, unlimited</p>
+          <div class="price">$19.99 <span>/year</span></div>
+          <p style="color:#71717a;margin:0 0 16px;">or $3.99/month · 7-day free trial on yearly</p>
+          <ul class="clean">
+            <li>Unlimited bills</li>
+            <li>Custom reminders</li>
+            <li>All widgets and themes</li>
+            <li>Calendar view</li>
+            <li>Payment history and export</li>
+            <li>Gmail bill sync</li>
+          </ul>
+          <a class="btn primary" href="#">Start Free Trial</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq" class="block">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">FAQ</div>
+        <h2>Questions? Answered.</h2>
+      </div>
+      <div class="faq">
+        <div class="faq-item"><strong>Do I need to link my bank account?</strong><p>No. Duezo never asks for your bank login or financial credentials.</p></div>
+        <div class="faq-item"><strong>Is Duezo free?</strong><p>Yes. The free plan tracks up to 5 bills, and Pro unlocks unlimited bills plus more features.</p></div>
+        <div class="faq-item"><strong>What does Pro cost?</strong><p>$3.99/month or $19.99/year, with a 7-day free trial on the yearly plan.</p></div>
+        <div class="faq-item"><strong>Does Duezo work on Android?</strong><p>Not yet. Duezo is currently iPhone-only and built as a native iOS app.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="wrap final">
+      <h2>Ready to stop<br><span class="grad">missing bills?</span></h2>
+      <p>Download Duezo and set up your first bill in minutes. Free on iPhone. No bank linking required.</p>
+      <a class="btn primary" href="#">Download Free for iPhone</a>
+    </div>
+  </section>
+
+  <div class="footer">
+    <div class="wrap">Preview generated from the current landing-page code direction for review.</div>
+  </div>
+</body>
+</html>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { checkBearerSecret } from '@/lib/auth/bearer-secret';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,11 +48,19 @@ interface RevenueCatWebhookBody {
 }
 
 export async function POST(request: NextRequest) {
-  // Verify webhook authorization
-  const authHeader = request.headers.get('authorization');
-  const expectedSecret = process.env.REVENUCAT_WEBHOOK_SECRET;
+  // Verify webhook authorization. Fail CLOSED: if the secret is not configured
+  // we reject rather than trusting the body and mutating subscription state
+  // through the service-role client.
+  const auth = checkBearerSecret(
+    request.headers.get('authorization'),
+    process.env.REVENUCAT_WEBHOOK_SECRET
+  );
 
-  if (expectedSecret && authHeader !== `Bearer ${expectedSecret}`) {
+  if (!auth.ok) {
+    if (auth.reason === 'missing_secret') {
+      console.error('[RevenueCat Webhook] REVENUCAT_WEBHOOK_SECRET is not configured — refusing webhook');
+      return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 });
+    }
     console.error('[RevenueCat Webhook] Invalid authorization header');
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }

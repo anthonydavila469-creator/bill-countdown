@@ -91,9 +91,8 @@ export async function GET(request: Request) {
       admin.from('user_preferences').select('user_id, created_at')
         .gte('created_at', thirtyDaysAgoISO),
 
-      // Photo scan bills (source = 'photo_scan')
-      admin.from('bills').select('id', { count: 'exact', head: true })
-        .eq('source', 'photo_scan'),
+      // Photo scan bills (count scan sessions as photo bills)
+      admin.from('bill_scan_sessions').select('id', { count: 'exact', head: true }),
     ]);
 
     const totalUsers = totalUsersRes.count || 0;

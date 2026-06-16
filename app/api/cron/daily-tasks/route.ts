@@ -1,30 +1,33 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { generateInAppReminders } from '@/lib/notifications/generate-reminders';
+import { cronAuthGuard } from '@/lib/auth/cron-auth';
 import type { Bill } from '@/types';
 
 /**
  * POST /api/cron/daily-tasks
- * Combined daily cron job that runs reminders + auto-sync + in-app feed generation
- * Runs at 8am UTC daily (Hobby plan limits to 1 cron job)
+ * Combined daily cron job that runs reminders + in-app feed generation.
+ * Runs at 8am UTC daily (Hobby plan limits to 1 cron job).
+ *
+ * Note: mailbox auto-sync was removed here — email scanning is not part of the
+ * current Duezo product (owner decision 2026-06-14). See
+ * audits/EMAIL_PRIVACY_READINESS.md.
  */
 export async function POST(request: Request) {
   try {
-    // Verify cron secret
-    const authHeader = request.headers.get('authorization');
-    const expectedToken = `Bearer ${process.env.CRON_SECRET}`;
+    // Verify cron secret (fails closed if CRON_SECRET is missing)
+    const denied = cronAuthGuard(request);
+    if (denied) return denied;
 
-    if (!authHeader || authHeader !== expectedToken) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const authHeader = request.headers.get('authorization')!;
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.duezo.app';
-    const results: { reminders?: unknown; autoSync?: unknown; inAppReminders?: unknown; errors: string[] } = {
+    const results: { reminders?: unknown; inAppReminders?: unknown; errors: string[] } = {
       errors: [],
     };
 
     // Run bill reminders
     try {
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.duezo.app';
       const remindersRes = await fetch(`${baseUrl}/api/cron/send-bill-reminders`, {
         method: 'POST',
         headers: { authorization: authHeader },
@@ -32,17 +35,6 @@ export async function POST(request: Request) {
       results.reminders = await remindersRes.json();
     } catch (error) {
       results.errors.push(`Reminders failed: ${error instanceof Error ? error.message : 'Unknown'}`);
-    }
-
-    // Run auto-sync
-    try {
-      const syncRes = await fetch(`${baseUrl}/api/cron/auto-sync-bills`, {
-        method: 'POST',
-        headers: { authorization: authHeader },
-      });
-      results.autoSync = await syncRes.json();
-    } catch (error) {
-      results.errors.push(`Auto-sync failed: ${error instanceof Error ? error.message : 'Unknown'}`);
     }
 
     // Generate in-app reminder notifications for all users with upcoming bills
@@ -90,15 +82,11 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
-  const authHeader = request.headers.get('authorization');
-  const expectedToken = `Bearer ${process.env.CRON_SECRET}`;
-
-  if (!authHeader || authHeader !== expectedToken) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const denied = cronAuthGuard(request);
+  if (denied) return denied;
 
   return NextResponse.json({
-    message: 'Daily tasks cron - combines reminders + auto-sync',
+    message: 'Daily tasks cron - combines reminders + in-app feed generation',
     schedule: '0 8 * * * (8am UTC daily)',
   });
 }

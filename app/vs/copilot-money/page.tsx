@@ -5,7 +5,7 @@ import { ArrowRight, Check, X } from 'lucide-react';
 export const metadata: Metadata = {
   title: 'Duezo vs Copilot Money: Is Copilot Worth $15/mo? (2026) | Duezo',
   description:
-    'Compare Duezo ($4.99/mo) vs Copilot Money ($14.99/mo). Copilot is a full budgeting app. Duezo is focused on bill tracking. Save $120/year if you just need bills.',
+    'Compare Duezo ($3.99/mo) vs Copilot Money ($14.99/mo). Copilot is a full budgeting app. Duezo is focused on bill tracking. Save $130/year if you just need bills.',
   keywords: [
     'duezo vs copilot money',
     'copilot money alternative',
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'Duezo vs Copilot Money: Is Copilot Worth $15/mo?',
-    description: 'Copilot is $14.99/mo for budgeting. Duezo is $4.99/mo for bill tracking. Do you need to pay 3x more?',
+    description: 'Copilot is $14.99/mo for budgeting. Duezo is $3.99/mo for bill tracking. Do you need to pay 4x more?',
     url: 'https://duezo.app/vs/copilot-money',
     siteName: 'Duezo',
     type: 'website',
@@ -26,11 +26,11 @@ export const metadata: Metadata = {
 type Row = [string, string | boolean, string | boolean];
 
 const rows: Row[] = [
-  ['Monthly price', '$4.99/mo', '$14.99/mo'],
-  ['Annual price', '$39.99/yr', '$179.88/yr'],
+  ['Monthly price', '$3.99/mo', '$14.99/mo'],
+  ['Annual price', '$19.99/yr', '$179.88/yr'],
   ['Bill tracking', true, true],
   ['Bill countdown timers', true, false],
-  ['AI email scanning', true, false],
+  ['Quick Add & photo scan', true, false],
   ['Budgeting tools', false, true],
   ['Investment tracking', false, true],
   ['Net worth tracking', false, true],
@@ -109,9 +109,9 @@ export default function VsCopilotMoneyPage() {
               {[
                 'Just want to track bill due dates',
                 'Don\'t need full budgeting or investment tracking',
-                'Want to save $10/mo ($120/year)',
+                'Want to save $11/mo ($132/year)',
                 'Don\'t want to link your bank account',
-                'Prefer Gmail-based bill detection',
+                'Prefer Quick Add and photo scan',
                 'Want countdown timers for bills',
               ].map((item, i) => (
                 <li key={i} className="flex items-start gap-2">
@@ -149,8 +149,8 @@ export default function VsCopilotMoneyPage() {
           <div>
             <h3 className="font-semibold text-lg mb-2">💰 Price: 3x More Expensive</h3>
             <p className="text-zinc-400">
-              Copilot is <strong className="text-white">$14.99/mo</strong> ($180/year). Duezo is <strong className="text-violet-400">$4.99/mo</strong> ($40/year). 
-              That&apos;s a <strong className="text-white">$140 annual difference</strong>. If all you need is bill tracking, that&apos;s a lot of money for features you won&apos;t use.
+              Copilot is <strong className="text-white">$14.99/mo</strong> ($180/year). Duezo is <strong className="text-violet-400">$3.99/mo</strong> ($19.99/year).
+              That&apos;s a <strong className="text-white">$160 annual difference</strong>. If all you need is bill tracking, that&apos;s a lot of money for features you won&apos;t use.
             </p>
           </div>
           <div>
@@ -164,7 +164,7 @@ export default function VsCopilotMoneyPage() {
             <h3 className="font-semibold text-lg mb-2">⏱️ Bill-Specific Features</h3>
             <p className="text-zinc-400">
               Copilot can track bills as recurring expenses. Duezo is <strong className="text-white">built specifically for bills</strong> — 
-              with countdown timers, price increase alerts, and AI-powered email scanning. If bills are your main concern, Duezo is more focused and easier to use.
+              with countdown timers, price increase alerts, and AI photo scan. If bills are your main concern, Duezo is more focused and easier to use.
             </p>
           </div>
         </div>
@@ -193,12 +193,12 @@ export default function VsCopilotMoneyPage() {
           If you just need bill tracking, there&apos;s no reason to pay $15/mo.
         </p>
         <Link
-          href="/signup"
+          href="https://apps.apple.com/us/app/duezo/id6759273131"
           className="inline-flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-semibold px-10 py-4 rounded-xl text-lg transition-colors"
         >
-          Get Started Free <ArrowRight className="w-5 h-5" />
+          Download on the App Store <ArrowRight className="w-5 h-5" />
         </Link>
-        <p className="text-zinc-500 text-sm mt-4">$4.99/mo · 67% less than Copilot · Cancel anytime</p>
+        <p className="text-zinc-500 text-sm mt-4">$3.99/mo · 73% less than Copilot · Cancel anytime</p>
       </section>
 
       <div className="max-w-4xl mx-auto px-6 pb-16 flex flex-wrap justify-center gap-6 text-sm text-zinc-500">
